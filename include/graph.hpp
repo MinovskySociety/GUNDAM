@@ -86,6 +86,7 @@ namespace GUNDAM{
     public:
         Graph() = default;
 
+
         Graph& operator=(const Graph& ) = delete;
         Graph& operator=(const Graph&&) = delete;
 
