@@ -1,0 +1,79 @@
+# depslib dependency file v1.0
+1567693561 source:c:\users\f\documents\papers\gundam\gundam\main.cpp
+	<iostream>
+	<fstream>
+	"include/vertex.hpp"
+	"include/graph_configure.hpp"
+	"include/graph.hpp"
+	"include/algorithm.hpp"
+	"include/test.hpp"
+
+1567159743 c:\users\f\documents\papers\gundam\gundam\include\label.hpp
+	<type_traits>
+	<assert.h>
+	"define.hpp"
+
+1567442550 c:\users\f\documents\papers\gundam\gundam\include\define.hpp
+
+1565679009 c:\users\f\documents\papers\gundam\gundam\include\node.hpp
+	"label.hpp"
+	"configures.hpp"
+
+1567668212 c:\users\f\documents\papers\gundam\gundam\include\attribute.hpp
+	<assert.h>
+	<vector>
+	"define.hpp"
+	"configures.hpp"
+
+1565511794 c:\users\f\documents\papers\gundam\gundam\include\node_configure.hpp
+	<assert.h>
+	"type_check.hpp"
+
+1565609407 c:\users\f\documents\papers\gundam\gundam\include\type_check.hpp
+
+1567668708 c:\users\f\documents\papers\gundam\gundam\include\configures.hpp
+	"define.hpp"
+
+1565786087 c:\users\f\documents\papers\gundam\gundam\include\edge.hpp
+	"define.hpp"
+	"configures.hpp"
+
+1565675763 c:\users\f\documents\papers\gundam\gundam\include\attribute_node.hpp
+	<type_traits>
+	<map>
+	<memory>
+	<list>
+	"node.hpp"
+	"attribute.hpp"
+
+1566041255 c:\users\f\documents\papers\gundam\gundam\include\weighted_edge.hpp
+	"define.hpp"
+	"configures.hpp"
+
+1567694348 c:\users\f\documents\papers\gundam\gundam\include\vertex.hpp
+	"configures.hpp"
+	"attribute.hpp"
+	"label.hpp"
+	<memory>
+	<sstream>
+	<vector>
+	<list>
+	<map>
+	<set>
+
+1567693618 c:\users\f\documents\papers\gundam\gundam\include\graph.hpp
+	<map>
+	"vertex.hpp"
+	"graph_configure.hpp"
+
+1567693365 c:\users\f\documents\papers\gundam\gundam\include\graph_configure.hpp
+	"configures.hpp"
+	"label.hpp"
+
+1567673101 c:\users\f\documents\papers\gundam\gundam\include\algorithm.hpp
+	<set>
+	<queue>
+	"graph.hpp"
+
+1567693539 c:\users\f\documents\papers\gundam\gundam\include\test.hpp
+
