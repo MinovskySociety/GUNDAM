@@ -7,13 +7,13 @@
 //#include "include/edge.hpp"
 //#include "include/weighted_edge.hpp"
 
-#include "include/vertex.hpp"
+#include "../include/vertex.hpp"
 //#include "include/configures.hpp"
-#include "include/graph_configure.hpp"
-#include "include/graph.hpp"
+#include "../include/graph_configure.hpp"
+#include "../include/graph.hpp"
 
-#include "include/algorithm.hpp"
-#include "include/test.hpp"
+#include "../include/algorithm.hpp"
+#include "../include/test.hpp"
 
 
 int main(){
@@ -135,8 +135,8 @@ int main(){
 
     GraphType G2(G);
 
-    std::ifstream vertex_file("./benchmark/graph1/vertex.txt");
-    std::ifstream   edge_file("./benchmark/graph1/edge.txt");
+    std::ifstream vertex_file("C:\\Users\\Administrator\\Desktop\\buaa\\GUNDAM-dev\\benchmark\\graph1\\vertex.txt");
+    std::ifstream   edge_file("C:\\Users\\Administrator\\Desktop\\buaa\\GUNDAM-dev\\benchmark\\graph1\\edge.txt");
 
     test::LoadGraph(G,vertex_file,
                         edge_file);

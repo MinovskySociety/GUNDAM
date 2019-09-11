@@ -2991,7 +2991,7 @@ private:
                     vertex,                      /// dst_vertex_ptr
                     ret.duplicate_cardinality(), /// duplicate_cardinality
                     edge_label,                  /// edge label
-                    this);                       /// src_vertex_ptr
+                    &(*this));                   /// src_vertex_ptr
     }
 
     /// operate on the third level container
