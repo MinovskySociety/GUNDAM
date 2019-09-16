@@ -135,8 +135,8 @@ int main(){
 
     GraphType G2(G);
 
-    std::ifstream vertex_file("C:\\Users\\Administrator\\Desktop\\buaa\\GUNDAM-dev\\benchmark\\graph1\\vertex.txt");
-    std::ifstream   edge_file("C:\\Users\\Administrator\\Desktop\\buaa\\GUNDAM-dev\\benchmark\\graph1\\edge.txt");
+    std::ifstream vertex_file("..\\..\\..\\..\\benchmark\\graph1\\vertex.txt");
+    std::ifstream   edge_file("..\\..\\..\\..\\benchmark\\graph1\\edge.txt");
 
     test::LoadGraph(G,vertex_file,
                         edge_file);

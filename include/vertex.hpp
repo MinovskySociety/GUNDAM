@@ -2987,11 +2987,12 @@ private:
         ret = this->edges_.out_edges().InsertVertexContainer(edge_label).first
                                       .InsertCompoundVertex (  vertex  ).first;
         ret.AddDecomposedEdge();
+		auto tmp = this;	// *** Ö±½ÓĞ´this±àÒë´íÎó
         return typename iterator::template edge<IteratorType::SingleElement>(
                     vertex,                      /// dst_vertex_ptr
                     ret.duplicate_cardinality(), /// duplicate_cardinality
                     edge_label,                  /// edge label
-                    &(*this));                   /// src_vertex_ptr
+					tmp);                   /// src_vertex_ptr
     }
 
     /// operate on the third level container
