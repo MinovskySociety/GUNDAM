@@ -1,19 +1,19 @@
 #include <iostream>
 #include  <fstream>
 
-//#include "include/label.hpp"
-//#include "include/node.hpp"
-//#include "include/attribute_node.hpp"
-//#include "include/edge.hpp"
-//#include "include/weighted_edge.hpp"
+//#include "gundam/label.hpp"
+//#include "gundam/node.hpp"
+//#include "gundam/attribute_node.hpp"
+//#include "gundam/edge.hpp"
+//#include "gundam/weighted_edge.hpp"
 
-#include "../include/vertex.hpp"
-//#include "include/configures.hpp"
-#include "../include/graph_configure.hpp"
-#include "../include/graph.hpp"
+#include "gundam/vertex.hpp"
+//#include "gundam/configures.hpp"
+#include "gundam/graph_configure.hpp"
+#include "gundam/graph.hpp"
+#include "gundam/algorithm.hpp"
 
-#include "../include/algorithm.hpp"
-#include "../include/test.hpp"
+#include "test.hpp"
 
 
 int main(){
