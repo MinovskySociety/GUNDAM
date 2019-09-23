@@ -284,14 +284,14 @@ private:
     class DecomposedEdgeContainer_<ContainerType::Set,
                                    DecomposedEdgeType_>{
     private:
-        std::set<DecomposedEdgeType_> decomposed_edges_;
+        using InnerContainerType = std::set<DecomposedEdgeType_>;
+        InnerContainerType decomposed_edges_;
 
     public:
         using DecomposedEdgeType = DecomposedEdgeType_;
-        using const_iterator
-            = typename std::set<DecomposedEdgeType_>::const_iterator;
-        using       iterator
-            = typename std::set<DecomposedEdgeType_>::      iterator;
+        using const_iterator = typename InnerContainerType::const_iterator;
+        using       iterator = typename InnerContainerType::      iterator;
+        using      size_type = typename InnerContainerType::     size_type;
 
         inline const_iterator cbegin() const{
             return this->decomposed_edges_.cbegin();
@@ -305,8 +305,11 @@ private:
         inline iterator end(){
             return this->decomposed_edges_.end();
         }
-        inline DuplicateNumType size() const{
+        inline size_type size() const{
             return this->decomposed_edges_.size();
+        }
+        inline bool empty() const{
+            return this->decomposed_edges_.empty();
         }
 
         template<typename... Args>
@@ -322,17 +325,17 @@ private:
     class DecomposedEdgeContainer_<ContainerType::List,
                                    DecomposedEdgeType_>{
     private:
-        std::list<DecomposedEdgeType_> decomposed_edges_;
+        using InnerContainerType = std::list<DecomposedEdgeType_>;
+        InnerContainerType decomposed_edges_;
 
         static_assert(decomposed_edge_container_sort_type == SortType::None,
                      "other sorting type are not implemented");
 
     public:
         using DecomposedEdgeType = DecomposedEdgeType_;
-        using const_iterator
-            = typename std::list<DecomposedEdgeType_>::const_iterator;
-        using       iterator
-            = typename std::list<DecomposedEdgeType_>::      iterator;
+        using const_iterator = typename InnerContainerType::const_iterator;
+        using       iterator = typename InnerContainerType::      iterator;
+        using      size_type = typename InnerContainerType::     size_type;
 
         inline const_iterator cbegin() const{
             return this->decomposed_edges_.cbegin();
@@ -346,8 +349,11 @@ private:
         inline iterator end(){
             return this->decomposed_edges_.end();
         }
-        inline DuplicateNumType size() const{
+        inline size_type size() const{
             return this->decomposed_edges_.size();
+        }
+        inline bool empty() const{
+            return this->decomposed_edges_.empty();
         }
 
         template<typename... Args>
@@ -371,17 +377,17 @@ private:
     class DecomposedEdgeContainer_<ContainerType::Vector,
                                    DecomposedEdgeType_>{
     private:
-        std::vector<DecomposedEdgeType_> decomposed_edges_;
+        using InnerContainerType = std::vector<DecomposedEdgeType_>;
+        InnerContainerType decomposed_edges_;
 
         static_assert(decomposed_edge_container_sort_type == SortType::None,
                      "other sorting type are not implemented");
 
     public:
         using DecomposedEdgeType = DecomposedEdgeType_;
-        using const_iterator
-            = typename std::vector<DecomposedEdgeType_>::const_iterator;
-        using       iterator
-            = typename std::vector<DecomposedEdgeType_>::      iterator;
+        using const_iterator = typename InnerContainerType::const_iterator;
+        using       iterator = typename InnerContainerType::      iterator;
+        using      size_type = typename InnerContainerType::     size_type;
 
         inline const_iterator cbegin() const{
             return this->decomposed_edges_.cbegin();
@@ -395,8 +401,11 @@ private:
         inline iterator end(){
             return this->decomposed_edges_.end();
         }
-        inline DuplicateNumType size() const{
+        inline size_type size() const{
             return this->decomposed_edges_.size();
+        }
+        inline bool empty() const{
+            return this->decomposed_edges_.empty();
         }
         inline void shrink_to_fit() const{
             this->decomposed_edges_.shrink_to_fit();
@@ -439,14 +448,14 @@ private:
     class VertexContainer_<ContainerType::Set,
                            CompoundVertexType_>{
     private:
-        std::set<CompoundVertexType_> compound_vertexes_;
+        using InnerContainerType = std::set<CompoundVertexType_>;
+        InnerContainerType compound_vertexes_;
 
     public:
         using CompoundVertexType = CompoundVertexType_;
-        using const_iterator
-            = typename std::set<CompoundVertexType_>::const_iterator;
-        using       iterator
-            = typename std::set<CompoundVertexType_>::      iterator;
+        using const_iterator = typename InnerContainerType::const_iterator;
+        using       iterator = typename InnerContainerType::      iterator;
+        using      size_type = typename InnerContainerType::     size_type;
 
         inline const_iterator cbegin() const{
             return this->compound_vertexes_.cbegin();
@@ -459,6 +468,12 @@ private:
         }
         inline iterator end(){
             return this->compound_vertexes_.end();
+        }
+        inline size_type size() const{
+            return this->compound_vertexes_.size();
+        }
+        inline bool empty() const{
+            return this->compound_vertexes_.empty();
         }
 
         template<typename... Args>
@@ -474,17 +489,17 @@ private:
     class VertexContainer_<ContainerType::List,
                            CompoundVertexType_>{
     private:
-        std::list<CompoundVertexType_> compound_vertexes_;
+        using InnerContainerType = std::list<CompoundVertexType_>;
+        InnerContainerType compound_vertexes_;
 
         static_assert(vertex_container_sort_type == SortType::None,
                      "other sorting type are not implemented");
 
     public:
         using CompoundVertexType = CompoundVertexType_;
-        using const_iterator
-            = typename std::list<CompoundVertexType_>::const_iterator;
-        using       iterator
-            = typename std::list<CompoundVertexType_>::      iterator;
+        using const_iterator = typename InnerContainerType::const_iterator;
+        using       iterator = typename InnerContainerType::      iterator;
+        using      size_type = typename InnerContainerType::     size_type;
 
         inline const_iterator cbegin() const{
             return this->compound_vertexes_.cbegin();
@@ -497,6 +512,12 @@ private:
         }
         inline iterator end(){
             return this->compound_vertexes_.end();
+        }
+        inline size_type size() const{
+            return this->compound_vertexes_.size();
+        }
+        inline bool empty() const{
+            return this->compound_vertexes_.empty();
         }
 
         template<typename... Args>
@@ -520,17 +541,17 @@ private:
     class VertexContainer_<ContainerType::Vector,
                            CompoundVertexType_>{
     private:
-        std::vector<CompoundVertexType_> compound_vertexes_;
+        using InnerContainerType = std::vector<CompoundVertexType_>;
+        InnerContainerType compound_vertexes_;
 
         static_assert(vertex_container_sort_type == SortType::None,
                      "other sorting type are not implemented");
 
     public:
         using CompoundVertexType = CompoundVertexType_;
-        using const_iterator
-            = typename std::vector<CompoundVertexType_>::const_iterator;
-        using       iterator
-            = typename std::vector<CompoundVertexType_>::      iterator;
+        using const_iterator = typename InnerContainerType::const_iterator;
+        using       iterator = typename InnerContainerType::      iterator;
+        using      size_type = typename InnerContainerType::     size_type;
 
         inline const_iterator cbegin() const{
             return this->compound_vertexes_.cbegin();
@@ -543,6 +564,12 @@ private:
         }
         inline iterator end(){
             return this->compound_vertexes_.end();
+        }
+        inline size_type size() const{
+            return this->compound_vertexes_.size();
+        }
+        inline bool empty() const{
+            return this->compound_vertexes_.empty();
         }
         inline void shrink_to_fit() const{
             this->compound_vertexes_.shrink_to_fit();
@@ -588,16 +615,15 @@ private:
                               EdgeLabelType_,
                               VertexContainerType_>{
     private:
-        std::map<const EdgeLabelType_,VertexContainerType_> edge_labels_;
+        using InnerContainerType = std::map<const EdgeLabelType_,
+                                            VertexContainerType_>;
+        InnerContainerType edge_labels_;
 
     public:
         using VertexContainerType = VertexContainerType_;
-        using const_iterator
-            = typename std::map<const EdgeLabelType_,
-                                      VertexContainerType_>::const_iterator;
-        using       iterator
-            = typename std::map<const EdgeLabelType_,
-                                      VertexContainerType_>::      iterator;
+        using const_iterator = typename InnerContainerType::const_iterator;
+        using       iterator = typename InnerContainerType::      iterator;
+        using      size_type = typename InnerContainerType::     size_type;
 
         inline const_iterator cbegin() const{
             return this->edge_labels_.cbegin();
@@ -611,22 +637,31 @@ private:
         inline iterator end(){
             return this->edge_labels_.end();
         }
+        inline size_type size() const{
+            return this->edge_labels_.size();
+        }
+        inline bool empty() const{
+            return this->edge_labels_.empty();
+        }
 
         inline bool HasEdgeLabel(const EdgeLabelType_& edge_label) const{
             const auto it = this->edge_labels_.find(edge_label);
             return it != this->edge_labels_.cend();
         }
 
-        inline const VertexContainerType_&
-               const_vertex_container(const EdgeLabelType_& edge_label) const{
-            assert(this->HasEdgeLabel(edge_label));
-            return this->edge_labels_.find(edge_label)->second;
+        inline std::pair<const VertexContainerType_&,bool>
+                         const_vertex_container(
+                               const EdgeLabelType_& edge_label) const{
+            const auto it = this->edge_labels_.find(edge_label);
+            return std::make_pair(it->second,
+                                  it!=this->edge_labels_.cend());
         }
 
-        inline VertexContainerType_&
-               vertex_container(const EdgeLabelType_& edge_label){
-            assert(this->HasEdgeLabel(edge_label));
-            return this->edge_labels_.find(edge_label)->second;
+        inline std::pair<VertexContainerType_&,bool>
+                         vertex_container(const EdgeLabelType_& edge_label){
+            auto it = this->edge_labels_.find(edge_label);
+            return std::make_pair(it->second,
+                                  it!=this->edge_labels_.cend());
         }
 
         inline std::pair<VertexContainerType_&,bool>
@@ -642,21 +677,20 @@ private:
     class EdgeLabelContainer_<ContainerType::List,
                               EdgeLabelType_,VertexContainerType_>{
     private:
-        using EdgeLabelVertexContainerPair
-         = std::pair<const EdgeLabelType_,
-                           VertexContainerType_>;
+        using EdgeLabelVertexContainerPair = std::pair<const EdgeLabelType_,
+                                                       VertexContainerType_>;
+        using InnerContainerType = std::list<EdgeLabelVertexContainerPair>;
 
-        std::list<EdgeLabelVertexContainerPair> edge_labels_;
+        InnerContainerType edge_labels_;
 
         static_assert(edge_label_container_sort_type == SortType::None,
                      "other sorting type are not implemented");
 
     public:
         using VertexContainerType = VertexContainerType_;
-        using const_iterator
-          = typename std::list<EdgeLabelVertexContainerPair>::const_iterator;
-        using       iterator
-          = typename std::list<EdgeLabelVertexContainerPair>::      iterator;
+        using const_iterator = typename InnerContainerType::const_iterator;
+        using       iterator = typename InnerContainerType::      iterator;
+        using      size_type = typename InnerContainerType::     size_type;
 
         inline const_iterator cbegin() const{
             return this->edge_labels_.cbegin();
@@ -669,6 +703,12 @@ private:
         }
         inline iterator end(){
             return this->edge_labels_.end();
+        }
+        inline size_type size() const{
+            return this->edge_labels_.size();
+        }
+        inline bool empty() const{
+            return this->edge_labels_.empty();
         }
 
         inline bool HasEdgeLabel(const EdgeLabelType_& edge_label) const{
@@ -683,40 +723,39 @@ private:
             return false;
         }
 
-        inline const VertexContainerType_&
-               const_vertex_container(const EdgeLabelType_& edge_label) const{
-            assert(this->HasEdgeLabel(edge_label));
+        inline std::pair<const VertexContainerType_&,bool>
+                         const_vertex_container(
+                               const EdgeLabelType_& edge_label) const{
             if (edge_label_container_sort_type == SortType::None){
                 for (const auto& it : this->edge_labels_)
                     if (it.first == edge_label)
-                        return it.second;
-                assert(false);
+                        return std::make_pair(it.second,true);
+                return std::make_pair(this->edge_labels_.back().second,false);
             }
+            /// other sorting type are not implemented
             assert(false);
-            return this->edge_labels_.front().second;
+            return std::make_pair(this->edge_labels_.back().second,false);
         }
 
-        inline VertexContainerType_&
-               vertex_container(const EdgeLabelType_& edge_label){
-            assert(this->HasEdgeLabel(edge_label));
+        inline std::pair<VertexContainerType_&,bool>
+                         vertex_container(const EdgeLabelType_& edge_label){
             if (edge_label_container_sort_type == SortType::None){
                 for (auto& it : this->edge_labels_)
                     if (it.first == edge_label)
-                        return it.second;
-                assert(false);
+                        return std::make_pair(it.second,true);
+                return std::make_pair(this->edge_labels_.back().second,false);
             }
+            /// other sorting type are not implemented
             assert(false);
-            return this->edge_labels_.front().second;
+            return std::make_pair(this->edge_labels_.back().second,false);
         }
 
         inline std::pair<VertexContainerType_&,bool>
                    InsertVertexContainer(const EdgeLabelType_& edge_label){
             if (edge_label_container_sort_type == SortType::None){
                 for (auto& it : this->edge_labels_)
-                    if (it.first == edge_label){
-                        /// already exist
+                    if (it.first == edge_label)
                         return std::make_pair(it.second,false);
-                    }
                 /// not exist, has inserted
                 this->edge_labels_.emplace_back(edge_label,
                                                 VertexContainerType_());
@@ -739,17 +778,19 @@ private:
            = std::pair<EdgeLabelType_,
                        VertexContainerType_>;
 
-        std::vector<EdgeLabelVertexContainerPair> edge_labels_;
+        using InnerContainerType
+            = std::vector<EdgeLabelVertexContainerPair>;
+
+        InnerContainerType edge_labels_;
 
         static_assert(edge_label_container_sort_type == SortType::None,
                      "other sorting type are not implemented");
 
     public:
         using VertexContainerType = VertexContainerType_;
-        using const_iterator
-          = typename std::vector<EdgeLabelVertexContainerPair>::const_iterator;
-        using       iterator
-          = typename std::vector<EdgeLabelVertexContainerPair>::      iterator;
+        using const_iterator = typename InnerContainerType::const_iterator;
+        using       iterator = typename InnerContainerType::      iterator;
+        using      size_type = typename InnerContainerType::     size_type;
 
         inline const_iterator cbegin() const{
             return this->edge_labels_.cbegin();
@@ -763,27 +804,15 @@ private:
         inline iterator end(){
             return this->edge_labels_.end();
         }
-
-        inline std::pair<VertexContainerType_&,bool>
-                   InsertVertexContainer(const EdgeLabelType_& edge_label){
-            if (edge_label_container_sort_type == SortType::None){
-                for (auto& it : this->edge_labels_){
-                    if (it.first == edge_label){
-                        /// already exist
-                        return std::pair<VertexContainerType_&,bool>
-                                                    (it.second,false);
-                    }
-                }
-                /// not exist, has inserted
-                this->edge_labels_.emplace_back(edge_label,
-                                                VertexContainerType_());
-                return std::pair<VertexContainerType_&,bool>
-                     (this->edge_labels_.back().second,true);
-            }
-            /// other sorting type are not implemented
-            assert(false);
-            return std::pair<VertexContainerType_&,bool>
-                 (this->edge_labels_.back().second,true);
+        inline size_type size() const{
+            return this->edge_labels_.size();
+        }
+        inline bool empty() const{
+            return this->edge_labels_.empty();
+        }
+        inline void shrink_to_fit() const{
+            this->edge_labels_.shrink_to_fit();
+            return;
         }
 
         inline bool HasEdgeLabel(const EdgeLabelType_& edge_label) const{
@@ -798,35 +827,50 @@ private:
             return false;
         }
 
-        inline VertexContainerType_&
-               vertex_container(const EdgeLabelType_& edge_label){
-            assert(this->HasEdgeLabel(edge_label));
-            if (edge_label_container_sort_type == SortType::None){
-                for (auto& it : this->edge_labels_)
-                    if (it.first == edge_label)
-                        return it.second;
-                assert(false);
-            }
-            assert(false);
-            return this->edge_labels_.front().second;
-        }
-
-        inline const VertexContainerType_&
-               const_vertex_container(const EdgeLabelType_& edge_label) const{
-            assert(this->HasEdgeLabel(edge_label));
+        inline std::pair<const VertexContainerType_&,bool>
+                         const_vertex_container(
+                               const EdgeLabelType_& edge_label) const{
             if (edge_label_container_sort_type == SortType::None){
                 for (const auto& it : this->edge_labels_)
                     if (it.first == edge_label)
-                        return it.second;
-                assert(false);
+                        return std::make_pair(it.second,true);
+                return std::make_pair(this->edge_labels_.back().second,false);
             }
+            /// other sorting type are not implemented
             assert(false);
-            return this->edge_labels_.front().second;
+            return std::make_pair(this->edge_labels_.back().second,false);
         }
 
-        inline void shrink_to_fit() const{
-            this->edge_labels_.shrink_to_fit();
-            return;
+        inline std::pair<VertexContainerType_&,bool>
+               vertex_container(const EdgeLabelType_& edge_label){
+            if (edge_label_container_sort_type == SortType::None){
+                for (auto& it : this->edge_labels_)
+                    if (it.first == edge_label)
+                        return std::make_pair(it.second,true);
+                return std::make_pair(this->edge_labels_.back().second,false);
+            }
+            /// other sorting type are not implemented
+            assert(false);
+            return std::make_pair(this->edge_labels_.back().second,false);
+        }
+
+        inline std::pair<VertexContainerType_&,bool>
+                   InsertVertexContainer(const EdgeLabelType_& edge_label){
+            if (edge_label_container_sort_type == SortType::None){
+                for (auto& it : this->edge_labels_)
+                    if (it.first == edge_label)
+                        return std::pair<VertexContainerType_&,bool>
+                                                    (it.second,false);
+                /// not exist, has inserted
+                this->edge_labels_.emplace_back(edge_label,
+                                                VertexContainerType_());
+                return std::pair<VertexContainerType_&,bool>
+                     (this->edge_labels_.back().second,true);
+            }
+            /// other sorting type are not implemented
+            assert(false);
+            return std::pair<VertexContainerType_&,bool>
+                 (this->edge_labels_.back().second,true);
         }
     };
 
@@ -917,8 +961,8 @@ private:
         using VertexPtr = typename WithVertexPtr_<false>::VertexPtr;
 
     public:
-        CompoundVertex_(VertexPtr vertex)
-           :WithVertexPtr_<false>(vertex){
+        CompoundVertex_(VertexPtr vertex_ptr)
+           :WithVertexPtr_<false>(vertex_ptr){
             return;
         }
 
@@ -944,9 +988,12 @@ private:
         DuplicateNumType duplicate_cardinality_;
         /// duplicate cardinality
 
+        using BaseCompoundVertexType = CompoundVertex_<false,false>;
+        using typename BaseCompoundVertexType::VertexPtr;
+
     public:
-        CompoundVertex_(Vertex* const vertex)
-        :CompoundVertex_<false,false>(vertex){
+        CompoundVertex_(VertexPtr vertex_ptr)
+          :BaseCompoundVertexType(vertex_ptr){
             /// initialized to zero since the "AddDecomposedEdge()" would be
             /// called in the adding edge process
             this->duplicate_cardinality_ = 0;
@@ -978,13 +1025,16 @@ private:
 
         DecomposedEdgeType_ decomposed_edge_;
 
+        using BaseCompoundVertexType = CompoundVertex_<false,false>;
+        using typename BaseCompoundVertexType::VertexPtr;
+
     public:
         using DecomposedEdgeType = DecomposedEdgeType_;
 
         template<typename... Args>
-        CompoundVertex_(Vertex* const  vertex,
+        CompoundVertex_(VertexPtr      vertex_ptr,
                         const Args&... args)
-         :CompoundVertex_<false,false>(vertex),
+               :BaseCompoundVertexType(vertex_ptr),
                       decomposed_edge_(args...){
             return;
         }
@@ -1114,7 +1164,7 @@ private:
         typename std::conditional<is_const_,
               typename EdgeLabelContainerType_::const_iterator,
               typename EdgeLabelContainerType_::      iterator
-                                                      >::type iterator_;
+                                             >::type  iterator_;
 
         const typename EdgeLabelContainerType_::const_iterator kEndIter_;
 
@@ -1163,12 +1213,21 @@ private:
             return this->iterator_->first;
         }
 
+        /// should only be called in the construct method of the derived class
+        EdgeLabelIterator_(
+            InnerEdgeLabelContainerType_& edge_label_container,bool is_end)
+                               :iterator_(edge_label_container.cend()),
+                                kEndIter_(edge_label_container.cend()){
+            assert(is_end);/// meaning less parameter
+            assert(this->IsDone());
+            return;
+        }
+
     public:
-        EdgeLabelIterator_(InnerEdgeLabelContainerType_& edge_label_container)
-                         :iterator_(this->iterator_begin(edge_label_container)),
-                                               kEndIter_(edge_label_container
-                                                                      .cend()){
-            assert(!this->IsDone());/// should not be empty
+        EdgeLabelIterator_(
+            InnerEdgeLabelContainerType_& edge_label_container)
+          :iterator_(this->iterator_begin(edge_label_container)),
+                                kEndIter_(edge_label_container.cend()){
             return;
         }
 
@@ -1270,10 +1329,20 @@ private:
         }
 
     public:
-        InnerVertexIterator_(InnerVertexContainerType_& vertex_container)
-                        :iterator_(this->iterator_begin(vertex_container)),
-                                              kEndIter_(vertex_container
-                                                                  .cend()){
+        InnerVertexIterator_(
+            InnerVertexContainerType_& vertex_container)
+                            :iterator_(this->iterator_begin(vertex_container)),
+                             kEndIter_(vertex_container.cend()){
+            return;
+        }
+
+        /// end iterator
+        InnerVertexIterator_(
+            InnerVertexContainerType_& vertex_container,bool is_end)
+                            :iterator_(vertex_container.cend()),
+                             kEndIter_(vertex_container.cend()){
+            assert(is_end);
+            assert(this->IsDone());
             return;
         }
 
@@ -1387,7 +1456,17 @@ private:
             InnerEdgeLabelContainerType_& edge_label_container)
                  :EdgeLabelIteratorType_( edge_label_container),
                                iterator_(this->iterator_begin()){
-            assert(!this->IsDone());/// should not be empty
+            assert(!this->IsDone());/// should have been done
+            return;
+        }
+
+        /// end iterator
+        InnerVertexIterator_(
+            InnerEdgeLabelContainerType_& edge_label_container,bool is_end)
+                 :EdgeLabelIteratorType_( edge_label_container,true){
+            /// call the end construct method of the EdgeLabelIterator
+            assert(is_end);
+            assert(this->IsDone());/// should have been done
             return;
         }
 
@@ -1638,9 +1717,28 @@ private:
                            VertexPtr                  src_ptr,
                            const EdgeLabelType&       edge_label)
                                  :VertexIteratorType_(vertex_container),
-                                           edge_info_(src_ptr,edge_label){
+                                           edge_info_(edge_label,src_ptr){
             static_assert(judge == iterator_type_,
                          "Illegal usage of this method");
+            return;
+        }
+
+        /// end iterator
+        template<const enum IteratorType judge = iterator_type_,
+                 typename std::enable_if<
+                            judge == IteratorType::SpecifiedEdgeLabel,
+                            bool>::type = false>
+        InnerEdgeIterator_(InnerVertexContainerType_& vertex_container,
+                           VertexPtr                  src_ptr,
+                           const EdgeLabelType&       edge_label,
+                           bool                       is_end)
+                                 :VertexIteratorType_(vertex_container,
+                                                      is_end),
+                                           edge_info_(edge_label,src_ptr){
+            static_assert(judge == iterator_type_,
+                         "Illegal usage of this method");
+            assert(is_end);
+            assert(this->IsDone());
             return;
         }
 
@@ -1654,6 +1752,23 @@ private:
                                               edge_info_(src_ptr){
             static_assert(judge == iterator_type_,
                          "Illegal usage of this method");
+            return;
+        }
+        /// end iterator
+        template<const enum IteratorType judge = iterator_type_,
+                 typename std::enable_if<
+                            judge == IteratorType::UnspecifiedEdgeLabel,
+                            bool>::type = false>
+        InnerEdgeIterator_(InnerEdgeLabelContainerType_& edge_label_container,
+                           VertexPtr                     src_ptr,
+                           bool                          is_end)
+                                    :VertexIteratorType_(edge_label_container,
+                                                         is_end),
+                                              edge_info_(src_ptr){
+            static_assert(judge == iterator_type_,
+                         "Illegal usage of this method");
+            assert(is_end);
+            assert(this->IsDone());
             return;
         }
 
@@ -1835,7 +1950,7 @@ private:
         template<const bool judge = is_const_,
                  typename std::enable_if<!judge,bool>::type = false>
         inline typename DecomposedEdgeContainerType_::iterator
-                                                      iterator_begin() const{
+                                                      iterator_begin(){
             static_assert(judge == is_const_,
                          "Illegal usage of this method");
             return VertexIteratorType_::compound_vertex()
@@ -1882,11 +1997,30 @@ private:
                            VertexPtr                  src_ptr,
                            const EdgeLabelType&       edge_label)
                                  :VertexIteratorType_(vertex_container),
-                                           edge_info_(src_ptr,edge_label),
+                                           edge_info_(edge_label,src_ptr),
                             decomposed_edge_iterator_(this->iterator_begin()){
             static_assert(judge == iterator_type_,
                          "Illegal usage of this method");
             assert(!this->IsDone());
+            return;
+        }
+
+        /// end iterator
+        template<const enum IteratorType judge = iterator_type_,
+                 typename std::enable_if<
+                            judge == IteratorType::SpecifiedEdgeLabel,
+                            bool>::type = false>
+        InnerEdgeIterator_(InnerVertexContainerType_& vertex_container,
+                           VertexPtr                  src_ptr,
+                           const EdgeLabelType&       edge_label,
+                           bool                       is_end)
+                                 :VertexIteratorType_(vertex_container,
+                                                      is_end),
+                                           edge_info_(edge_label,src_ptr){
+            static_assert(judge == iterator_type_,
+                         "Illegal usage of this method");
+            assert(is_end);
+            assert(this->IsDone());
             return;
         }
 
@@ -1902,6 +2036,24 @@ private:
             static_assert(judge == iterator_type_,
                          "Illegal usage of this method");
             assert(!this->IsDone());
+            return;
+        }
+
+        /// end iterator
+        template<const enum IteratorType judge = iterator_type_,
+                 typename std::enable_if<
+                            judge == IteratorType::UnspecifiedEdgeLabel,
+                            bool>::type = false>
+        InnerEdgeIterator_(InnerEdgeLabelContainerType_& edge_label_container,
+                           VertexPtr                     src_ptr,
+                           bool                          is_end)
+                                  :VertexIteratorType_(edge_label_container,
+                                                       is_end),
+                                            edge_info_(src_ptr){
+            static_assert(judge == iterator_type_,
+                         "Illegal usage of this method");
+            assert(is_end);
+            assert(this->IsDone());
             return;
         }
 
@@ -2694,13 +2846,13 @@ public:
         return this->vertex_.remove_attribute(key);
     }
 
+public:
     /// return the iterator of the first level container
     /// only have const iterator
-    inline typename iterator::const_edge_label
-        edge_label_cbegin() const{
+    inline typename iterator::const_edge_label edge_label_cbegin() const{
         /// visit all edge labels
-        return
-           typename iterator::const_edge_label(this->edges_.const_out_edges());
+        return typename iterator::const_edge_label(this->edges_
+                                                        .const_out_edges());
     }
 
     /// return the iterator of the vertex container with all edge label
@@ -2709,20 +2861,26 @@ public:
          ::template const_vertex<IteratorType::UnspecifiedEdgeLabel>
         vertex_cbegin() const{
         /// visit the vertexes connected with all edge labels
-        return
-           typename iterator
-         ::template const_vertex<IteratorType::UnspecifiedEdgeLabel>
-                                    (this->edges_.const_out_edges());
+        if (!this->edges_.const_out_edges().empty())
+            return typename iterator /// non-empty iterator
+                 ::template const_vertex<IteratorType::UnspecifiedEdgeLabel>
+                                        (this->edges_.const_out_edges());
+        return typename iterator /// empty iterator
+             ::template const_vertex<IteratorType::UnspecifiedEdgeLabel>
+                                    (this->edges_.const_out_edges(),true);
     }
     /// non-constant iterator
     inline typename iterator
          ::template vertex<IteratorType::UnspecifiedEdgeLabel>
         vertex_begin(){
         /// visit the vertexes connected with all edge labels
-        return
-           typename iterator
-         ::template vertex<IteratorType::UnspecifiedEdgeLabel>
-                                    (this->edges_.out_edges());
+        if (!this->edges_.const_out_edges().empty())
+            return typename iterator /// non-empty iterator
+                 ::template vertex<IteratorType::UnspecifiedEdgeLabel>
+                                  (this->edges_.out_edges());
+        return typename iterator /// empty iterator
+             ::template vertex<IteratorType::UnspecifiedEdgeLabel>
+                              (this->edges_.out_edges(),true);
     }
 
     /// return the iterator of the vertex container with specified edge label
@@ -2731,22 +2889,34 @@ public:
          ::template const_vertex<IteratorType::SpecifiedEdgeLabel>
         vertex_cbegin(const EdgeLabelType& edge_label) const{
         /// visit the vertexes connected with specified edge label
-        return
-           typename iterator
-         ::template const_vertex<IteratorType::SpecifiedEdgeLabel>
-                   (this->edges_
-                   .const_out_edges()
-                   .const_vertex_container(edge_label));
+        const std::pair<const VertexContainerType&,bool>
+            temp_ret = this->edges_.const_out_edges()
+                                   .const_vertex_container(edge_label);
+        if (temp_ret.second)/// has edge_label in the container
+            return typename iterator /// non-empty iterator
+                 ::template const_vertex<IteratorType::SpecifiedEdgeLabel>
+                                        (temp_ret.first);
+        /// not has edge_label in the container
+        return typename iterator /// empty iterator
+             ::template const_vertex<IteratorType::SpecifiedEdgeLabel>
+                                    (temp_ret.first,true);
     }
     /// non-constant iterator
     inline typename iterator
          ::template vertex<IteratorType::SpecifiedEdgeLabel>
         vertex_begin(const EdgeLabelType& edge_label){
         /// visit the vertexes connected with specified edge label
-        return
-           typename iterator
-         ::template vertex<IteratorType::SpecifiedEdgeLabel>
-           (this->edges_.out_edges().vertex_container(edge_label));
+        std::pair<VertexContainerType&,bool>
+            temp_ret = this->edges_.out_edges()
+                                   .vertex_container(edge_label);
+        if (temp_ret.second)/// has edge_label in the container
+            return typename iterator /// non-empty iterator
+                 ::template vertex<IteratorType::SpecifiedEdgeLabel>
+                                  (temp_ret.first);
+        /// not has edge_label in the container
+        return typename iterator /// empty iterator
+             ::template vertex<IteratorType::SpecifiedEdgeLabel>
+                             (temp_ret.first,true);
     }
 
     /// return the iterator of the third level container
@@ -2756,20 +2926,32 @@ public:
          ::template const_edge<IteratorType::UnspecifiedEdgeLabel>
         edge_cbegin() const{
         /// visit the vertexes connected with specified edge label
-        return
-           typename iterator
-         ::template const_edge<IteratorType::UnspecifiedEdgeLabel>
-                             (this->edges_.const_out_edges(),this);
+        const Vertex* const temp_const_ptr = this;
+        if (!this->edges_.const_out_edges().empty())
+            return typename iterator/// non-empty iterator
+                 ::template const_edge<IteratorType::UnspecifiedEdgeLabel>
+                                      (this->edges_.const_out_edges(),
+                                       temp_const_ptr);
+        return typename iterator/// empty iterator
+             ::template const_edge<IteratorType::UnspecifiedEdgeLabel>
+                                  (this->edges_.const_out_edges(),
+                                   temp_const_ptr,true);
     }
     /// non-constant iterator
     inline typename iterator
          ::template edge<IteratorType::UnspecifiedEdgeLabel>
         edge_begin(){
         /// visit the vertexes connected with specified edge label
-        return
-           typename iterator
-         ::template edge<IteratorType::UnspecifiedEdgeLabel>
-                             (this->edges_.out_edges(),this);
+        Vertex* const temp_ptr = this;
+        if (!this->edges_.const_out_edges().empty())
+            return typename iterator/// non-empty iterator
+                 ::template const_edge<IteratorType::UnspecifiedEdgeLabel>
+                                      (this->edges_.out_edges(),
+                                       temp_ptr);
+        return typename iterator/// empty iterator
+             ::template const_edge<IteratorType::UnspecifiedEdgeLabel>
+                                  (this->edges_.out_edges(),
+                                   temp_ptr,true);
     }
 
     /// return the iterator of the third level container
@@ -2779,152 +2961,334 @@ public:
          ::template const_edge<IteratorType::SpecifiedEdgeLabel>
         edge_cbegin(const EdgeLabelType& edge_label) const{
         /// visit the vertexes connected with specified edge label
-        return
-           typename iterator
-         ::template const_edge<IteratorType::SpecifiedEdgeLabel>
-                   (this->edges_.const_out_edges()
-                                .const_vertex_container(edge_label),
-                    this,edge_label);
+        const Vertex* const temp_const_ptr = this;
+        const std::pair<const VertexContainerType&,bool>
+            temp_ret = this->edges_.const_out_edges()
+                                   .const_vertex_container(edge_label);
+        if (temp_ret.second)/// has edge_label in the container
+            return typename iterator /// non-empty iterator
+                 ::template const_edge<IteratorType::SpecifiedEdgeLabel>
+                                      (temp_ret.first,
+                                       temp_const_ptr,
+                                       edge_label);
+        /// does not have edge_label in the container
+        return typename iterator /// empty iterator
+             ::template const_edge<IteratorType::SpecifiedEdgeLabel>
+                                  (temp_ret.first,
+                                   temp_const_ptr,
+                                   edge_label,true);
     }
     /// non-constant iterator
     inline typename iterator
          ::template edge<IteratorType::SpecifiedEdgeLabel>
         edge_begin(const EdgeLabelType& edge_label){
         /// visit the vertexes connected with specified edge label
-        return
-           typename iterator
-         ::template edge<IteratorType::SpecifiedEdgeLabel>
-             (this->edges_.out_edges().vertex_container(edge_label),
-              this, edge_label);
+        Vertex* const temp_ptr = this;
+        std::pair<VertexContainerType&,bool>
+            temp_ret = this->edges_.out_edges()
+                                   .vertex_container(edge_label);
+        if (temp_ret.second)/// has edge_label in the container
+            return typename iterator /// non-empty iterator
+                 ::template edge<IteratorType::SpecifiedEdgeLabel>
+                           (temp_ret.first,
+                            temp_ptr,
+                            edge_label);
+        /// does not have edge_label in the container
+        return typename iterator /// empty iterator
+             ::template edge<IteratorType::SpecifiedEdgeLabel>
+                 (temp_ret.first,
+                  temp_ptr,
+                  edge_label,true);
     }
 
     /// input edge iterators
     template<const enum StoreData judge_store_type = store_type,
-             typename std::enable_if<judge_store_type
-                                        != StoreData::OutEdge>::type = false>
+             typename std::enable_if<judge_store_type == StoreData::InOutEdge,
+                                     bool>::type = false>
     inline typename iterator::const_input_edge_label
         input_edge_label_cbegin() const{
         static_assert(judge_store_type == store_type,
                      "Illegal usage of this method");
-        return
-           typename iterator::const_input_edge_label(
-                                            this->edges_.const_in_edges());
+        return typename iterator::const_input_edge_label(this->edges_
+                                                        .const_in_edges());
+    }
+    template<const enum StoreData judge_store_type = store_type,
+             typename std::enable_if<judge_store_type != StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline bool input_edge_label_cbegin() const{/// to simplify the error log
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        /// trick the compiler, equivalent to static_assert(false)
+        static_assert(judge_store_type != store_type,
+                     "Current configuration does not has this method,\
+                      store_type should be configured as InOutEdge");
+        return false;
     }
     /// constant iterator
     template<const enum StoreData judge_store_type = store_type,
-             typename std::enable_if<judge_store_type
-                                        == StoreData::InOutEdge>::type = false>
-    inline typename iterator::template const_input_vertex<
-                                    IteratorType::UnspecifiedEdgeLabel>
+             typename std::enable_if<judge_store_type == StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline typename iterator
+         ::template const_input_vertex<IteratorType::UnspecifiedEdgeLabel>
         input_vertex_cbegin() const{
         static_assert(judge_store_type == store_type,
                      "Illegal usage of this method");
-        return
-           typename iterator::template const_input_vertex<
-                                    IteratorType::UnspecifiedEdgeLabel>
-                                        (this->edges_.const_in_edges());
+        if (!this->edges_.const_in_edges().empty())
+            return typename iterator /// non-empty iterator
+                 ::template const_input_vertex<IteratorType
+                                             ::UnspecifiedEdgeLabel>
+                                              (this->edges_.const_in_edges());
+        return typename iterator /// empty iterator
+             ::template const_input_vertex<IteratorType
+                                         ::UnspecifiedEdgeLabel>
+                                          (this->edges_.const_in_edges(),true);
+    }
+    template<const enum StoreData judge_store_type = store_type,
+             typename std::enable_if<judge_store_type != StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline bool input_vertex_cbegin() const{/// to simplify the error log
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        /// trick the compiler, equivalent to static_assert(false)
+        static_assert(judge_store_type != store_type,
+                     "Current configuration does not has this method,\
+                      store_type should be configured as InOutEdge");
+        return false;
     }
     /// non-constant iterator
     template<const enum StoreData judge_store_type = store_type,
-             typename std::enable_if<judge_store_type
-                                        == StoreData::InOutEdge>::type = false>
-    inline typename iterator::template input_vertex<
-                                    IteratorType::UnspecifiedEdgeLabel>
+             typename std::enable_if<judge_store_type == StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline typename iterator
+         ::template input_vertex<IteratorType::UnspecifiedEdgeLabel>
         input_vertex_begin(){
         static_assert(judge_store_type == store_type,
                      "Illegal usage of this method");
-        return
-           typename iterator::template input_vertex<
-                                    IteratorType::UnspecifiedEdgeLabel>
-                                              (this->edges_.in_edges());
+        if (!this->edges_.const_in_edges().empty())
+            return typename iterator /// non-empty iterator
+                 ::template input_vertex<IteratorType
+                                       ::UnspecifiedEdgeLabel>
+                                        (this->edges_.in_edges());
+        return typename iterator /// empty iterator
+             ::template input_vertex<IteratorType::UnspecifiedEdgeLabel>
+                                    (this->edges_.in_edges(),true);
+    }
+    template<const enum StoreData judge_store_type = store_type,
+             typename std::enable_if<judge_store_type != StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline bool input_vertex_begin() const{/// to simplify the error log
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        /// trick the compiler, equivalent to static_assert(false)
+        static_assert(judge_store_type != store_type,
+                     "Current configuration does not has this method,\
+                      store_type should be configured as InOutEdge");
+        return false;
     }
     /// constant iterator
     template<const enum StoreData judge_store_type = store_type,
-             typename std::enable_if<judge_store_type
-                                        == StoreData::InOutEdge>::type = false>
-    inline typename iterator::template const_input_vertex<
-                                    IteratorType::SpecifiedEdgeLabel>
+             typename std::enable_if<judge_store_type == StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline typename iterator
+         ::template const_input_vertex<IteratorType::SpecifiedEdgeLabel>
         input_vertex_cbegin(const EdgeLabelType& edge_label) const{
         static_assert(judge_store_type == store_type,
                      "Illegal usage of this method");
-        return
-           typename iterator::template const_input_vertex<
-                                    IteratorType::SpecifiedEdgeLabel>
-                     (this->edges_.const_in_edges()
-                                  .const_vertex_container(edge_label));
+        const std::pair<const VertexContainerType&,bool>
+            temp_ret = this->edges_.const_in_edges()
+                                   .const_vertex_container(edge_label);
+        if (temp_ret.second)
+            return typename iterator /// non-empty iterator
+                 ::template const_input_vertex<IteratorType
+                                             ::SpecifiedEdgeLabel>
+                                              (temp_ret.first);
+        return typename iterator /// empty iterator
+             ::template const_input_vertex<IteratorType::SpecifiedEdgeLabel>
+                                          (temp_ret.first,true);
+    }
+    template<const enum StoreData judge_store_type = store_type,
+             typename std::enable_if<judge_store_type != StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline bool input_vertex_cbegin(const EdgeLabelType& edge_label) const{
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        /// trick the compiler, equivalent to static_assert(false)
+        static_assert(judge_store_type != store_type,
+                     "Current configuration does not has this method,\
+                      store_type should be configured as InOutEdge");
+        return false;
     }
     /// non-constant iterator
     template<const enum StoreData judge_store_type = store_type,
-             typename std::enable_if<judge_store_type
-                                        == StoreData::InOutEdge>::type = false>
-    inline typename iterator::template input_vertex<
-                                    IteratorType::SpecifiedEdgeLabel>
+             typename std::enable_if<judge_store_type == StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline typename iterator
+         ::template input_vertex<IteratorType::SpecifiedEdgeLabel>
         input_vertex_begin(const EdgeLabelType& edge_label){
         static_assert(judge_store_type == store_type,
                      "Illegal usage of this method");
-        return
-           typename iterator::template input_vertex<
-                                    IteratorType::SpecifiedEdgeLabel>
-               (this->edges_.in_edges().vertex_container(edge_label));
+        std::pair<VertexContainerType&,bool>
+            temp_ret = this->edges_.in_edges()
+                                   .vertex_container(edge_label);
+        if (temp_ret.second)
+            return typename iterator /// non-empty iterator
+                 ::template input_vertex<IteratorType::SpecifiedEdgeLabel>
+                                        (temp_ret.first);
+        return typename iterator /// empty iterator
+             ::template input_vertex<IteratorType::SpecifiedEdgeLabel>
+                                    (temp_ret.first,true);
+    }
+    template<const enum StoreData judge_store_type = store_type,
+             typename std::enable_if<judge_store_type != StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline bool input_vertex_begin(const EdgeLabelType& edge_label) const{
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        /// trick the compiler, equivalent to static_assert(false)
+        static_assert(judge_store_type != store_type,
+                     "Current configuration does not has this method,\
+                      store_type should be configured as InOutEdge");
+        return false;
     }
     /// constant iterator
     template<const enum StoreData judge_store_type = store_type,
-             typename std::enable_if<judge_store_type
-                                        == StoreData::InOutEdge>::type = false>
-    inline typename iterator::template const_input_edge<
-                                    IteratorType::UnspecifiedEdgeLabel>
+             typename std::enable_if<judge_store_type == StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline typename iterator
+         ::template const_input_edge<IteratorType::UnspecifiedEdgeLabel>
         input_edge_cbegin() const{
         static_assert(judge_store_type == store_type,
                      "Illegal usage of this method");
-        return
-           typename iterator::template const_input_edge<
-                                    IteratorType::UnspecifiedEdgeLabel>
-                                   (this->edges_.const_in_edges(),this);
+        const Vertex* const temp_const_ptr = this;
+        if (!this->edges_.const_in_edges().empty())
+            return typename iterator
+                 ::template const_input_edge<IteratorType
+                                           ::UnspecifiedEdgeLabel>
+                                            (this->edges_.const_in_edges(),
+                                             temp_const_ptr);
+        return typename iterator
+             ::template const_input_edge<IteratorType
+                                       ::UnspecifiedEdgeLabel>
+                                        (this->edges_.const_in_edges(),
+                                         temp_const_ptr,true);
+    }
+    template<const enum StoreData judge_store_type = store_type,
+             typename std::enable_if<judge_store_type != StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline bool input_edge_cbegin() const{
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        /// trick the compiler, equivalent to static_assert(false)
+        static_assert(judge_store_type != store_type,
+                     "Current configuration does not have this method,\
+                      store_type should be configured as InOutEdge");
+        return false;
     }
     /// non-constant iterator
     template<const enum StoreData judge_store_type = store_type,
-             typename std::enable_if<judge_store_type
-                                        == StoreData::InOutEdge>::type = false>
-    inline typename iterator::template input_edge<
-                                    IteratorType::UnspecifiedEdgeLabel>
+             typename std::enable_if<judge_store_type == StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline typename iterator
+         ::template input_edge<IteratorType::UnspecifiedEdgeLabel>
         input_edge_begin(){
         static_assert(judge_store_type == store_type,
                      "Illegal usage of this method");
-        return
-           typename iterator::template input_edge<
-                                    IteratorType::UnspecifiedEdgeLabel>
-                                         (this->edges_.in_edges(),this);
+        Vertex* const temp_ptr = this;
+        if (this->edges_.in_edges().empty())
+            return typename iterator
+                 ::template input_edge<IteratorType::UnspecifiedEdgeLabel>
+                                      (this->edges_.in_edges(),
+                                       temp_ptr);
+        return typename iterator
+             ::template input_edge<IteratorType::UnspecifiedEdgeLabel>
+                                  (this->edges_.in_edges(),
+                                   temp_ptr,true);
+    }
+    template<const enum StoreData judge_store_type = store_type,
+             typename std::enable_if<judge_store_type != StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline bool input_edge_begin() const{
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        /// trick the compiler, equivalent to static_assert(false)
+        static_assert(judge_store_type != store_type,
+                     "Current configuration does not has this method,\
+                      store_type should be configured as InOutEdge");
+        return false;
     }
     /// constant iterator
     template<const enum StoreData judge_store_type = store_type,
-             typename std::enable_if<judge_store_type
-                                        == StoreData::InOutEdge>::type = false>
-    inline typename iterator::template const_input_edge<
-                                    IteratorType::SpecifiedEdgeLabel>
+             typename std::enable_if<judge_store_type == StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline typename iterator
+         ::template const_input_edge<IteratorType::SpecifiedEdgeLabel>
         input_edge_cbegin(const EdgeLabelType& edge_label) const{
         static_assert(judge_store_type == store_type,
                      "Illegal usage of this method");
-        return
-           typename iterator::template const_input_edge<
-                                    IteratorType::SpecifiedEdgeLabel>
-                (this->edges_.const_in_edges()
-                             .const_vertex_container(edge_label),
-                 this,edge_label);
+        const Vertex* const temp_const_ptr = this;
+        const std::pair<const VertexContainerType&,bool>
+            temp_ret = this->edges_.const_in_edges()
+                                   .const_vertex_container(edge_label);
+        if (temp_ret.second)
+            return typename iterator
+                 ::template const_input_edge<IteratorType::SpecifiedEdgeLabel>
+                        (temp_ret.first,
+                         temp_const_ptr,
+                         edge_label);
+        return typename iterator
+             ::template const_input_edge<IteratorType::SpecifiedEdgeLabel>
+                    (temp_ret.first,
+                     temp_const_ptr,
+                     edge_label,true);
+    }
+    template<const enum StoreData judge_store_type = store_type,
+             typename std::enable_if<judge_store_type != StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline bool input_edge_cbegin(const EdgeLabelType& edge_label) const{
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        /// trick the compiler, equivalent to static_assert(false)
+        static_assert(judge_store_type != store_type,
+                     "Current configuration does not has this method,\
+                      store_type should be configured as InOutEdge");
+        return false;
     }
     /// non-constant iterator
     template<const enum StoreData judge_store_type = store_type,
-             typename std::enable_if<judge_store_type
-                                        == StoreData::InOutEdge>::type = false>
-    inline typename iterator::template input_edge<
-                                    IteratorType::SpecifiedEdgeLabel>
+             typename std::enable_if<judge_store_type == StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline typename iterator
+         ::template input_edge<IteratorType::SpecifiedEdgeLabel>
         input_edge_begin(const EdgeLabelType& edge_label){
         static_assert(judge_store_type == store_type,
                      "Illegal usage of this method");
-        return
-           typename iterator::template input_edge<
-                                    IteratorType::SpecifiedEdgeLabel>
-           (this->edges_.in_edges().vertex_container(edge_label),
-            this,edge_label);
+        Vertex* const temp_ptr = this;
+        std::pair<VertexContainerType&,bool>
+            temp_ret = this->edges_.in_edges()
+                                   .vertex_container(edge_label);
+        if (temp_ret.second)
+            return typename iterator
+                 ::template input_edge<IteratorType::SpecifiedEdgeLabel>
+                   (temp_ret.first,
+                    temp_ptr,
+                    edge_label);
+        return typename iterator
+             ::template input_edge<IteratorType::SpecifiedEdgeLabel>
+               (temp_ret.first,
+                temp_ptr,
+                edge_label,true);
+    }
+    template<const enum StoreData judge_store_type = store_type,
+             typename std::enable_if<judge_store_type != StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline bool input_edge_begin(const EdgeLabelType& edge_label) const{
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        /// trick the compiler, equivalent to static_assert(false)
+        static_assert(judge_store_type != store_type,
+                     "Current configuration does not has this method,\
+                      store_type should be configured as InOutEdge");
+        return false;
     }
 
     inline bool HasEdgeLabel(const EdgeLabelType& edge_label) const{
@@ -2932,12 +3296,58 @@ public:
     }
 
     template<const enum StoreData judge_store_type = store_type,
-             typename std::enable_if<judge_store_type
-                                        == StoreData::InOutEdge>::type = false>
+             typename std::enable_if<judge_store_type == StoreData::InOutEdge,
+                                     bool>::type = false>
     inline bool HasInputEdgeLabel(const EdgeLabelType& edge_label) const{
         static_assert(judge_store_type == store_type,
                      "Illegal usage of this method");
         return this->edges_.const_in_edges().HasEdgeLabel(edge_label);
+    }
+    template<const enum StoreData judge_store_type = store_type,
+             typename std::enable_if<judge_store_type != StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline bool HasInputEdgeLabel(const EdgeLabelType& edge_label) const{
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        /// trick the compiler, equivalent to static_assert(false)
+        static_assert(judge_store_type != store_type,
+                     "Current configuration does not has this method,\
+                      store_type should be configured as InOutEdge");
+        return false;
+    }
+
+    /// whether has output edge toward the target vertex
+    inline bool HasEdgeConnectTo(const Vertex* const target_vertex) const{
+        return this->edges_.const_out_edges().HasVertex(target_vertex);
+    }
+    /// whether has output edge with designated label toward the target vertex
+    inline bool HasEdgeConnectTo(const EdgeLabelType& edge_label,
+                                 const Vertex* const  vertex_ptr) const{
+        return this->edges_.const_out_edges().HasVertex(edge_label,
+                                                        vertex_ptr);
+    }
+
+    /// whether has input edge toward the given vertex
+    template<const enum StoreData judge_store_type  = store_type,
+          typename std::enable_if<judge_store_type == StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline bool HasInputEdgeConnectTo(const Vertex* const vertex_ptr) const{
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        return this->edges_.const_in_edges().HasVertex(vertex_ptr);
+    }
+    template<const enum StoreData judge_store_type  = store_type,
+          typename std::enable_if<judge_store_type != StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline bool HasInputEdgeConnectTo(const EdgeLabelType& edge_label,
+                                      const Vertex* const  vertex_ptr) const{
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        /// trick the compiler, equivalent to static_assert(false)
+        static_assert(judge_store_type != store_type,
+                     "Current configuration does not has this method,\
+                      store_type should be configured as InOutEdge");
+        return false;
     }
 
 private:
@@ -2945,8 +3355,8 @@ private:
     template<const bool judge_edge_has_attribute   = edge_has_attribute,
              const bool judge_allow_duplicate_edge = allow_duplicate_edge,
              typename std::enable_if<!judge_edge_has_attribute
-                                   &&!judge_allow_duplicate_edge,bool
-                                    >::type = false>
+                                   &&!judge_allow_duplicate_edge,
+                                      bool>::type = false>
     inline typename iterator::template edge<IteratorType::SingleElement>
         AddOutEdge(Vertex* const vertex,
                    const EdgeLabelType& edge_label){
@@ -2960,19 +3370,20 @@ private:
         this->edges_.out_edges().InsertVertexContainer(edge_label).first
                                 .InsertCompoundVertex (vertex);
         constexpr DuplicateNumType kDefaultDuplicateNum = 1;
+        Vertex* const temp_ptr = this;
         return typename iterator::template edge<IteratorType::SingleElement>(
                     vertex,              /// dst_vertex_ptr
                     kDefaultDuplicateNum,/// duplicate_cardinality
                     edge_label,          /// edge label
-                    this);               /// src_vertex_ptr
+                    temp_ptr);           /// src_vertex_ptr
     }
 
     /// operate on the third level container
     template<const bool judge_edge_has_attribute   = edge_has_attribute,
              const bool judge_allow_duplicate_edge = allow_duplicate_edge,
              typename std::enable_if<!judge_edge_has_attribute
-                                   && judge_allow_duplicate_edge,bool
-                                    >::type = true>
+                                   && judge_allow_duplicate_edge,
+                                      bool>::type = true>
     inline typename iterator::template edge<IteratorType::SingleElement>
         AddOutEdge(Vertex* const        vertex,
                    const EdgeLabelType& edge_label){
@@ -2987,12 +3398,12 @@ private:
         ret = this->edges_.out_edges().InsertVertexContainer(edge_label).first
                                       .InsertCompoundVertex (  vertex  ).first;
         ret.AddDecomposedEdge();
-		auto tmp = this;	// *** ÷±Ω”–¥this±‡“Î¥ÌŒÛ
+        Vertex* const temp_ptr = this;
         return typename iterator::template edge<IteratorType::SingleElement>(
                     vertex,                      /// dst_vertex_ptr
                     ret.duplicate_cardinality(), /// duplicate_cardinality
                     edge_label,                  /// edge label
-					tmp);                   /// src_vertex_ptr
+                    temp_ptr);                   /// src_vertex_ptr
     }
 
     /// operate on the third level container
@@ -3018,6 +3429,7 @@ private:
                                                              edge_attribute
                                                                        ).first;
         constexpr DuplicateNumType kDefaultDuplicateNum = 1;
+        Vertex* const temp_ptr = this;
         return typename iterator::template edge<IteratorType::SingleElement>(
                     vertex,                 /// dst_vertex_ptr
                     kDefaultDuplicateNum,   /// duplicate_cardinality
@@ -3026,7 +3438,7 @@ private:
                         ->decomposed_edge(),/// edge attribute,
                                             /// implicit convert to base class:
                                             /// WithAttribute_<...>
-                    this);                  /// src_vertex_ptr
+                    temp_ptr);              /// src_vertex_ptr
     }
 
     /// operate on the third level container
@@ -3038,8 +3450,8 @@ private:
                             = edge_attribute_is_dynamic,
              typename std::enable_if<judge_edge_has_attribute
                                   && judge_allow_duplicate_edge
-                                  &&!judge_edge_attribute_is_dynamic,bool
-                                    >::type = true>
+                                  &&!judge_edge_attribute_is_dynamic,
+                                     bool>::type = true>
     inline typename iterator::template edge<IteratorType::SingleElement>
         AddOutEdge(Vertex* const            vertex,
                    const EdgeLabelType&     edge_label,
@@ -3062,6 +3474,7 @@ private:
         DecomposedEdgeType* const ret_decomposed_edge_ptr
             = &(ret_compound_vertex.AddDecomposedEdge(edge_id,
                                                       edge_attribute).first);
+        Vertex* const temp_ptr = this;
         return typename iterator::template edge<IteratorType::SingleElement>(
                     vertex,                 /// dst_vertex_ptr
                     ret_compound_vertex.duplicate_cardinality(),
@@ -3072,7 +3485,7 @@ private:
                     ret_decomposed_edge_ptr,/// edge attribute
                                             /// implicit convert to base class:
                                             /// WithAttribute_<...>
-                    this);                  /// src_vertex_ptr
+                    temp_ptr);              /// src_vertex_ptr
     }
 
     /// operate on the third level container
@@ -3084,8 +3497,8 @@ private:
                             = edge_attribute_is_dynamic,
              typename std::enable_if<judge_edge_has_attribute
                                   && judge_allow_duplicate_edge
-                                  && judge_edge_attribute_is_dynamic,bool
-                                    >::type = true>
+                                  && judge_edge_attribute_is_dynamic,
+                                     bool>::type = true>
     inline typename iterator::template edge<IteratorType::SingleElement>
         AddOutEdge(Vertex* const        vertex,
                    const EdgeLabelType& edge_label,
@@ -3106,6 +3519,7 @@ private:
                                       .InsertCompoundVertex (  vertex  ).first;
         DecomposedEdgeType* const ret_decomposed_edge_ptr
             = &(ret_compound_vertex.AddDecomposedEdge(edge_id).first);
+        Vertex* const temp_ptr = this;
         return typename iterator::template edge<IteratorType::SingleElement>(
                     vertex,                 /// dst_vertex_ptr
                     ret_compound_vertex.duplicate_cardinality(),
@@ -3116,7 +3530,7 @@ private:
                     ret_decomposed_edge_ptr,/// edge attribute
                                             /// implicit convert to base class:
                                             /// WithAttribute_<...>
-                    this);                  /// src_vertex_ptr
+                    temp_ptr);              /// src_vertex_ptr
     }
 
     template<const enum StoreData judge_store_type
@@ -3124,8 +3538,8 @@ private:
              const bool judge_allow_duplicate_edge
                             = allow_duplicate_edge,
              typename std::enable_if<judge_store_type == StoreData::InOutEdge
-                                  &&!judge_allow_duplicate_edge,bool
-                                    >::type = false>
+                                  &&!judge_allow_duplicate_edge,
+                                     bool>::type = false>
     inline bool AddInEdge(Vertex* const        vertex,
                           const EdgeLabelType& edge_label){
         static_assert(judge_store_type == store_type
@@ -3142,8 +3556,8 @@ private:
              const bool judge_allow_duplicate_edge
                             = allow_duplicate_edge,
              typename std::enable_if<judge_store_type == StoreData::InOutEdge
-                                  && judge_allow_duplicate_edge,bool
-                                    >::type = false>
+                                  && judge_allow_duplicate_edge,
+                                     bool>::type = false>
     inline bool AddInEdge(Vertex* const        vertex,
                           const EdgeLabelType& edge_label){
         static_assert(judge_store_type == store_type
@@ -3158,8 +3572,8 @@ private:
     }
 
     /// only store output edge, do not need to hold input edge
-    template<const enum StoreData judge_store_type = store_type,
-             typename std::enable_if<judge_store_type == StoreData::OutEdge,
+    template<const enum StoreData judge_store_type  = store_type,
+          typename std::enable_if<judge_store_type == StoreData::OutEdge,
                                      bool>::type = false>
     inline constexpr bool AddInEdge(Vertex* const        vertex,
                                     const EdgeLabelType& edge_label){
@@ -3174,13 +3588,78 @@ public:
         AddEdge(Vertex* const        vertex,
                 const EdgeLabelType& edge_label,
                 Args&...             args){
-        vertex->AddInEdge(this,edge_label);
+        Vertex* const temp_ptr = this;
+        vertex->AddInEdge(temp_ptr,edge_label);
         return this->AddOutEdge(vertex,edge_label,args...);
     }
 
+    /// number of edge label
+    inline typename EdgeLabelContainerType::size_type
+                    edge_label_size() const{
+        return this->edges_.const_out_edges().size();
+    }
+    template<const enum StoreData judge_store_type  = store_type,
+          typename std::enable_if<judge_store_type == StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline typename InputEdgeLabelContainerType::size_type
+                    input_edge_label_size() const{
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        return this->edges_.const_in_edges().size();
+    }
+    template<const enum StoreData judge_store_type  = store_type,
+          typename std::enable_if<judge_store_type != StoreData::InOutEdge,
+                                     bool>::type = false>
+    inline typename InputEdgeLabelContainerType::size_type
+                    input_edge_label_size() const{
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        /// trick the compiler, equivalent to static_assert(false)
+        static_assert(judge_store_type != store_type,
+                     "Current configuration does not has this method,\
+                      store_type should be configured as InOutEdge");
+        constexpr typename InputEdgeLabelContainerType::size_type
+               meaning_less = 0;
+        return meaning_less;
+    }
+
+    /// number of vertex
+    inline typename VertexContainerType::size_type
+                    vertex_size(const EdgeLabelType& edge_label) const{
+        return this->edges_.const_out_edges()
+                           .const_vertex_container(edge_label).first
+                           .size();
+    }
+    template<const enum StoreData judge_store_type  = store_type,
+          typename std::enable_if<judge_store_type == StoreData::InOutEdge,
+                                  bool>::type = false>
+    inline typename InputVertexContainerType::size_type
+                    input_vertex_size(const EdgeLabelType& edge_label) const{
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        return this->edges_.const_in_edges()
+                           .const_vertex_container(edge_label).first
+                           .size();
+    }
+    template<const enum StoreData judge_store_type  = store_type,
+          typename std::enable_if<judge_store_type != StoreData::InOutEdge,
+                                  bool>::type = false>
+    inline typename InputVertexContainerType::size_type
+                    input_vertex_size(const EdgeLabelType& edge_label) const{
+        static_assert(judge_store_type == store_type,
+                     "Illegal usage of this method");
+        /// trick the compiler, equivalent to static_assert(false)
+        static_assert(judge_store_type != store_type,
+                     "Current configuration does not has this method,\
+                      store_type should be configured as InOutEdge");
+        constexpr typename InputEdgeLabelContainerType::size_type
+               meaning_less = 0;
+        return meaning_less;
+    }
+
     inline std::string to_string() const{
-        return " vertex id: "        + std::to_string(this->id()) + "\n"
-             + " vertex label: "     + this->label().to_string()  + "\n";
+        return " vertex   id : " + std::to_string(this->id()) + "\n"
+             + " vertex label: " + this->label().to_string()  + "\n";
     }
 };
 #endif // _VERTEX_HPP
