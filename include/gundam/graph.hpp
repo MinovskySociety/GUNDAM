@@ -453,26 +453,67 @@ namespace GUNDAM{
             };
 
         private:
-            template<bool is_const>
+            template<bool is_const_>
             class EdgePtrContent_;
 
             /// constant content pointer
             template<>
             class EdgePtrContent_<true>{
+            private:
+                using EdgeLabelIteratorType
+                    = EdgeLabelContainrType::const_iterator;
+                using VertexIteratorType
+                    = VertexContainrType::const_iterator;
+                using DecomposedEdgeIteratorType
+                    = DecomposedEdgeContainrType::const_iterator;
+
+                const VertexPtr vertex_ptr_;
+
+                const      EdgeLabelIteratorType      edge_label_iterator_;
+                const         VertexIteratorType          vertex_iterator_;
+                const DecomposedEdgeIteratorType decomposed_edge_iterator_;
+
             public:
-                /// same to ContentEdgeIterator_
-                const EdgeIDType&       id() const;
-                const EdgeLabelType& label() const;
-                const VertexPtr<true>& const_src_ptr() const;
-                const VertexPtr<true>& const_dst_ptr() const;
+                EdgePtrContent_(const VertexPtr vertex_ptr,
+                    const      EdgeLabelIteratorType& edge_label_iterator
+                    const         VertexIteratorType& vertex_iterator
+                    const DecomposedEdgeIteratorType& decomposed_edge_iterator)
+                    :vertex_ptr_(vertex_ptr),
+                     edge_label_iterator_(edge_label_iterator),
+                         vertex_iterator_(vertex_iterator),
+                decomposed_edge_iterator_(decomposed_edge_iterator){
+                    return;
+                }
+
+                /// public methods same to ContentEdgeIterator_
+                inline const EdgeLabelType& label() const{
+                    return this->edge_label_iterator_->get<kEdgeLabelIdx>;
+                }
+                inline const EdgeIDType& id() const{
+                    return this->decomposed_edge_iterator_->get<kEdgeIDIdx>;
+                }
+                inline const VertexPtr& src_ptr() const{
+                    return this->vertex_ptr_;
+                }
+                inline const VertexPtr& dst_ptr() const{
+                    return this->vertex_iterator_->get<kVertexPtrIdx>;
+                }
 
                 template<typename ConcreteDataType>
                 inline const ConcreteDataType&
-                       const_attribute(const KeyType_& key) const;
+                       const_attribute(const KeyType_& key) const{
+                    return this->decomposed_edge_iterator_
+                               ->get<kEdgeAttributePtrIdx>
+                               ->const_attribute<ConcreteDataType>(key);
+                }
 
                 template<typename ConcreteDataType>
                 inline bool add_attribute(const KeyType_& key,
-                                          const ConcreteDataType& value);
+                                          const ConcreteDataType& value){
+                    return this->decomposed_edge_iterator_
+                               ->get<kEdgeAttributePtrIdx>
+                               ->add_attribute(key,value);
+                }
             };
 
             /// non-constant content pointer
@@ -481,7 +522,6 @@ namespace GUNDAM{
                 :public EdgePtrContent_<true>{
             public:
                 /// same to ContentEdgeIterator_
-                EdgeAttributeType& attribute();
                 VertexPtr<false>&    src_ptr();
                 VertexPtr<false>&    dst_ptr();
 
@@ -502,6 +542,8 @@ namespace GUNDAM{
                 using InnerEdgeType = EdgePtrContent_<is_const_>;
 
             public:
+                using InnerEdgeType::InnerEdgeType;
+
                 inline EdgePtrContent* operator->(){
                     EdgePtr_* const temp_ptr = this;
                     return temp_ptr;
