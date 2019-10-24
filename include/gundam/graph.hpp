@@ -329,12 +329,13 @@ namespace GUNDAM{
                                    edge_id,
                                    edge_attribute_ptr);
                 return this->AddOutEdge(dst_ptr,
-                                       edge_label,
-                                       edge_id,
-                                       edge_attribute_ptr);
+                                        edge_label,
+                                        edge_id,
+                                        edge_attribute_ptr);
             }
             /// possible extension:
             ///     AddEdge(dst_ptr,edge_label);
+            ///         if duplicate edge is not allowed
 
         public:
             template<...>
@@ -513,83 +514,179 @@ namespace GUNDAM{
             const VertexAuxiliaryType& const_auxiliary() const;
                   VertexAuxiliaryType&       auxiliary();
 
-        /// access element
-            EdgeLabelConstPtr FindConstOutEdgeLabel(const EdgeLabelType& edge_label) const;
-            EdgeLabelConstPtr  FindConstInEdgeLabel(const EdgeLabelType& edge_label) const;
+        /// access element, will not be implement in this beggar version
+//            EdgeLabelConstPtr FindConstOutEdgeLabel(const EdgeLabelType& edge_label) const;
+//            EdgeLabelConstPtr  FindConstInEdgeLabel(const EdgeLabelType& edge_label) const;
+
+        /// vertex
+        private:
+            VertexPtr FindVertex(EdgeLabelContainerType& edge_label_container,
+                                 const VertexPtr& dst_ptr){
+                /// wenzhi: test whether it works
+                for (auto edge_label_it : edge_label_container){
+                    /// <iterator, bool>
+                    auto ret = edge_label_it.get<kVertexContainerIdx>
+                                            .Find(dst_ptr);
+                    if (ret.second){
+                        /// found it
+                        return *(ret.first);
+                    }
+                }
+                return VertexPtr();
+            }
+
+            VertexPtr FindVertex(EdgeLabelContainerType& edge_label_container,
+                                 const VertexIDType& dst_id){
+                /// wenzhi: test whether it works
+                for (auto edge_label_it : edge_label_container){
+                    for (auto vertex_it : edge_label_it
+                                         .get<kVertexContainerIdx>){
+                        VertexPtr vertex_ptr = vertex_it.get<kVertexPtrIdx>;
+                        if (vertex_ptr->id() == dst_id){
+                            /// found it
+                            return vertex_ptr;
+                        }
+                    }
+                /// not found
+                return VertexPtr();
+            }
+
+            VertexPtr FindVertex(EdgeLabelContainerType& edge_label_container,
+                                 const EdgeLabelType& edge_label,
+                                 const VertexPtr&     dst_ptr){
+                /// <iterator of EdgeLabelContainer, bool>
+                auto edge_label_ret = edge_label_container.Find(edge_label);
+                if (!edge_label_ret.second) /// does not have edge_label
+                    return VertexPtr();
+                /// <iterator of VertexContainer, bool>
+                auto vertex_ret = edge_label_ret.first->Find(dst_ptr);
+                if (!vertex_ret.second)
+                    return VertexPtr();
+                /// found it
+                return *(vertex_ret.first);
+            }
+
+            VertexPtr FindVertex(EdgeLabelContainerType& edge_label_container,
+                                 const EdgeLabelType& edge_label,
+                                 const VertexIDType&  dst_id){
+                /// <iterator of EdgeLabelContainer, bool>
+                auto edge_label_ret = edge_label_container.Find(edge_label);
+                if (!edge_label_ret.second) /// does not have edge_label
+                    return VertexPtr();
+                for (auto vertex_it : edge_label_ret.first
+                                                   ->get<kVertexContainerIdx>){
+                    VertexPtr vertex_ptr = vertex_it.get<kVertexPtrIdx>;
+                    if (vertex_ptr->id() == dst_id){
+                        /// found it
+                        return vertex_ptr;
+                    }
+                }
+                /// not found
+                return VertexPtr();
+            }
 
         public:
-            VertexPtr FindOutVertex(const VertexPtr& dst_ptr){
-                for (auto it  = this->edges_.out_edges().cbegin();
-                          it != this->edges_.out_edges(). cend ();++it){
-                    auto ptr = it->Find(dst_ptr);
-                    if (ptr.second){
-                        /// found it
-                        return ptr.first;
-                    }
-                }
-                return VertexPtr(nullptr);
+            inline VertexPtr FindOutVertex(const VertexPtr& dst_ptr){
+                return this->FindVertex(this->edges_.out_edges(),dst_ptr);
+            }
+            inline VertexPtr FindOutVertex(const VertexIDType& dst_id){
+                return this->FindVertex(this->edges_.out_edges(),dst_id);
+            }
+            inline VertexPtr FindOutVertex(const EdgeLabelType& edge_label,
+                                           const VertexPtr&     dst_ptr){
+                return this->FindVertex(this->edges_.out_edges(),edge_label,
+                                                                 dst_ptr);
+            }
+            inline VertexPtr FindOutVertex(const EdgeLabelType& edge_label,
+                                           const VertexIDType&  dst_id){
+                return this->FindVertex(this->edges_.out_edges(),edge_label,
+                                                                 dst_id);
+            }
+            inline VertexPtr FindInVertex(const VertexPtr& dst_ptr){
+                return this->FindVertex(this->edges_.in_edges(),dst_ptr);
+            }
+            inline VertexPtr FindInVertex(const VertexIDType& dst_id){
+                return this->FindVertex(this->edges_.in_edges(),dst_id);
+            }
+            inline VertexPtr FindInVertex(const EdgeLabelType& edge_label,
+                                           const VertexPtr&     dst_ptr){
+                return this->FindVertex(this->edges_.in_edges(),edge_label,
+                                                                dst_ptr);
+            }
+            inline VertexPtr FindInVertex(const EdgeLabelType& edge_label,
+                                           const VertexIDType&  dst_id){
+                return this->FindVertex(this->edges_.in_edges(),edge_label,
+                                                                dst_id);
             }
 
-            VertexPtr FindOutVertex(const VertexIDType& dst_id){
-                for (auto edge_label_it  = this->edges_.out_edges().cbegin();
-                          edge_label_it != this->edges_.out_edges(). cend ();
-                        ++edge_label_it){
-                    VertexContainerType& temp_vertex_container_ref
-                                       = edge_label_it
-                                       ->get<kVertexContainerIdx>;
-                    for (auto vertex_it  = temp_vertex_container_ref.cbegin();
-                              vertex_it != temp_vertex_container_ref. cend ();
-                            ++vertex_it){
-                        if ((*vertex_it)->id() == dst_id)
-                            return *vertex_it;
-                    }
-                }
-                return VertexPtr(nullptr);
+            /// will not be implemented in the beggar version
+//            VertexConstPtr FindConstOutVertex(const VertexPtr&     dst_ptr) const;
+//            VertexConstPtr FindConstOutVertex(const VertexIDType&  dst_id ) const;
+//            VertexConstPtr FindConstOutVertex(const EdgeLabelType& edge_label,
+//                                              const VertexPtr&     dst_ptr) const;
+//            VertexConstPtr FindConstOutVertex(const EdgeLabelType& edge_label,
+//                                              const VertexIDType&  dst_id ) const;
+//            VertexConstPtr FindConstInVertex(const VertexPtr&     dst_ptr) const;
+//            VertexConstPtr FindConstInVertex(const VertexIDType&  dst_id ) const;
+//            VertexConstPtr FindConstInVertex(const EdgeLabelType& edge_label,
+//                                             const VertexPtr&     dst_ptr) const;
+//            VertexConstPtr FindConstInVertex(const EdgeLabelType& edge_label,
+//                                             const VertexIDType&  dst_id ) const;
+
+        private:
+            EdgePtr FindEdge(EdgeLabelContainerType& edge_label_container,
+                             const EdgeLabelType& edge_label,
+                             const VertexPtr&  dst_ptr,
+                             const EdgeIDType& edge_id){
+                /// <iterator of EdgeLabelContainer, bool>
+                auto edge_label_ret = edge_label_container.Find(edge_label);
+                if (!edge_label_ret.second) /// does not have this edge label
+                    return EdgePtr();
+                /// <iterator of VertexContainer, bool>
+                auto vertex_ret = edge_label_ret.first->Find(dst_ptr);
+                if (!vertex_ret.second) /// does not have this VertexPtr
+                    return EdgePtr();
+                /// <iterator of DecomposedEdgeContainer, bool>
+                auto decomposed_edge_ret = vertex_ret.first->Find(edge_id);
+                if (!decomposed_edge_ret) /// does not find it
+                    return EdgePtr();
+                return EdgePtr(edge_label_ret.first,
+                                   vertex_ret.first,
+                          decomposed_edge_ret.first);
             }
 
-                 VertexPtr FindOutVertex(const EdgeLabelType& edge_label,
-                                         const VertexPtr&     dst_ptr);
-                 VertexPtr FindOutVertex(const EdgeLabelType& edge_label,
-                                         const VertexIDType&  dst_id );
-            VertexConstPtr FindConstOutVertex(const VertexPtr&     dst_ptr) const;
-            VertexConstPtr FindConstOutVertex(const VertexIDType&  dst_id ) const;
-            VertexConstPtr FindConstOutVertex(const EdgeLabelType& edge_label,
-                                              const VertexPtr&     dst_ptr) const;
-            VertexConstPtr FindConstOutVertex(const EdgeLabelType& edge_label,
-                                              const VertexIDType&  dst_id ) const;
-
-                 VertexPtr FindInVertex(const VertexPtr&     dst_ptr);
-                 VertexPtr FindInVertex(const VertexIDType&  dst_id );
-                 VertexPtr FindInVertex(const EdgeLabelType& edge_label,
-                                        const VertexPtr&     dst_ptr);
-                 VertexPtr FindInVertex(const EdgeLabelType& edge_label,
-                                        const VertexIDType&  dst_id );
-            VertexConstPtr FindConstInVertex(const VertexPtr&     dst_ptr) const;
-            VertexConstPtr FindConstInVertex(const VertexIDType&  dst_id ) const;
-            VertexConstPtr FindConstInVertex(const EdgeLabelType& edge_label,
-                                             const VertexPtr&     dst_ptr) const;
-            VertexConstPtr FindConstInVertex(const EdgeLabelType& edge_label,
-                                             const VertexIDType&  dst_id ) const;
-
-                 EdgePtr      FindOutEdge(const VertexPtr& dst_ptr);
-            EdgeConstPtr FindConstOutEdge(const VertexPtr& dst_ptr);
+        public:
+            inline EdgePtr FindOutEdge(const EdgeLabelType& edge_label,
+                                       const VertexPtr&  dst_ptr,
+                                       const EdgeIDType& edge_id){
+                return this->FindEdge(this->edges_.out_edges(),
+                                      edge_label,
+                                      dst_ptr,
+                                      edge_id);
+            }
             /// possible extension:
-            ///     FindOutEdge(dst_ptr,edge_label)
-            ///     ...
-            ///     FindConstOutEdge(dst_ptr,edge_label)
-            ///     ...
+            ///     FindOutEdge(edge_label,dst_ptr)
+            ///         when there are not duplicate edge
+            ///     FindOutEdge(dst_ptr)
+            ///         when there are not duplicate edge
+            ///         and only has one edge label type
 
-                 EdgePtr      FindInEdge(const VertexPtr& dst_ptr);
-            EdgeConstPtr FindConstInEdge(const VertexPtr& dst_ptr);
+            EdgePtr FindInEdge(const VertexPtr& dst_ptr){
+                return this->FindEdge(this->edges_.in_edges(),
+                                      edge_label,
+                                      dst_ptr,
+                                      edge_id);
+            }
             /// possible extension:
-            ///     FindInEdge(dst_ptr,edge_label)
-            ///     ...
-            ///     FindConstInEdge(dst_ptr,edge_label)
-            ///     ...
+            ///     FindInEdge(edge_label,dst_ptr)
+            ///         when there are not duplicate edge
+            ///     FindInEdge(dst_ptr)
+            ///         when there are not duplicate edge
+            ///         and only has one edge label type
 
-            EdgePtr AddEdge(const VertexPtr& dst_ptr);
-            /// possible extension:
-            ///     AddEdge(dst_ptr,edge_label);
+            /// will not be implemented in the beggar version
+//            EdgeConstPtr FindConstOutEdge(const VertexPtr& dst_ptr);
+//            EdgeConstPtr FindConstInEdge(const VertexPtr& dst_ptr);
 
         /// iterate element:
             /// output iterators:
