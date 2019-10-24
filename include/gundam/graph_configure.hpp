@@ -8,6 +8,7 @@
 template<typename... configures>
 class GraphConfigures;
 
+
 /// declaration of configurable parameters
 /// store data type
 template<enum StoreData store_data_type>
@@ -120,9 +121,10 @@ protected:
     static constexpr bool specified_duplicate_num_type              = false;
 
 public:
+    static constexpr bool HasUnSpecifiedConfigure=false;
     /// default setting of store data type
     static constexpr enum StoreData
-             store_data = StoreData::OutEdge;
+             store_data = StoreData::InOutEdge;
     /// default setting of node configurations
     using VertexIDType                    = DefaultIDType;
     static constexpr bool
@@ -175,8 +177,190 @@ public:
     static constexpr bool
                  allow_multiple_edge = false;
     static constexpr bool
-                allow_duplicate_edge = true;
+                allow_duplicate_edge = false;
     using DuplicateNumType           = uint32_t;
 };
 
+
+//Set Vertex ID 
+template<typename VIDType,
+         typename...  other_configures>
+class GraphConfigures<
+      SetVertexIDType<VIDType>,
+      other_configures...>
+      :public GraphConfigures<other_configures...>{
+private:
+      static_assert(!GraphConfigures<other_configures...>::specified_vertex_id_type,
+      "Redefination of vertex id type!\n");
+      static_assert(std::is_object<VIDType>::value,
+                    "Illegal Edge ID Type");
+protected:
+      static constexpr bool specified_vertex_id_type                  = false;
+public:
+      using VertexIDType=VIDType;
+};
+
+
+//Set Node Label Type
+template<template <typename...> class VLabelType,
+         typename VLabelUnderlieConfigures,
+         typename...      other_configures>
+class GraphConfigures<
+      SetVertexLabelType<VLabelType<VLabelUnderlieConfigures>>,
+      other_configures...>
+      :public GraphConfigures<other_configures...>{
+private:
+      static_assert(!GraphConfigures<other_configures...>::specified_vertex_label_type,
+                    "Redefinition of Vertex Label Type");
+      static_assert(std::is_base_of<Label<VLabelUnderlieConfigures>,
+                                 VLabelType<VLabelUnderlieConfigures>>::value,
+                            "Illegal Vertex Label Type");
+protected:
+      static constexpr bool specified_vertex_label_type=true;
+public:
+      using VertexLabelType=VLabelType<VLabelUnderlieConfigures>;   
+};
+
+
+//Has Node Attribute
+template<bool HasAttribute,
+         typename... other_configures>
+class GraphConfigures<
+      SetVertexHasAttribute<HasAttribute>,
+      other_configures...>
+      :public GraphConfigures<other_configures...>{
+private:
+      static_assert(!GraphConfigures<other_configures...>::specified_vertex_has_attribute,
+                    "Redefinition of Has Vertex Attr");
+protected:
+      static constexpr bool specified_vertex_has_attribute=true;
+      static constexpr bool vertex_has_attribute=HasAttribute;
+public:
+};
+
+
+//set Node attr
+template<template <typename...> class VAttrType,
+         typename VAttrUnderlieConfigures,
+         typename... other_configures>
+class GraphConfigures<
+      SetVertexAttributeType<VAttrType<VAttrUnderlieConfigures>>,
+      other_configures...>
+      :public GraphConfigures<other_configures...>{
+private:
+      static_assert(!GraphConfigures<other_configures...>::specified_vertex_attribute_type,
+      "Redefinition of Vertex Attr Type");
+      static_assert(std::is_base_of<Attribute<VAttrUnderlieConfigures>,
+                    VAttrType<VAttrUnderlieConfigures>>::value,
+                    "Illegal Vertex Attr Type");
+protected:
+      static constexpr bool specified_vertex_attribute_type=false;
+public:
+      using VertexAttributeType=VAttrType<VAttrUnderlieConfigures>;
+};
+
+
+//Set Edge ID
+template<typename    EIDType,
+         typename... other_configures>
+class GraphConfigures<SetEdgeIDType<EIDType>,
+      other_configures...>
+      :public GraphConfigures<other_configures...>{
+private:
+      static_assert(!GraphConfigures<other_configures...>::specified_edge_id_type,
+                    "Redefinition of Edge ID Type");
+      static_assert(std::is_object<EIDType>::value,
+                            "Illegal Edge ID Type");
+protected:
+      static constexpr bool specified_edge_id_type                    = true;
+public:
+      using EdgeIDType=EIDType;
+};
+
+
+//set edge label
+template<template <typename...> class ELabelType,
+         typename ELabelUnderlieConfigures,
+         typename...      other_configures>
+class GraphConfigures<
+      SetEdgeLabelType<ELabelType<ELabelUnderlieConfigures>>,
+      other_configures...>
+      :public GraphConfigures<other_configures...>{
+private:
+      static_assert(!GraphConfigures<other_configures...>::specified_edge_label_type,
+                    "Redefinition of Edge Label Type");
+      static_assert(std::is_base_of<Label<ELabelUnderlieConfigures>,
+                    ELabelType<ELabelUnderlieConfigures>>::value,
+                    "Illegal Edge Label Type");
+protected:
+      static constexpr bool specified_edge_label_type=true;
+public:
+      using EdgeLabelType=ELabelType<ELabelUnderlieConfigures>;
+};
+
+
+//Has Edge Attribute
+template<bool HasAttribute,
+         typename... other_configures>
+class GraphConfigures<
+      SetEdgeHasAttribute<HasAttribute>,
+      other_configures...>
+      :public GraphConfigures<other_configures...>{
+private:
+      static_assert(!GraphConfigures<other_configures...>::specified_edge_has_attribute,
+                    "Redefinition of Has Edge Attr");
+protected:
+      static constexpr bool specified_edge_has_attribute=true;
+      static constexpr bool edge_has_attribute=HasAttribute;
+public:
+};
+
+
+//set edge attr
+template<template <typename...> class EAttrType,
+         typename EAttrUnderlieConfigures,
+         typename... other_configures>
+class GraphConfigures<
+      SetEdgeAttributeType<EAttrType<EAttrUnderlieConfigures>>,
+      other_configures...>
+      :public GraphConfigures<other_configures...>{
+private:
+      static_assert(!GraphConfigures<other_configures...>::specified_edge_attribute_type,
+      "Redefinition of Edge Attr Type");
+      static_assert(std::is_base_of<Attribute<EAttrUnderlieConfigures>,
+                    EAttrType<EAttrUnderlieConfigures>>::value,
+                    "Illegal Edge Attr Type");
+protected:
+      static constexpr bool specified_edge_attribute_type=false;
+public:
+      using EdgeAttributeType=EAttrType<EAttrUnderlieConfigures>;
+};
+
+
+
+//set multi edge
+template<bool AllowMultiEdge,
+         typename... other_configures>
+class GraphConfigures<
+      SetAllowMultipleEdge<AllowMultiEdge>,
+      other_configures...>
+      :public GraphConfigures<other_configures...>{
+private:
+      static_assert(!GraphConfigures<other_configures...>::specified_allow_multiple_edge,
+                    "Redefinition of Allow Multi Edge");
+protected:
+      static constexpr bool specified_allow_multiple_edge=true;
+      static constexpr bool allow_multiple_edge=AllowMultiEdge;
+public:
+};
+
+/// Other configurations are not specified
+template<typename    UnSpecifiedConfigure,
+         typename... other_configures>
+class   GraphConfigures<UnSpecifiedConfigure,
+                       other_configures...>
+:public GraphConfigures<other_configures...>{
+public:
+    static constexpr bool HasUnSpecifiedConfigure = true;
+};
 #endif // _GRAPH_CONFIGURE_HPP
