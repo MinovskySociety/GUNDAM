@@ -96,29 +96,31 @@ class GraphConfigures<> {
   static constexpr bool specified_vertex_id_type = false;
   static constexpr bool specified_vertex_label_type = false;
   static constexpr bool specified_vertex_label_is_const = false;
-  static constexpr bool specified_vertex_has_attribute = false;
+  static constexpr bool specified_vertex_has_static_attribute = false;
   static constexpr bool specified_vertex_attribute_type = false;
   static constexpr bool specified_vertex_attribute_is_const = false;
-  static constexpr bool specified_vertex_attribute_is_dynamic = false;
+  static constexpr bool specified_vertex_has_dynamic_attribute = false;
   static constexpr bool specified_vertex_attribute_key_type = false;
   static constexpr bool specified_vertex_attribute_container_type = false;
+  static constexpr bool specified_vertex_attribute_container_sort_type = false;
   /// mark whether specified edge configurations
   static constexpr bool specified_edge_id_type = false;
   static constexpr bool specified_edge_label_type = false;
   static constexpr bool specified_edge_label_is_const = false;
-  static constexpr bool specified_edge_has_attribute = false;
+  static constexpr bool specified_edge_has_static_attribute = false;
   static constexpr bool specified_edge_attribute_type = false;
   static constexpr bool specified_edge_attribute_is_const = false;
-  static constexpr bool specified_edge_attribute_is_dynamic = false;
+  static constexpr bool specified_edge_has_dynamic_attribute = false;
   static constexpr bool specified_edge_attribute_key_type = false;
   static constexpr bool specified_edge_attribute_container_type = false;
+  static constexpr bool specified_edge_attribute_container_sort_type = false;
   /// mark whether specified containers type
   static constexpr bool specified_edge_label_container_type = false;
-  static constexpr bool specified_vertex_container_type = false;
+  static constexpr bool specified_vertex_ptr_container_type = false;
   static constexpr bool specified_edge_container_type = false;
   /// mark whether specified containers sort types
   static constexpr bool specified_edgeLabel_container_sort_type = false;
-  static constexpr bool specified_vertexes_container_sort_type = false;
+  static constexpr bool specified_vertex_ptr_container_sort_type = false;
   static constexpr bool specified_edge_container_sort_type = false;
   /// default setting of miscellaneous
   static constexpr bool specified_allow_multiple_edge = false;
@@ -128,44 +130,57 @@ class GraphConfigures<> {
  public:
   static constexpr bool HasUnSpecifiedConfigure = false;
   /// default setting of store data type
-  static constexpr enum StoreData store_data = StoreData::InOutEdge;
-  /// default setting of node configurations
-  using VertexIDType = DefaultIDType;
-  static constexpr bool vertex_id_provided_by_user = true;
-  using VertexLabelType = DefaultLabelType;
-  static constexpr bool vertex_label_is_const = true;
-  static constexpr bool vertex_has_attribute = false;
-  using VertexStaticAttributeType = DefaultAttributeType;
-  static constexpr bool vertex_attribute_is_const = true;
-  static constexpr bool vertex_attribute_is_dynamic = true;
-  using VertexAttributeKeyType = DefaultKeyType;
-  static constexpr enum ContainerType vertex_attribute_container_type =
-      DefaultContainerType;
+  static constexpr enum StoreData store_data    = StoreData::InOutEdge;
+  /// default setting of vertex configurations
+                  using VertexIDType                    = DefaultIDType;
+  static constexpr bool vertex_id_provided_by_user      = true;
+                  using VertexLabelType                 = DefaultLabelType;
+  static constexpr bool vertex_label_is_const           = true;
+  static constexpr bool vertex_has_static_attribute     = false;
+                  using VertexStaticAttributeType       = DefaultAttributeType;
+  static constexpr bool vertex_attribute_is_const       = true;
+  static constexpr bool vertex_has_dynamic_attribute    = true;
+                  using VertexAttributeKeyType          = DefaultKeyType;
+  static constexpr enum ContainerType
+                        vertex_attribute_container_type = DefaultContainerType;
+  static constexpr enum SortType
+                        vertex_attribute_container_sort_type = DefaultSortType;
   /// default setting of edge configurations
-  using EdgeIDType = DefaultIDType;
-  static constexpr bool edge_id_provided_by_user = true;
-  using EdgeLabelType = DefaultLabelType;
-  static constexpr bool edge_label_is_const = true;
-  static constexpr bool edge_has_attribute = false;
-  using EdgeStaticAttributeType = DefaultAttributeType;
-  static constexpr bool edge_attribute_is_const = true;
-  static constexpr bool edge_attribute_is_dynamic = true;
-  using EdgeAttributeKeyType = DefaultKeyType;
-  static constexpr enum ContainerType edge_attribute_container_type =
-      DefaultContainerType;
+                  using EdgeIDType = DefaultIDType;
+  static constexpr bool edge_id_provided_by_user      = true;
+                  using EdgeLabelType                 = DefaultLabelType;
+  static constexpr bool edge_label_is_const           = true;
+  static constexpr bool edge_has_static_attribute     = false;
+                  using EdgeStaticAttributeType       = DefaultAttributeType;
+  static constexpr bool edge_attribute_is_const       = true;
+  static constexpr bool edge_has_dynamic_attribute    = true;
+                  using EdgeAttributeKeyType          = DefaultKeyType;
+  static constexpr enum ContainerType
+                        edge_attribute_container_type = DefaultContainerType;
+  static constexpr enum SortType
+                        edge_attribute_container_sort_type = DefaultSortType;
   /// default setting of container types
-  static constexpr enum ContainerType edge_label_container_type =
-      DefaultContainerType;
-  static constexpr enum ContainerType vertex_container_type =
-      DefaultContainerType;
-  static constexpr enum ContainerType decomposed_edge_container_type =
-      DefaultContainerType;
+  static constexpr enum ContainerType
+           vertex_label_container_type = DefaultContainerType;
+  static constexpr enum ContainerType
+              vertex_id_container_type = DefaultContainerType;
+  static constexpr enum ContainerType
+             edge_label_container_type = DefaultContainerType;
+  static constexpr enum ContainerType
+             vertex_ptr_container_type = DefaultContainerType;
+  static constexpr enum ContainerType
+        decomposed_edge_container_type = DefaultContainerType;
   /// default setting of container sort types
-  static constexpr enum SortType edge_label_container_sort_type =
-      DefaultSortType;
-  static constexpr enum SortType vertex_container_sort_type = DefaultSortType;
-  static constexpr enum SortType decomposed_edge_container_sort_type =
-      DefaultSortType;
+  static constexpr enum SortType
+           vertex_label_container_sort_type = DefaultSortType;
+  static constexpr enum SortType
+              vertex_id_container_sort_type = DefaultSortType;
+  static constexpr enum SortType
+             edge_label_container_sort_type = DefaultSortType;
+  static constexpr enum SortType
+             vertex_ptr_container_sort_type = DefaultSortType;
+  static constexpr enum SortType
+        decomposed_edge_container_sort_type = DefaultSortType;
   /// default setting of miscellaneous
   static constexpr bool allow_multiple_edge = false;
   static constexpr bool allow_duplicate_edge = false;
@@ -215,12 +230,12 @@ class GraphConfigures<SetVertexHasAttribute<HasAttribute>, other_configures...>
     : public GraphConfigures<other_configures...> {
  private:
   static_assert(
-      !GraphConfigures<other_configures...>::specified_vertex_has_attribute,
+      !GraphConfigures<other_configures...>::specified_vertex_has_static_attribute,
       "Redefinition of Has Vertex Attr");
 
  protected:
-  static constexpr bool specified_vertex_has_attribute = true;
-  static constexpr bool vertex_has_attribute = HasAttribute;
+  static constexpr bool specified_vertex_has_static_attribute = true;
+  static constexpr bool vertex_has_static_attribute = HasAttribute;
 
  public:
 };
@@ -289,14 +304,14 @@ class GraphConfigures<SetEdgeHasAttribute<HasAttribute>, other_configures...>
     : public GraphConfigures<other_configures...> {
  private:
   static_assert(
-      !GraphConfigures<other_configures...>::specified_edge_has_attribute,
+      !GraphConfigures<other_configures...>::specified_edge_has_static_attribute,
       "Redefinition of Has Edge Attr");
 
  protected:
-  static constexpr bool specified_edge_has_attribute = true;
+  static constexpr bool specified_edge_has_static_attribute = true;
 
  public:
-  static constexpr bool edge_has_attribute = HasAttribute;
+  static constexpr bool edge_has_static_attribute = HasAttribute;
 };
 
 // set edge attr

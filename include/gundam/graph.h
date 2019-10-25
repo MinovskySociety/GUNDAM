@@ -26,16 +26,16 @@ class Graph {
           = Configures::vertex_label_is_const;
   static constexpr bool vertex_attribute_is_const
           = Configures::vertex_attribute_is_const;
-  static constexpr bool vertex_has_static_attribtue
-          = Configures::vertex_has_static_attribtue;
+  static constexpr bool vertex_has_static_attribute
+          = Configures::vertex_has_static_attribute;
   static constexpr bool vertex_has_dynamic_attribute
           = Configures::vertex_has_dynamic_attribute;
   static constexpr bool edge_label_is_const
           = Configures::edge_label_is_const;
   static constexpr bool edge_attribute_is_const
           = Configures::edge_attribute_is_const;
-  static constexpr bool edge_has_static_attribtue
-          = Configures::edge_has_static_attribtue;
+  static constexpr bool edge_has_static_attribute
+          = Configures::edge_has_static_attribute;
   static constexpr bool edge_has_dynamic_attribute
           = Configures::edge_has_dynamic_attribute;
 
@@ -940,13 +940,13 @@ class Graph {
    public:
     using EdgeType = Type_<EdgeIDType,
                            EdgeLabelType,
-                           edge_has_static_attribtue,
+                           edge_has_static_attribute,
                            EdgeStaticAttributeType,
                            edge_has_dynamic_attribute,
                            EdgeAttributeKeyType>;
     using VertexType = Type_<VertexIDType,
                              VertexLabelType,
-                             vertex_has_static_attribtue,
+                             vertex_has_static_attribute,
                              VertexStaticAttributeType,
                              vertex_has_dynamic_attribute,
                              VertexAttributeKeyType>;
