@@ -1,12 +1,17 @@
 #ifndef _GRAPH_CONFIGURE_H
 #define _GRAPH_CONFIGURE_H
 
-//#include "vertex.h"
-//#include "configures.h"
-//#include "label.h"
+#include "label.h"
+#include "container.h"
+#include "attribute.h"
 
 #include <cstdint>
 #include <string>
+
+enum class StoreData:bool{
+      OutEdge,
+    InOutEdge
+};
 
 namespace GUNDAM {
 template <typename... configures>
@@ -24,7 +29,7 @@ class SetVertexIDType;
 template <bool HasAttribute>
 class SetVertexHasAttribute;
 template <typename AttributeType>
-class SetVertexAttributeType;
+class SetVertexStaticAttributeType;
 template <bool AttributeIsConst>
 class SetVertexAttributeIsConst;
 template <bool AttributeIsDynamical>
@@ -39,7 +44,7 @@ class SetEdgeIDType;
 template <bool HasAttribute>
 class SetEdgeHasAttribute;
 template <typename AttributeType>
-class SetEdgeAttributeType;
+class SetEdgeStaticAttributeType;
 template <bool AttributeIsConst>
 class SetEdgeAttributeIsConst;
 template <bool AttributeIsDynamical>
@@ -130,7 +135,7 @@ class GraphConfigures<> {
   using VertexLabelType = DefaultLabelType;
   static constexpr bool vertex_label_is_const = true;
   static constexpr bool vertex_has_attribute = false;
-  using VertexAttributeType = DefaultAttributeType;
+  using VertexStaticAttributeType = DefaultAttributeType;
   static constexpr bool vertex_attribute_is_const = true;
   static constexpr bool vertex_attribute_is_dynamic = true;
   using VertexAttributeKeyType = DefaultKeyType;
@@ -142,7 +147,7 @@ class GraphConfigures<> {
   using EdgeLabelType = DefaultLabelType;
   static constexpr bool edge_label_is_const = true;
   static constexpr bool edge_has_attribute = false;
-  using EdgeAttributeType = DefaultAttributeType;
+  using EdgeStaticAttributeType = DefaultAttributeType;
   static constexpr bool edge_attribute_is_const = true;
   static constexpr bool edge_attribute_is_dynamic = true;
   using EdgeAttributeKeyType = DefaultKeyType;
@@ -224,7 +229,7 @@ class GraphConfigures<SetVertexHasAttribute<HasAttribute>, other_configures...>
 template <template <typename...> class VAttrType,
           typename VAttrUnderlieConfigures, typename... other_configures>
 class GraphConfigures<
-    SetVertexAttributeType<VAttrType<VAttrUnderlieConfigures>>,
+    SetVertexStaticAttributeType<VAttrType<VAttrUnderlieConfigures>>,
     other_configures...> : public GraphConfigures<other_configures...> {
  private:
   static_assert(
@@ -238,7 +243,7 @@ class GraphConfigures<
   static constexpr bool specified_vertex_attribute_type = false;
 
  public:
-  using VertexAttributeType = VAttrType<VAttrUnderlieConfigures>;
+  using VertexStaticAttributeType = VAttrType<VAttrUnderlieConfigures>;
 };
 
 // Set Edge ID
@@ -289,15 +294,15 @@ class GraphConfigures<SetEdgeHasAttribute<HasAttribute>, other_configures...>
 
  protected:
   static constexpr bool specified_edge_has_attribute = true;
-  static constexpr bool edge_has_attribute = HasAttribute;
 
  public:
+  static constexpr bool edge_has_attribute = HasAttribute;
 };
 
 // set edge attr
 template <template <typename...> class EAttrType,
           typename EAttrUnderlieConfigures, typename... other_configures>
-class GraphConfigures<SetEdgeAttributeType<EAttrType<EAttrUnderlieConfigures>>,
+class GraphConfigures<SetEdgeStaticAttributeType<EAttrType<EAttrUnderlieConfigures>>,
                       other_configures...>
     : public GraphConfigures<other_configures...> {
  private:
@@ -312,7 +317,7 @@ class GraphConfigures<SetEdgeAttributeType<EAttrType<EAttrUnderlieConfigures>>,
   static constexpr bool specified_edge_attribute_type = false;
 
  public:
-  using EdgeAttributeType = EAttrType<EAttrUnderlieConfigures>;
+  using EdgeStaticAttributeType = EAttrType<EAttrUnderlieConfigures>;
 };
 
 // set multi edge
@@ -326,9 +331,9 @@ class GraphConfigures<SetAllowMultipleEdge<AllowMultiEdge>, other_configures...>
 
  protected:
   static constexpr bool specified_allow_multiple_edge = true;
-  static constexpr bool allow_multiple_edge = AllowMultiEdge;
 
  public:
+  static constexpr bool allow_multiple_edge = AllowMultiEdge;
 };
 
 /// Other configurations are not specified

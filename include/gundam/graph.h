@@ -6,337 +6,363 @@
 #include <map>
 
 namespace GUNDAM {
-
-template <typename AttributeType_, const bool is_const_, const bool is_dynamic_,
-          typename KeyType_, const enum ContainerType container_type_>
-class Attribute_;
-
-template <typename AttributeType_, typename KeyType_,
-          const enum ContainerType container_type_>
-class Attribute_<AttributeType_, true, true, KeyType_, container_type_> {
-  public : template <typename ConcreteDataType>
-  inline const ConcreteDataType& const_attribute(const KeyType_& key) const;
-
-  template <typename ConcreteDataType>
-  inline bool add_attribute(const KeyType_& key, const ConcreteDataType& value);
-};
-
-/// dynamic attribute, holds a container for the attributes instead of
-/// a single attribute
-template <typename AttributeType_, typename KeyType_,
-          const enum ContainerType container_type_>
-class Attribute_<AttributeType_, false, true, KeyType_, container_type_>
-    : public Attribute_<AttributeType_, true, true, KeyType_, container_type_> {
-      public : template <typename ConcreteDataType>
-      inline ConcreteDataType& attribute(const KeyType_& key);
-
-      template <typename ConcreteDataType>
-      inline bool set_attribute(const KeyType_& key,
-                                const ConcreteDataType& value);
-
-      inline bool remove_attribute(const KeyType_& key);
-    };
-
-template <enum ContainerType container_type, enum SortType sort_type,
-          typename KeyType, typename... ValueType>
-class Container {
-  /// trick the compiler, same to static_assert(false)
-  static_assert(std::is_object<KeyType>::value, "Unsupported configuration");
-  static_assert(!std::is_object<KeyType>::value, "Unsupported configuration");
-}
-
-template <enum SortType sort_type, typename KeyType, typename... ValueType>
-class Container<ContainerType::Vector, sort_type, KeyType, ValueType...> {
- public:
-  using KeyType = KeyType;
-  using ElementType = std::tuple<KeyType, ValueType...>;
-
- private:
-  using InnerContainerType = std::vector<ElementType>;
-  InnerContainerType container_;
-
-  static_assert(sort_type == SortType::None,
-                "other sorting type are not supported yet");
-
- public:
-  using const_iterator = typename InnerContainerType::const_iterator;
-  using iterator = typename InnerContainerType::iterator;
-  using size_type = typename InnerContainerType::size_type;
-
-  inline const_iterator cbegin() const { return this->container_.cbegin(); }
-  inline const_iterator cend() const { return this->container_.cend(); }
-  inline iterator begin() { return this->container_.begin(); }
-  inline iterator end() { return this->container_.end(); }
-  inline size_type size() const { return this->container_.size(); }
-  inline bool empty() const { return this->container_.empty(); }
-  inline void shrink_to_fit() const {
-    this->container_.shrink_to_fit();
-    return;
-  }
-
-  inline std::pair<iterator, bool> Insert(const KeyType& key) {
-    if (sort_type == SortType::None) {
-      for (iterator it = this->container_.begin(); it != this->container_.end();
-           ++it)
-        if (it->get<0> == key) return std::pair<iterator, bool>(it, false);
-      this->container_.emplace_back(
-          std::tuple_cat(std::tuple<KeyType>(key), std::tuple<ValueType...>()));
-      return std::pair<iterator, bool>(this->container_.end() - 1, true);
-    }
-    /// other sorting type are not implemented
-    assert(false);
-    return std::pair<iterator, bool>(this->container_.end() - 1, true);
-  }
-
-  inline std::pair<iterator, bool> Find(const KeyType& key) {
-    if (sort_type == SortType::None) {
-      for (iterator it = this->container_.begin(); it != this->container_.end();
-           ++it)
-        if (it->get<0> == key) return std::pair<iterator, bool>(it, true);
-      return std::pair<iterator, bool>(this->container_.end(), false);
-    }
-    /// other sorting type are not implemented
-    assert(false);
-    return std::pair<iterator, bool>(this->container_.end(), false);
-  }
-
-  inline std::pair<const_iterator, bool> FindConst(const KeyType& key) const {
-    if (sort_type == SortType::None) {
-      for (const_iterator it = this->container_.cbegin();
-           it != this->container_.cend(); ++it)
-        if (it->get<0> == key) return std::pair<const_iterator, bool>(it, true);
-      return std::pair<const_iterator, bool>(this->container_.cend(), false);
-    }
-    /// other sorting type are not implemented
-    assert(false);
-    return std::pair<const_iterator, bool>(this->container_.cend(), false);
-  }
-};
-
-namespace GUNDAM {
 template <typename... configures>
 class Graph {
  private:
   using Configures = GraphConfigures<configures...>;
 
-  using VertexIDType = typename Configures::VertexIDType;
-  using VertexLabelType = typename Configures::VertexLabelType;
-  using VertexAttributeKeyType = typename Configures::VertexAttributeKeyType;
-  using EdgeIDType = typename Configures::EdgeIDType;
-  using EdgeLabelType = typename Configures::EdgeLabelType;
-  using EdgeAttributeKeyType = typename Configures::EdgeAttributeKeyType;
+  using VertexIDType              = typename Configures::VertexIDType;
+  using VertexLabelType           = typename Configures::VertexLabelType;
+  using VertexAttributeKeyType    = typename Configures::VertexAttributeKeyType;
+  using VertexStaticAttributeType = typename Configures::VertexStaticAttributeType;
+  using EdgeIDType                = typename Configures::EdgeIDType;
+  using EdgeLabelType             = typename Configures::EdgeLabelType;
+  using EdgeAttributeKeyType      = typename Configures::EdgeAttributeKeyType;
+  using EdgeStaticAttributeType   = typename Configures::EdgeStaticAttributeType;
 
-  /// the class that provides the basic information about data type
-  template <bool has_attribtue_, bool has_dynamic_attribtue_>
-  class EdgeType_ {
-    static_assert(has_attribtue_, "Unsupported configuration");
-    static_assert(!has_attribtue_, "Unsupported configuration");
+  static constexpr enum StoreData store_data = Configures::store_data;
+
+  static constexpr bool vertex_label_is_const
+          = Configures::vertex_label_is_const;
+  static constexpr bool vertex_attribute_is_const
+          = Configures::vertex_attribute_is_const;
+  static constexpr bool vertex_has_static_attribtue
+          = Configures::vertex_has_static_attribtue;
+  static constexpr bool vertex_has_dynamic_attribute
+          = Configures::vertex_has_dynamic_attribute;
+  static constexpr bool edge_label_is_const
+          = Configures::edge_label_is_const;
+  static constexpr bool edge_attribute_is_const
+          = Configures::edge_attribute_is_const;
+  static constexpr bool edge_has_static_attribtue
+          = Configures::edge_has_static_attribtue;
+  static constexpr bool edge_has_dynamic_attribute
+          = Configures::edge_has_dynamic_attribute;
+
+  static constexpr enum ContainerType vertex_attribute_container_type
+                        = Configures::vertex_attribute_container_type;
+  static constexpr enum ContainerType   edge_attribute_container_type
+                          = Configures::edge_attribute_container_type;
+  static constexpr enum ContainerType  decomposed_edge_container_type
+                         = Configures::decomposed_edge_container_type;
+  static constexpr enum ContainerType       vertex_ptr_container_type
+                              = Configures::vertex_ptr_container_type;
+  static constexpr enum ContainerType       edge_label_container_type
+                              = Configures::edge_label_container_type;
+  static constexpr enum ContainerType        vertex_id_container_type
+                               = Configures::vertex_id_container_type;
+  static constexpr enum ContainerType     vertex_label_container_type
+                            = Configures::vertex_label_container_type;
+
+  static constexpr enum SortType vertex_attribute_container_sort_type
+                   = Configures::vertex_attribute_container_sort_type;
+  static constexpr enum SortType   edge_attribute_container_sort_type
+                     = Configures::edge_attribute_container_sort_type;
+  static constexpr enum SortType  decomposed_edge_container_sort_type
+                    = Configures::decomposed_edge_container_sort_type;
+  static constexpr enum SortType       vertex_ptr_container_sort_type
+                         = Configures::vertex_ptr_container_sort_type;
+  static constexpr enum SortType       edge_label_container_sort_type
+                         = Configures::edge_label_container_sort_type;
+  static constexpr enum SortType        vertex_id_container_sort_type
+                          = Configures::vertex_id_container_sort_type;
+  static constexpr enum SortType     vertex_label_container_sort_type
+                       = Configures::vertex_label_container_sort_type;
+
+
+  /// the class that provides the basic information about both vertex and edge
+  template <typename IDType_,
+            typename LabelType_,
+            bool has_static_attribtue_,
+            typename StaticAttributeType_,
+            bool has_dynamic_attribtue_,
+            typename AttributeKeyType_>
+  class Type_ {
+    /// trick compiler, same to static_assert(false);
+    static_assert( has_static_attribtue_, "Unsupported configuration");
+    static_assert(!has_static_attribtue_, "Unsupported configuration");
   };
-  template <>
-  class EdgeType_<false, false> {
+  template <typename IDType_,
+            typename LabelType_,
+            typename StaticAttributeType_,
+            typename AttributeKeyType_>
+  class Type_<IDType_,
+              LabelType_,
+              false,
+              StaticAttributeType_,
+              false,
+              AttributeKeyType_> {
    public:
-    using IDType = EdgeIDType;
-    using LabelType = EdgeLabelType;
+    using    IDType = IDType_;
+    using LabelType = LabelType_;
   };
-  template <>
-  class EdgeType_<true, true> : public EdgeType_<false, false> {
+  template <typename IDType_,
+            typename LabelType_,
+            typename StaticAttributeType_,
+            typename AttributeKeyType_>
+  class Type_<IDType_,
+              LabelType_,
+              true,
+              StaticAttributeType_,
+              false,
+              AttributeKeyType_>
+    : public Type_<IDType_,
+                   LabelType_,
+                   false,
+                   StaticAttributeType_,
+                   false,
+                   AttributeKeyType_> {
    public:
-    using AttributeKeyType = EdgeAttributeKeyType;
+    using StaticAttributeType = StaticAttributeType_;
+  };
+  template <typename IDType_,
+            typename LabelType_,
+            bool has_static_attribtue_,
+            typename StaticAttributeType_,
+            typename AttributeKeyType_>
+  class Type_<IDType_,
+              LabelType_,
+              has_static_attribtue_,
+              StaticAttributeType_,
+              true,
+              AttributeKeyType_>
+    : public Type_<IDType_,
+                   LabelType_,
+                   has_static_attribtue_,
+                   StaticAttributeType_,
+                   false,
+                   AttributeKeyType_> {
+   public:
+    using AttributeKeyType = AttributeKeyType_;
   };
 
-  /// the class that provides the basic information about data type
-  template <bool has_attribtue_, bool has_dynamic_attribtue_>
-  class VertexType_ {
-    static_assert(has_attribtue_, "Unsupported configuration");
-    static_assert(!has_attribtue_, "Unsupported configuration");
-  };
-  template <>
-  class VertexType_<false, false> {
-   public:
-    using IDType = VertexIDType;
-    using LabelType = VertexLabelType;
-  };
-  template <>
-  class VertexType_<true, true> : public VertexType_<false, false> {
-   public:
-    using AttributeKeyType = VertexAttributeKeyType;
-  };
-
-  /// this class is transparent to user
-  class InnerVertex_ : public WithID_<...>,
-                       public WithLabel_<...>,
-                       public WithAttribute_<...> {
+  template<typename IDType_>
+  class WithID_{
    private:
-    static constexpr uint8_t kEdgeIDIdx = 0;
-    static constexpr uint8_t kEdgeAttributePtrIdx = 1;
-    using DecomposedEdgeContainerType =
-        Container<decomposed_edge_container_type,
-                  decomposed_edge_container_sort_type, EdgeIDType,
-                  *EdgeAttributeType>;
+    const IDType_ id_;
+   public:
+    WithID_(const IDType_& id):id_(id){
+      return;
+    }
+    inline const IDType_& id() const{
+      return this->id_;
+    }
+  };
 
-    static constexpr uint8_t kVertexPtrIdx = 0;
-    static constexpr uint8_t kDecomposedEdgeContainerIdx = 1;
-    using VertexContainerType =
-        Container<vertex_container_type, vertex_container_sort_type, VertexPtr,
-                  DecomposedEdgeContainerType>;
+  template<typename LabelType_,
+           bool     is_const_>
+  class WithLabel_{
+   private:
+    typename std::conditional<is_const_,
+                       const LabelType_,
+                             LabelType_>::type label_;
+   public:
+    WithLabel_(const LabelType_& label)
+                         :label_(label){
+      return;
+    }
+    inline const LabelType_& label() const{
+      return this->label_;
+    }
+    template<bool judge = is_const_,
+             typename std::enable_if<!judge,bool>::type = false>
+    inline void set_label(const LabelType_& label){
+      static_assert(judge == is_const_,
+                   "Illegal usage of this method");
+      this->label_ = label;
+      return;
+    }
+  };
 
-    static constexpr uint8_t kEdgeLabelIdx = 0;
-    static constexpr uint8_t kVertexContainerIdx = 1;
-    using EdgeLabelContainerType =
-        Container<edge_label_container_type, edge_label_container_sort_type,
-                  EdgeLabelType, VertexContainerType>;
+  template<typename AttributeType_,
+           bool     is_const_,
+           bool     is_dynamic_,
+           typename KeyType_,
+           enum ContainerType container_type_,
+           enum      SortType      sort_type_>
+  class WithAttribute_;
 
-    template <enum StoreData>
-    class Edges;
-
-    template <>
-    class Edges<StoreData::OutEdge> {
-     private:
-      EdgeLabelContainerType out_edges_;
-
-     public:
-      inline const EdgeLabelContainerType& const_out_edges() const {
-        return this->out_edges_;
-      }
-      inline EdgeLabelContainerType& out_edges() { return this->out_edges_; }
-    };
-
-    template <>
-    class Edges<StoreData::InOutEdge> : public Edges<StoreData::OutEdge> {
-     private:
-      EdgeLabelContainerType in_edges_;
-
-     public:
-      inline const EdgeLabelContainerType& const_in_edges() const {
-        return this->in_edges_;
-      }
-      inline EdgeLabelContainerType& in_edges() { return this->in_edges_; }
-    };
-
-    Edges edges_;
-
-    void AddInEdge(const VertexPtr& dst_ptr, const EdgeLabelType& edge_label,
-                   const EdgeIDType& edge_id,
-                   EdgeAttributeType* const edge_attribute_ptr) {
-      this->edges_.in_edges()
-                            .Insert(edge_label)
-                            .first->get<kVertexContainerIdx>
-                            .Insert(dst_ptr)
-                            .first->get<kDecomposedEdgeContainerIdx>
-                            .Insert(edge_id)
-                            .first->get<kEdgeAttributePtrIdx>
-                          = edge_attribute_ptr;
+  /// non-dynamic attribute
+  template<typename AttributeType_,
+           bool     is_const_,
+           typename KeyType_,
+           enum ContainerType container_type_,
+           enum      SortType      sort_type_>
+  class WithAttribute_<AttributeType_,
+                            is_const_,
+                                false,
+                             KeyType_,
+                      container_type_,
+                           sort_type_>{
+   private:
+    typename std::conditional<is_const_,
+                   const AttributeType_,
+                         AttributeType_>::type attribute_;
+   public:
+    WithAttribute_(const AttributeType_& attribute)
+                            :attribute_( attribute){
       return;
     }
 
-    void AddOutEdge(const VertexPtr& dst_ptr, const EdgeLabelType& edge_label,
-                    const EdgeIDType& edge_id,
-                    EdgeAttributeType* const edge_attribute_ptr) {
-      auto edge_label_it = this->edges_.out_edges().Insert(edge_label).first;
-      auto vertex_it =
-          edge_label_it->get<kVertexContainerIdx>.Insert(dst_ptr).first;
-      auto edge_it =
-          vertex_it->get<kDecomposedEdgeContainerIdx>.Insert(edge_id).first;
-      edge_it->get<kEdgeAttributePtrIdx> = edge_attribute_ptr;
-      return EdgePtr(edge_label_it, vertex_it, edge_it);
+    template<bool judge_is_const = is_const_,
+             typename std::enable_if<!judge_is_const,bool>::type = false>
+    WithAttribute_():attribute_(){
+      static_assert(judge_is_const == is_const_,
+                   "Illegal usage of this method");
+      /// the constant non-dynamic attribute should be
+      /// initialized in the construct method
+      return;
     }
 
-   public:
-    EdgePtr AddEdge(const VertexPtr& dst_ptr, const EdgeLabelType& edge_label,
-                    const EdgeIDType& edge_id) {
-      EdgeAttributeType* edge_attribute_ptr = new EdgeAttributeType();
-      InnerVertex* const temp_this_ptr = this;
-      VertexPtr const temp_this_vertex_ptr = VertexPtr(temp_this_ptr);
-      dst_ptr->AddInEdge(temp_this_vertex_ptr, edge_label, edge_id,
-                         edge_attribute_ptr);
-      return this->AddOutEdge(dst_ptr, edge_label, edge_id, edge_attribute_ptr);
+    inline const AttributeType_& const_attribute() const{
+      return this->attribute_;
     }
-    /// possible extension:
-    ///     AddEdge(dst_ptr,edge_label);
-    ///         if duplicate edge is not allowed
 
-   public:
-    template <...>
-    class EdgeLabelIterator_ : protected ContentEdgeLabelIterator_<...> {
-     public:
-      inline EdgeLabelIterator_ operator++();
-      inline EdgeLabelIterator_ operator++(int);
-      inline const EdgeLabelType& operator*() const;
-      inline bool IsDone() const;
-    };
+    template<bool judge_is_const = is_const_,
+             typename std::enable_if<!judge_is_const,bool>::type = false>
+    inline AttributeType_& attribute(){
+      static_assert(judge_is_const == is_const_,
+                   "Illegal usage of this method");
+      /// the constant attribute should not be modified
+      return this->attribute_;
+    }
 
-    template <...>
-    class VertexIterator_ : protected ContentVertexIterator_<...> {
-     public:
-      inline VertexIterator_ operator++();
-      inline VertexIterator_ operator++(int);
-      inline VertexPtrType operator->();
-      inline bool IsDone() const;
-    };
+    template<bool judge_is_const = is_const_,
+             typename std::enable_if<!judge_is_const,bool>::type = false>
+    inline void set_attribute(const AttributeType_& attribute){
+      static_assert(judge_is_const == is_const_,
+                   "Illegal usage of this method");
+      /// only the non-constant non-dynamic attribute could be set
+      this->attribute_ = attribute;
+      return;
+    }
+  };
 
+  /// dynamic attribute, holds a container for the attributes instead of
+  /// a single attribute
+  template<typename AttributeType_,
+           bool     is_const_,
+           typename KeyType_,
+           enum ContainerType container_type_,
+           enum      SortType      sort_type_>
+  class WithAttribute_<AttributeType_,
+                            is_const_,
+                                 true,
+                             KeyType_,
+                      container_type_,
+                           sort_type_>{
    private:
-    template <bool is_const_, ...>
-    class ContentEdgeIterator_;
-
-    template <...>
-    class ContentEdgeIterator_<true, ...> {
-     public:
-      /// same to EdgePtrContent_
-      const EdgeIDType& id() const;
-      const EdgeLabelType& label() const;
-      const VertexPtr<true>& const_src_ptr() const;
-      const VertexPtr<true>& const_dst_ptr() const;
-
-      template <typename ConcreteDataType>
-      inline const ConcreteDataType& const_attribute(const KeyType_& key) const;
-
-      template <typename ConcreteDataType>
-      inline bool add_attribute(const KeyType_& key,
-                                const ConcreteDataType& value);
-    };
-
-    template <...>
-    class ContentEdgeIterator_<false, ...>
-        : public ContentEdgeIterator_<true, ...> {
-     public:
-      /// same to EdgePtrContent_
-      EdgeAttributeType& attribute();
-      VertexPtr<false>& src_ptr();
-      VertexPtr<false>& dst_ptr();
-
-      template <typename ConcreteDataType>
-      inline ConcreteDataType& attribute(const KeyType_& key);
-
-      template <typename ConcreteDataType>
-      inline bool set_attribute(const KeyType_& key,
-                                const ConcreteDataType& value);
-
-      inline bool remove_attribute(const KeyType_& key);
-    };
+    static constexpr uint8_t kAttributeIdx = 0;
+    Container<container_type_,
+                   sort_type_,
+           Attribute<KeyType_>> attributes_;
 
    public:
-    template <...>
-    class EdgeIterator_ : protected ContentEdgeIterator_<...> {
-     public:
-      inline EdgeIterator_ operator++();
-      inline EdgeIterator_ operator++(int);
-      inline ContentEdgeIterator_ operator->();
-      inline bool IsDone() const;
-    };
+    WithAttribute_():attributes_(){
+      return;
+    }
 
+    template<typename ConcreteDataType>
+    inline const ConcreteDataType&
+                 const_attribute(const KeyType_& key) const{
+      /// the constant attribute should not be modified
+      const Attribute<KeyType_> attribute_to_find(key);
+      /// <iterator of attribute container, bool>
+      auto ret = this->attributes_.FindConst(attribute_to_find);
+      assert(ret.second); /// this key should exist
+      return (std::get<kAttributeIdx>(*(ret.first))).const_value();
+    }
+
+    template<typename ConcreteDataType>
+    inline ConcreteDataType& attribute(const KeyType_& key){
+      /// the constant attribute should not be modified
+      const Attribute<KeyType_> attribute_to_find(key);
+      /// <iterator of attribute container, bool>
+      auto ret = this->attributes_.Find(attribute_to_find);
+      assert(ret.second); /// this key should exist
+      return (std::get<kAttributeIdx>(*(ret.first))).value();
+    }
+
+    template<typename ConcreteDataType>
+    inline bool add_attribute(const KeyType_& key,
+                              const ConcreteDataType& value){
+      /// the constant attribute should not be modified
+      const Attribute<KeyType_> attribute_to_find(key);
+      /// <iterator of attribute container, bool>
+      auto ret = this->attributes_.Insert(attribute_to_find);
+      if (!ret.second){
+        /// has already existed in the Container
+        return false;
+      }
+      ret.first->set_value(value);
+      return true;
+    }
+
+    template<typename ConcreteDataType>
+    inline bool set_attribute(const KeyType_& key,
+                              const ConcreteDataType& value){
+      /// the constant attribute should not be modified
+      const Attribute<KeyType_> attribute_to_find(key);
+      /// <iterator of attribute container, bool>
+      auto ret = this->attributes_.Find(attribute_to_find);
+      if (!ret.second){
+        /// does not exist in the Container
+        return false;
+      }
+      ret.first->set_value(value);
+      return true;
+    }
+
+    /// not be implemented in this beggar version
+//    inline bool remove_attribute(const KeyType_& key){
+//      static_assert(judge_is_const == is_const_,
+//                   "Illegal usage of this method");
+//      return this->attributes_.remove_attribute(key);
+//    }
+  };
+
+  using EdgeAttributeType = WithAttribute_<EdgeStaticAttributeType,
+                                           edge_attribute_is_const,
+                                           edge_has_dynamic_attribute,
+                                           EdgeAttributeKeyType,
+                                           edge_attribute_container_type,
+                                           edge_attribute_container_sort_type>;
+
+  /// this class is transparent to user
+  class InnerVertex_ : public WithID_<VertexIDType>,
+                       public WithLabel_<VertexLabelType,
+                                         vertex_label_is_const>,
+                       public WithAttribute_<VertexStaticAttributeType,
+                                             vertex_attribute_is_const,
+                                             vertex_has_dynamic_attribute,
+                                             VertexAttributeKeyType,
+                                             vertex_attribute_container_type,
+                                             vertex_attribute_container_sort_type> {
+    using WithIDType        = WithID_<VertexIDType>;
+    using WithLabelType     = WithLabel_<VertexLabelType,
+                                         vertex_label_is_const>;
+    using WithAttributeType = WithAttribute_<VertexStaticAttributeType,
+                                             vertex_attribute_is_const,
+                                             vertex_has_dynamic_attribute,
+                                             VertexAttributeKeyType,
+                                             vertex_attribute_container_type,
+                                             vertex_attribute_container_sort_type>;
    public:
     template <bool is_const_>
     class VertexPtr_ {
      private:
-      using VertexPtrType =
-          std::conditional<is_const_, const InnerVertex_*, InnerVertex_*>::type;
-
+      using VertexPtrType = typename std::conditional<is_const_,
+                                             const InnerVertex_*,
+                                                   InnerVertex_*>::type;
       VertexPtrType const vertex_ptr_;
 
      public:
-      VertexPtr_() : vertex_ptr_(nullptr) { return; }
+      VertexPtr_() : vertex_ptr_(nullptr) {
+        return;
+      }
 
-      VertexPtr_(VertexPtrType const vertex_ptr) : vertex_ptr_(vertex_ptr) {
+      VertexPtr_(VertexPtrType const vertex_ptr)
+                       : vertex_ptr_(vertex_ptr) {
         return;
       }
 
@@ -354,119 +380,364 @@ class Graph {
         return this->vertex_ptr_;
       }
 
-      inline bool IsNull() const { return this->vertex_ptr_ == nullptr; }
+      inline bool IsNull() const {
+        return this->vertex_ptr_ == nullptr;
+      }
     };
 
    private:
-    template <bool is_const_>
+    using VertexPtr = VertexPtr_<false>;
+
+    static constexpr uint8_t kEdgeIDIdx = 0;
+    static constexpr uint8_t kEdgeAttributePtrIdx = 1;
+    using DecomposedEdgeContainerType =
+        Container<decomposed_edge_container_type,
+                  decomposed_edge_container_sort_type,
+                  EdgeIDType,
+                  EdgeAttributeType*>;
+
+    static constexpr uint8_t kVertexPtrIdx = 0;
+    static constexpr uint8_t kDecomposedEdgeContainerIdx = 1;
+    using VertexPtrContainerType =
+        Container<vertex_ptr_container_type,
+                  vertex_ptr_container_sort_type,
+                  VertexPtr,
+                  DecomposedEdgeContainerType>;
+
+    static constexpr uint8_t kEdgeLabelIdx = 0;
+    static constexpr uint8_t kVertexContainerIdx = 1;
+    using EdgeLabelContainerType =
+        Container<edge_label_container_type,
+                  edge_label_container_sort_type,
+                  EdgeLabelType,
+                  VertexPtrContainerType>;
+
+   private:
+    template <bool is_const_,
+              bool meaning_less_ = true>
     class EdgePtrContent_;
 
     /// constant content pointer
-    template <>
-    class EdgePtrContent_<true> {
+    template <bool meaning_less_>
+    class EdgePtrContent_<true,meaning_less_> {
+      static_assert(meaning_less_,"Illegal usage of this method");
      private:
-      using EdgeLabelIteratorType = EdgeLabelContainrType::const_iterator;
-      using VertexIteratorType = VertexContainrType::const_iterator;
-      using DecomposedEdgeIteratorType =
-          DecomposedEdgeContainrType::const_iterator;
+      using EdgeLabelIteratorType
+          = typename EdgeLabelContainerType::const_iterator;
+      using VertexPtrIteratorType
+          = typename VertexPtrContainerType::const_iterator;
+      using DecomposedEdgeIteratorType
+          = typename DecomposedEdgeContainerType::const_iterator;
 
+     protected:
       const VertexPtr vertex_ptr_;
 
-      const EdgeLabelIteratorType edge_label_iterator_;
-      const VertexIteratorType vertex_iterator_;
+      const      EdgeLabelIteratorType      edge_label_iterator_;
+      const      VertexPtrIteratorType      vertex_ptr_iterator_;
       const DecomposedEdgeIteratorType decomposed_edge_iterator_;
 
+     protected:
+      inline bool IsNull() const{
+        return this->vertex_ptr_.IsNull();
+      }
+
      public:
-      EdgePtrContent_(
-          const VertexPtr vertex_ptr,
-          const EdgeLabelIteratorType& edge_label_iterator const
-              VertexIteratorType& vertex_iterator const
-                  DecomposedEdgeIteratorType& decomposed_edge_iterator)
-          : vertex_ptr_(vertex_ptr),
-            edge_label_iterator_(edge_label_iterator),
-            vertex_iterator_(vertex_iterator),
+      EdgePtrContent_():vertex_ptr_(),
+               edge_label_iterator_(),
+               vertex_ptr_iterator_(),
+          decomposed_edge_iterator_(){
+        return;
+      }
+
+      EdgePtrContent_(const VertexPtr& vertex_ptr,
+          const      EdgeLabelIteratorType&      edge_label_iterator,
+          const      VertexPtrIteratorType&      vertex_ptr_iterator,
+          const DecomposedEdgeIteratorType& decomposed_edge_iterator)
+                        : vertex_ptr_(vertex_ptr),
+                 edge_label_iterator_(edge_label_iterator),
+                 vertex_ptr_iterator_(vertex_ptr_iterator),
             decomposed_edge_iterator_(decomposed_edge_iterator) {
         return;
       }
 
       /// public methods same to ContentEdgeIterator_
       inline const EdgeLabelType& label() const {
-        return this->edge_label_iterator_->get<kEdgeLabelIdx>;
+        return std::get<kEdgeLabelIdx>
+                  (*(this->edge_label_iterator_));
       }
       inline const EdgeIDType& id() const {
-        return this->decomposed_edge_iterator_->get<kEdgeIDIdx>;
+        return std::get<kEdgeIDIdx>
+                  (*(this->decomposed_edge_iterator_));
       }
-      inline const VertexPtr& src_ptr() const { return this->vertex_ptr_; }
+      inline const VertexPtr& src_ptr() const {
+        return this->vertex_ptr_;
+      }
       inline const VertexPtr& dst_ptr() const {
-        return this->vertex_iterator_->get<kVertexPtrIdx>;
+        return std::get<kVertexPtrIdx>
+                  (*(this->vertex_iterator_));
       }
 
       template <typename ConcreteDataType>
       inline const ConcreteDataType& const_attribute(
-          const KeyType_& key) const {
-        return this->decomposed_edge_iterator_->get<kEdgeAttributePtrIdx>->const_attribute<ConcreteDataType>(
-            key);
+                                 const EdgeAttributeKeyType& key) const {
+        return (std::get<kEdgeAttributePtrIdx>
+                  (*(this->decomposed_edge_iterator_)))
+                              ->const_attribute(key);
       }
 
       template <typename ConcreteDataType>
-      inline bool add_attribute(const KeyType_& key,
-                                const ConcreteDataType& value) {
-        return this->decomposed_edge_iterator_->get<kEdgeAttributePtrIdx>->add_attribute(
-            key, value);
+      inline bool add_attribute(const EdgeAttributeKeyType& key,
+                                const     ConcreteDataType& value) {
+        return (std::get<kEdgeAttributePtrIdx>
+                  (*(this->decomposed_edge_iterator_)))
+                                ->add_attribute(key, value);
       }
     };
 
     /// non-constant content pointer
-    template <>
-    class EdgePtrContent_<false> : public EdgePtrContent_<true> {
+    template <bool meaning_less_>
+    class EdgePtrContent_<false,meaning_less_>
+      : public EdgePtrContent_<true,meaning_less_> {
+      static_assert( meaning_less_,"Illegal usage of this method");
      public:
       /// same to ContentEdgeIterator_
-      VertexPtr<false>& src_ptr();
-      VertexPtr<false>& dst_ptr();
+      VertexPtr& src_ptr();
+      VertexPtr& dst_ptr();
 
       template <typename ConcreteDataType>
-      inline ConcreteDataType& attribute(const KeyType_& key);
+      inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key);
 
       template <typename ConcreteDataType>
-      inline bool set_attribute(const KeyType_& key,
-                                const ConcreteDataType& value);
+      inline bool set_attribute(const EdgeAttributeKeyType& key,
+                                const     ConcreteDataType& value);
 
-      inline bool remove_attribute(const KeyType_& key);
+      inline bool remove_attribute(const EdgeAttributeKeyType& key);
     };
 
    public:
     template <bool is_const_>
-    class EdgePtr_ : protected EdgePtrContent_<is_const_> {
+    class EdgePtr_: protected EdgePtrContent_<is_const_> {
      private:
-      using InnerEdgeType = EdgePtrContent_<is_const_>;
+      using EdgeContentType = EdgePtrContent_<is_const_>;
 
      public:
-      using InnerEdgeType::InnerEdgeType;
+      using EdgeContentType::EdgeContentType;
+      using EdgeContentType::IsNull;
 
-      inline EdgePtrContent* operator->() {
+      template<bool judge = is_const_,
+               typename std::enable_if<judge,bool>::type = false>
+      inline EdgeContentType* operator->() const{
+        static_assert(judge == is_const_,
+                     "Illegal usage of this method");
         EdgePtr_* const temp_ptr = this;
         return temp_ptr;
       }
-      inline bool IsNull() const;
+
+      template<bool judge = is_const_,
+               typename std::enable_if<!judge,bool>::type = false>
+      inline EdgeContentType* operator->(){
+        static_assert(judge == is_const_,
+                     "Illegal usage of this method");
+        EdgePtr_* const temp_ptr = this;
+        return temp_ptr;
+      }
     };
 
+   private:
+    using EdgePtr = EdgePtr_<false>;
+
+    template <enum StoreData,
+              bool meaning_less = true>
+    class Edges;
+
+    template <bool meaning_less>
+    class Edges<StoreData::OutEdge,
+                meaning_less> {
+     private:
+      static_assert(meaning_less,"Illegal configuration");
+      EdgeLabelContainerType out_edges_;
+
+     public:
+      inline const EdgeLabelContainerType& const_out_edges() const {
+        return this->out_edges_;
+      }
+      inline EdgeLabelContainerType& out_edges() {
+        return this->out_edges_;
+      }
+    };
+
+    template <bool meaning_less>
+    class Edges<StoreData::InOutEdge,meaning_less>
+        : public Edges<StoreData::OutEdge,meaning_less> {
+     private:
+      static_assert(meaning_less,"Illegal configuration");
+      EdgeLabelContainerType in_edges_;
+
+     public:
+      inline const EdgeLabelContainerType& const_in_edges() const {
+        return this->in_edges_;
+      }
+      inline EdgeLabelContainerType& in_edges() {
+        return this->in_edges_;
+      }
+    };
+
+    Edges<store_data> edges_;
+
+    void AddInEdge(const VertexPtr& dst_ptr,
+                   const EdgeLabelType& edge_label,
+                   const EdgeIDType& edge_id,
+                   EdgeAttributeType* const edge_attribute_ptr) {
+      auto edge_label_it = this->edges_.out_edges()
+                                       .Insert(edge_label)
+                                       .first;
+      auto vertex_ptr_it = std::get<kVertexContainerIdx>(*edge_label_it)
+                          .Insert(dst_ptr)
+                          .first;
+      auto edge_it = std::get<kDecomposedEdgeContainerIdx>(*vertex_ptr_it)
+                    .Insert(edge_id)
+                    .first;
+      std::get<kEdgeAttributePtrIdx>(*edge_it) = edge_attribute_ptr;
+      return;
+    }
+
+    void AddOutEdge(const VertexPtr& dst_ptr,
+                    const EdgeLabelType& edge_label,
+                    const EdgeIDType& edge_id,
+                    EdgeAttributeType* const edge_attribute_ptr) {
+      auto edge_label_it = this->edges_.out_edges()
+                                       .Insert(edge_label)
+                                       .first;
+      auto vertex_ptr_it = std::get<kVertexContainerIdx>(*edge_label_it)
+                          .Insert(dst_ptr)
+                          .first;
+      auto edge_it = std::get<kDecomposedEdgeContainerIdx>(*vertex_ptr_it)
+                    .Insert(edge_id)
+                    .first;
+      std::get<kEdgeAttributePtrIdx>(*edge_it) = edge_attribute_ptr;
+      InnerVertex_* temp_this_ptr = this;
+      VertexPtr temp_vertex_ptr(temp_this_ptr);
+      return EdgePtr(temp_vertex_ptr, /// src_ptr
+                       edge_label_it,
+                       vertex_ptr_it,
+                             edge_it);
+    }
+
    public:
-    const VertexAuxiliaryType& const_auxiliary() const;
-    VertexAuxiliaryType& auxiliary();
+    InnerVertex_(const VertexIDType&    id,
+                 const VertexLabelType& label)
+                            :WithIDType(id),
+                          WithLabelType(label),
+                      WithAttributeType(){
+      return;
+    }
+
+    EdgePtr AddEdge(const VertexPtr& dst_ptr,
+                    const EdgeLabelType& edge_label,
+                    const EdgeIDType& edge_id) {
+      EdgeAttributeType* edge_attribute_ptr = new EdgeAttributeType();
+      InnerVertex_* const temp_this_ptr = this;
+      VertexPtr     const temp_vertex_ptr = VertexPtr(temp_this_ptr);
+      dst_ptr->AddInEdge(temp_vertex_ptr,
+                         edge_label,
+                         edge_id,
+                         edge_attribute_ptr);
+      return this->AddOutEdge(dst_ptr,
+                              edge_label,
+                              edge_id,
+                              edge_attribute_ptr);
+    }
+    /// possible extension:
+    ///     AddEdge(dst_ptr,edge_label);
+    ///         if duplicate edge is not allowed
+
+//   public:
+//    template <...>
+//    class EdgeLabelIterator_ : protected ContentEdgeLabelIterator_<...> {
+//     public:
+//      inline EdgeLabelIterator_   operator++();
+//      inline EdgeLabelIterator_   operator++(int);
+//      inline const EdgeLabelType& operator*() const;
+//      inline bool IsDone() const;
+//    };
+//
+//    template <...>
+//    class VertexIterator_ : protected ContentVertexIterator_<...> {
+//     public:
+//      inline VertexIterator_ operator++();
+//      inline VertexIterator_ operator++(int);
+//      inline VertexPtrType   operator->();
+//      inline bool IsDone() const;
+//    };
+//
+//   private:
+//    template <bool is_const_, ...>
+//    class ContentEdgeIterator_;
+//
+//    template <...>
+//    class ContentEdgeIterator_<true, ...> {
+//     public:
+//      /// same to EdgePtrContent_
+//      const EdgeIDType& id() const;
+//      const EdgeLabelType& label() const;
+//      const VertexPtr<true>& const_src_ptr() const;
+//      const VertexPtr<true>& const_dst_ptr() const;
+//
+//      template <typename ConcreteDataType>
+//      inline const ConcreteDataType& const_attribute(const KeyType_& key) const;
+//
+//      template <typename ConcreteDataType>
+//      inline bool add_attribute(const KeyType_& key,
+//                                const ConcreteDataType& value);
+//    };
+//
+//    template <...>
+//    class ContentEdgeIterator_<false, ...>
+//        : public ContentEdgeIterator_<true, ...> {
+//     public:
+//      /// same to EdgePtrContent_
+//      EdgeAttributeType& attribute();
+//      VertexPtr<false>& src_ptr();
+//      VertexPtr<false>& dst_ptr();
+//
+//      template <typename ConcreteDataType>
+//      inline ConcreteDataType& attribute(const KeyType_& key);
+//
+//      template <typename ConcreteDataType>
+//      inline bool set_attribute(const KeyType_& key,
+//                                const ConcreteDataType& value);
+//
+//      inline bool remove_attribute(const KeyType_& key);
+//    };
+//
+//   public:
+//    template <...>
+//    class EdgeIterator_ : protected ContentEdgeIterator_<...> {
+//     public:
+//      inline EdgeIterator_ operator++();
+//      inline EdgeIterator_ operator++(int);
+//      inline ContentEdgeIterator_ operator->();
+//      inline bool IsDone() const;
+//    };
+
+
+   public:
+    /// access auxiliary data, will not be implement in this beggar version
+//    const VertexAuxiliaryType& const_auxiliary() const;
+//    VertexAuxiliaryType& auxiliary();
 
     /// access element, will not be implement in this beggar version
     //            EdgeLabelConstPtr FindConstOutEdgeLabel(const EdgeLabelType&
     //            edge_label) const; EdgeLabelConstPtr
     //            FindConstInEdgeLabel(const EdgeLabelType& edge_label) const;
 
-    /// vertex
    private:
     VertexPtr FindVertex(EdgeLabelContainerType& edge_label_container,
                          const VertexPtr& dst_ptr) {
-      /// wenzhi: test whether it works
-      for (auto edge_label_it : edge_label_container) {
+      for (auto& edge_label_it : edge_label_container) {
         /// <iterator, bool>
-        auto ret = edge_label_it.get<kVertexContainerIdx>.Find(dst_ptr);
+        auto ret = std::get<kVertexContainerIdx>(edge_label_it)
+                                                 .Find(dst_ptr);
         if (ret.second) {
           /// found it
           return *(ret.first);
@@ -477,205 +748,250 @@ class Graph {
 
     VertexPtr FindVertex(EdgeLabelContainerType& edge_label_container,
                          const VertexIDType& dst_id) {
-      /// wenzhi: test whether it works
-      for (auto edge_label_it : edge_label_container) {
-        for (auto vertex_it : edge_label_it.get<kVertexContainerIdx>) {
-          VertexPtr vertex_ptr = vertex_it.get<kVertexPtrIdx>;
-          if (vertex_ptr->id() == dst_id) {
-            /// found it
-            return vertex_ptr;
-          }
+      for (auto& edge_label_it : edge_label_container) {
+        for (auto& vertex_it : std::get<kVertexContainerIdx>(edge_label_it)) {
+          VertexPtr vertex_ptr = std::get<kVertexPtrIdx>(vertex_it);
+          if (vertex_ptr->id() == dst_id)
+            return vertex_ptr; /// found it
         }
-        /// not found
+      }
+      /// not found
+      return VertexPtr();
+    }
+
+    VertexPtr FindVertex(EdgeLabelContainerType & edge_label_container,
+                         const EdgeLabelType& edge_label,
+                         const VertexPtr& dst_ptr) {
+      /// <iterator of EdgeLabelContainer, bool>
+      auto edge_label_ret = edge_label_container.Find(edge_label);
+      if (!edge_label_ret.second)  /// does not have edge_label
         return VertexPtr();
-      }
-
-      VertexPtr FindVertex(EdgeLabelContainerType & edge_label_container,
-                           const EdgeLabelType& edge_label,
-                           const VertexPtr& dst_ptr) {
-        /// <iterator of EdgeLabelContainer, bool>
-        auto edge_label_ret = edge_label_container.Find(edge_label);
-        if (!edge_label_ret.second)  /// does not have edge_label
-          return VertexPtr();
-        /// <iterator of VertexContainer, bool>
-        auto vertex_ret = edge_label_ret.first->Find(dst_ptr);
-        if (!vertex_ret.second) return VertexPtr();
-        /// found it
-        return *(vertex_ret.first);
-      }
-
-      VertexPtr FindVertex(EdgeLabelContainerType & edge_label_container,
-                           const EdgeLabelType& edge_label,
-                           const VertexIDType& dst_id) {
-        /// <iterator of EdgeLabelContainer, bool>
-        auto edge_label_ret = edge_label_container.Find(edge_label);
-        if (!edge_label_ret.second)  /// does not have edge_label
-          return VertexPtr();
-        for (auto vertex_it : edge_label_ret.first->get<kVertexContainerIdx>) {
-          VertexPtr vertex_ptr = vertex_it.get<kVertexPtrIdx>;
-          if (vertex_ptr->id() == dst_id) {
-            /// found it
-            return vertex_ptr;
-          }
-        }
-        /// not found
+      /// <iterator of VertexContainer, bool>
+      auto vertex_ret = edge_label_ret.first->Find(dst_ptr);
+      if (!vertex_ret.second)
         return VertexPtr();
+      /// found it
+      return *(vertex_ret.first);
+    }
+
+    VertexPtr FindVertex(EdgeLabelContainerType& edge_label_container,
+                         const EdgeLabelType& edge_label,
+                         const VertexIDType& dst_id) {
+      /// <iterator of EdgeLabelContainer, bool>
+      auto edge_label_ret = edge_label_container.Find(edge_label);
+      if (!edge_label_ret.second)  /// does not have edge_label
+        return VertexPtr();
+      for (auto& vertex_it : std::get<kVertexContainerIdx>
+                                     (*edge_label_ret.first)) {
+        VertexPtr vertex_ptr = std::get<kVertexPtrIdx>(vertex_it);
+        if (vertex_ptr->id() == dst_id)
+          return vertex_ptr; /// found it
       }
-
-     public:
-      inline VertexPtr FindOutVertex(const VertexPtr& dst_ptr) {
-        return this->FindVertex(this->edges_.out_edges(), dst_ptr);
-      }
-      inline VertexPtr FindOutVertex(const VertexIDType& dst_id) {
-        return this->FindVertex(this->edges_.out_edges(), dst_id);
-      }
-      inline VertexPtr FindOutVertex(const EdgeLabelType& edge_label,
-                                     const VertexPtr& dst_ptr) {
-        return this->FindVertex(this->edges_.out_edges(), edge_label, dst_ptr);
-      }
-      inline VertexPtr FindOutVertex(const EdgeLabelType& edge_label,
-                                     const VertexIDType& dst_id) {
-        return this->FindVertex(this->edges_.out_edges(), edge_label, dst_id);
-      }
-      inline VertexPtr FindInVertex(const VertexPtr& dst_ptr) {
-        return this->FindVertex(this->edges_.in_edges(), dst_ptr);
-      }
-      inline VertexPtr FindInVertex(const VertexIDType& dst_id) {
-        return this->FindVertex(this->edges_.in_edges(), dst_id);
-      }
-      inline VertexPtr FindInVertex(const EdgeLabelType& edge_label,
-                                    const VertexPtr& dst_ptr) {
-        return this->FindVertex(this->edges_.in_edges(), edge_label, dst_ptr);
-      }
-      inline VertexPtr FindInVertex(const EdgeLabelType& edge_label,
-                                    const VertexIDType& dst_id) {
-        return this->FindVertex(this->edges_.in_edges(), edge_label, dst_id);
-      }
-
-      /// will not be implemented in the beggar version
-      //            VertexConstPtr FindConstOutVertex(const VertexPtr& dst_ptr)
-      //            const; VertexConstPtr FindConstOutVertex(const VertexIDType&
-      //            dst_id ) const; VertexConstPtr FindConstOutVertex(const
-      //            EdgeLabelType& edge_label,
-      //                                              const VertexPtr& dst_ptr)
-      //                                              const;
-      //            VertexConstPtr FindConstOutVertex(const EdgeLabelType&
-      //            edge_label,
-      //                                              const VertexIDType& dst_id
-      //                                              ) const;
-      //            VertexConstPtr FindConstInVertex(const VertexPtr& dst_ptr)
-      //            const; VertexConstPtr FindConstInVertex(const VertexIDType&
-      //            dst_id ) const; VertexConstPtr FindConstInVertex(const
-      //            EdgeLabelType& edge_label,
-      //                                             const VertexPtr& dst_ptr)
-      //                                             const;
-      //            VertexConstPtr FindConstInVertex(const EdgeLabelType&
-      //            edge_label,
-      //                                             const VertexIDType&  dst_id
-      //                                             ) const;
-
-     private:
-      EdgePtr FindEdge(EdgeLabelContainerType & edge_label_container,
-                       const EdgeLabelType& edge_label,
-                       const VertexPtr& dst_ptr, const EdgeIDType& edge_id) {
-        /// <iterator of EdgeLabelContainer, bool>
-        auto edge_label_ret = edge_label_container.Find(edge_label);
-        if (!edge_label_ret.second)  /// does not have this edge label
-          return EdgePtr();
-        /// <iterator of VertexContainer, bool>
-        auto vertex_ret = edge_label_ret.first->Find(dst_ptr);
-        if (!vertex_ret.second)  /// does not have this VertexPtr
-          return EdgePtr();
-        /// <iterator of DecomposedEdgeContainer, bool>
-        auto decomposed_edge_ret = vertex_ret.first->Find(edge_id);
-        if (!decomposed_edge_ret)  /// does not find it
-          return EdgePtr();
-        return EdgePtr(edge_label_ret.first, vertex_ret.first,
-                       decomposed_edge_ret.first);
-      }
-
-     public:
-      inline EdgePtr FindOutEdge(const EdgeLabelType& edge_label,
-                                 const VertexPtr& dst_ptr,
-                                 const EdgeIDType& edge_id) {
-        return this->FindEdge(this->edges_.out_edges(), edge_label, dst_ptr,
-                              edge_id);
-      }
-      /// possible extension:
-      ///     FindOutEdge(edge_label,dst_ptr)
-      ///         when there are not duplicate edge
-      ///     FindOutEdge(dst_ptr)
-      ///         when there are not duplicate edge
-      ///         and only has one edge label type
-
-      EdgePtr FindInEdge(const VertexPtr& dst_ptr) {
-        return this->FindEdge(this->edges_.in_edges(), edge_label, dst_ptr,
-                              edge_id);
-      }
-      /// possible extension:
-      ///     FindInEdge(edge_label,dst_ptr)
-      ///         when there are not duplicate edge
-      ///     FindInEdge(dst_ptr)
-      ///         when there are not duplicate edge
-      ///         and only has one edge label type
-
-      /// will not be implemented in the beggar version
-      //            EdgeConstPtr FindConstOutEdge(const VertexPtr& dst_ptr);
-      //            EdgeConstPtr FindConstInEdge(const VertexPtr& dst_ptr);
-
-      /// iterate element:
-      /// output iterators:
-      EdgeLabelIterator OutEdgeLabelBegin() const;
-
-      VertexIterator OutVertexBegin();
-      VertexConstIterator OutVertexConstBegin() const;
-      /// possible extension:
-      ///     OutVertexBegin(edge_label)
-      ///     OutVertexBegin(edge_label,vertex_label)
-      ///     ...
-
-      EdgeIterator OutEdgeBegin();
-      EdgeConstIterator OutEdgeConstBegin() const;
-      /// possible extension:
-      ///     OutEdgeBegin(edge_label)
-      ///     OutEdgeBegin(edge_label,vertex_label)
-      ///     ...
-
-      /// input iterators:
-      EdgeLabelIterator InEdgeLabelBegin() const;
-
-      VertexIterator InVertexBegin();
-      VertexConstIterator InVertexConstBegin() const;
-      /// possible extension:
-      ///     InVertexBegin(edge_label)
-      ///     InVertexBegin(edge_label,vertex_label)
-      ///     ...
-
-      EdgeIterator InEdgeBegin();
-      EdgeConstIterator InEdgeConstBegin() const;
-      /// possible extension:
-      ///     InEdgeBegin(edge_label)
-      ///     InEdgeBegin(edge_label,vertex_label)
-      ///     ...
-    };
-
-    using InnerVertexType = InnerVertex_<...>;
+      /// not found
+      return VertexPtr();
+    }
 
    public:
-    using EdgeType = EdgeType_<edge_has_attribtue, edge_has_dynamic_attribtue>;
-    using VertexType =
-        VertexType_<vertex_has_attribtue, vertex_has_dynamic_attribtue>;
+    inline VertexPtr FindOutVertex(const VertexPtr& dst_ptr) {
+      return this->FindVertex(this->edges_.out_edges(), dst_ptr);
+    }
+    inline VertexPtr FindOutVertex(const VertexIDType& dst_id) {
+      return this->FindVertex(this->edges_.out_edges(), dst_id);
+    }
+    inline VertexPtr FindOutVertex(const EdgeLabelType& edge_label,
+                                   const VertexPtr& dst_ptr) {
+      return this->FindVertex(this->edges_.out_edges(), edge_label, dst_ptr);
+    }
+    inline VertexPtr FindOutVertex(const EdgeLabelType& edge_label,
+                                   const VertexIDType& dst_id) {
+      return this->FindVertex(this->edges_.out_edges(), edge_label, dst_id);
+    }
+    inline VertexPtr FindInVertex(const VertexPtr& dst_ptr) {
+      return this->FindVertex(this->edges_.in_edges(), dst_ptr);
+    }
+    inline VertexPtr FindInVertex(const VertexIDType& dst_id) {
+      return this->FindVertex(this->edges_.in_edges(), dst_id);
+    }
+    inline VertexPtr FindInVertex(const EdgeLabelType& edge_label,
+                                  const VertexPtr& dst_ptr) {
+      return this->FindVertex(this->edges_.in_edges(), edge_label, dst_ptr);
+    }
+    inline VertexPtr FindInVertex(const EdgeLabelType& edge_label,
+                                  const VertexIDType& dst_id) {
+      return this->FindVertex(this->edges_.in_edges(), edge_label, dst_id);
+    }
+
+    /// will not be implemented in the beggar version
+    //            VertexConstPtr FindConstOutVertex(const VertexPtr& dst_ptr)
+    //            const; VertexConstPtr FindConstOutVertex(const VertexIDType&
+    //            dst_id ) const; VertexConstPtr FindConstOutVertex(const
+    //            EdgeLabelType& edge_label,
+    //                                              const VertexPtr& dst_ptr)
+    //                                              const;
+    //            VertexConstPtr FindConstOutVertex(const EdgeLabelType&
+    //            edge_label,
+    //                                              const VertexIDType& dst_id
+    //                                              ) const;
+    //            VertexConstPtr FindConstInVertex(const VertexPtr& dst_ptr)
+    //            const; VertexConstPtr FindConstInVertex(const VertexIDType&
+    //            dst_id ) const; VertexConstPtr FindConstInVertex(const
+    //            EdgeLabelType& edge_label,
+    //                                             const VertexPtr& dst_ptr)
+    //                                             const;
+    //            VertexConstPtr FindConstInVertex(const EdgeLabelType&
+    //            edge_label,
+    //                                             const VertexIDType&  dst_id
+    //                                             ) const;
+
+   private:
+    EdgePtr FindEdge(EdgeLabelContainerType & edge_label_container,
+                     const EdgeLabelType& edge_label,
+                     const VertexPtr& dst_ptr,
+                     const EdgeIDType& edge_id) {
+      /// <iterator of EdgeLabelContainer, bool>
+      auto edge_label_ret = edge_label_container.Find(edge_label);
+      if (!edge_label_ret.second)  /// does not have this edge label
+        return EdgePtr();
+      /// <iterator of VertexContainer, bool>
+      auto vertex_ret = edge_label_ret.first->Find(dst_ptr);
+      if (!vertex_ret.second)  /// does not have this VertexPtr
+        return EdgePtr();
+      /// <iterator of DecomposedEdgeContainer, bool>
+      auto decomposed_edge_ret = vertex_ret.first->Find(edge_id);
+      if (!decomposed_edge_ret)  /// does not find it
+        return EdgePtr();
+      return EdgePtr(edge_label_ret.first, vertex_ret.first,
+                     decomposed_edge_ret.first);
+    }
+
+   public:
+    inline EdgePtr FindOutEdge(const EdgeLabelType& edge_label,
+                               const VertexPtr& dst_ptr,
+                               const EdgeIDType& edge_id) {
+      return this->FindEdge(this->edges_.out_edges(),
+                            edge_label,
+                            dst_ptr,
+                            edge_id);
+    }
+    /// possible extension:
+    ///     FindOutEdge(edge_label,dst_ptr)
+    ///         when there are not duplicate edge
+    ///     FindOutEdge(dst_ptr)
+    ///         when there are not duplicate edge
+    ///         and only has one edge label type
+
+    inline EdgePtr FindInEdge(const EdgeLabelType& edge_label,
+                              const VertexPtr& dst_ptr,
+                              const EdgeIDType& edge_id) {
+      return this->FindEdge(this->edges_.in_edges(),
+                            edge_label,
+                            dst_ptr,
+                            edge_id);
+    }
+    /// possible extension:
+    ///     FindInEdge(edge_label,dst_ptr)
+    ///         when there are not duplicate edge
+    ///     FindInEdge(dst_ptr)
+    ///         when there are not duplicate edge
+    ///         and only has one edge label type
+
+    /// will not be implemented in the beggar version
+    //            EdgeConstPtr FindConstOutEdge(const VertexPtr& dst_ptr);
+    //            EdgeConstPtr FindConstInEdge(const VertexPtr& dst_ptr);
+
+//      /// iterate element:
+//      /// output iterators:
+//      EdgeLabelIterator OutEdgeLabelBegin() const;
+//
+//      VertexIterator OutVertexBegin();
+//      VertexConstIterator OutVertexConstBegin() const;
+//      /// possible extension:
+//      ///     OutVertexBegin(edge_label)
+//      ///     OutVertexBegin(edge_label,vertex_label)
+//      ///     ...
+//
+//      EdgeIterator OutEdgeBegin();
+//      EdgeConstIterator OutEdgeConstBegin() const;
+//      /// possible extension:
+//      ///     OutEdgeBegin(edge_label)
+//      ///     OutEdgeBegin(edge_label,vertex_label)
+//      ///     ...
+//
+//      /// input iterators:
+//      EdgeLabelIterator InEdgeLabelBegin() const;
+//
+//      VertexIterator InVertexBegin();
+//      VertexConstIterator InVertexConstBegin() const;
+//      /// possible extension:
+//      ///     InVertexBegin(edge_label)
+//      ///     InVertexBegin(edge_label,vertex_label)
+//      ///     ...
+//
+//      EdgeIterator InEdgeBegin();
+//      EdgeConstIterator InEdgeConstBegin() const;
+//      /// possible extension:
+//      ///     InEdgeBegin(edge_label)
+//      ///     InEdgeBegin(edge_label,vertex_label)
+//      ///     ...
+    };
+
+    using InnerVertexType = InnerVertex_;
+
+   public:
+    using EdgeType = Type_<EdgeIDType,
+                           EdgeLabelType,
+                           edge_has_static_attribtue,
+                           EdgeStaticAttributeType,
+                           edge_has_dynamic_attribute,
+                           EdgeAttributeKeyType>;
+    using VertexType = Type_<VertexIDType,
+                             VertexLabelType,
+                             vertex_has_static_attribtue,
+                             VertexStaticAttributeType,
+                             vertex_has_dynamic_attribute,
+                             VertexAttributeKeyType>;
     /// non-constant pointer
-    using EdgePtr = typename InnerVertexType::EdgePtr_<false, ...>;
-    using VertexPtr = typename InnerVertexType::VertexPtr_<false, ...>;
+    using   EdgePtr = typename InnerVertexType::  EdgePtr_<false>;
+    using VertexPtr = typename InnerVertexType::VertexPtr_<false>;
     /// constant pointer
-    using EdgeConstPtr = typename InnerVertexType::EdgePtr_<true, ...>;
-    using VertexConstPtr = typename InnerVertexType::VertexPtr_<true, ...>;
+    using   EdgeConstPtr = typename InnerVertexType::  EdgePtr_<true>;
+    using VertexConstPtr = typename InnerVertexType::VertexPtr_<true>;
 
-    using VertexSizeType = ...;
+   private:
+    static constexpr uint8_t kVertexIDIdx  = 0;
+    static constexpr uint8_t kVertexPtrIdx = 1;
+    using VertexIDContainerType
+                = Container<vertex_id_container_type,
+                            vertex_id_container_sort_type,
+                            VertexIDType,
+                            VertexPtr>;
 
-    VertexPtr AddVertex(const typename VertexType::IDType& vertex_id,
-                        const typename VertexType::LabelType& vertex_label);
+    static constexpr uint8_t kVertexLabelIdx       = 0;
+    static constexpr uint8_t kVertexIDContainerIdx = 1;
+    using VertexLabelContainerType
+                   = Container<vertex_label_container_type,
+                               vertex_label_container_sort_type,
+                               VertexLabelType,
+                               VertexIDContainerType>;
+   public:
+    using VertexSizeType = typename VertexIDContainerType::size_type;
+
+   private:
+    VertexLabelContainerType vertexes_;
+
+   public:
+    VertexPtr AddVertex(const typename VertexType::IDType&    id,
+                        const typename VertexType::LabelType& label){
+      /// should not have already exist
+      assert(this->FindVertex(id).IsNull());
+      VertexPtr temp_vertex_ptr(new InnerVertex_(id,label));
+      auto vertex_label_it = this->vertexes_.Insert(label)
+                                            .first;
+      auto vertex_id_it    = std::get<kVertexIDContainerIdx>
+                                     (*vertex_label_it).Insert(id)
+                                                       .first;
+      return std::get<kVertexPtrIdx>(*vertex_id_it);
+    }
     /// possible variant:
     ///     AddVertex(id)
     ///     AddVertex(id,label)
@@ -685,9 +1001,9 @@ class Graph {
     ///     AddVertex(id,attribute0,attribute1,...)
     ///     ...
 
-    EdgePtr AddEdge(const typename VertexType::IDType& src_id,
-                    const typename VertexType::IDType& dst_id,
-                    const typename EdgeType::IDType& edge_id);
+    EdgePtr AddEdge(const typename VertexType::IDType&  src_id,
+                    const typename VertexType::IDType&  dst_id,
+                    const typename   EdgeType::IDType& edge_id);
     /// possible variant:
     ///     AddEdge(src_id,dst_id)
     ///     AddEdge(src_id,dst_id,edge_label)
@@ -695,29 +1011,58 @@ class Graph {
     ///     AddEdge(src_id,dst_id,edge_label,edge_id,edge_attribute)
     ///     ...
 
-    VertexPtr FindVertex(typename const VertexType::IDType& vertex_id);
-    VertexConstPtr FindConstVertex(
-        typename const VertexType::IDType& vertex_id) const;
-    /// possible extension:
-    ///     FindVertex(vertex_label,vertex_id)
-    ///     ...
-    ///     FindConstVertex(vertex_label,vertex_id)
-    ///     ...
+    VertexPtr FindVertex(const typename VertexType::IDType& id){
+      for (auto& vertex_label_it : this->vertexes_){
+        /// <iterator of ID container, bool>
+        auto ret = std::get<kVertexIDContainerIdx>(vertex_label_it).Find(id);
+        if (ret.second){
+          /// found it
+          return std::get<kVertexPtrIdx>(*(ret.first));
+        }
+      }
+      /// not found
+      return VertexPtr();
+    }
 
-    VertexIterator VertexBegin();
-    VertexConstIterator VertexConstBegin() const;
-    /// possible extension:
-    ///     VertexBegin(vertex_label)
-    ///     ...
-    ///     VertexConstBegin(vertex_label)
-    ///     ...
+    VertexPtr FindVertex(const typename VertexType::IDType&    id,
+                         const typename VertexType::LabelType& label){
+      /// <iterator of VertexLabelContainer, bool>
+      auto vertex_label_ret = this->vertexes_.Find(label);
+      if (!vertex_label_ret.second){
+        /// not have this vertex label
+        return VertexPtr();
+      }
+      auto vertex_id_ret = std::get<kVertexIDContainerIdx>
+                               (*(vertex_label_ret.first)).Find(id);
+      if (!vertex_id_ret.second){
+        /// not have this vertex id
+        return VertexPtr();
+      }
+      return std::get<kVertexPtrIdx>(*(vertex_id_ret.first));
+    }
 
-    VertexSizeType VertexSize() const;
-    /// possible extension:
-    ///     VertexSize(vertex_label)
-    ///     ...
+    /// will not be implemented in this beggar version
+//    VertexConstPtr FindConstVertex(
+//        typename const VertexType::IDType& vertex_id) const;
+//    /// possible extension:
+//    ///     FindVertex(vertex_label,vertex_id)
+//    ///     ...
+//    ///     FindConstVertex(vertex_label,vertex_id)
+//    ///     ...
+//
+//    VertexIterator VertexBegin();
+//    VertexConstIterator VertexConstBegin() const;
+//    /// possible extension:
+//    ///     VertexBegin(vertex_label)
+//    ///     ...
+//    ///     VertexConstBegin(vertex_label)
+//    ///     ...
+//
+//    VertexSizeType VertexSize() const;
+//    /// possible extension:
+//    ///     VertexSize(vertex_label)
+//    ///     ...
   };
-}
 }  // namespace GUNDAM
 
 #endif  // _GRAPH_HPP
