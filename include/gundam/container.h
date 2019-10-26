@@ -26,7 +26,7 @@ enum class SortType:uint8_t{
     Descend  /// sorted by descend order
 };
 
-template <enum ContainerType container_type,
+template <enum ContainerType container_type_,
           enum SortType sort_type_,
           typename        KeyType_,
           typename...   ValueTypes>
@@ -54,7 +54,7 @@ class Container<ContainerType::Vector,
   InnerContainerType container_;
 
   static_assert(sort_type_ == SortType::None,
-                "other sorting type are not supported yet");
+               "other sorting type are not supported yet");
 
  public:
   using const_iterator = typename InnerContainerType::const_iterator;
@@ -129,6 +129,7 @@ class Container<ContainerType::Vector,
     return std::pair<const_iterator, bool>(this->container_.cend(), false);
   }
 };
+
 }
 
 #endif  // _CONTAINER_H

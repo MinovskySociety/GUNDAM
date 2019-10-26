@@ -2,6 +2,9 @@
 #define _GRAPH_H
 
 #include "graph_configure.h"
+#include "container.h"
+#include "iterator.h"
+#include "label.h"
 
 #include <map>
 
@@ -328,25 +331,22 @@ class Graph {
                                            edge_attribute_container_type,
                                            edge_attribute_container_sort_type>;
 
+  using VertexWithIDType        = WithID_<
+                                      VertexIDType>;
+  using VertexWithLabelType     = WithLabel_<
+                                      VertexLabelType,
+                                      vertex_label_is_const>;
+  using VertexWithAttributeType = WithAttribute_<
+                                      VertexStaticAttributeType,
+                                      vertex_attribute_is_const,
+                                      vertex_has_dynamic_attribute,
+                                      VertexAttributeKeyType,
+                                      vertex_attribute_container_type,
+                                      vertex_attribute_container_sort_type>;
   /// this class is transparent to user
-  class InnerVertex_ : public WithID_<VertexIDType>,
-                       public WithLabel_<VertexLabelType,
-                                         vertex_label_is_const>,
-                       public WithAttribute_<VertexStaticAttributeType,
-                                             vertex_attribute_is_const,
-                                             vertex_has_dynamic_attribute,
-                                             VertexAttributeKeyType,
-                                             vertex_attribute_container_type,
-                                             vertex_attribute_container_sort_type> {
-    using WithIDType        = WithID_<VertexIDType>;
-    using WithLabelType     = WithLabel_<VertexLabelType,
-                                         vertex_label_is_const>;
-    using WithAttributeType = WithAttribute_<VertexStaticAttributeType,
-                                             vertex_attribute_is_const,
-                                             vertex_has_dynamic_attribute,
-                                             VertexAttributeKeyType,
-                                             vertex_attribute_container_type,
-                                             vertex_attribute_container_sort_type>;
+  class InnerVertex_ : public VertexWithIDType,
+                       public VertexWithLabelType,
+                       public VertexWithAttributeType {
    public:
     template <bool is_const_>
     class VertexPtr_ {
@@ -516,9 +516,9 @@ class Graph {
 
    public:
     template <bool is_const_>
-    class EdgePtr_: protected EdgePtrContent_<is_const_> {
+    class EdgePtr_: protected EdgePtrContent_<is_const_, true> {
      private:
-      using EdgeContentType = EdgePtrContent_<is_const_>;
+      using EdgeContentType = EdgePtrContent_<is_const_, true>;
 
      public:
       using EdgeContentType::EdgeContentType;
@@ -546,7 +546,7 @@ class Graph {
    private:
     using EdgePtr = EdgePtr_<false>;
 
-    template <enum StoreData,
+    template <enum StoreData store_data,
               bool meaning_less = true>
     class Edges;
 
@@ -626,9 +626,9 @@ class Graph {
    public:
     InnerVertex_(const VertexIDType&    id,
                  const VertexLabelType& label)
-                            :WithIDType(id),
-                          WithLabelType(label),
-                      WithAttributeType(){
+                      :VertexWithIDType(id),
+                       VertexWithLabelType(label),
+                       VertexWithAttributeType(){
       return;
     }
 
@@ -1001,9 +1001,17 @@ class Graph {
     ///     AddVertex(id,attribute0,attribute1,...)
     ///     ...
 
-    EdgePtr AddEdge(const typename VertexType::IDType&  src_id,
-                    const typename VertexType::IDType&  dst_id,
-                    const typename   EdgeType::IDType& edge_id);
+    EdgePtr AddEdge(const typename VertexType::   IDType&  src_id,
+                    const typename VertexType::   IDType&  dst_id,
+                    const typename   EdgeType::LabelType& edge_label,
+                    const typename   EdgeType::   IDType& edge_id){
+      VertexPtr src_ptr = this->FindVertex(src_id);
+      VertexPtr dst_ptr = this->FindVertex(dst_id);
+      assert(!src_ptr.IsNull());
+      assert(!dst_ptr.IsNull());
+      return src_ptr->AddEdge(dst_ptr,edge_label,
+                                      edge_id);
+    }
     /// possible variant:
     ///     AddEdge(src_id,dst_id)
     ///     AddEdge(src_id,dst_id,edge_label)
@@ -1049,7 +1057,7 @@ class Graph {
 //    ///     ...
 //    ///     FindConstVertex(vertex_label,vertex_id)
 //    ///     ...
-//
+
 //    VertexIterator VertexBegin();
 //    VertexConstIterator VertexConstBegin() const;
 //    /// possible extension:
@@ -1057,11 +1065,25 @@ class Graph {
 //    ///     ...
 //    ///     VertexConstBegin(vertex_label)
 //    ///     ...
-//
-//    VertexSizeType VertexSize() const;
-//    /// possible extension:
-//    ///     VertexSize(vertex_label)
-//    ///     ...
+
+    VertexSizeType CountVertex() const{
+      VertexSizeType vertex_num = 0;
+      for (auto& vertex_label : this->vertexes_)
+        vertex_num += std::get<kVertexIDContainerIdx>
+                               (vertex_label).size();
+      return vertex_num;
+    }
+    VertexSizeType CountVertex(
+         const typename VertexType::LabelType& label) const{
+      /// <iterator of VertexLabelContainer, bool>
+      auto ret = this->vertexes_.FindConst(label);
+      if (!ret.second){
+        /// does not have this vertex label
+        return 0;
+      }
+      return std::get<kVertexIDContainerIdx>(*(ret.first)).size();
+    }
+
   };
 }  // namespace GUNDAM
 

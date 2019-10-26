@@ -1,6 +1,7 @@
 #ifndef _LABEL_HPP
 #define _LABEL_HPP
 
+#include <string>
 #include <type_traits>
 #include <assert.h>
 

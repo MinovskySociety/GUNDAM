@@ -8,12 +8,12 @@
 #include <cstdint>
 #include <string>
 
+namespace GUNDAM {
 enum class StoreData:bool{
-      OutEdge,
-    InOutEdge
+    OutEdge,
+  InOutEdge
 };
 
-namespace GUNDAM {
 template <typename... configures>
 class GraphConfigures;
 
