@@ -355,7 +355,7 @@ class Graph {
       using VertexPtrType = typename std::conditional<is_const_,
                                              const InnerVertex_*,
                                                    InnerVertex_*>::type;
-      VertexPtrType const vertex_ptr_;
+      VertexPtrType vertex_ptr_;
 
      public:
       VertexPtr_() : vertex_ptr_(nullptr) {
@@ -365,6 +365,11 @@ class Graph {
       VertexPtr_(VertexPtrType const vertex_ptr)
                        : vertex_ptr_(vertex_ptr) {
         return;
+      }
+
+      inline VertexPtr_& operator=(const VertexPtr_& ptr){
+        this->vertex_ptr_ = ptr.vertex_ptr_;
+        return *this;
       }
 
       template <const bool judge = is_const_,
@@ -986,12 +991,16 @@ class Graph {
                         const typename VertexType::LabelType& label){
       /// should not have already exist
       assert(this->FindVertex(id).IsNull());
-      VertexPtr temp_vertex_ptr(new InnerVertex_(id,label));
+      InnerVertex_* temp_inner_vertex_ptr = new InnerVertex_(id,label);
+      VertexPtr temp_vertex_ptr(temp_inner_vertex_ptr);
+      /// vertex label iterator
       auto vertex_label_it = this->vertexes_.Insert(label)
                                             .first;
+      /// vertex ID iterator
       auto vertex_id_it = std::get<kVertexIDContainerIdx>
                                   (*vertex_label_it).Insert(id)
                                                     .first;
+      std::get<kVertexPtrIdx>(*vertex_id_it) = temp_vertex_ptr;
       return std::get<kVertexPtrIdx>(*vertex_id_it);
     }
     /// possible variant:
@@ -1109,7 +1118,6 @@ class Graph {
       using ContentPtr = VertexPtr;
 
       inline ContentPtr content_ptr(){
-        std::cout<<"wenzhi test in content_ptr"<<std::endl;
         return std::get<kVertexPtrIdx>(
                InnerIteratorType::template get<depth_-1>());
       }

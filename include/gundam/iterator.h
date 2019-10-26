@@ -27,7 +27,6 @@ class Iterator_ : protected ContentIterator_{
   using ContentIterator_::ContentIterator_;
 
   inline ContentPtr operator->(){
-    std::cout<<"wenzhi test in \"->\" "<<std::endl;
     return ContentIterator_::content_ptr();
   }
   inline Iterator_ operator++(){
@@ -83,7 +82,6 @@ class InnerIterator_<Container<container_type_,
                  const IteratorType& iterator_end)
                       :iterator_    (iterator_begin),
                       kIteratorEnd_ (iterator_end){
-    std::cout<<"wenzhi in constructor of InnerIterator_"<<std::endl;
     return;
   }
 
@@ -101,7 +99,6 @@ class InnerIterator_<Container<container_type_,
   template<IteratorDepthType depth,
            typename std::enable_if<depth == 0, bool>::type = false>
   inline std::tuple<KeyType_,ValueType_>& get(){
-    std::cout<<"wenzhi test in get"<<std::endl;
     assert(!this->IsDone());
     return *(this->iterator_);
   }
