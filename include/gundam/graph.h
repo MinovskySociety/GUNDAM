@@ -72,7 +72,7 @@ class Graph {
   static constexpr enum SortType     vertex_label_container_sort_type
                        = Configures::vertex_label_container_sort_type;
 
-
+ public:
   /// the class that provides the basic information about both vertex and edge
   template <typename IDType_,
             typename LabelType_,
@@ -139,6 +139,7 @@ class Graph {
     using AttributeKeyType = AttributeKeyType_;
   };
 
+ private:
   template<typename IDType_>
   class WithID_{
    private:
@@ -899,11 +900,12 @@ class Graph {
     //            EdgeConstPtr FindConstOutEdge(const VertexPtr& dst_ptr);
     //            EdgeConstPtr FindConstInEdge(const VertexPtr& dst_ptr);
 
-//      /// iterate element:
-//      /// output iterators:
-//      EdgeLabelIterator OutEdgeLabelBegin() const;
-//
-//      VertexIterator OutVertexBegin();
+      /// iterate element:
+      /// output iterators:
+//      inline EdgeLabelIterator OutEdgeLabelBegin() const;
+
+//    VertexIterator OutVertexBegin();
+
 //      VertexConstIterator OutVertexConstBegin() const;
 //      /// possible extension:
 //      ///     OutVertexBegin(edge_label)
@@ -987,9 +989,9 @@ class Graph {
       VertexPtr temp_vertex_ptr(new InnerVertex_(id,label));
       auto vertex_label_it = this->vertexes_.Insert(label)
                                             .first;
-      auto vertex_id_it    = std::get<kVertexIDContainerIdx>
-                                     (*vertex_label_it).Insert(id)
-                                                       .first;
+      auto vertex_id_it = std::get<kVertexIDContainerIdx>
+                                  (*vertex_label_it).Insert(id)
+                                                    .first;
       return std::get<kVertexPtrIdx>(*vertex_id_it);
     }
     /// possible variant:
@@ -1084,6 +1086,57 @@ class Graph {
       return std::get<kVertexIDContainerIdx>(*(ret.first)).size();
     }
 
+    /// transparent to programmers
+    template<typename  ContainerType_,
+             bool           is_const_,
+             IteratorDepthType depth_>
+    class VertexContentIterator_
+      : protected InnerIterator_<ContainerType_,
+                                      is_const_,
+                                         depth_>{
+     private:
+      using InnerIteratorType = InnerIterator_<ContainerType_,
+                                                    is_const_,
+                                                       depth_>;
+
+     protected:
+      using InnerIteratorType::ToNext;
+      using InnerIteratorType::IsDone;
+
+     public:
+      using InnerIteratorType::InnerIteratorType;
+
+      using ContentPtr = VertexPtr;
+
+      inline ContentPtr content_ptr(){
+        std::cout<<"wenzhi test in content_ptr"<<std::endl;
+        return std::get<kVertexPtrIdx>(
+               InnerIteratorType::template get<depth_-1>());
+      }
+    };
+
+    using VertexIterator
+              = Iterator_<VertexContentIterator_<
+                          VertexLabelContainerType,false,2>>;
+    using VertexIteratorSpecifiedLabel
+              = Iterator_<VertexContentIterator_<
+                          VertexIDContainerType,false,1>>;
+
+    VertexIterator VertexBegin(){
+      return VertexIterator(this->vertexes_.begin(),
+                            this->vertexes_.end());
+    }
+
+    VertexIteratorSpecifiedLabel VertexBegin(
+                        typename VertexType::LabelType label){
+      /// <iterator of VertexLabelContainer, bool>
+      auto ret = this->vertexes_.Find(label);
+      if (!ret.second) /// does not have this vertex label
+        return VertexIteratorSpecifiedLabel();
+      return VertexIteratorSpecifiedLabel(
+              std::get<kVertexIDContainerIdx>(*(ret.first)).begin(),
+              std::get<kVertexIDContainerIdx>(*(ret.first)).end());
+    }
   };
 }  // namespace GUNDAM
 
