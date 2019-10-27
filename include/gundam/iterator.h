@@ -184,12 +184,23 @@ class InnerIterator_<Container<container_type_,
   }
 
  public:
-  InnerIterator_(const IteratorType&  iterator_begin,
-                 const IteratorType&  iterator_end)
-                 :InnerIteratorType (
-                 inner_iterator_begin(iterator_begin)),
-                       iterator_     (iterator_begin),
-                      kIteratorEnd_  (iterator_end){
+  InnerIterator_():iterator_(),
+                  kIteratorEnd_(iterator_){
+    /// default iterator, return an empty iterator
+    assert(this->IsDone());
+    return;
+  }
+  InnerIterator_(const IteratorType& iterator_begin,
+                 const IteratorType& iterator_end)
+                      :iterator_    (iterator_begin),
+                      kIteratorEnd_ (iterator_end){
+    if (iterator_begin != iterator_end){
+      /// the next layer iterator is not empty
+      InnerIteratorType::set_iterator(
+                       inner_iterator_begin(
+                             iterator_begin));
+      InnerIteratorType::set_lower_iterator();
+    }
     return;
   }
 
@@ -313,12 +324,7 @@ class _InnerIterator_<Container<container_type_,
  protected:
   using InnerIteratorType::get;
 
-  _InnerIterator_(const IteratorType& iterator_begin)
-                           :iterator_(iterator_begin),
-                    InnerIteratorType(
-                          this->inner_iterator_begin()){
-    return;
-  }
+  _InnerIterator_() = default;
 
   inline const IteratorType& const_iterator() const{
     return this->iterator_;
@@ -394,10 +400,7 @@ class _InnerIterator_<Container<container_type_,
   IteratorType iterator_;
 
  protected:
-  _InnerIterator_(const IteratorType& iterator_begin)
-                           :iterator_(iterator_begin){
-    return;
-  }
+  _InnerIterator_() = default;
 
   inline const IteratorType& const_iterator() const{
     return this->iterator_;
