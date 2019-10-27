@@ -206,6 +206,7 @@ class InnerIterator_<Container<container_type_,
 
  protected:
   using InnerIteratorType::get;
+  using InnerIteratorType::get_const;
 
   inline bool IsDone() const{
     return this->iterator_ == this->kIteratorEnd_;
@@ -318,11 +319,12 @@ class _InnerIterator_<Container<container_type_,
 
   inline bool InnerIsDone() const{
     return InnerIteratorType::const_iterator()
-                     == this->inner_iterator_end();
+        == inner_iterator_end(this->iterator_);
   }
 
  protected:
   using InnerIteratorType::get;
+  using InnerIteratorType::get_const;
 
   _InnerIterator_() = default;
 
@@ -344,7 +346,6 @@ class _InnerIterator_<Container<container_type_,
 
   /// return whether iterator_ has moved
   inline bool _ToNext(){
-    assert(!this->IsDone());
     assert(!this->InnerIsDone());
     if (!InnerIteratorType::_ToNext()){
       /// this inner iterator has not moved
