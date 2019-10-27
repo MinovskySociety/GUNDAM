@@ -1029,6 +1029,34 @@ class Graph {
                                   const VertexIDType& dst_id) {
       return this->FindVertex(this->edges_.in_edges(), edge_label, dst_id);
     }
+   private:
+    inline typename VertexPtrContainerType::size_type
+           CountVertex(const EdgeLabelContainerType& edge_label_container,
+                       const EdgeLabelType&          edge_label) const{
+      /// <constant iterator of EdgeLabelContainer, bool>
+      auto ret = edge_label_container.FindConst(edge_label);
+      if (!ret.second)
+        return 0;
+      return std::get<kVertexPtrContainerIdx>(*(ret.first)).size();
+    }
+
+   public:
+    inline typename EdgeLabelContainerType::size_type
+           CountOutEdgeLabel() const{
+      return this->edges_.const_out_edges().size();
+    }
+    inline typename EdgeLabelContainerType::size_type
+           CountInEdgeLabel() const{
+      return this->edges_.const_in_edges().size();
+    }
+    inline typename VertexPtrContainerType::size_type
+           CountOutVertex(const EdgeLabelType& edge_label) const{
+      return this->CountVertex(this->edges_.const_out_edges(),edge_label);
+    }
+    inline typename VertexPtrContainerType::size_type
+           CountInVertex(const EdgeLabelType& edge_label) const{
+      return this->CountVertex(this->edges_.const_in_edges(),edge_label);
+    }
 
     /// will not be implemented in the beggar version
 //    VertexConstPtr FindConstOutVertex(const VertexPtr& dst_ptr)
