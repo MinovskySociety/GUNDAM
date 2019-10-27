@@ -400,7 +400,8 @@ class Graph {
     using ContentPtr = EdgeContentIteratorSpecifiedEdgeLabel_*;
 
     EdgeContentIteratorSpecifiedEdgeLabel_()
-         :InnerIteratorType(),edge_label_(){
+                        :InnerIteratorType(),
+                               edge_label_(){
       return;
     }
 
@@ -422,7 +423,7 @@ class Graph {
     }
 
   public:
-    inline const EdgeLabelType& label() const override{
+    inline const EdgeLabelType& label() const {
       return this->edge_label_;
     }
   };
@@ -1173,14 +1174,21 @@ class Graph {
                           edge_label_container.begin(),
                           edge_label_container.end());
     }
-    inline EdgeIterator EdgeBegin(
+    inline EdgeIteratorSpecifiedEdgeLabel
+           EdgeBegin(
            EdgeLabelContainerType& edge_label_container,
               const EdgeLabelType& edge_label){
-      InnerVertex_* const temp_this_ptr;
+      /// <iterator of EdgeLabelContainerType, bool>
+      auto ret = edge_label_container.Find(edge_label);
+      if (!ret.second){
+        /// not found
+        return EdgeIteratorSpecifiedEdgeLabel();
+      }
+      InnerVertex_* const temp_this_ptr = this;
       const VertexPtr temp_vertex_ptr(temp_this_ptr);
-      return EdgeIterator(temp_vertex_ptr,
-                          edge_label_container.begin(),
-                          edge_label_container.end());
+      return EdgeIteratorSpecifiedEdgeLabel(temp_vertex_ptr,edge_label,
+         std::get<kVertexPtrContainerIdx>(*(ret.first)).begin(),
+         std::get<kVertexPtrContainerIdx>(*(ret.first)).end());
     }
 
    public:
@@ -1207,7 +1215,8 @@ class Graph {
     inline EdgeIterator OutEdgeBegin(){
       return this->EdgeBegin(this->edges_.out_edges());
     }
-    inline EdgeIterator OutEdgeBegin(const EdgeLabelType& edge_label){
+    inline EdgeIteratorSpecifiedEdgeLabel
+        OutEdgeBegin(const EdgeLabelType& edge_label){
       return this->EdgeBegin(this->edges_.out_edges(),edge_label);
     }
 

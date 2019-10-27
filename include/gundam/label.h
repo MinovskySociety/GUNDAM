@@ -56,6 +56,10 @@ protected:
 public:
     using UnderlieType = LabelUnderlieType;
 
+    Label():kLable_(){
+        return;
+    }
+
     Label(const LabelUnderlieType& kLable_)
                           :kLable_(kLable_){
         return;
