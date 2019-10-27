@@ -105,7 +105,7 @@ class InnerIterator_<Container<container_type_,
 
   template<IteratorDepthType depth,
            typename std::enable_if<depth == 0, bool>::type = false>
-  inline const std::tuple<KeyType_,ValueType_>& const_get() const{
+  inline const std::tuple<KeyType_,ValueType_>& get_const() const{
     return *(this->iterator_);
   }
 };
@@ -240,7 +240,7 @@ class InnerIterator_<Container<container_type_,
 
   template<IteratorDepthType depth,
            typename std::enable_if<depth == 0, bool>::type = false>
-  inline const KeyType_& const_get() const{
+  inline const KeyType_& get_const() const{
     return std::get<0>(*(this->iterator_));
   }
 };
@@ -368,7 +368,7 @@ class _InnerIterator_<Container<container_type_,
 
   template<IteratorDepthType depth,
            typename std::enable_if<depth == now_depth_-1, bool>::type = false>
-  inline const KeyType_& const_get() const{
+  inline const KeyType_& get_const() const{
     return std::get<0>(*(this->iterator_));
   }
 };
@@ -429,7 +429,7 @@ class _InnerIterator_<Container<container_type_,
 
   template<IteratorDepthType depth,
            typename std::enable_if<depth == depth_-1, bool>::type = false>
-  inline const std::tuple<KeyType_,ValueType_>& const_get() const{
+  inline const std::tuple<KeyType_,ValueType_>& get_const() const{
     return (*(this->iterator_));
   }
 };

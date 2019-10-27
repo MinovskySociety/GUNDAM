@@ -94,15 +94,43 @@ class Graph {
    protected:
     using InnerIteratorType::ToNext;
     using InnerIteratorType::IsDone;
-
-   public:
     using InnerIteratorType::InnerIteratorType;
-
     using ContentPtr = VertexPtr;
 
     inline ContentPtr content_ptr(){
       return std::get<ptr_idx_>(
              InnerIteratorType::template get<depth_-1>());
+    }
+  };
+
+  template<typename  ContainerType_,
+           bool           is_const_,
+           IteratorDepthType depth_,
+           TupleIdxType    ptr_idx_>
+  class EdgeLabelContentIterator_
+    : protected InnerIterator_<ContainerType_,
+                                    is_const_,
+                                       depth_>{
+   private:
+    using InnerIteratorType = InnerIterator_<ContainerType_,
+                                                  is_const_,
+                                                     depth_>;
+
+   protected:
+    using InnerIteratorType::ToNext;
+    using InnerIteratorType::IsDone;
+    using InnerIteratorType::InnerIteratorType;
+    using ContentPtr = EdgeLabelContentIterator_*;
+
+    inline ContentPtr content_ptr(){
+      EdgeLabelContentIterator_* const temp_this_ptr = this;
+      return temp_this_ptr;
+    }
+
+   public:
+    inline const EdgeLabelType& label() const{
+      return (std::get<ptr_idx_>(
+              InnerIteratorType::template get_const<depth_-1>()));
     }
   };
 
@@ -948,8 +976,13 @@ class Graph {
     //            EdgeConstPtr FindConstOutEdge(const VertexPtr& dst_ptr);
     //            EdgeConstPtr FindConstInEdge(const VertexPtr& dst_ptr);
 
-      /// iterate element:
-      /// output iterators:
+    /// iterate element:
+    /// output iterators:
+
+    using EdgeLabelIterator
+                 = Iterator_<EdgeLabelContentIterator_<
+                             EdgeLabelContainerType,false,1,
+                            kEdgeLabelIdx>>;
 
     using VertexIterator
               = Iterator_<VertexContentIterator_<
@@ -959,16 +992,24 @@ class Graph {
               = Iterator_<VertexContentIterator_<
                           VertexPtrContainerType,false,1,
                          kVertexPtrIdx>>;
-//    inline EdgeLabelIterator OutEdgeLabelBegin() const;
 
-    inline VertexIterator OutVertexBegin(){
-      return VertexIterator(this->edges_.out_edges().begin(),
-                            this->edges_.out_edges().end());
+   private:
+    inline EdgeLabelIterator EdgeLabelBegin(
+           EdgeLabelContainerType& edge_label_container){
+      return EdgeLabelIterator(edge_label_container.begin(),
+                               edge_label_container.end());
+    }
+
+    inline VertexIterator VertexBegin(
+      EdgeLabelContainerType& edge_label_container){
+      return VertexIterator(edge_label_container.begin(),
+                            edge_label_container.end());
     }
     inline VertexIteratorSpecifiedEdgeLabel
-        OutVertexBegin(const EdgeLabelType& edge_label){
-      /// <iterator of EdgeLabelContainer, bool>
-      auto ret = this->edges_.out_edges().Find(edge_label);
+           VertexBegin(
+      EdgeLabelContainerType& edge_label_container,
+         const EdgeLabelType& edge_label){
+      auto ret = edge_label_container.Find(edge_label);
       if (!ret.second){
         /// not find
         return VertexIteratorSpecifiedEdgeLabel();
@@ -977,14 +1018,28 @@ class Graph {
           (std::get<kVertexPtrContainerIdx>(*(ret.first))).begin(),
           (std::get<kVertexPtrContainerIdx>(*(ret.first))).end());
     }
-    inline VertexIterator InVertexBegin(){
-      return VertexIterator(this->edges_.in_edges().begin(),
-                            this->edges_.in_edges().end());
+
+   public:
+    inline EdgeLabelIterator OutEdgeLabelBegin(){
+      return this->EdgeLabelBegin(this->edges_.out_edges());
     }
-//    inline VertexIterator InVertexBegin(){
-//      return VertexIterator(this->edges_.in_edges().begin(),
-//                            this->edges_.in_edges().end());
-//    }
+    inline EdgeLabelIterator InEdgeLabelBegin(){
+      return this->EdgeLabelBegin(this->edges_.in_edges());
+    }
+    inline VertexIterator OutVertexBegin(){
+      return this->VertexBegin(this->edges_.out_edges());
+    }
+    inline VertexIteratorSpecifiedEdgeLabel
+        OutVertexBegin(const EdgeLabelType& edge_label){
+      return this->VertexBegin(this->edges_.out_edges(),edge_label);
+    }
+    inline VertexIterator InVertexBegin(){
+      return this->VertexBegin(this->edges_.in_edges());
+    }
+    inline VertexIteratorSpecifiedEdgeLabel
+         InVertexBegin(const EdgeLabelType& edge_label){
+      return this->VertexBegin(this->edges_.in_edges(),edge_label);
+    }
 
 //    VertexConstIterator OutVertexConstBegin() const;
 //    /// possible extension:
