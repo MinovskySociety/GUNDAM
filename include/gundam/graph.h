@@ -824,7 +824,7 @@ class Graph {
 
    private:
     template <enum StoreData store_data,
-              bool meaning_less = true>
+              bool meaning_less>
     class Edges;
 
     template <bool meaning_less>
@@ -859,7 +859,7 @@ class Graph {
       }
     };
 
-    Edges<store_data> edges_;
+    Edges<store_data, true> edges_;
 
     void AddInEdge(const VertexPtr& dst_ptr,
                    const EdgeLabelType& edge_label,

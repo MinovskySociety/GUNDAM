@@ -13,7 +13,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 enable_testing()
 
-find_package(GTest CONFIG REQUIRED)
+find_package(GTest REQUIRED)
 
 # 包含子项目。
 add_subdirectory ("test")
