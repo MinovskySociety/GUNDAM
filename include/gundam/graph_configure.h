@@ -182,8 +182,8 @@ class GraphConfigures<> {
   static constexpr enum SortType
         decomposed_edge_container_sort_type = DefaultSortType;
   /// default setting of miscellaneous
-  static constexpr bool allow_multiple_edge = false;
-  static constexpr bool allow_duplicate_edge = false;
+  static constexpr bool allow_multiple_edge  = false;
+  static constexpr bool allow_duplicate_edge = true;
   using DuplicateNumType = uint32_t;
 };
 
