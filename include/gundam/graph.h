@@ -616,7 +616,8 @@ class Graph {
       }
     };
 
-    using VertexPtr = VertexPtr_<false>;
+    using VertexPtr      = VertexPtr_<false>;
+    using VertexConstPtr = VertexPtr_<true>;
 
    private:
     static constexpr TupleIdxType kEdgeIDIdx = 0;
