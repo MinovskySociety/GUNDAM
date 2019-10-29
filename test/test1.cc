@@ -136,10 +136,10 @@ TEST(TestGUNDAM, GraphClass) {
   ASSERT_FALSE(v2.IsNull());
   ASSERT_EQ(v2->id(), 2);
 
-  //auto e1 = v1->FindOutEdge(Label<std::string>("aaa"), v2, 1);
-  //ASSERT_FALSE(e1.IsNull());
-  //ASSERT_EQ(e1->id(), 1);
-  //ASSERT_EQ(e1->label(), Label<std::string>("aaa");
+  auto e1 = v1->FindOutEdge(Label<std::string>("aaa"), v2, 1);
+  ASSERT_FALSE(e1.IsNull());
+  ASSERT_EQ(e1->id(), 1);
+  ASSERT_EQ(e1->label(), Label<std::string>("aaa");
 
   ASSERT_TRUE(true);
 }
