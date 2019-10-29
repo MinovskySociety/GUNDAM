@@ -1297,8 +1297,8 @@ class Graph {
     using   EdgePtr = typename InnerVertexType::  EdgePtr;
     using VertexPtr = typename InnerVertexType::VertexPtr;
     /// constant pointer
-    using   EdgeConstPtr = typename InnerVertexType::  EdgePtr_<true>;
-    using VertexConstPtr = typename InnerVertexType::VertexPtr_<true>;
+    using   EdgeConstPtr = typename InnerVertexType::  EdgeConstPtr;
+    using VertexConstPtr = typename InnerVertexType::VertexConstPtr;
 
    private:
     static constexpr TupleIdxType kVertexIDIdx  = 0;
