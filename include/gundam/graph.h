@@ -81,8 +81,6 @@ class Graph {
   static constexpr enum SortType     vertex_label_container_sort_type
                        = Configures::vertex_label_container_sort_type;
 
-  using TupleIdxType = uint8_t;
-
   template<typename IDType_>
   class WithID_{
    private:
@@ -300,18 +298,21 @@ class Graph {
     VertexPtr vertex_ptr_;
 
     inline EdgeAttributeType& attribute(){
-      return *(std::get<edge_attribute_ptr_idx_>(
-               InnerIteratorType::template get_<begin_depth_ + 2>()));
+      return *(InnerIteratorType::template get<EdgeAttributeType*,
+                                          edge_attribute_ptr_idx_,
+                                                     begin_depth_ + 2>());
     }
 
-    inline VertexPtr VertexPtrContainerElement(){
-      return (std::get<dst_ptr_idx_>(
-              InnerIteratorType::template get_const<begin_depth_ + 1>()));
+    inline VertexPtr& VertexPtrContainerElement(){
+      return InnerIteratorType::template get<VertexPtr,
+                                          dst_ptr_idx_,
+                                          begin_depth_ + 1>();
     }
 
-    inline const VertexPtr VertexPtrContainerConstElement() const{
-      return (std::get<dst_ptr_idx_>(
-              InnerIteratorType::template get_const<begin_depth_ + 1>()));
+    inline const VertexPtr& VertexPtrContainerConstElement() const{
+      return InnerIteratorType::template get_const<VertexPtr,
+                                                dst_ptr_idx_,
+                                                begin_depth_ + 1>();
     }
 
    protected:
@@ -340,33 +341,35 @@ class Graph {
     }
 
    public:
-    inline VertexPtr src_ptr(){
+    inline VertexPtr& src_ptr(){
       if (this->direction_ == EdgeDirection::OutputEdge)
         return this->vertex_ptr_;
       return this->VertexPtrContainerElement();
     }
-    inline const VertexPtr const_src_ptr() const{
-      if (this->direction_ == EdgeDirection::OutputEdge)
-        return this->vertex_ptr_;
-      return this->VertexPtrContainerConstElement();
-    }
-    inline const EdgeLabelType label() const{
-      return (std::get<edge_label_idx_>(
-              InnerIteratorType::template get_const<begin_depth_>()));
-    }
-    inline VertexPtr dst_ptr(){
+    inline VertexPtr& dst_ptr(){
       if (this->direction_ == EdgeDirection::OutputEdge)
         return this->VertexPtrContainerElement();
       return this->vertex_ptr_;
     }
-    inline const VertexPtr const_dst_ptr() const{
+    inline const VertexPtr& const_src_ptr() const{
+      if (this->direction_ == EdgeDirection::OutputEdge)
+        return this->vertex_ptr_;
+      return this->VertexPtrContainerConstElement();
+    }
+    inline const VertexPtr& const_dst_ptr() const{
       if (this->direction_ == EdgeDirection::OutputEdge)
         return this->VertexPtrContainerConstElement();
       return this->vertex_ptr_;
     }
+    inline const EdgeLabelType& label() const{
+      return InnerIteratorType::template get_const<EdgeLabelType,
+                                                 edge_label_idx_,
+                                                    begin_depth_>();
+    }
     inline const EdgeIDType& id() const{
-      return (std::get<edge_id_idx_>(
-              InnerIteratorType::template get_const<begin_depth_ + 2>()));
+      return InnerIteratorType::template get_const<EdgeIDType,
+                                                 edge_id_idx_,
+                                                 begin_depth_ + 2>();
     }
     template <typename ConcreteDataType>
     inline const ConcreteDataType& const_attribute(
@@ -473,9 +476,10 @@ class Graph {
     using InnerIteratorType::InnerIteratorType;
     using ContentPtr = VertexPtr;
 
-    inline ContentPtr content_ptr(){
-      return std::get<vertex_ptr_idx_>(
-             InnerIteratorType::template get<depth_-1>());
+    inline ContentPtr& content_ptr(){
+      return InnerIteratorType::template get<ContentPtr,
+                                        vertex_ptr_idx_,
+                                                 depth_ - 1>();
     }
   };
 
@@ -505,8 +509,9 @@ class Graph {
 
    public:
     inline const EdgeLabelType& label() const{
-      return (std::get<edge_label_idx_>(
-              InnerIteratorType::template get_const<depth_-1>()));
+      return InnerIteratorType::template get_const<EdgeLabelType,
+                                                 edge_label_idx_,
+                                                          depth_ - 1>();
     }
   };
 

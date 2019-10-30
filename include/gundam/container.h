@@ -6,6 +6,9 @@
 #include <map>
 
 namespace GUNDAM {
+
+using TupleIdxType = uint8_t;
+
 enum class ContainerType:uint8_t{
     List,   /// for graph with few  elements (Edge types or associated Vertexes)
     Vector, /// for static graph
