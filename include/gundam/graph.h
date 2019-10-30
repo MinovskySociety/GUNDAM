@@ -923,51 +923,48 @@ class Graph {
 
     Edges<store_data, true> edges_;
 
-    inline bool AddInEdge(const VertexPtr& dst_ptr,
-                          const EdgeLabelType& edge_label,
-                          const EdgeIDType& edge_id,
+    inline void AddInEdge(const VertexPtr&         dst_ptr,
+                          const EdgeLabelType&     edge_label,
+                          const EdgeIDType&        edge_id,
                           EdgeAttributeType* const edge_attribute_ptr) {
       auto edge_label_it = this->edges_.out_edges()
                                        .Insert(edge_label)
                                        .first;
       auto vertex_ptr_it = std::get<kVertexPtrContainerIdx>(*edge_label_it)
-                          .Insert(dst_ptr)
-                          .first;
-      auto edge_ret = std::get<kDecomposedEdgeContainerIdx>(*vertex_ptr_it)
-                          .Insert(edge_id);
-      if (!edge_ret.second){
-        /// this edge has already existed
-        return false;
-      }
-      std::get<kEdgeAttributePtrIdx>(*(edge_ret.first)) = edge_attribute_ptr;
-      return true;
+                               .Insert(dst_ptr)
+                               .first;
+      auto edge_it = std::get<kDecomposedEdgeContainerIdx>(*vertex_ptr_it)
+                         .Insert(edge_id)
+                         .first;
+      std::get<kEdgeAttributePtrIdx>(*edge_it) = edge_attribute_ptr;
+      return;
     }
 
     inline std::pair<EdgePtr, bool>
-      AddOutEdge(const  VertexPtr&     dst_ptr,
-                 const  EdgeLabelType& edge_label,
-                 const  EdgeIDType&    edge_id,
-                 EdgeAttributeType*    edge_attribute_ptr) {
+      AddOutEdge(const  VertexPtr&        dst_ptr,
+                 const  EdgeLabelType&    edge_label,
+                 const  EdgeIDType&       edge_id,
+                 EdgeAttributeType* const edge_attribute_ptr) {
       auto edge_label_it = this->edges_.out_edges()
                                        .Insert(edge_label)
                                        .first;
       auto vertex_ptr_it = std::get<kVertexPtrContainerIdx>(*edge_label_it)
-                          .Insert(dst_ptr)
-                          .first;
+                               .Insert(dst_ptr)
+                               .first;
       auto edge_it = std::get<kDecomposedEdgeContainerIdx>(*vertex_ptr_it)
-                    .Insert(edge_id)
-                    .first;
+                         .Insert(edge_id)
+                         .first;
       std::get<kEdgeAttributePtrIdx>(*edge_it) = edge_attribute_ptr;
-      InnerVertex_* temp_this_ptr = this;
-      VertexPtr temp_vertex_ptr(temp_this_ptr);
+      InnerVertex_* const temp_this_ptr = this;
+      VertexPtr           temp_vertex_ptr(temp_this_ptr);
       assert(allow_duplicate_edge);
       /// otherwise, needs to decide the second element in the pair
       return std::pair<EdgePtr, bool>(
-                       EdgePtr(EdgeDirection::OutputEdge,
-                               temp_vertex_ptr, /// src_ptr
-                                 edge_label_it,
-                                 vertex_ptr_it,
-                                       edge_it),true);
+               EdgePtr(EdgeDirection::OutputEdge,
+                                 temp_vertex_ptr, /// src_ptr
+                                   edge_label_it,
+                                   vertex_ptr_it,
+                                         edge_it),true);
     }
 
    public:
@@ -983,19 +980,18 @@ class Graph {
       AddEdge(VertexPtr& dst_ptr,
         const EdgeLabelType& edge_label,
         const EdgeIDType&    edge_id) {
-      EdgeAttributeType* edge_attribute_ptr = new EdgeAttributeType();
-      InnerVertex_* const temp_this_ptr = this;
-      VertexPtr     const temp_vertex_ptr = VertexPtr(temp_this_ptr);
-      if (!dst_ptr->AddInEdge(temp_vertex_ptr,
-                              edge_label,
-                              edge_id,
-                              edge_attribute_ptr)){
-        /// this edge has already existed
-        delete edge_attribute_ptr;
-        auto ret = this->FindOutEdge(edge_label,dst_ptr,edge_id);
-        assert(!ret.IsNull());
+      auto ret = this->FindOutEdge(edge_id);
+      if (!ret.IsNull()){
+        /// this Edge has already been existed
         return std::pair<EdgePtr,bool>(ret,false);
       }
+      EdgeAttributeType* edge_attribute_ptr = new EdgeAttributeType();
+      InnerVertex_* const temp_this_ptr     = this;
+      VertexPtr           temp_vertex_ptr   = VertexPtr(temp_this_ptr);
+      dst_ptr->AddInEdge(temp_vertex_ptr,
+                         edge_label,
+                         edge_id,
+                         edge_attribute_ptr);
       return this->AddOutEdge(dst_ptr,
                               edge_label,
                               edge_id,
