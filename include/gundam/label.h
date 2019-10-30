@@ -68,6 +68,18 @@ public:
     inline bool operator ==(const Label<LabelUnderlieType>& label) const{
         return this->kLable_ == label.kLable_;
     }
+    inline bool operator > (const Label<LabelUnderlieType>& label) const{
+        return this->kLable_ >  label.kLable_;
+    }
+    inline bool operator < (const Label<LabelUnderlieType>& label) const{
+        return this->kLable_ <  label.kLable_;
+    }
+    inline bool operator >=(const Label<LabelUnderlieType>& label) const{
+        return this->kLable_ >= label.kLable_;
+    }
+    inline bool operator <=(const Label<LabelUnderlieType>& label) const{
+        return this->kLable_ <= label.kLable_;
+    }
     inline bool CanMatchTo(const Label<LabelUnderlieType>& label) const{
         return this->kLable_ == label.kLable_;
     }

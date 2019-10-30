@@ -648,6 +648,11 @@ class Graph {
         return this->vertex_ptr_;
       }
 
+      inline void Delete() {
+        delete this->vertex_ptr_;
+        return;
+      }
+
       inline bool IsNull() const {
         return this->vertex_ptr_ == nullptr;
       }
@@ -927,7 +932,7 @@ class Graph {
                           const EdgeLabelType&     edge_label,
                           const EdgeIDType&        edge_id,
                           EdgeAttributeType* const edge_attribute_ptr) {
-      auto edge_label_it = this->edges_.out_edges()
+      auto edge_label_it = this->edges_.in_edges()
                                        .Insert(edge_label)
                                        .first;
       auto vertex_ptr_it = std::get<kVertexPtrContainerIdx>(*edge_label_it)
@@ -973,6 +978,19 @@ class Graph {
                       :VertexWithIDType(id),
                        VertexWithLabelType(label),
                        VertexWithAttributeType(){
+      return;
+    }
+
+    ~InnerVertex_(){
+      for (auto& edge_label_it : this->edges_.out_edges()){
+        for (auto& vertex_ptr_it : std::get<kVertexPtrContainerIdx>
+                                                   (edge_label_it)){
+          for (auto& decomposed_edge_it : std::get<kDecomposedEdgeContainerIdx>
+                                                              (vertex_ptr_it)){
+            delete std::get<kEdgeAttributePtrIdx>(decomposed_edge_it);
+          }
+        }
+      }
       return;
     }
 
@@ -1511,6 +1529,16 @@ class Graph {
     VertexLabelContainerType vertexes_;
 
    public:
+    Graph() = default;
+
+    ~Graph(){
+      for (auto& vertex_label_it : this->vertexes_)
+        for (auto& vertex_ptr_it : std::get<kVertexIDContainerIdx>
+                                                 (vertex_label_it))
+          std::get<kVertexPtrIdx>(vertex_ptr_it).Delete();
+      return;
+    }
+
     inline std::pair<VertexPtr, bool>
       AddVertex(const typename VertexType::IDType&    id,
                 const typename VertexType::LabelType& label){
