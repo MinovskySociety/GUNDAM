@@ -1157,7 +1157,7 @@ class Graph {
     inline EdgePtr FindEdge(
            EdgeLabelContainerType& edge_label_container,
          const enum EdgeDirection& edge_direction,
-              const EdgeIDType&    edge_id){
+         const EdgeIDType&         edge_id){
       for (auto edge_label_it  = edge_label_container.begin();
                 edge_label_it != edge_label_container.end();
               ++edge_label_it){
@@ -1180,6 +1180,40 @@ class Graph {
                          vertex_ptr_it,
                     decomposed_edge_ret.first);
         }
+      }
+      return EdgePtr();
+    }
+
+    inline EdgePtr FindEdge(
+           EdgeLabelContainerType& edge_label_container,
+         const enum EdgeDirection& edge_direction,
+         const EdgeLabelType&      edge_label,
+         const EdgeIDType&         edge_id){
+      /// <iterator of EdgeLabelContainer, bool>
+      auto edge_label_ret = edge_label_container.Find(edge_label);
+      if (!edge_label_ret.second){
+        /// not found this edge label
+        return EdgePtr();
+      }
+      /// found this edge label
+      for (auto vertex_ptr_it  = std::get<kVertexPtrContainerIdx>
+                                         (*(edge_label_ret.first)).begin();
+                vertex_ptr_it != std::get<kVertexPtrContainerIdx>
+                                         (*(edge_label_ret.first)).end();
+              ++vertex_ptr_it){
+        auto decomposed_edge_ret = std::get<kDecomposedEdgeContainerIdx>
+                                          (*vertex_ptr_it).Find(edge_id);
+        if (!decomposed_edge_ret.second){
+          /// not found
+          continue;
+        }
+        InnerVertex_* const temp_this_ptr = this;
+        VertexPtr temp_vertex_ptr = VertexPtr(temp_this_ptr);
+        return EdgePtr(edge_direction,
+                       temp_vertex_ptr,
+                       edge_label_ret.first,
+                       vertex_ptr_it,
+                  decomposed_edge_ret.first);
       }
       return EdgePtr();
     }
@@ -1220,6 +1254,13 @@ class Graph {
                             edge_id);
     }
     inline EdgePtr FindOutEdge(const EdgeLabelType& edge_label,
+                               const EdgeIDType& edge_id) {
+      return this->FindEdge(this->edges_.out_edges(),
+                            EdgeDirection::OutputEdge,
+                            edge_label,
+                            edge_id);
+    }
+    inline EdgePtr FindOutEdge(const EdgeLabelType& edge_label,
                                const VertexPtr& dst_ptr,
                                const EdgeIDType& edge_id) {
       return this->FindEdge(this->edges_.out_edges(),
@@ -1241,8 +1282,15 @@ class Graph {
                             edge_id);
     }
     inline EdgePtr FindInEdge(const EdgeLabelType& edge_label,
-                              const VertexPtr& src_ptr,
-                              const EdgeIDType& edge_id) {
+                              const EdgeIDType&    edge_id) {
+      return this->FindEdge(this->edges_.in_edges(),
+                            EdgeDirection::InputEdge,
+                            edge_label,
+                            edge_id);
+    }
+    inline EdgePtr FindInEdge(const EdgeLabelType& edge_label,
+                              const VertexPtr&      src_ptr,
+                              const EdgeIDType&    edge_id) {
       return this->FindEdge(this->edges_.in_edges(),
                             EdgeDirection::InputEdge,
                             edge_label,
