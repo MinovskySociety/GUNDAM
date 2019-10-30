@@ -1639,6 +1639,15 @@ class Graph {
         /// the src vertex or the dst vertex does not exist
         return std::pair<EdgePtr, bool>(EdgePtr(),false);
       }
+      for (auto vertex_ptr_it = this->VertexBegin();
+               !vertex_ptr_it.IsDone();
+                vertex_ptr_it++){
+        EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
+        if (!edge_ptr.IsNull()){
+          /// the edge with this edge_id has already existed
+          return std::pair<EdgePtr, bool>(edge_ptr,false);
+        }
+      }
       /// assume that the duplicate edge is allowed
       return src_ptr->AddEdge(dst_ptr,
                               edge_label,
@@ -1679,6 +1688,19 @@ class Graph {
         return VertexPtr();
       }
       return std::get<kVertexPtrIdx>(*(vertex_id_ret.first));
+    }
+
+    inline EdgePtr FindEdge(const typename EdgeType::IDType& edge_id){
+      for (auto vertex_ptr_it = this->VertexBegin();
+               !vertex_ptr_it.IsDone();
+                vertex_ptr_it++){
+        EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
+        if (!edge_ptr.IsNull()){
+          /// the edge with this edge_id has already existed
+          return edge_ptr;
+        }
+      }
+      return EdgePtr();
     }
 
     /// will not be implemented in this beggar version
@@ -1738,7 +1760,7 @@ class Graph {
         return VertexIteratorSpecifiedLabel();
       return VertexIteratorSpecifiedLabel(
               std::get<kVertexIDContainerIdx>(*(ret.first)).begin(),
-              std::get<kVertexIDContainerIdx>(*(ret.first)).end());
+              std::get<kVertexIDContainerIdx>(*(ret.first)). end ());
     }
   };
 }  // namespace GUNDAM
