@@ -79,6 +79,10 @@ class Container<ContainerType::Vector,
   inline bool empty() const {
     return this->container_.empty();
   }
+  inline void clear() {
+    this->container_.clear();
+    return;
+  }
   inline void shrink_to_fit() const {
     this->container_.shrink_to_fit();
     return;

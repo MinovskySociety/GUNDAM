@@ -63,7 +63,7 @@ class InnerIterator_<Container<container_type_,
                                        sort_type_,
                                          KeyType_,
                                        ValueType_>;
-
+  using  ElementType = typename ContainerType::ElementType;
   using IteratorType = typename    std::conditional<is_const_,
                        typename ContainerType::const_iterator,
                        typename ContainerType::      iterator>::type;
@@ -98,14 +98,14 @@ class InnerIterator_<Container<container_type_,
 
   template<IteratorDepthType depth,
            typename std::enable_if<depth == 0, bool>::type = false>
-  inline std::tuple<KeyType_,ValueType_>& get(){
+  inline ElementType& get(){
     assert(!this->IsDone());
     return *(this->iterator_);
   }
 
   template<IteratorDepthType depth,
            typename std::enable_if<depth == 0, bool>::type = false>
-  inline const std::tuple<KeyType_,ValueType_>& get_const() const{
+  inline const ElementType& get_const() const{
     return *(this->iterator_);
   }
 };
@@ -133,7 +133,7 @@ class InnerIterator_<Container<container_type_,
                                        sort_type_,
                                          KeyType_,
                               InnerContainerType_>;
-
+  using  ElementType = typename ContainerType::ElementType;
   using IteratorType = typename    std::conditional<is_const_,
                        typename ContainerType::const_iterator,
                        typename ContainerType::      iterator>::type;
@@ -235,14 +235,14 @@ class InnerIterator_<Container<container_type_,
 
   template<IteratorDepthType depth,
            typename std::enable_if<depth == 0, bool>::type = false>
-  inline KeyType_& get(){
-    return std::get<0>(*(this->iterator_));
+  inline ElementType& get(){
+    return *(this->iterator_);
   }
 
   template<IteratorDepthType depth,
            typename std::enable_if<depth == 0, bool>::type = false>
-  inline const KeyType_& get_const() const{
-    return std::get<0>(*(this->iterator_));
+  inline const ElementType& get_const() const{
+    return *(this->iterator_);
   }
 };
 
@@ -272,7 +272,7 @@ class _InnerIterator_<Container<container_type_,
                                        sort_type_,
                                          KeyType_,
                               InnerContainerType_>;
-
+  using  ElementType = typename ContainerType::ElementType;
   using IteratorType = typename    std::conditional<is_const_,
                        typename ContainerType::const_iterator,
                        typename ContainerType::      iterator>::type;
@@ -363,14 +363,14 @@ class _InnerIterator_<Container<container_type_,
 
   template<IteratorDepthType depth,
            typename std::enable_if<depth == now_depth_-1, bool>::type = false>
-  inline KeyType_& get(){
-    return std::get<0>(*(this->iterator_));
+  inline ElementType& get(){
+    return *(this->iterator_);
   }
 
   template<IteratorDepthType depth,
            typename std::enable_if<depth == now_depth_-1, bool>::type = false>
-  inline const KeyType_& get_const() const{
-    return std::get<0>(*(this->iterator_));
+  inline const ElementType& get_const() const{
+    return *(this->iterator_);
   }
 };
 
@@ -393,7 +393,7 @@ class _InnerIterator_<Container<container_type_,
                                        sort_type_,
                                          KeyType_,
                                        ValueType_>;
-
+  using  ElementType = typename ContainerType::ElementType;
   using IteratorType = typename    std::conditional<is_const_,
                        typename ContainerType::const_iterator,
                        typename ContainerType::      iterator>::type;
@@ -424,14 +424,14 @@ class _InnerIterator_<Container<container_type_,
 
   template<IteratorDepthType depth,
            typename std::enable_if<depth == depth_-1, bool>::type = false>
-  inline std::tuple<KeyType_,ValueType_>& get(){
-    return (*(this->iterator_));
+  inline ElementType& get(){
+    return *(this->iterator_);
   }
 
   template<IteratorDepthType depth,
            typename std::enable_if<depth == depth_-1, bool>::type = false>
-  inline const std::tuple<KeyType_,ValueType_>& get_const() const{
-    return (*(this->iterator_));
+  inline const ElementType& get_const() const{
+    return *(this->iterator_);
   }
 };
 

@@ -340,26 +340,26 @@ class Graph {
     }
 
    public:
-    inline VertexPtr& src_ptr(){
+    inline VertexPtr src_ptr(){
       if (this->direction_ == EdgeDirection::OutputEdge)
         return this->vertex_ptr_;
       return this->VertexPtrContainerElement();
     }
-    inline const VertexPtr& const_src_ptr() const{
+    inline const VertexPtr const_src_ptr() const{
       if (this->direction_ == EdgeDirection::OutputEdge)
         return this->vertex_ptr_;
       return this->VertexPtrContainerConstElement();
     }
-    inline const EdgeLabelType& label() const{
+    inline const EdgeLabelType label() const{
       return (std::get<edge_label_idx_>(
               InnerIteratorType::template get_const<begin_depth_>()));
     }
-    inline VertexPtr& dst_ptr(){
+    inline VertexPtr dst_ptr(){
       if (this->direction_ == EdgeDirection::OutputEdge)
         return this->VertexPtrContainerElement();
       return this->vertex_ptr_;
     }
-    inline const VertexPtr& const_dst_ptr() const{
+    inline const VertexPtr const_dst_ptr() const{
       if (this->direction_ == EdgeDirection::OutputEdge)
         return this->VertexPtrContainerConstElement();
       return this->vertex_ptr_;
@@ -1528,16 +1528,75 @@ class Graph {
    private:
     VertexLabelContainerType vertexes_;
 
+    inline void Deconstruct(){
+      for (auto& vertex_label_it : this->vertexes_){
+        for (auto& vertex_ptr_it : std::get<kVertexIDContainerIdx>
+                                                 (vertex_label_it)){
+          std::get<kVertexPtrIdx>(vertex_ptr_it).Delete();
+        }
+        std::get<kVertexIDContainerIdx>(vertex_label_it).clear();
+      }
+      this->vertexes_.clear();
+      return;
+    }
+
+    template<template <typename...> class GraphType_,
+             typename... configures_>
+    inline void CanConvertTo(const GraphType_<configures_...>& graph)const{
+      static_assert(std::is_base_of<Graph     <configures_...>,
+                                    GraphType_<configures_...>>::value,
+                   "Illegal input parameter, should be a graph");
+      using ConvertToGraphType = GraphType_<configures_...>;
+      static_assert(Graph::allow_duplicate_edge
+                  ||!ConvertToGraphType::allow_duplicate_edge,
+                  "Cannot convert from a graph allows duplicate edge\
+                   to a graph does not allow duplicate edge");
+      /// wenzhi ToDo:
+      ///     complete the checking process of the parameters,
+      ///     such as the above statement, if this graph type does
+      ///     not allow duplicate edges but the InputGraphType allows
+      ///     that, then this convert would be illegal
+      return;
+    }
+
+    template<template <typename...> class GraphType_,
+             typename... configures_>
+    inline void Construct(GraphType_<configures_...>& graph){
+      for (auto vit = graph.VertexBegin();!vit.IsDone();vit++)
+        this->AddVertex(vit->id(),vit->label());
+      for (auto vit = graph.VertexBegin();!vit.IsDone();vit++){
+        for (auto eit = vit->OutEdgeBegin();
+                 !eit.IsDone();eit++){
+          this->AddEdge(eit->src_ptr()->id(),
+                        eit->dst_ptr()->id(),
+                        eit->label(),
+                        eit->id());
+        }
+      }
+      return;
+    }
+
    public:
     Graph() = default;
 
     ~Graph(){
-      for (auto& vertex_label_it : this->vertexes_)
-        for (auto& vertex_ptr_it : std::get<kVertexIDContainerIdx>
-                                                 (vertex_label_it))
-          std::get<kVertexPtrIdx>(vertex_ptr_it).Delete();
+      this->Deconstruct();
       return;
     }
+
+    Graph(Graph& graph){
+      this->CanConvertTo(graph);
+      this->Construct(graph);
+      return;
+    }
+
+    Graph& operator =(Graph& graph){
+      this->CanConvertTo(graph);
+      this->Deconstruct();
+      this->Construct(graph);
+      return *this;
+    }
+
 
     inline std::pair<VertexPtr, bool>
       AddVertex(const typename VertexType::IDType&    id,
