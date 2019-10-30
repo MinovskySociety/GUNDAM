@@ -1722,9 +1722,12 @@ class Graph {
 
     VertexSizeType CountVertex() const{
       VertexSizeType vertex_num = 0;
-      for (auto& vertex_label : this->vertexes_)
+      for (auto vertex_label_it = this->vertexes_.cbegin();
+                vertex_label_it!= this->vertexes_.cend();
+                vertex_label_it++){
         vertex_num += std::get<kVertexIDContainerIdx>
-                               (vertex_label).size();
+                              (*vertex_label_it).size();
+      }
       return vertex_num;
     }
     VertexSizeType CountVertex(
