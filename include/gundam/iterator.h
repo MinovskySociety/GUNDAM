@@ -26,9 +26,18 @@ class Iterator_ : protected ContentIterator_{
  public:
   using ContentIterator_::ContentIterator_;
 
+  template<bool judge = ContentIterator_::kIsConst_,
+           typename std::enable_if<!judge,bool>::type = false>
   inline ContentPtr operator->(){
     return ContentIterator_::content_ptr();
   }
+
+  template<bool judge = ContentIterator_::kIsConst_,
+           typename std::enable_if<judge,bool>::type = false>
+  inline ContentPtr operator->() const{
+    return ContentIterator_::content_ptr();
+  }
+
   inline Iterator_ operator++(){
     /// prefix
     assert(!this->IsDone());
@@ -112,9 +121,12 @@ class InnerIterator_<Container<container_type_,
            IteratorDepthType     depth,
            typename std::enable_if<depth == 0, bool>::type = false>
   inline const ReturnType& get_const() const{
-    static_assert(std::is_same<ReturnType&,
-                               decltype(std::get<return_idx>(*(this->iterator_)))
-                              >::value, "Type mismatch");
+    static_assert((!is_const_ && std::is_same<ReturnType&,
+                                decltype(std::get<return_idx>(*(this->iterator_)))
+                                           >::value)
+                ||( is_const_ && std::is_same<const ReturnType&,
+                                decltype(std::get<return_idx>(*(this->iterator_)))
+                                           >::value), "Type mismatch");
     return std::get<return_idx>(*(this->iterator_));
   }
 };
@@ -265,9 +277,12 @@ class InnerIterator_<Container<container_type_,
            IteratorDepthType     depth,
            typename std::enable_if<depth == 0, bool>::type = false>
   inline const ReturnType& get_const() const{
-    static_assert(std::is_same<ReturnType&,
-                               decltype(std::get<return_idx>(*(this->iterator_)))
-                              >::value, "Type mismatch");
+    static_assert((!is_const_ && std::is_same<ReturnType&,
+                                decltype(std::get<return_idx>(*(this->iterator_)))
+                                           >::value)
+                ||( is_const_ && std::is_same<const ReturnType&,
+                                decltype(std::get<return_idx>(*(this->iterator_)))
+                                           >::value), "Type mismatch");
     return std::get<return_idx>(*(this->iterator_));
   }
 
@@ -420,9 +435,12 @@ class _InnerIterator_<Container<container_type_,
            IteratorDepthType     depth,
            typename std::enable_if<depth == now_depth_-1, bool>::type = false>
   inline const ReturnType& get_const() const{
-    static_assert(std::is_same<ReturnType&,
-                               decltype(std::get<return_idx>(*(this->iterator_)))
-                              >::value, "Type mismatch");
+    static_assert((!is_const_ && std::is_same<ReturnType&,
+                                decltype(std::get<return_idx>(*(this->iterator_)))
+                                           >::value)
+                ||( is_const_ && std::is_same<const ReturnType&,
+                                decltype(std::get<return_idx>(*(this->iterator_)))
+                                           >::value), "Type mismatch");
     return std::get<return_idx>(*(this->iterator_));
   }
 
@@ -501,9 +519,12 @@ class _InnerIterator_<Container<container_type_,
            IteratorDepthType     depth,
            typename std::enable_if<depth == depth_ - 1, bool>::type = false>
   inline const ReturnType& get_const() const{
-    static_assert(std::is_same<ReturnType&,
-                               decltype(std::get<return_idx>(*(this->iterator_)))
-                              >::value, "Type mismatch");
+    static_assert((!is_const_ && std::is_same<ReturnType&,
+                                decltype(std::get<return_idx>(*(this->iterator_)))
+                                           >::value)
+                ||( is_const_ && std::is_same<const ReturnType&,
+                                decltype(std::get<return_idx>(*(this->iterator_)))
+                                           >::value), "Type mismatch");
     return std::get<return_idx>(*(this->iterator_));
   }
 };

@@ -318,7 +318,10 @@ class Graph {
    protected:
     using InnerIteratorType::ToNext;
     using InnerIteratorType::IsDone;
-    using ContentPtr = EdgeContentIterator_*;
+    using ContentPtr = typename std::conditional<is_const_,
+                                const EdgeContentIterator_*,
+                                      EdgeContentIterator_*>::type;
+    static constexpr bool kIsConst_ = is_const_;
 
     EdgeContentIterator_()
          :InnerIteratorType(),direction_(),vertex_ptr_(){
@@ -427,7 +430,10 @@ class Graph {
    protected:
     using InnerIteratorType::ToNext;
     using InnerIteratorType::IsDone;
-    using ContentPtr = EdgeContentIteratorSpecifiedEdgeLabel_*;
+    using ContentPtr = typename std::conditional<is_const_,
+              const EdgeContentIteratorSpecifiedEdgeLabel_*,
+                    EdgeContentIteratorSpecifiedEdgeLabel_*>::type;
+    static constexpr bool kIsConst_ = is_const_;
 
     EdgeContentIteratorSpecifiedEdgeLabel_()
                         :InnerIteratorType(),
@@ -465,7 +471,9 @@ class Graph {
                                     is_const_,
                                        depth_>{
    private:
-    using VertexPtr = typename InnerVertex_::VertexPtr;
+    using VertexPtrType      = typename InnerVertex_::VertexPtr;
+    using VertexConstPtrType = typename InnerVertex_::VertexConstPtr;
+
     using InnerIteratorType = InnerIterator_<ContainerType_,
                                                   is_const_,
                                                      depth_>;
@@ -474,12 +482,27 @@ class Graph {
     using InnerIteratorType::ToNext;
     using InnerIteratorType::IsDone;
     using InnerIteratorType::InnerIteratorType;
-    using ContentPtr = VertexPtr;
+    using ContentPtr = typename std::conditional<is_const_,
+                                  const VertexConstPtrType,
+                                             VertexPtrType>::type;
+    static constexpr bool kIsConst_ = is_const_;
 
+    template<bool judge = is_const_,
+             typename std::enable_if<!judge, bool>::type = false>
     inline ContentPtr& content_ptr(){
       return InnerIteratorType::template get<ContentPtr,
                                         vertex_ptr_idx_,
                                                  depth_ - 1>();
+    }
+
+    template<bool judge = is_const_,
+             typename std::enable_if<judge, bool>::type = false>
+    inline ContentPtr content_ptr() const{
+      auto temp_vertex_ptr
+            = InnerIteratorType::template get_const<VertexPtrType,
+                                                  vertex_ptr_idx_,
+                                                           depth_ - 1>();
+      return ContentPtr(temp_vertex_ptr);
     }
   };
 
@@ -500,10 +523,13 @@ class Graph {
     using InnerIteratorType::ToNext;
     using InnerIteratorType::IsDone;
     using InnerIteratorType::InnerIteratorType;
-    using ContentPtr = EdgeLabelContentIterator_*;
+    using ContentPtr = typename std::conditional<is_const_,
+                           const EdgeLabelContentIterator_*,
+                                 EdgeLabelContentIterator_*>::type;
+    static constexpr bool kIsConst_ = is_const_;
 
     inline ContentPtr content_ptr(){
-      EdgeLabelContentIterator_* const temp_this_ptr = this;
+      ContentPtr const temp_this_ptr = this;
       return temp_this_ptr;
     }
 
@@ -603,63 +629,71 @@ class Graph {
     template <bool is_const_>
     class VertexPtr_ {
      private:
+      friend class VertexPtr_<!is_const_>;
+
       using VertexPtrType = typename std::conditional<is_const_,
                                              const InnerVertex_*,
                                                    InnerVertex_*>::type;
-      VertexPtrType vertex_ptr_;
+      VertexPtrType ptr_;
 
      public:
-      VertexPtr_() : vertex_ptr_(nullptr) {
+      VertexPtr_() : ptr_(nullptr) {
         return;
       }
 
-      VertexPtr_(VertexPtrType const vertex_ptr)
-                       : vertex_ptr_(vertex_ptr) {
+      VertexPtr_(VertexPtrType const ptr)
+                       : ptr_(ptr) {
+        return;
+      }
+
+      template<bool input_is_const_>
+      VertexPtr_(VertexPtr_<input_is_const_>& vertex_ptr)
+                                       : ptr_(vertex_ptr.ptr_) {
         return;
       }
 
       inline bool operator==(const VertexPtr_& ptr) const{
-        return this->vertex_ptr_ == ptr.vertex_ptr_;
+        return this->ptr_ == ptr.ptr_;
       }
       inline bool operator< (const VertexPtr_& ptr) const{
-        return this->vertex_ptr_ <  ptr.vertex_ptr_;
+        return this->ptr_ <  ptr.ptr_;
       }
       inline bool operator> (const VertexPtr_& ptr) const{
-        return this->vertex_ptr_ >  ptr.vertex_ptr_;
+        return this->ptr_ >  ptr.ptr_;
       }
       inline bool operator<=(const VertexPtr_& ptr) const{
-        return this->vertex_ptr_ <= ptr.vertex_ptr_;
+        return this->ptr_ <= ptr.ptr_;
       }
       inline bool operator>=(const VertexPtr_& ptr) const{
-        return this->vertex_ptr_ >= ptr.vertex_ptr_;
+        return this->ptr_ >= ptr.ptr_;
       }
 
       inline VertexPtr_& operator=(const VertexPtr_& ptr){
-        this->vertex_ptr_ = ptr.vertex_ptr_;
+        this->ptr_ = ptr.ptr_;
         return *this;
-      }
-
-      template <const bool judge = is_const_,
-                typename std::enable_if<judge, bool>::type = false>
-      inline VertexPtrType operator->() const {
-        static_assert(judge == is_const_, "Illegal usage of this method");
-        return this->vertex_ptr_;
       }
 
       template <const bool judge = is_const_,
                 typename std::enable_if<!judge, bool>::type = false>
       inline VertexPtrType operator->() {
         static_assert(judge == is_const_, "Illegal usage of this method");
-        return this->vertex_ptr_;
+        return this->ptr_;
+      }
+
+      template <const bool judge = is_const_,
+                typename std::enable_if<judge, bool>::type = false>
+      inline VertexPtrType operator->() const {
+        static_assert(judge == is_const_, "Illegal usage of this method");
+        return this->ptr_;
       }
 
       inline void Delete() {
-        delete this->vertex_ptr_;
+        delete this->ptr_;
         return;
       }
 
       inline bool IsNull() const {
-        return this->vertex_ptr_ == nullptr;
+        return this->ptr_ == nullptr;
       }
     };
 
@@ -1750,14 +1784,26 @@ class Graph {
               = Iterator_<VertexContentIterator_<
                           VertexLabelContainerType,false,2,
                          kVertexPtrIdx>>;
+    using VertexConstIterator
+                   = Iterator_<VertexContentIterator_<
+                               VertexLabelContainerType,true,2,
+                              kVertexPtrIdx>>;
     using VertexIteratorSpecifiedLabel
               = Iterator_<VertexContentIterator_<
                           VertexIDContainerType,false,1,
                          kVertexPtrIdx>>;
+    using VertexConstIteratorSpecifiedLabel
+                   = Iterator_<VertexContentIterator_<
+                               VertexIDContainerType,true,1,
+                              kVertexPtrIdx>>;
 
     inline VertexIterator VertexBegin(){
       return VertexIterator(this->vertexes_.begin(),
                             this->vertexes_.end());
+    }
+    inline VertexConstIterator VertexConstBegin() const{
+      return VertexConstIterator(this->vertexes_.cbegin(),
+                                 this->vertexes_.cend());
     }
 
     inline VertexIteratorSpecifiedLabel VertexBegin(
@@ -1769,6 +1815,16 @@ class Graph {
       return VertexIteratorSpecifiedLabel(
               std::get<kVertexIDContainerIdx>(*(ret.first)).begin(),
               std::get<kVertexIDContainerIdx>(*(ret.first)). end ());
+    }
+    inline VertexConstIteratorSpecifiedLabel VertexConstBegin(
+                        typename VertexType::LabelType label){
+      /// <iterator of VertexLabelContainer, bool>
+      auto ret = this->vertexes_.Find(label);
+      if (!ret.second) /// does not have this vertex label
+        return VertexConstIteratorSpecifiedLabel();
+      return VertexConstIteratorSpecifiedLabel(
+              std::get<kVertexIDContainerIdx>(*(ret.first)).cbegin(),
+              std::get<kVertexIDContainerIdx>(*(ret.first)). cend ());
     }
   };
 }  // namespace GUNDAM

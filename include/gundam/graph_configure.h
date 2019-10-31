@@ -79,7 +79,7 @@ class SetDuplicateNumType;
 template <>
 class GraphConfigures<> {
  private:
-  using DefaultIDType = uint32_t;
+  using DefaultIDType  = uint32_t;
   using DefaultKeyType = uint32_t;
   using DefaultLabelType = Label<uint32_t>;
   using DefaultAttributeType = std::string;
