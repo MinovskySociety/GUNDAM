@@ -13,7 +13,9 @@ class Attribute{
 
   class AbstractValue{
    public:
-    virtual ~AbstractValue() = 0;
+    virtual ~AbstractValue(){
+      return;
+    }
   };
 
   template<typename ConcreteDataType_>
@@ -26,7 +28,7 @@ class Attribute{
                                    :value_(value){
       return;
     }
-    virtual ~ConcreteValue() override{
+    virtual ~ConcreteValue(){
       return;
     }
     inline const ConcreteDataType_& const_value() const{
@@ -36,12 +38,13 @@ class Attribute{
       return this->value_;
     }
     inline void set_value(const ConcreteDataType_& value){
-      return this->value_ = value;
+      this->value_ = value;
+      return;
     }
   };
 
   const KeyType kKey_;
-  AbstractValue* const value_ptr_;
+  AbstractValue* value_ptr_;
 
  public:
   Attribute(const KeyType& key):kKey_(key),
