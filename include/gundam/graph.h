@@ -239,7 +239,7 @@ class Graph {
         /// has already existed in the Container
         return false;
       }
-      std::get<0>(*(ret.first)).set_value(value);
+      std::get<kAttributeIdx>(*(ret.first)).set_value(value);
       return true;
     }
 
@@ -1143,10 +1143,27 @@ class Graph {
                       (edge_label_it).Find(dst_ptr);
         if (ret.second) {
           /// found it
-          return *(ret.first);
+          return std::get<kVertexPtrIdx>(*ret.first);
         }
       }
       return VertexPtr();
+    }
+
+    VertexConstPtr FindConstVertex(
+          const EdgeLabelContainerType& edge_label_container,
+                       const VertexPtr& dst_ptr) const {
+      for (auto edge_label_it  = edge_label_container.cbegin();
+                edge_label_it != edge_label_container.cend();
+              ++edge_label_it) {
+        /// <iterator, bool>
+        auto ret = std::get<kVertexPtrContainerIdx>
+                      (*edge_label_it).FindConst(dst_ptr);
+        if (ret.second) {
+          /// found it
+          return std::get<kVertexPtrIdx>(*ret.first);
+        }
+      }
+      return VertexConstPtr();
     }
 
     VertexPtr FindVertex(EdgeLabelContainerType& edge_label_container,
@@ -1163,6 +1180,26 @@ class Graph {
       return VertexPtr();
     }
 
+    VertexConstPtr FindConstVertex(
+                       const EdgeLabelContainerType& edge_label_container,
+                       const VertexIDType& dst_id) const {
+      for (auto edge_label_it  = edge_label_container.cbegin();
+                edge_label_it != edge_label_container.cend();
+              ++edge_label_it) {
+        for (auto vertex_it  = std::get<kVertexPtrContainerIdx>
+                                      (*edge_label_it).cbegin();
+                  vertex_it != std::get<kVertexPtrContainerIdx>
+                                      (*edge_label_it).cend();
+                ++vertex_it) {
+          VertexConstPtr vertex_ptr = std::get<kVertexPtrIdx>(*vertex_it);
+          if (vertex_ptr->id() == dst_id)
+            return vertex_ptr; /// found it
+        }
+      }
+      /// not found
+      return VertexConstPtr();
+    }
+
     inline VertexPtr FindVertex(
               EdgeLabelContainerType& edge_label_container,
                  const EdgeLabelType& edge_label,
@@ -1171,12 +1208,30 @@ class Graph {
       auto edge_label_ret = edge_label_container.Find(edge_label);
       if (!edge_label_ret.second)  /// does not have edge_label
         return VertexPtr();
-      /// <iterator of VertexContainer, bool>
-      auto vertex_ptr_ret = edge_label_ret.first->Find(dst_ptr);
+      /// <iterator of VertexPtrContainer, bool>
+      auto vertex_ptr_ret = std::get<kVertexPtrContainerIdx>
+                                     (*edge_label_ret.first).Find(dst_ptr);
       if (!vertex_ptr_ret.second)
         return VertexPtr();
       /// found it
-      return *(vertex_ptr_ret.first);
+      return std::get<kVertexPtrIdx>(*vertex_ptr_ret.first);
+    }
+
+    inline VertexConstPtr FindConstVertex(
+        const EdgeLabelContainerType& edge_label_container,
+                 const EdgeLabelType& edge_label,
+                 const VertexPtr& dst_ptr) const {
+      /// <iterator of EdgeLabelContainer, bool>
+      const auto edge_label_ret = edge_label_container.FindConst(edge_label);
+      if (!edge_label_ret.second)  /// does not have edge_label
+        return VertexPtr();
+      /// <iterator of VertexContainer, bool>
+      const auto vertex_ptr_ret = std::get<kVertexPtrContainerIdx>
+                                 (*edge_label_ret.first).FindConst(dst_ptr);
+      if (!vertex_ptr_ret.second)
+        return VertexPtr();
+      /// found it
+      return std::get<kVertexPtrIdx>(*vertex_ptr_ret.first);
     }
 
     VertexPtr FindVertex(EdgeLabelContainerType& edge_label_container,
@@ -1196,7 +1251,29 @@ class Graph {
       return VertexPtr();
     }
 
+    VertexConstPtr FindConstVertex(
+          const EdgeLabelContainerType& edge_label_container,
+          const EdgeLabelType& edge_label,
+          const VertexIDType& dst_id) const {
+      /// <iterator of EdgeLabelContainer, bool>
+      auto edge_label_ret = edge_label_container.FindConst(edge_label);
+      if (!edge_label_ret.second)  /// does not have edge_label
+        return VertexPtr();
+      for (auto vertex_it  = std::get<kVertexPtrContainerIdx>
+                                     (*edge_label_ret.first).cbegin();
+                vertex_it != std::get<kVertexPtrContainerIdx>
+                                     (*edge_label_ret.first).cend();
+              ++vertex_it) {
+        VertexConstPtr vertex_ptr = std::get<kVertexPtrIdx>(*vertex_it);
+        if (vertex_ptr->id() == dst_id)
+          return vertex_ptr; /// found it
+      }
+      /// not found
+      return VertexConstPtr();
+    }
+
    public:
+    /// out vertex
     inline VertexPtr FindOutVertex(const VertexPtr& dst_ptr) {
       return this->FindVertex(this->edges_.out_edges(), dst_ptr);
     }
@@ -1211,6 +1288,24 @@ class Graph {
                                    const VertexIDType& dst_id) {
       return this->FindVertex(this->edges_.out_edges(), edge_label, dst_id);
     }
+    /// const out vertex
+    inline VertexConstPtr FindConstOutVertex(const VertexPtr& dst_ptr) const {
+      return this->FindConstVertex(this->edges_.const_out_edges(), dst_ptr);
+    }
+    inline VertexConstPtr FindConstOutVertex(const VertexIDType& dst_id) const{
+      return this->FindConstVertex(this->edges_.const_out_edges(), dst_id);
+    }
+    inline VertexConstPtr FindConstOutVertex(const EdgeLabelType& edge_label,
+                                             const VertexPtr& dst_ptr) const {
+      return this->FindConstVertex(this->edges_.const_out_edges(),
+                                                       edge_label, dst_ptr);
+    }
+    inline VertexConstPtr FindConstOutVertex(const EdgeLabelType& edge_label,
+                                             const VertexIDType& dst_id) const{
+      return this->FindConstVertex(this->edges_.const_out_edges(),
+                                                       edge_label, dst_id);
+    }
+    /// in vertex
     inline VertexPtr FindInVertex(const VertexPtr& dst_ptr) {
       return this->FindVertex(this->edges_.in_edges(), dst_ptr);
     }
@@ -1253,28 +1348,6 @@ class Graph {
            CountInVertex(const EdgeLabelType& edge_label) const{
       return this->CountVertex(this->edges_.const_in_edges(),edge_label);
     }
-
-    /// will not be implemented in the beggar version
-//    VertexConstPtr FindConstOutVertex(const VertexPtr& dst_ptr)
-//    const; VertexConstPtr FindConstOutVertex(const VertexIDType&
-//    dst_id ) const; VertexConstPtr FindConstOutVertex(const
-//    EdgeLabelType& edge_label,
-//                                      const VertexPtr& dst_ptr)
-//                                      const;
-//    VertexConstPtr FindConstOutVertex(const EdgeLabelType&
-//    edge_label,
-//                                      const VertexIDType& dst_id
-//                                      ) const;
-//    VertexConstPtr FindConstInVertex(const VertexPtr& dst_ptr)
-//    const; VertexConstPtr FindConstInVertex(const VertexIDType&
-//    dst_id ) const; VertexConstPtr FindConstInVertex(const
-//    EdgeLabelType& edge_label,
-//                                     const VertexPtr& dst_ptr)
-//                                     const;
-//    VertexConstPtr FindConstInVertex(const EdgeLabelType&
-//    edge_label,
-//                                     const VertexIDType&  dst_id
-//                                     ) const;
 
    private:
     inline EdgePtr FindEdge(
@@ -1593,6 +1666,7 @@ class Graph {
     inline EdgeLabelIterator InEdgeLabelBegin() const{
       return this->EdgeLabelBegin(this->edges_.const_in_edges());
     }
+
     /// Vertex Iterators:
     /// output edge:
     inline VertexIterator OutVertexBegin(){
@@ -1609,6 +1683,10 @@ class Graph {
         OutVertexCBegin(const EdgeLabelType& edge_label) const{
       return this->VertexCBegin(this->edges_.const_out_edges(),edge_label);
     }
+    /// possible extension:
+    ///     OutVertexBegin (edge_label,vertex_label)
+    ///     OutVertexCBegin(edge_label,vertex_label)
+
     /// input edge:
     inline VertexIterator InVertexBegin(){
       return this->VertexBegin(this->edges_.in_edges());
@@ -1624,6 +1702,10 @@ class Graph {
          InVertexCBegin(const EdgeLabelType& edge_label) const{
       return this->VertexCBegin(this->edges_.const_in_edges(),edge_label);
     }
+    /// possible extension:
+    ///     InVertexBegin (edge_label,vertex_label)
+    ///     InVertexCBegin(edge_label,vertex_label)
+
     /// Edge Iterators:
     /// output edge:
     inline EdgeIterator OutEdgeBegin(){
@@ -1646,6 +1728,10 @@ class Graph {
                               this->edges_.const_out_edges(),
                               edge_label);
     }
+    /// possible extension:
+    ///     OutEdgeBegin (edge_label,vertex_label)
+    ///     OutEdgeCBegin(edge_label,vertex_label)
+
     /// input edge:
     inline EdgeIterator InEdgeBegin(){
       return this->EdgeBegin(EdgeDirection::InputEdge,
@@ -1667,36 +1753,10 @@ class Graph {
                               this->edges_.const_in_edges(),
                               edge_label);
     }
-
-//    VertexConstIterator OutVertexConstBegin() const;
-//    /// possible extension:
-//    ///     OutVertexBegin(edge_label)
-//    ///     OutVertexBegin(edge_label,vertex_label)
-//    ///     ...
-//
-//    EdgeIterator OutEdgeBegin();
-//    EdgeConstIterator OutEdgeConstBegin() const;
-//    /// possible extension:
-//    ///     OutEdgeBegin(edge_label)
-//    ///     OutEdgeBegin(edge_label,vertex_label)
-//    ///     ...
-//
-//    /// input iterators:
-//    EdgeLabelIterator InEdgeLabelBegin() const;
-//
-//    VertexConstIterator InVertexConstBegin() const;
-//    /// possible extension:
-//    ///     InVertexBegin(edge_label)
-//    ///     InVertexBegin(edge_label,vertex_label)
-//    ///     ...
-//
-//    EdgeIterator InEdgeBegin();
-//    EdgeConstIterator InEdgeConstBegin() const;
-//    /// possible extension:
-//    ///     InEdgeBegin(edge_label)
-//    ///     InEdgeBegin(edge_label,vertex_label)
-//    ///     ...
-    };
+    /// possible extension:
+    ///     InEdgeBegin (edge_label,vertex_label)
+    ///     InEdgeCBegin(edge_label,vertex_label)
+  };
 
     using InnerVertexType = InnerVertex_;
 
@@ -1949,23 +2009,6 @@ class Graph {
       return EdgePtr();
     }
 
-    /// will not be implemented in this beggar version
-//    VertexConstPtr FindConstVertex(
-//        typename const VertexType::IDType& vertex_id) const;
-//    /// possible extension:
-//    ///     FindVertex(vertex_label,vertex_id)
-//    ///     ...
-//    ///     FindConstVertex(vertex_label,vertex_id)
-//    ///     ...
-
-//    VertexIterator VertexBegin();
-//    VertexConstIterator VertexConstBegin() const;
-//    /// possible extension:
-//    ///     VertexBegin(vertex_label)
-//    ///     ...
-//    ///     VertexConstBegin(vertex_label)
-//    ///     ...
-
     VertexSizeType CountVertex() const{
       VertexSizeType vertex_num = 0;
       for (auto vertex_label_it = this->vertexes_.cbegin();
@@ -1976,6 +2019,7 @@ class Graph {
       }
       return vertex_num;
     }
+
     VertexSizeType CountVertex(
          const typename VertexType::LabelType& label) const{
       /// <iterator of VertexLabelContainer, bool>
