@@ -1884,6 +1884,23 @@ class Graph {
       return VertexPtr();
     }
 
+    inline VertexConstPtr
+             FindConstVertex(const typename VertexType::IDType& id) const{
+      for (auto vertex_label_it  = this->vertexes_.cbegin();
+                vertex_label_it != this->vertexes_.cend();
+              ++vertex_label_it){
+        /// <iterator of ID container, bool>
+        const auto ret
+         = std::get<kVertexIDContainerIdx>(*vertex_label_it).FindConst(id);
+        if (ret.second){
+          /// found it
+          return std::get<kVertexPtrIdx>(*(ret.first));
+        }
+      }
+      /// not found
+      return VertexConstPtr();
+    }
+
     inline VertexPtr FindVertex(const typename VertexType::IDType&    id,
                                 const typename VertexType::LabelType& label){
       /// <iterator of VertexLabelContainer, bool>
@@ -1897,6 +1914,24 @@ class Graph {
       if (!vertex_id_ret.second){
         /// not have this vertex id
         return VertexPtr();
+      }
+      return std::get<kVertexPtrIdx>(*(vertex_id_ret.first));
+    }
+
+    inline VertexConstPtr FindConstVertex(
+                    const typename VertexType::IDType&    id,
+                    const typename VertexType::LabelType& label) const{
+      /// <iterator of VertexLabelContainer, bool>
+      auto vertex_label_ret = this->vertexes_.FindConst(label);
+      if (!vertex_label_ret.second){
+        /// not have this vertex label
+        return VertexPtr();
+      }
+      auto vertex_id_ret = std::get<kVertexIDContainerIdx>
+                               (*(vertex_label_ret.first)).FindConst(id);
+      if (!vertex_id_ret.second){
+        /// not have this vertex id
+        return VertexConstPtr();
       }
       return std::get<kVertexPtrIdx>(*(vertex_id_ret.first));
     }
