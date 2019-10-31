@@ -235,9 +235,9 @@ class GraphConfigures<SetVertexHasAttribute<HasAttribute>, other_configures...>
 
  protected:
   static constexpr bool specified_vertex_has_static_attribute = true;
-  static constexpr bool vertex_has_static_attribute = HasAttribute;
 
  public:
+  static constexpr bool vertex_has_static_attribute = HasAttribute;
 };
 
 // set Node attr
