@@ -676,14 +676,29 @@ class Graph {
         return;
       }
 
-      template<bool input_is_const_>
+      template<bool input_is_const_,
+               bool judge=is_const_,
+               typename std::enable_if<judge,bool>::type = false>
+      VertexPtr_(const VertexPtr_<input_is_const_>& vertex_ptr)
+                                             : ptr_(vertex_ptr.ptr_) {
+        return;
+      }
+
+      template<bool input_is_const_,
+               bool judge=is_const_,
+               typename std::enable_if<!judge,bool>::type = false>
       VertexPtr_(VertexPtr_<input_is_const_>& vertex_ptr)
                                        : ptr_(vertex_ptr.ptr_) {
         return;
       }
 
       inline bool operator==(const VertexPtr_& ptr) const{
+        assert(this->ptr_       != ptr.ptr_
+            || this->ptr_->id() == ptr.ptr_->id());
         return this->ptr_ == ptr.ptr_;
+      }
+      inline bool operator!=(const VertexPtr_& ptr) const{
+        return this->ptr_ != ptr.ptr_;
       }
       inline bool operator< (const VertexPtr_& ptr) const{
         return this->ptr_ <  ptr.ptr_;
@@ -794,8 +809,11 @@ class Graph {
               typename DecomposedEdgeContainerType::      iterator>::type;
 
      protected:
+      using VertexPtrType = typename std::conditional<is_const_,
+                                                 VertexConstPtr,
+                                                 VertexPtr>::type;
       enum EdgeDirection direction_;
-      VertexPtr vertex_ptr_;
+      VertexPtrType vertex_ptr_;
 
            EdgeLabelIteratorType      edge_label_iterator_;
            VertexPtrIteratorType      vertex_ptr_iterator_;
@@ -803,12 +821,12 @@ class Graph {
 
       inline VertexPtr VertexPtrContainerElement(){
         return std::get<kVertexPtrIdx>
-                  (*(this->vertex_iterator_));
+                  (*(this->vertex_ptr_iterator_));
       }
 
-      inline const VertexPtr VertexPtrContainerConstElement() const{
+      inline const VertexConstPtr VertexPtrContainerConstElement() const{
         return std::get<kVertexPtrIdx>
-                  (*(this->vertex_iterator_));
+                  (*(this->vertex_ptr_iterator_));
       }
 
      protected:
@@ -825,8 +843,8 @@ class Graph {
         return;
       }
 
-      EdgePtrContent_(enum EdgeDirection  direction,
-                               VertexPtr& vertex_ptr,
+      EdgePtrContent_(const enum EdgeDirection&  direction,
+                             VertexPtrType&      vertex_ptr,
           const      EdgeLabelIteratorType&      edge_label_iterator,
           const      VertexPtrIteratorType&      vertex_ptr_iterator,
           const DecomposedEdgeIteratorType& decomposed_edge_iterator)
@@ -849,13 +867,13 @@ class Graph {
                   (*(this->decomposed_edge_iterator_));
       }
 
-      inline const VertexPtr& const_src_ptr() const {
+      inline const VertexConstPtr const_src_ptr() const {
         if (this->direction_ == EdgeDirection::OutputEdge)
           return this->vertex_ptr_;
         return this->VertexPtrContainerConstElement();
       }
 
-      inline const VertexPtr& const_dst_ptr() const {
+      inline const VertexConstPtr const_dst_ptr() const {
         if (this->direction_ == EdgeDirection::OutputEdge)
           return this->VertexPtrContainerConstElement();
         return this->vertex_ptr_;
@@ -942,6 +960,14 @@ class Graph {
         using InputEdgePtrType = EdgePtr_<input_is_const_>;
         using InputEdgePtrContentType
           = typename InputEdgePtrType::EdgePtrContentType;
+        assert((edge_ptr.InputEdgePtrContentType::id()
+                           != EdgePtrContentType::id())
+           ||!((edge_ptr.InputEdgePtrContentType::label()
+                           != EdgePtrContentType::label())
+           ||  (edge_ptr.InputEdgePtrContentType::const_src_ptr()
+                           != EdgePtrContentType::const_src_ptr())
+           ||  (edge_ptr.InputEdgePtrContentType::const_dst_ptr()
+                           != EdgePtrContentType::const_dst_ptr())));
         return edge_ptr.InputEdgePtrContentType::id()
                           == EdgePtrContentType::id();
       }
