@@ -2068,9 +2068,9 @@ class Graph {
               std::get<kVertexIDContainerIdx>(*(ret.first)). end ());
     }
     inline VertexConstIteratorSpecifiedLabel VertexCBegin(
-                        typename VertexType::LabelType label){
+                        typename VertexType::LabelType label) const {
       /// <iterator of VertexLabelContainer, bool>
-      auto ret = this->vertexes_.Find(label);
+      auto ret = this->vertexes_.FindConst(label);
       if (!ret.second) /// does not have this vertex label
         return VertexConstIteratorSpecifiedLabel();
       return VertexConstIteratorSpecifiedLabel(
