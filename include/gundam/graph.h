@@ -929,16 +929,26 @@ class Graph {
     class EdgePtr_: protected EdgePtrContent_<is_const_,
                                              !is_const_> {
      private:
-      using EdgeContentType = EdgePtrContent_<is_const_,
+      friend class EdgePtr_<!is_const_>;
+      using EdgePtrContentType = EdgePtrContent_<is_const_,
                                              !is_const_>;
 
      public:
-      using EdgeContentType::EdgeContentType;
-      using EdgeContentType::IsNull;
+      using EdgePtrContentType::EdgePtrContentType;
+      using EdgePtrContentType::IsNull;
+
+      template<bool input_is_const_>
+      inline bool operator==(const EdgePtr_<input_is_const_>& edge_ptr) const{
+        using InputEdgePtrType = EdgePtr_<input_is_const_>;
+        using InputEdgePtrContentType
+          = typename InputEdgePtrType::EdgePtrContentType;
+        return edge_ptr.InputEdgePtrContentType::id()
+                          == EdgePtrContentType::id();
+      }
 
       template<bool judge = is_const_,
                typename std::enable_if<judge,bool>::type = false>
-      inline EdgeContentType* operator->() const{
+      inline EdgePtrContentType* operator->() const{
         static_assert(judge == is_const_,
                      "Illegal usage of this method");
         EdgePtr_* const temp_ptr = this;
@@ -947,7 +957,7 @@ class Graph {
 
       template<bool judge = is_const_,
                typename std::enable_if<!judge,bool>::type = false>
-      inline EdgeContentType* operator->(){
+      inline EdgePtrContentType* operator->(){
         static_assert(judge == is_const_,
                      "Illegal usage of this method");
         EdgePtr_* const temp_ptr = this;
@@ -1484,8 +1494,8 @@ class Graph {
     inline VertexConstIteratorSpecifiedEdgeLabel
            VertexCBegin(
       const EdgeLabelContainerType& edge_label_container,
-      const EdgeLabelType& edge_label) const{
-      auto ret = edge_label_container.Find(edge_label);
+      const EdgeLabelType&          edge_label) const{
+      auto ret = edge_label_container.FindConst(edge_label);
       if (!ret.second){
         /// not find
         return VertexConstIteratorSpecifiedEdgeLabel();
@@ -1498,7 +1508,7 @@ class Graph {
       enum EdgeDirection direction,
            EdgeLabelContainerType& edge_label_container){
       InnerVertex_* const temp_this_ptr = this;
-      const VertexPtr temp_vertex_ptr(temp_this_ptr);
+      VertexPtr temp_vertex_ptr(temp_this_ptr);
       return EdgeIterator(direction,
                           temp_vertex_ptr,
                           edge_label_container.begin(),
@@ -1536,13 +1546,13 @@ class Graph {
      const EdgeLabelContainerType& edge_label_container,
               const EdgeLabelType& edge_label) const{
       /// <iterator of EdgeLabelContainerType, bool>
-      auto ret = edge_label_container.Find(edge_label);
+      auto ret = edge_label_container.FindConst(edge_label);
       if (!ret.second){
         /// not found
         return EdgeConstIteratorSpecifiedEdgeLabel();
       }
-      InnerVertex_* const temp_this_ptr = this;
-      const VertexPtr temp_vertex_ptr(temp_this_ptr);
+      const InnerVertex_* const temp_this_ptr = this;
+      VertexConstPtr temp_vertex_ptr(temp_this_ptr);
       return EdgeConstIteratorSpecifiedEdgeLabel(
                edge_label,direction,temp_vertex_ptr,
                std::get<kVertexPtrContainerIdx>(*(ret.first)).cbegin(),
@@ -1775,7 +1785,6 @@ class Graph {
       return *this;
     }
 
-
     inline std::pair<VertexPtr, bool>
       AddVertex(const typename VertexType::IDType&    id,
                 const typename VertexType::LabelType& label){
@@ -1784,7 +1793,7 @@ class Graph {
         /// already exist
         return std::pair<VertexPtr, bool>(ret, false);
       }
-      InnerVertex_* temp_inner_vertex_ptr = new InnerVertex_(id, label);
+      InnerVertex_* const temp_inner_vertex_ptr = new InnerVertex_(id, label);
       VertexPtr temp_vertex_ptr(temp_inner_vertex_ptr);
       /// vertex label iterator
       auto vertex_label_it = this->vertexes_.Insert(label).first;
@@ -1792,8 +1801,8 @@ class Graph {
       auto vertex_id_it =
           std::get<kVertexIDContainerIdx>(*vertex_label_it).Insert(id).first;
       std::get<kVertexPtrIdx>(*vertex_id_it) = temp_vertex_ptr;
-      return std::pair<VertexPtr, bool>(std::get<kVertexPtrIdx>(*vertex_id_it),
-                                        true);
+      return std::pair<VertexPtr, bool>
+            (std::get<kVertexPtrIdx>(*vertex_id_it),true);
     }
     /// possible variant:
     ///     AddVertex(id)
