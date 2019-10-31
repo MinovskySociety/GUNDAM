@@ -313,10 +313,12 @@ class Graph {
                                           begin_depth_ + 1>();
     }
 
-    inline const VertexPtrType& VertexPtrContainerConstElement() const{
-      return InnerIteratorType::template get_const<VertexPtr,
-                                                dst_ptr_idx_,
-                                                begin_depth_ + 1>();
+    inline VertexConstPtr VertexPtrContainerConstElement() const{
+      VertexPtr temp_vertex_ptr =
+        InnerIteratorType::template get_const<VertexPtr,
+                                            dst_ptr_idx_,
+                                            begin_depth_ + 1>();
+      return VertexConstPtr(temp_vertex_ptr);
     }
 
    protected:
@@ -334,7 +336,7 @@ class Graph {
 
     template<typename... ParameterTypes>
     EdgeContentIterator_(const enum EdgeDirection  direction,
-                         const VertexPtr&         vertex_ptr,
+                         const VertexPtrType&     vertex_ptr,
                          const ParameterTypes&... parameters)
                                :InnerIteratorType(parameters...),
                                        direction_(direction),
@@ -366,12 +368,12 @@ class Graph {
         return this->VertexPtrContainerElement();
       return this->vertex_ptr_;
     }
-    inline const VertexConstPtr& const_src_ptr() const{
+    inline const VertexConstPtr const_src_ptr() const{
       if (this->direction_ == EdgeDirection::OutputEdge)
         return this->vertex_ptr_;
       return this->VertexPtrContainerConstElement();
     }
-    inline const VertexConstPtr& const_dst_ptr() const{
+    inline const VertexConstPtr const_dst_ptr() const{
       if (this->direction_ == EdgeDirection::OutputEdge)
         return this->VertexPtrContainerConstElement();
       return this->vertex_ptr_;
@@ -517,7 +519,7 @@ class Graph {
     template<bool judge = is_const_,
              typename std::enable_if<judge, bool>::type = false>
     inline ContentPtr content_ptr() const{
-      auto& temp_vertex_ptr
+      auto temp_vertex_ptr
             = InnerIteratorType::template get_const<VertexPtr,
                                               vertex_ptr_idx_,
                                                        depth_ - 1>();
@@ -1505,8 +1507,8 @@ class Graph {
     inline EdgeConstIterator EdgeCBegin(
       enum EdgeDirection direction,
      const EdgeLabelContainerType& edge_label_container) const{
-      InnerVertex_* const temp_this_ptr = this;
-      const VertexPtr temp_vertex_ptr(temp_this_ptr);
+      const InnerVertex_* const temp_this_ptr = this;
+      const VertexConstPtr temp_vertex_ptr(temp_this_ptr);
       return EdgeConstIterator(direction,
                                temp_vertex_ptr,
                                edge_label_container.cbegin(),
@@ -1760,13 +1762,13 @@ class Graph {
       return;
     }
 
-    Graph(Graph& graph){
+    Graph(const Graph& graph){
       this->CanConvertTo(graph);
       this->Construct(graph);
       return;
     }
 
-    Graph& operator =(Graph& graph){
+    Graph& operator =(const Graph& graph){
       this->CanConvertTo(graph);
       this->Deconstruct();
       this->Construct(graph);
@@ -1813,8 +1815,8 @@ class Graph {
         /// the src vertex or the dst vertex does not exist
         return std::pair<EdgePtr, bool>(EdgePtr(),false);
       }
-      for (auto vertex_ptr_it = this->VertexBegin(); 
-		  !vertex_ptr_it.IsDone(); 
+      for (auto vertex_ptr_it = this->VertexBegin();
+		  !vertex_ptr_it.IsDone();
 		  ++vertex_ptr_it){
         EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
         if (!edge_ptr.IsNull()){
