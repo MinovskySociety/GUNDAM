@@ -388,17 +388,17 @@ class Graph {
     }
     template <typename ConcreteDataType>
     inline const ConcreteDataType& const_attribute(
-                               const EdgeAttributeKeyType& key) const {
-      return this->attribute().const_attribute<ConcreteDataType>(key);
+        const EdgeAttributeKeyType& key) const {
+      return this->attribute().template const_attribute<ConcreteDataType>(key);
     }
     template <typename ConcreteDataType>
     inline bool add_attribute(const EdgeAttributeKeyType& key,
-                              const     ConcreteDataType& value) {
-      return this->attribute().add_attribute(key, value);
+                              const ConcreteDataType& value) {
+      return this->attribute().template add_attribute(key, value);
     }
     template <typename ConcreteDataType>
-    inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key){
-      return this->attribute().attribute<ConcreteDataType>(key);
+    inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key) {
+      return this->attribute().template attribute<ConcreteDataType>(key);
     }
     template <typename ConcreteDataType>
     inline bool set_attribute(const EdgeAttributeKeyType& key,
@@ -1778,22 +1778,20 @@ class Graph {
       AddVertex(const typename VertexType::IDType&    id,
                 const typename VertexType::LabelType& label){
       const VertexPtr ret = this->FindVertex(id);
-      if (!ret.IsNull()){
+      if (!ret.IsNull()) {
         /// already exist
         return std::pair<VertexPtr, bool>(ret, false);
       }
-      InnerVertex_* temp_inner_vertex_ptr = new InnerVertex_(id,label);
+      InnerVertex_* temp_inner_vertex_ptr = new InnerVertex_(id, label);
       VertexPtr temp_vertex_ptr(temp_inner_vertex_ptr);
       /// vertex label iterator
-      auto vertex_label_it = this->vertexes_.Insert(label)
-                                            .first;
+      auto vertex_label_it = this->vertexes_.Insert(label).first;
       /// vertex ID iterator
-      auto vertex_id_it = std::get<kVertexIDContainerIdx>
-                                  (*vertex_label_it).Insert(id)
-                                                    .first;
+      auto vertex_id_it =
+          std::get<kVertexIDContainerIdx>(*vertex_label_it).Insert(id).first;
       std::get<kVertexPtrIdx>(*vertex_id_it) = temp_vertex_ptr;
-      return std::pair<VertexPtr, bool>(
-                std::get<kVertexPtrIdx>(*vertex_id_it),true);
+      return std::pair<VertexPtr, bool>(std::get<kVertexPtrIdx>(*vertex_id_it),
+                                        true);
     }
     /// possible variant:
     ///     AddVertex(id)
@@ -1815,9 +1813,9 @@ class Graph {
         /// the src vertex or the dst vertex does not exist
         return std::pair<EdgePtr, bool>(EdgePtr(),false);
       }
-      for (auto vertex_ptr_it = this->VertexBegin();
-               !vertex_ptr_it.IsDone();
-                vertex_ptr_it++){
+      for (auto vertex_ptr_it = this->VertexBegin(); 
+		  !vertex_ptr_it.IsDone(); 
+		  ++vertex_ptr_it){
         EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
         if (!edge_ptr.IsNull()){
           /// the edge with this edge_id has already existed

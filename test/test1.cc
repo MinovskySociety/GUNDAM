@@ -139,7 +139,12 @@ TEST(TestGUNDAM, GraphClass) {
   auto e1 = v1->FindOutEdge(Label<std::string>("aaa"), v2, 1);
   ASSERT_FALSE(e1.IsNull());
   ASSERT_EQ(e1->id(), 1);
-  ASSERT_EQ(e1->label(), Label<std::string>("aaa");
+  ASSERT_EQ(e1->label(), Label<std::string>("aaa"));
 
+  auto e1b = v2->FindInEdge(1);
+  ASSERT_FALSE(e1b.IsNull());
+  ASSERT_EQ(e1b->id(), 1);
+  ASSERT_EQ(e1b->label(), Label<std::string>("aaa"));
+  
   ASSERT_TRUE(true);
 }

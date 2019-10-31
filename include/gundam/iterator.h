@@ -47,8 +47,9 @@ class Iterator_ : protected ContentIterator_{
   inline Iterator_ operator++(int){
     /// postfix
     assert(!this->IsDone());
-    Iterator_ temp(*this);
-    ++(*this);
+    Iterator_ temp(*this);    
+    //++(*this);
+    ContentIterator_::ToNext();
     return temp;
   }
   inline bool IsDone() const{
