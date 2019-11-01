@@ -233,7 +233,7 @@ class Graph {
       /// <iterator of attribute container, bool>
       auto ret = this->attributes_.Find(attribute_to_find);
       assert(ret.second); /// this key should exist
-      return (std::get<kAttributeIdx>(*(ret.first))).value();
+      return (std::get<kAttributeIdx>(*(ret.first))).value<ConcreteDataType>();
     }
 
     template<typename ConcreteDataType>
