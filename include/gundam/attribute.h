@@ -53,6 +53,11 @@ class Attribute{
   }
 
   ~Attribute(){
+    return;
+  }
+
+  inline void release(){
+    assert(this->value_ptr_ != nullptr);
     delete this->value_ptr_;
     return;
   }

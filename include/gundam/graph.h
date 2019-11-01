@@ -209,6 +209,12 @@ class Graph {
       return;
     }
 
+    ~WithAttribute_(){
+      for (auto& it : this->attributes_)
+        std::get<kAttributeIdx>(it).release();
+      return;
+    }
+
     template<typename ConcreteDataType>
     inline const ConcreteDataType&
                  const_attribute(const KeyType_& key) const{
