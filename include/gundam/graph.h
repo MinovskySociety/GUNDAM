@@ -819,7 +819,7 @@ class Graph {
            VertexPtrIteratorType      vertex_ptr_iterator_;
       DecomposedEdgeIteratorType decomposed_edge_iterator_;
 
-      inline VertexPtr VertexPtrContainerElement(){
+      inline VertexPtr &VertexPtrContainerElement(){
         return std::get<kVertexPtrIdx>
                   (*(this->vertex_ptr_iterator_));
       }
