@@ -20,7 +20,8 @@ class Graph {
  private:
   using Configures = GraphConfigures<configures...>;
 
- public:
+  /// only used in Graph class
+  /// use Graph<>::VertexType::IDType outside Graph class instead
   using VertexIDType              = typename Configures::VertexIDType;
   using VertexLabelType           = typename Configures::VertexLabelType;
   using VertexAttributeKeyType    = typename Configures::VertexAttributeKeyType;
@@ -30,7 +31,6 @@ class Graph {
   using EdgeAttributeKeyType      = typename Configures::EdgeAttributeKeyType;
   using EdgeStaticAttributeType   = typename Configures::EdgeStaticAttributeType;
 
- private:
   static constexpr enum StoreData store_data = Configures::store_data;
 
   static constexpr bool vertex_label_is_const
