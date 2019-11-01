@@ -20,6 +20,7 @@ class Graph {
  private:
   using Configures = GraphConfigures<configures...>;
 
+ public:
   using VertexIDType              = typename Configures::VertexIDType;
   using VertexLabelType           = typename Configures::VertexLabelType;
   using VertexAttributeKeyType    = typename Configures::VertexAttributeKeyType;
@@ -29,6 +30,7 @@ class Graph {
   using EdgeAttributeKeyType      = typename Configures::EdgeAttributeKeyType;
   using EdgeStaticAttributeType   = typename Configures::EdgeStaticAttributeType;
 
+ private:
   static constexpr enum StoreData store_data = Configures::store_data;
 
   static constexpr bool vertex_label_is_const
@@ -295,7 +297,7 @@ class Graph {
     using VertexPtr      = typename InnerVertex_::VertexPtr;
     using VertexConstPtr = typename InnerVertex_::VertexConstPtr;
     using VertexPtrType  = typename std::conditional<is_const_,
-                                          const VertexConstPtr,
+                                                VertexConstPtr,
                                                 VertexPtr>::type;
 
     enum EdgeDirection direction_;
@@ -329,21 +331,6 @@ class Graph {
                                       EdgeContentIterator_*>::type;
     static constexpr bool kIsConst_ = is_const_;
 
-    EdgeContentIterator_()
-         :InnerIteratorType(),direction_(),vertex_ptr_(){
-      return;
-    }
-
-    template<typename... ParameterTypes>
-    EdgeContentIterator_(const enum EdgeDirection  direction,
-                         const VertexPtrType&     vertex_ptr,
-                         const ParameterTypes&... parameters)
-                               :InnerIteratorType(parameters...),
-                                       direction_(direction),
-                                      vertex_ptr_(vertex_ptr){
-      return;
-    }
-
     template<bool judge = is_const_,
              typename std::enable_if<!judge, bool>::type = false>
     inline ContentPtr content_ptr(){
@@ -358,6 +345,18 @@ class Graph {
     }
 
    public:
+    EdgeContentIterator_() : InnerIteratorType(), direction_(), vertex_ptr_() {
+      return;
+    }
+    template <typename... ParameterTypes>
+    EdgeContentIterator_(const enum EdgeDirection direction,
+                         const VertexPtrType& vertex_ptr,
+                         const ParameterTypes&... parameters)
+        : InnerIteratorType(parameters...),
+          direction_(direction),
+          vertex_ptr_(vertex_ptr) {
+      return;
+    }
     inline VertexPtrType& src_ptr(){
       if (this->direction_ == EdgeDirection::OutputEdge)
         return this->vertex_ptr_;
@@ -449,21 +448,6 @@ class Graph {
                     EdgeContentIteratorSpecifiedEdgeLabel_*>::type;
     static constexpr bool kIsConst_ = is_const_;
 
-    EdgeContentIteratorSpecifiedEdgeLabel_()
-                        :InnerIteratorType(),
-                               edge_label_(){
-      return;
-    }
-
-    template<typename... ParameterTypes>
-    EdgeContentIteratorSpecifiedEdgeLabel_(
-          const EdgeLabelType&     edge_label,
-          const ParameterTypes&... parameters)
-                :InnerIteratorType(parameters...),
-                       edge_label_(edge_label){
-      return;
-    }
-
     template<bool judge = is_const_,
              typename std::enable_if<!judge, bool>::type = false>
     inline ContentPtr content_ptr(){
@@ -478,6 +462,16 @@ class Graph {
     }
 
   public:
+    EdgeContentIteratorSpecifiedEdgeLabel_()
+        : InnerIteratorType(), edge_label_() {
+      return;
+    }
+    template <typename... ParameterTypes>
+    EdgeContentIteratorSpecifiedEdgeLabel_(const EdgeLabelType& edge_label,
+                                           const ParameterTypes&... parameters)
+        : InnerIteratorType(parameters...), edge_label_(edge_label) {
+      return;
+    }
     inline const EdgeLabelType& label() const {
       return this->edge_label_;
     }

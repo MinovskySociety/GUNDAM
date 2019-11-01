@@ -12,10 +12,10 @@ TEST(TestGUNDAM, GraphClass) {
 
   Graph<> g;
   Graph<SetAllowMultipleEdge<true>> g1;
-  Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<Label<std::string>>, 
-	  SetEdgeIDType<uint64_t>, SetEdgeLabelType<Label<std::string>>,
-	  SetAllowMultipleEdge<true>
-	> g2;
+  Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<Label<std::string>>,
+        SetEdgeIDType<uint64_t>, SetEdgeLabelType<Label<std::string>>,
+        SetAllowMultipleEdge<true>>
+      g2;
 
   // AddVertex
   auto res1 = g2.AddVertex(1, Label<std::string>("AAA"));
@@ -129,7 +129,7 @@ TEST(TestGUNDAM, GraphClass) {
   ASSERT_TRUE(v.IsNull());
 
   auto v1 = g2.FindVertex(1);
-  ASSERT_FALSE(v1.IsNull());  
+  ASSERT_FALSE(v1.IsNull());
   ASSERT_EQ(v1->id(), 1);
 
   auto v2 = g2.FindVertex(2);
@@ -145,6 +145,26 @@ TEST(TestGUNDAM, GraphClass) {
   ASSERT_FALSE(e1b.IsNull());
   ASSERT_EQ(e1b->id(), 1);
   ASSERT_EQ(e1b->label(), Label<std::string>("aaa"));
-  
+
+  ASSERT_EQ(e1, e1b);
+
+  int count = 0;
+  for (auto v_it = g2.VertexCBegin(); !v_it.IsDone(); v_it++) {
+    ++count;
+  }
+  ASSERT_EQ(count, 4);
+
+  count = 0;
+  for (auto it_e_out = v1->OutEdgeCBegin(); !it_e_out.IsDone(); ++it_e_out) {
+    ++count;
+  }
+  ASSERT_EQ(count, 3);
+
+  count = 0;
+  for (auto it_e_in = v1->InEdgeCBegin(); !it_e_in.IsDone(); ++it_e_in) {
+    ++count;
+  }
+  ASSERT_EQ(count, 3);
+
   ASSERT_TRUE(true);
 }
