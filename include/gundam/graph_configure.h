@@ -3,7 +3,6 @@
 
 #include "label.h"
 #include "container.h"
-#include "attribute.h"
 
 #include <cstdint>
 #include <string>
@@ -31,7 +30,7 @@ class SetVertexHasAttribute;
 template <typename KeyType>
 class SetVertexAttributeKeyType;
 template <typename AttributeType>
-class SetVertexStaticAttributeType;
+class SetVertexSharedAttributeType;
 template <bool AttributeIsConst>
 class SetVertexAttributeIsConst;
 template <bool AttributeIsDynamical>
@@ -49,7 +48,7 @@ class SetEdgeHasAttribute;
 template <typename KeyType>
 class SetEdgeAttributeKeyType;
 template <typename AttributeType>
-class SetEdgeStaticAttributeType;
+class SetEdgeSharedAttributeType;
 template <bool AttributeIsConst>
 class SetEdgeAttributeIsConst;
 template <bool AttributeIsDynamical>
@@ -262,24 +261,20 @@ class GraphConfigures<SetVertexAttributeKeyType<KeyType>, other_configures...>
 };
 
 // set Node attr
-template <template <typename...> class VAttrType,
-          typename VAttrUnderlieConfigures, typename... other_configures>
+template <typename VertexSharedAttributeType_, typename... other_configures>
 class GraphConfigures<
-    SetVertexStaticAttributeType<VAttrType<VAttrUnderlieConfigures>>,
+    SetVertexSharedAttributeType<VertexSharedAttributeType_>,
     other_configures...> : public GraphConfigures<other_configures...> {
  private:
   static_assert(
       !GraphConfigures<other_configures...>::specified_vertex_attribute_type,
       "Redefinition of Vertex Attr Type");
-  static_assert(std::is_base_of<Attribute<VAttrUnderlieConfigures>,
-                                VAttrType<VAttrUnderlieConfigures>>::value,
-                "Illegal Vertex Attr Type");
 
  protected:
   static constexpr bool specified_vertex_attribute_type = false;
 
  public:
-  using VertexStaticAttributeType = VAttrType<VAttrUnderlieConfigures>;
+  using VertexSharedAttributeType = VertexSharedAttributeType_;
 };
 
 // Set Edge ID
@@ -352,24 +347,20 @@ class GraphConfigures<SetEdgeAttributeKeyType<KeyType>, other_configures...>
 };
 
 // set edge attr
-template <template <typename...> class EAttrType,
-          typename EAttrUnderlieConfigures, typename... other_configures>
-class GraphConfigures<SetEdgeStaticAttributeType<EAttrType<EAttrUnderlieConfigures>>,
-                      other_configures...>
-    : public GraphConfigures<other_configures...> {
+template <typename EdgeSharedAttributeType_, typename... other_configures>
+class GraphConfigures<
+    SetEdgeSharedAttributeType<EdgeSharedAttributeType_>,
+    other_configures...> : public GraphConfigures<other_configures...> {
  private:
   static_assert(
       !GraphConfigures<other_configures...>::specified_edge_attribute_type,
-      "Redefinition of Edge Attr Type");
-  static_assert(std::is_base_of<Attribute<EAttrUnderlieConfigures>,
-                                EAttrType<EAttrUnderlieConfigures>>::value,
-                "Illegal Edge Attr Type");
+      "Redefinition of Edge Attribute Type");
 
  protected:
   static constexpr bool specified_edge_attribute_type = false;
 
  public:
-  using EdgeStaticAttributeType = EAttrType<EAttrUnderlieConfigures>;
+  using EdgeSharedAttributeType = EdgeSharedAttributeType_;
 };
 
 // set multi edge
