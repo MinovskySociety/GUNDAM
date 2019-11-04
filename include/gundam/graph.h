@@ -215,25 +215,24 @@ class Graph {
       return;
     }
 
-    template<typename ConcreteDataType>
-    inline const ConcreteDataType&
-                 const_attribute(const KeyType_& key) const{
+    template <typename ConcreteDataType>
+    inline const ConcreteDataType& const_attribute(const KeyType_& key) const {
       /// the constant attribute should not be modified
       const Attribute<KeyType_> attribute_to_find(key);
       /// <iterator of attribute container, bool>
       auto ret = this->attributes_.FindConst(attribute_to_find);
-      assert(ret.second); /// this key should exist
+      assert(ret.second);  /// this key should exist
       return (std::get<kAttributeIdx>(*(ret.first))).const_value();
     }
 
-    template<typename ConcreteDataType>
-    inline ConcreteDataType& attribute(const KeyType_& key){
+    template <typename ConcreteDataType>
+    inline ConcreteDataType& attribute(const KeyType_& key) {
       /// the constant attribute should not be modified
       const Attribute<KeyType_> attribute_to_find(key);
       /// <iterator of attribute container, bool>
       auto ret = this->attributes_.Find(attribute_to_find);
-      assert(ret.second); /// this key should exist
-      return (std::get<kAttributeIdx>(*(ret.first))).value<ConcreteDataType>();
+      assert(ret.second);  /// this key should exist
+      return (std::get<kAttributeIdx>(*(ret.first))).value();
     }
 
     template<typename ConcreteDataType>
