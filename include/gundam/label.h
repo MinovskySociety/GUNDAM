@@ -53,6 +53,26 @@ private:
 protected:
     const LabelUnderlieType kLable_;
 
+    template<bool judge = std::is_same<LabelUnderlieType,
+                                       std::string>::value,
+             typename std::enable_if<judge, bool>::type = false>
+    inline std::string _to_string() const{
+      static_assert(judge == std::is_same<LabelUnderlieType,
+                                          std::string>::value,
+                   "Illegal usage of this method");
+      return this->kLable_;
+    }
+
+    template<bool judge = std::is_same<LabelUnderlieType,
+                                       std::string>::value,
+             typename std::enable_if<!judge, bool>::type = false>
+    inline std::string _to_string() const{
+      static_assert(judge == std::is_same<LabelUnderlieType,
+                                          std::string>::value,
+                   "Illegal usage of this method");
+        return std::to_string(this->kLable_);
+    }
+
 public:
     using UnderlieType = LabelUnderlieType;
 
@@ -87,7 +107,8 @@ public:
         return this->kLable_ == label.kLable_;
     }
     inline std::string to_string() const{
-        return std::to_string(this->kLable_);
+      /// to hide the template method
+      return this->_to_string();
     }
 };
 #endif // _LABEL_HPP
