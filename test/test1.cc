@@ -14,7 +14,7 @@ TEST(TestGUNDAM, GraphClass) {
   Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<Label<std::string>>,
         SetEdgeIDType<uint64_t>, SetEdgeLabelType<Label<std::string>>,
         SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-        SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>
+        SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>
       g1;
 
   // AddVertex
@@ -165,6 +165,31 @@ TEST(TestGUNDAM, GraphClass) {
     ++count;
   }
   ASSERT_EQ(count, 3);  
+
+  // Attributes
+  ASSERT_TRUE(v1->add_attribute<std::string>(5, "abc"));  
+  
+  ASSERT_EQ(v1->attribute<std::string>(5), "abc");
+
+  ASSERT_FALSE(v1->add_attribute<std::string>(5, "abcd"));
+
+  ASSERT_TRUE(v1->set_attribute<std::string>(5, "abcd"));
+
+  ASSERT_EQ(v1->const_attribute<std::string>(5), "abcd");
+
+  ASSERT_FALSE(v1->set_attribute<std::string>(6, "abcde"));  
+
+  ASSERT_TRUE(e1->add_attribute<std::string>(5, "abc"));
+
+  ASSERT_EQ(e1->attribute<std::string>(5), "abc");
+
+  ASSERT_FALSE(e1->add_attribute<std::string>(5, "abcd"));
+
+  ASSERT_TRUE(e1->set_attribute<std::string>(5, "abcd"));
+
+  ASSERT_EQ(e1->const_attribute<std::string>(5), "abcd");
+
+  ASSERT_FALSE(e1->set_attribute<std::string>(6, "abcde"));  
 
   ASSERT_TRUE(true);
 }

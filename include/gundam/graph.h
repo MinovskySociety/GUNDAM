@@ -222,7 +222,8 @@ class Graph {
       /// <iterator of attribute container, bool>
       auto ret = this->attributes_.FindConst(attribute_to_find);
       assert(ret.second);  /// this key should exist
-      return (std::get<kAttributeIdx>(*(ret.first))).const_value();
+      return (std::get<kAttributeIdx>(*(ret.first)))
+          .template const_value<ConcreteDataType>();
     }
 
     template <typename ConcreteDataType>
@@ -232,7 +233,8 @@ class Graph {
       /// <iterator of attribute container, bool>
       auto ret = this->attributes_.Find(attribute_to_find);
       assert(ret.second);  /// this key should exist
-      return (std::get<kAttributeIdx>(*(ret.first))).value();
+      return std::get<kAttributeIdx>(*(ret.first))
+		  .template value<ConcreteDataType>();
     }
 
     template<typename ConcreteDataType>
@@ -246,7 +248,8 @@ class Graph {
         /// has already existed in the Container
         return false;
       }
-      std::get<kAttributeIdx>(*(ret.first)).set_value(value);
+      std::get<kAttributeIdx>(*(ret.first))
+          .template set_value<ConcreteDataType>(value);
       return true;
     }
 
@@ -261,7 +264,8 @@ class Graph {
         /// does not exist in the Container
         return false;
       }
-      ret.first->set_value(value);
+      std::get<kAttributeIdx>(*(ret.first))
+		  .template set_value<ConcreteDataType>(value);
       return true;
     }
 
@@ -881,17 +885,17 @@ class Graph {
       template <typename ConcreteDataType>
       inline const ConcreteDataType& const_attribute(
                                  const EdgeAttributeKeyType& key) const {
-        return (std::get<kEdgeAttributePtrIdx>
-                  (*(this->decomposed_edge_iterator_)))
-                              ->const_attribute(key);
+        return (std::get<kEdgeAttributePtrIdx>(
+                    *(this->decomposed_edge_iterator_)))
+            ->template const_attribute<ConcreteDataType>(key);
       }
 
       template <typename ConcreteDataType>
       inline bool add_attribute(const EdgeAttributeKeyType& key,
                                 const     ConcreteDataType& value) {
-        return (std::get<kEdgeAttributePtrIdx>
-                  (*(this->decomposed_edge_iterator_)))
-                                ->add_attribute(key, value);
+        return (std::get<kEdgeAttributePtrIdx>(
+                    *(this->decomposed_edge_iterator_)))
+            ->template add_attribute<ConcreteDataType>(key, value);
       }
     };
 
@@ -921,9 +925,9 @@ class Graph {
 
       template <typename ConcreteDataType>
       inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key) {
-        return (std::get<kEdgeAttributePtrIdx>
-                  (*(EdgePtrContent::decomposed_edge_iterator_)))
-                                                 ->attribute(key);
+        return (std::get<kEdgeAttributePtrIdx>(
+                    *(EdgePtrContent::decomposed_edge_iterator_)))
+            ->template attribute<ConcreteDataType>(key);
       }
 
       template <typename ConcreteDataType>
@@ -931,13 +935,13 @@ class Graph {
                                 const     ConcreteDataType& value) {
         return (std::get<kEdgeAttributePtrIdx>
                   (*(EdgePtrContent::decomposed_edge_iterator_)))
-                                       ->set_attribute(key,value);
+            ->template set_attribute<ConcreteDataType>(key, value);
       }
 
       inline bool remove_attribute(const EdgeAttributeKeyType& key) {
         return (std::get<kEdgeAttributePtrIdx>
                   (*(EdgePtrContent::decomposed_edge_iterator_)))
-                                          ->remove_attribute(key);
+            ->remove_attribute(key);
       }
     };
 
