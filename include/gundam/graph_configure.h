@@ -28,6 +28,8 @@ template <typename IDType>
 class SetVertexIDType;
 template <bool HasAttribute>
 class SetVertexHasAttribute;
+template <typename KeyType>
+class SetVertexAttributeKeyType;
 template <typename AttributeType>
 class SetVertexStaticAttributeType;
 template <bool AttributeIsConst>
@@ -36,6 +38,7 @@ template <bool AttributeIsDynamical>
 class SetVertexAttributeIsDynamical;
 template <enum ContainerType containerType>
 class SetVertexAttributeContainerType;
+
 /// edge configurations
 template <typename LabelType>
 class SetEdgeLabelType;
@@ -43,6 +46,8 @@ template <typename IDType>
 class SetEdgeIDType;
 template <bool HasAttribute>
 class SetEdgeHasAttribute;
+template <typename KeyType>
+class SetEdgeAttributeKeyType;
 template <typename AttributeType>
 class SetEdgeStaticAttributeType;
 template <bool AttributeIsConst>
@@ -240,6 +245,22 @@ class GraphConfigures<SetVertexHasAttribute<HasAttribute>, other_configures...>
   static constexpr bool vertex_has_static_attribute = HasAttribute;
 };
 
+// Set Node Attribute Key Type
+template <typename KeyType, typename... other_configures>
+class GraphConfigures<SetVertexAttributeKeyType<KeyType>, other_configures...>
+    : public GraphConfigures<other_configures...> {
+ private:
+  static_assert(
+      !GraphConfigures<other_configures...>::specified_vertex_attribute_key_type,
+      "Redefinition of Vertex Attribute Key Type");
+
+ protected:
+  static constexpr bool specified_vertex_attribute_key_type = true;
+
+ public:
+  using VertexAttributeKeyType = KeyType;
+};
+
 // set Node attr
 template <template <typename...> class VAttrType,
           typename VAttrUnderlieConfigures, typename... other_configures>
@@ -312,6 +333,22 @@ class GraphConfigures<SetEdgeHasAttribute<HasAttribute>, other_configures...>
 
  public:
   static constexpr bool edge_has_static_attribute = HasAttribute;
+};
+
+// Set Edge Attribute Key Type
+template <typename KeyType, typename... other_configures>
+class GraphConfigures<SetEdgeAttributeKeyType<KeyType>, other_configures...>
+    : public GraphConfigures<other_configures...> {
+ private:
+  static_assert(
+      !GraphConfigures<other_configures...>::specified_edge_attribute_key_type,
+      "Redefinition of Has Edge Attr");
+
+ protected:
+  static constexpr bool specified_edge_attribute_key_type = true;
+
+ public:
+  using EdgeAttributeKeyType = KeyType;
 };
 
 // set edge attr
