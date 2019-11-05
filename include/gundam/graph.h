@@ -1,10 +1,10 @@
 #ifndef _GRAPH_H
 #define _GRAPH_H
 
-#include "gundam/graph_configure.h"
-#include "gundam/container.h"
-#include "gundam/iterator.h"
-#include "gundam/label.h"
+#include "graph_configure.h"
+#include "container.h"
+#include "iterator.h"
+#include "label.h"
 
 #include <map>
 
@@ -1141,7 +1141,7 @@ class Graph {
       static_assert(!is_const_, "Illegal configuration");
     };
 
-    /// constant content pointer
+    /// content pointer with only constant method
     template <bool     is_const_,
               bool meaning_less_>
     class EdgePtrContent_<is_const_,false,
@@ -1172,19 +1172,9 @@ class Graph {
            VertexPtrIteratorType      vertex_ptr_iterator_;
       DecomposedEdgeIteratorType decomposed_edge_iterator_;
 
-      inline VertexPtr &VertexPtrContainerElement(){
-        return std::get<kVertexPtrIdx>
-                  (*(this->vertex_ptr_iterator_));
-      }
-
       inline const VertexConstPtr VertexPtrContainerConstElement() const{
         return std::get<kVertexPtrIdx>
                   (*(this->vertex_ptr_iterator_));
-      }
-
-      inline EdgeAttributeType& attribute(){
-        return *(std::get<kEdgeAttributePtrIdx>
-                  (*(this->decomposed_edge_iterator_)));
       }
 
       inline const EdgeAttributeType& const_attribute() const{
@@ -1192,7 +1182,6 @@ class Graph {
                   (*(this->decomposed_edge_iterator_)));
       }
 
-     protected:
       inline bool IsNull() const{
         return this->vertex_ptr_.IsNull();
       }
@@ -1207,7 +1196,7 @@ class Graph {
       }
 
       EdgePtrContent_(const enum EdgeDirection&  direction,
-                             VertexPtrType&      vertex_ptr,
+          const              VertexPtrType&      vertex_ptr,
           const      EdgeLabelIteratorType&      edge_label_iterator,
           const      VertexPtrIteratorType&      vertex_ptr_iterator,
           const DecomposedEdgeIteratorType& decomposed_edge_iterator)
@@ -1243,30 +1232,67 @@ class Graph {
       }
 
       template<typename ConcreteDataType>
-      inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key){
-        return this->attribute().template attribute<ConcreteDataType>(key);
-      }
-
-      template<typename ConcreteDataType>
       inline const ConcreteDataType& const_attribute(
                                  const EdgeAttributeKeyType& key) const {
         return this->const_attribute()
            .template const_attribute<ConcreteDataType>(key);
       }
 
-      inline EdgeAttributeIterator AttributeBegin(){
-        return this->attribute().AttributeBegin();
-      }
       inline EdgeAttributeConstIterator AttributeCBegin() const{
         return this->const_attribute().AttributeCBegin();
       }
-      inline EdgeAttributePtr FindAttributePtr(
-                        const EdgeAttributeKeyType& key){
-        return this->attribute().FindAttributePtr(key);
-      }
+
       inline EdgeAttributeConstPtr FindConstAttributePtr(
                                   const EdgeAttributeKeyType& key) const {
         return this->const_attribute().FindConstAttributePtr(key);
+      }
+    };
+
+    /// content pointer with non-constant method
+    template <bool meaning_less_>
+    class EdgePtrContent_<false,true,meaning_less_>
+      : public EdgePtrContent_<false,false,meaning_less_> {
+      static_assert( meaning_less_,"Illegal usage of this method");
+     private:
+      using EdgePtrContent = EdgePtrContent_<false,false,meaning_less_>;
+
+      inline VertexPtr& VertexPtrContainerElement(){
+        return std::get<kVertexPtrIdx>
+                  (*(EdgePtrContent::vertex_ptr_iterator_));
+      }
+
+      inline EdgeAttributeType& attribute(){
+        return *(std::get<kEdgeAttributePtrIdx>
+                  (*(EdgePtrContent::decomposed_edge_iterator_)));
+      }
+
+     public:
+      using EdgePtrContent::EdgePtrContent;
+
+      inline VertexPtr& src_ptr() {
+        if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
+          return EdgePtrContent::vertex_ptr_;
+        return this->VertexPtrContainerElement();
+      }
+
+      inline VertexPtr& dst_ptr() {
+        if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
+          return this->VertexPtrContainerElement();
+        return EdgePtrContent::vertex_ptr_;
+      }
+
+      template<typename ConcreteDataType>
+      inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key){
+        return this->attribute().template attribute<ConcreteDataType>(key);
+      }
+
+      inline EdgeAttributeIterator AttributeBegin(){
+        return this->attribute().AttributeBegin();
+      }
+
+      inline EdgeAttributePtr FindAttributePtr(
+                        const EdgeAttributeKeyType& key){
+        return this->attribute().FindAttributePtr(key);
       }
 
       template<typename ConcreteDataType>
@@ -1281,52 +1307,6 @@ class Graph {
         SetAttribute(const EdgeAttributeKeyType& key,
                      const     ConcreteDataType& value){
         return this->attribute().SetAttribute(key, value);
-      }
-    };
-
-    /// non-constant content pointer
-    template <bool meaning_less_>
-    class EdgePtrContent_<false,true,meaning_less_>
-      : public EdgePtrContent_<false,false,meaning_less_> {
-      static_assert( meaning_less_,"Illegal usage of this method");
-     private:
-      using EdgePtrContent = EdgePtrContent_<false,false,meaning_less_>;
-
-     public:
-      using EdgePtrContent::EdgePtrContent;
-
-      /// same to ContentEdgeIterator_
-      inline VertexPtr& src_ptr() {
-        if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
-          return EdgePtrContent::vertex_ptr_;
-        return EdgePtrContent::VertexPtrContainerElement();
-      }
-
-      inline VertexPtr& dst_ptr() {
-        if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
-          return EdgePtrContent::VertexPtrContainerElement();
-        return EdgePtrContent::vertex_ptr_;
-      }
-
-      template <typename ConcreteDataType>
-      inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key) {
-        return (std::get<kEdgeAttributePtrIdx>(
-                    *(EdgePtrContent::decomposed_edge_iterator_)))
-            ->template attribute<ConcreteDataType>(key);
-      }
-
-      template <typename ConcreteDataType>
-      inline bool set_attribute(const EdgeAttributeKeyType& key,
-                                const     ConcreteDataType& value) {
-        return (std::get<kEdgeAttributePtrIdx>
-                  (*(EdgePtrContent::decomposed_edge_iterator_)))
-            ->template set_attribute<ConcreteDataType>(key, value);
-      }
-
-      inline bool remove_attribute(const EdgeAttributeKeyType& key) {
-        return (std::get<kEdgeAttributePtrIdx>
-                  (*(EdgePtrContent::decomposed_edge_iterator_)))
-            ->remove_attribute(key);
       }
     };
 
@@ -1738,6 +1718,39 @@ class Graph {
     }
 
    private:
+    /// constant methods:
+    inline EdgeConstPtr FindConstEdge(
+     const EdgeLabelContainerType& edge_label_container,
+     const enum EdgeDirection& edge_direction,
+     const EdgeIDType&         edge_id) const {
+      for (auto edge_label_it  = edge_label_container.cbegin();
+                edge_label_it != edge_label_container.cend();
+              ++edge_label_it){
+        for (auto vertex_ptr_it  = std::get<kVertexPtrContainerIdx>
+                                           (*edge_label_it).cbegin();
+                  vertex_ptr_it != std::get<kVertexPtrContainerIdx>
+                                           (*edge_label_it).cend();
+                ++vertex_ptr_it){
+          auto decomposed_edge_ret = std::get<kDecomposedEdgeContainerIdx>
+                                       (*vertex_ptr_it).FindConst(edge_id);
+          if (!decomposed_edge_ret.second){
+            /// not found
+            continue;
+          }
+          const InnerVertex_* const temp_this_ptr = this;
+          const VertexConstPtr temp_vertex_ptr
+              = VertexConstPtr(temp_this_ptr);
+          return EdgeConstPtr(edge_direction,
+                              temp_vertex_ptr,
+                              edge_label_it,
+                              vertex_ptr_it,
+                         decomposed_edge_ret.first);
+        }
+      }
+      return EdgeConstPtr();
+    }
+
+    /// non-constant methods:
     inline EdgePtr FindEdge(
            EdgeLabelContainerType& edge_label_container,
          const enum EdgeDirection& edge_direction,
@@ -1837,6 +1850,11 @@ class Graph {
                             EdgeDirection::OutputEdge,
                             edge_id);
     }
+    inline EdgeConstPtr FindConstOutEdge(const EdgeIDType& edge_id) const{
+      return this->FindConstEdge(this->edges_.const_out_edges(),
+                                 EdgeDirection::OutputEdge,
+                                 edge_id);
+    }
     inline EdgePtr FindOutEdge(const EdgeLabelType& edge_label,
                                const EdgeIDType& edge_id) {
       return this->FindEdge(this->edges_.out_edges(),
@@ -1887,13 +1905,6 @@ class Graph {
     ///     FindInEdge(dst_ptr)
     ///         when there are not duplicate edge
     ///         and only has one edge label type
-
-    /// will not be implemented in the beggar version
-//    EdgeConstPtr FindConstOutEdge(const VertexPtr& dst_ptr);
-//    EdgeConstPtr FindConstInEdge(const VertexPtr& dst_ptr);
-
-    /// iterate element:
-    /// output iterators:
 
     using EdgeLabelIterator
                  = Iterator_<EdgeLabelContentIterator_<
