@@ -4,7 +4,7 @@
 #include "container.h"
 
 namespace GUNDAM {
-using IteratorDepthType = uint8_t;
+using IteratorDepthType = int8_t;
 
 template<typename  ContainerType_,
          bool           is_const_,

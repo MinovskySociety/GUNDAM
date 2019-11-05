@@ -551,7 +551,7 @@ class Graph {
       (std::get<kAttributeValuePtrIdx>(*(ret.first)))->set_value(value);
       return std::pair<AttributePtr, bool>(AttributePtr(ret.first),true);
     }
-
+    /*
     template<typename ConcreteDataType>
     inline std::pair<AttributeIterator, bool>
         EraseAttribute(const AttributeIterator& attribute_iterator){
@@ -565,6 +565,7 @@ class Graph {
                       (AttributeIterator(ret.first,
                                          this->attributes_.end()), true);
     }
+	*/
   };
 
  public:
@@ -636,11 +637,10 @@ class Graph {
 
     inline VertexConstPtr VertexPtrContainerConstElement() const{
       assert(!this->IsDone());
-      VertexPtr temp_vertex_ptr =
-        InnerIteratorType::template get_const<VertexPtr,
-                                            dst_ptr_idx_,
-                                            begin_depth_ + 1>();
-      return VertexConstPtr(temp_vertex_ptr);
+      return VertexConstPtr(
+		  InnerIteratorType::template get_const<VertexPtr, 
+     										  dst_ptr_idx_,
+											  begin_depth_ + 1>());
     }
 
    protected:

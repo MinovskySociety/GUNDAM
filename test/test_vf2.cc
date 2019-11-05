@@ -34,7 +34,7 @@ TEST(TestGUNDAM, VF2) {
   target.AddEdge(3,1,EdgeLabelType(1),3);
   
    std::vector<std::map<VertexPtr,VertexPtr>> match_result;
-   GUNDAM::VF2<GUNDAM::MatchSemantics::kIsomorphism>(
+   int count = GUNDAM::VF2<GUNDAM::MatchSemantics::kIsomorphism>(
        query,target,match_result
    );
    std::cout<<match_result.size()<<std::endl;
@@ -48,6 +48,5 @@ TEST(TestGUNDAM, VF2) {
        }
    }
    
-    return ;
-  ASSERT_TRUE(true);
+  ASSERT_EQ(count, 2);
 }
