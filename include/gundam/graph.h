@@ -498,6 +498,26 @@ class Graph {
     }
 
     template<typename ConcreteDataType>
+    inline ConcreteDataType& attribute(const KeyType_& key){
+      /// <iterator of attribute container, bool>
+      auto ret = this->attributes_.Find(key);
+      assert(ret.second);
+      return static_cast<ConcreteValue<ConcreteDataType>*>(
+              std::get<kAttributeValuePtrIdx>(*(ret.first)))
+                      ->value();
+    }
+
+    template<typename ConcreteDataType>
+    inline const ConcreteDataType& const_attribute(const KeyType_& key) const {
+      /// <iterator of attribute container, bool>
+      auto ret = this->attributes_.FindConst(key);
+      assert(ret.second);
+      return static_cast<const ConcreteValue<ConcreteDataType>*>(
+                    std::get<kAttributeValuePtrIdx>(*(ret.first)))
+                      ->const_value();
+    }
+
+    template<typename ConcreteDataType>
     inline std::pair<AttributePtr, bool>
         AddAttribute(const KeyType_& key,
                      const ConcreteDataType& value){
@@ -532,48 +552,36 @@ class Graph {
       return std::pair<AttributePtr, bool>(AttributePtr(ret.first),true);
     }
 
-//    template<typename ConcreteDataType>
-//    inline std::pair<AttributeIterator, bool>
-//        EraseAttribute(const AttributeIterator& attribute_iterator){
-//      /// <iterator of AttributeContainer, bool>
-//      auto ret = this->attributes_.Erase(attribute_iterator
-//                                        .ConstInnerIterator());
-//      if (!ret.second)
-//        return std::pair<AttributeIterator, bool>
-//                        (AttributeIterator(), false);
-//      return std::pair<AttributeIterator, bool>
-//                      (AttributeIterator(ret.first,
-//                                         this->attributes_.end()), true);
-//    }
-//
-//    template<typename ConcreteDataType>
-//    inline std::pair<AttributeIterator, bool>
-//        EraseAttribute(const KeyType_& key){
-//      /// <iterator of attribute container, bool>
-//      auto ret = this->attributes_.Find(key);
-//      if (!ret.second)
-//        return std::pair<AttributeIterator, bool>(AttributeIterator(),false);
-//      return std::pair<AttributeIterator, bool>
-//                      (AttributeIterator(ret.first,
-//                                         this->attributes_.end()), true);
-//    }
+    template<typename ConcreteDataType>
+    inline std::pair<AttributeIterator, bool>
+        EraseAttribute(const AttributeIterator& attribute_iterator){
+      /// <iterator of AttributeContainer, bool>
+      auto ret = this->attributes_.Erase(attribute_iterator
+                                        .ConstInnerIterator());
+      if (!ret.second)
+        return std::pair<AttributeIterator, bool>
+                        (AttributeIterator(), false);
+      return std::pair<AttributeIterator, bool>
+                      (AttributeIterator(ret.first,
+                                         this->attributes_.end()), true);
+    }
   };
 
  public:
   using VertexAttributePtr           = typename VertexAttributeType
                                                     ::AttributePtr;
-  using VertexAttributeConstPtr      = typename VertexAttributeType
-                                                    ::AttributeConstPtr;
   using VertexAttributeIterator      = typename VertexAttributeType
                                                     ::AttributeIterator;
+  using VertexAttributeConstPtr      = typename VertexAttributeType
+                                                    ::AttributeConstPtr;
   using VertexAttributeConstIterator = typename VertexAttributeType
                                                     ::AttributeConstIterator;
   using EdgeAttributePtr           = typename EdgeAttributeType
                                                 ::AttributePtr;
-  using EdgeAttributeConstPtr      = typename EdgeAttributeType
-                                                ::AttributeConstPtr;
   using EdgeAttributeIterator      = typename EdgeAttributeType
                                                 ::AttributeIterator;
+  using EdgeAttributeConstPtr      = typename EdgeAttributeType
+                                                ::AttributeConstPtr;
   using EdgeAttributeConstIterator = typename EdgeAttributeType
                                                 ::AttributeConstIterator;
 
@@ -707,7 +715,16 @@ class Graph {
                                                  edge_id_idx_,
                                                  begin_depth_ + 2>();
     }
-
+    template<typename ConcreteDataType>
+    inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key){
+      return this->attribute().template attribute<ConcreteDataType>(key);
+    }
+    template<typename ConcreteDataType>
+    inline const ConcreteDataType& const_attribute(
+                               const EdgeAttributeKeyType& key) const {
+      return this->const_attribute()
+         .template const_attribute<ConcreteDataType>(key);
+    }
     inline EdgeAttributeIterator AttributeBegin(){
       assert(!this->IsDone());
       return this->attribute().AttributeBegin();
@@ -1157,6 +1174,16 @@ class Graph {
                   (*(this->vertex_ptr_iterator_));
       }
 
+      inline EdgeAttributeType& attribute(){
+        return *(std::get<kEdgeAttributePtrIdx>
+                  (*(this->decomposed_edge_iterator_)));
+      }
+
+      inline const EdgeAttributeType& const_attribute() const{
+        return *(std::get<kEdgeAttributePtrIdx>
+                  (*(this->decomposed_edge_iterator_)));
+      }
+
      protected:
       inline bool IsNull() const{
         return this->vertex_ptr_.IsNull();
@@ -1207,20 +1234,45 @@ class Graph {
         return this->vertex_ptr_;
       }
 
-      template <typename ConcreteDataType>
-      inline const ConcreteDataType& const_attribute(
-                                 const EdgeAttributeKeyType& key) const {
-        return (std::get<kEdgeAttributePtrIdx>(
-                    *(this->decomposed_edge_iterator_)))
-            ->template const_attribute<ConcreteDataType>(key);
+      template<typename ConcreteDataType>
+      inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key){
+        return this->attribute().template attribute<ConcreteDataType>(key);
       }
 
-      template <typename ConcreteDataType>
-      inline bool add_attribute(const EdgeAttributeKeyType& key,
-                                const     ConcreteDataType& value) {
-        return (std::get<kEdgeAttributePtrIdx>(
-                    *(this->decomposed_edge_iterator_)))
-            ->template add_attribute<ConcreteDataType>(key, value);
+      template<typename ConcreteDataType>
+      inline const ConcreteDataType& const_attribute(
+                                 const EdgeAttributeKeyType& key) const {
+        return this->const_attribute()
+           .template const_attribute<ConcreteDataType>(key);
+      }
+
+      inline EdgeAttributeIterator AttributeBegin(){
+        return this->attribute().AttributeBegin();
+      }
+      inline EdgeAttributeConstIterator AttributeCBegin() const{
+        return this->const_attribute().AttributeCBegin();
+      }
+      inline EdgeAttributePtr FindAttributePtr(
+                        const EdgeAttributeKeyType& key){
+        return this->attribute().FindAttributePtr(key);
+      }
+      inline EdgeAttributeConstPtr FindConstAttributePtr(
+                                  const EdgeAttributeKeyType& key) const {
+        return this->const_attribute().FindConstAttributePtr(key);
+      }
+
+      template<typename ConcreteDataType>
+      inline std::pair<EdgeAttributePtr, bool>
+        AddAttribute(const EdgeAttributeKeyType& key,
+                     const     ConcreteDataType& value){
+        return this->attribute().AddAttribute(key, value);
+      }
+
+      template<typename ConcreteDataType>
+      inline std::pair<EdgeAttributePtr, bool>
+        SetAttribute(const EdgeAttributeKeyType& key,
+                     const     ConcreteDataType& value){
+        return this->attribute().SetAttribute(key, value);
       }
     };
 
@@ -2244,8 +2296,8 @@ class Graph {
         return std::pair<EdgePtr, bool>(EdgePtr(),false);
       }
       for (auto vertex_ptr_it = this->VertexBegin();
-		  !vertex_ptr_it.IsDone();
-		  ++vertex_ptr_it){
+               !vertex_ptr_it.IsDone();
+              ++vertex_ptr_it){
         EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
         if (!edge_ptr.IsNull()){
           /// the edge with this edge_id has already existed
