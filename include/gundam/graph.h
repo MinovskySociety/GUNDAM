@@ -315,12 +315,12 @@ class Graph {
                                                   is_const_,
                                                      depth_>;
 
-    friend std::pair<typename VertexAttributeType::AttributeIterator, bool>
-                              VertexAttributeType::EraseAttribute(
-                     typename VertexAttributeType::AttributeIterator& attribute_iterator);
-    friend std::pair<typename EdgeAttributeType::AttributeIterator, bool>
-                              EdgeAttributeType::EraseAttribute(
-                     typename EdgeAttributeType::AttributeIterator& attribute_iterator);
+    friend typename VertexAttributeType::AttributeIterator
+                    VertexAttributeType::EraseAttribute(
+           typename VertexAttributeType::AttributeIterator& attribute_iterator);
+    friend typename EdgeAttributeType::AttributeIterator
+                    EdgeAttributeType::EraseAttribute(
+           typename EdgeAttributeType::AttributeIterator& attribute_iterator);
 
     inline const typename InnerIteratorType::IteratorType&
                      ConstInnerIterator() const {
@@ -567,18 +567,16 @@ class Graph {
       return std::pair<AttributePtr, bool>(AttributePtr(ret.first),true);
     }
 
-    inline std::pair<AttributeIterator, bool>
-        EraseAttribute(AttributeIterator& attribute_iterator){
+    inline AttributeIterator
+      EraseAttribute(AttributeIterator& attribute_iterator){
       void* const ptr = &attribute_iterator;
       /// <iterator of AttributeContainer, bool>
       auto ret = this->attributes_.Erase(static_cast<AttributeContentIterator*>(ptr)
                                                          ->ConstInnerIterator());
       if (!ret.second)
-        return std::pair<AttributeIterator, bool>
-                        (AttributeIterator(), false);
-      return std::pair<AttributeIterator, bool>
-                      (AttributeIterator(ret.first,
-                                         this->attributes_.end()), true);
+        return AttributeIterator();
+      return AttributeIterator(ret.first,
+                               this->attributes_.end());
     }
   };
 
