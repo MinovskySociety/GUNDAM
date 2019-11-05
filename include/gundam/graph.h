@@ -1,10 +1,10 @@
 #ifndef _GRAPH_H
 #define _GRAPH_H
 
-#include "gundam/graph_configure.h"
-#include "gundam/container.h"
-#include "gundam/iterator.h"
-#include "gundam/label.h"
+#include "graph_configure.h"
+#include "container.h"
+#include "iterator.h"
+#include "label.h"
 
 #include <map>
 
@@ -280,6 +280,8 @@ class Graph {
     }
   };
 
+  class InnerVertex_;
+
   using VertexAttributeType = WithAttribute_<
                                 VertexStaticAttributeType,
                                 vertex_attribute_is_const,
@@ -312,6 +314,18 @@ class Graph {
     using InnerIteratorType = InnerIterator_<ContainerType_,
                                                   is_const_,
                                                      depth_>;
+
+    friend std::pair<typename VertexAttributeType::AttributeIterator, bool>
+                              VertexAttributeType::EraseAttribute(
+                     typename VertexAttributeType::AttributeIterator& attribute_iterator);
+    friend std::pair<typename EdgeAttributeType::AttributeIterator, bool>
+                              EdgeAttributeType::EraseAttribute(
+                     typename EdgeAttributeType::AttributeIterator& attribute_iterator);
+
+    inline const typename InnerIteratorType::IteratorType&
+                     ConstInnerIterator() const {
+      return InnerIteratorType::ConstInnerIterator();
+    }
 
    protected:
     using InnerIteratorType::ToNext;
@@ -439,19 +453,20 @@ class Graph {
                                                     sort_type_>;
     AttributeContainerType attributes_;
 
+    using AttributeContentIterator
+        = AttributeContentIterator_<
+            KeyType_,
+            AttributeContainerType,
+            false,1,0,
+           kAttributeKeyIdx,
+           kAttributeValuePtrIdx>;
+
    public:
     using AttributePtr      = AttributePtr_<AttributeContainerType, false>;
     using AttributeConstPtr = AttributePtr_<AttributeContainerType, true >;
 
     using AttributeIterator
-                 = Iterator_<
-                     AttributeContentIterator_<
-                       KeyType_,
-                       AttributeContainerType,
-                       false,1,0,
-                      kAttributeKeyIdx,
-                      kAttributeValuePtrIdx>
-                      >;
+                 = Iterator_<AttributeContentIterator>;
     using AttributeConstIterator
                       = Iterator_<
                           AttributeContentIterator_<
@@ -552,12 +567,12 @@ class Graph {
       return std::pair<AttributePtr, bool>(AttributePtr(ret.first),true);
     }
 
-    template<typename ConcreteDataType>
     inline std::pair<AttributeIterator, bool>
-        EraseAttribute(const AttributeIterator& attribute_iterator){
+        EraseAttribute(AttributeIterator& attribute_iterator){
+      void* const ptr = &attribute_iterator;
       /// <iterator of AttributeContainer, bool>
-      auto ret = this->attributes_.Erase(attribute_iterator
-                                        .ConstInnerIterator());
+      auto ret = this->attributes_.Erase(static_cast<AttributeContentIterator*>(ptr)
+                                                         ->ConstInnerIterator());
       if (!ret.second)
         return std::pair<AttributeIterator, bool>
                         (AttributeIterator(), false);
@@ -586,8 +601,6 @@ class Graph {
                                                 ::AttributeConstIterator;
 
  private:
-  class InnerVertex_;
-
   template<typename              ContainerType_,
            bool                       is_const_,
            IteratorDepthType             depth_,

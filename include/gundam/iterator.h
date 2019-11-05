@@ -4,7 +4,7 @@
 #include "container.h"
 
 namespace GUNDAM {
-using IteratorDepthType = uint8_t;
+using IteratorDepthType = int8_t;
 
 template<typename  ContainerType_,
          bool           is_const_,
@@ -76,12 +76,20 @@ class InnerIterator_<Container<container_type_,
                                          KeyType_,
                                        ValueType_>;
   using  ElementType = typename ContainerType::ElementType;
+
+ protected:
   using IteratorType = typename    std::conditional<is_const_,
                        typename ContainerType::const_iterator,
                        typename ContainerType::      iterator>::type;
 
-        IteratorType  iterator_;
-  const IteratorType kIteratorEnd_;
+ private:
+  IteratorType  iterator_;
+  IteratorType kIteratorEnd_;
+
+ protected:
+  inline const IteratorType& ConstInnerIterator() const {
+    return this->iterator_;
+  }
 
  public:
   InnerIterator_():iterator_(),
@@ -158,17 +166,26 @@ class InnerIterator_<Container<container_type_,
                                          KeyType_,
                               InnerContainerType_>;
   using  ElementType = typename ContainerType::ElementType;
+
+ protected:
   using IteratorType = typename    std::conditional<is_const_,
                        typename ContainerType::const_iterator,
                        typename ContainerType::      iterator>::type;
+
+ private:
+  IteratorType  iterator_;
+  IteratorType kIteratorEnd_;
+
+ protected:
+  inline const IteratorType& ConstInnerIterator() const {
+    return this->iterator_;
+  }
 
   using InnerContainerType =  InnerContainerType_;
   using InnerIteratorType  = _InnerIterator_<
                               InnerContainerType_,
                                         is_const_,
                                            depth_, 2>;
-        IteratorType  iterator_;
-  const IteratorType kIteratorEnd_;
 
   template<bool judge = is_const_,
            typename std::enable_if<!judge,bool>::type = false>
