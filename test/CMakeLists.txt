@@ -13,6 +13,10 @@ add_executable (test1 "test1.cc")
 target_link_libraries(test1 GTest::GTest GTest::Main)
 add_test(AllTests test1)
 
+add_executable (test2 "test2.cc")
+target_link_libraries(test2 GTest::GTest GTest::Main)
+add_test(AllTests test2)
+
 add_executable (test_csvgraph "test_csvgraph.cc")
 target_link_libraries(test_csvgraph GTest::GTest GTest::Main)
 add_test(AllTests test_csvgraph)

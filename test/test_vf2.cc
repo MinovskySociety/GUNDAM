@@ -35,12 +35,13 @@ TEST(TestGUNDAM, VF2) {
   
    std::vector<std::map<VertexPtr,VertexPtr>> match_result;
    GUNDAM::VF2<GUNDAM::MatchSemantics::kIsomorphism>(
-       query,target,query_id,target_id,match_result,1
+       query,target,match_result
    );
    std::cout<<match_result.size()<<std::endl;
    if (!match_result.empty()){
-       std::cout<<"match:"<<std::endl;
        for (auto &it:match_result){
+           std::cout<<"match:"<<std::endl;
+           std::cout<<"query_id target_id:"<<std::endl;
            for (auto it1:it){
                std::cout<<it1.first->id()<<" "<<it1.second->id()<<std::endl;
            }
