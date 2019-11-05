@@ -1,10 +1,10 @@
 #ifndef _GRAPH_H
 #define _GRAPH_H
 
-#include "graph_configure.h"
-#include "container.h"
-#include "iterator.h"
-#include "label.h"
+#include "gundam/graph_configure.h"
+#include "gundam/container.h"
+#include "gundam/iterator.h"
+#include "gundam/label.h"
 
 #include <map>
 

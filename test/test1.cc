@@ -167,29 +167,37 @@ TEST(TestGUNDAM, GraphClass) {
   ASSERT_EQ(count, 3);
 
   // Attributes
-  ASSERT_TRUE(v1->add_attribute(5, std::string("abc")));
+  ASSERT_TRUE(v1->AddAttribute(5, std::string("abc")).second);
 
-  ASSERT_EQ(v1->attribute<std::string>(5), "abc");
+  auto v_attr = v1->FindAttributePtr(5);
+  ASSERT_FALSE(v_attr.IsNull());
+  ASSERT_EQ(v_attr->template value<std::string>(), "abc");
 
-  ASSERT_FALSE(v1->add_attribute<std::string>(5, "abcd"));
+  ASSERT_FALSE(v1->AddAttribute<std::string>(5, "abcd").second);
 
-  ASSERT_TRUE(v1->set_attribute<std::string>(5, "abcd"));
+  ASSERT_TRUE(v1->SetAttribute<std::string>(5, "abcd").second);
 
-  ASSERT_EQ(v1->const_attribute<std::string>(5), "abcd");
+  auto v_cattr = v1->FindConstAttributePtr(5);
+  ASSERT_FALSE(v_cattr.IsNull());
+  ASSERT_EQ(v_cattr->template const_value<std::string>(), "abcd");
 
-  ASSERT_FALSE(v1->set_attribute<std::string>(6, "abcde"));
+  ASSERT_FALSE(v1->SetAttribute<std::string>(6, "abcde").second);
 
-  ASSERT_TRUE(e1->add_attribute<std::string>(5, "abc"));
+  ASSERT_TRUE(e1->AddAttribute<std::string>(5, "abc").second);
 
-  ASSERT_EQ(e1->attribute<std::string>(5), "abc");
+   auto e_attr = e1->FindAttributePtr(5);
+  ASSERT_FALSE(e_attr.IsNull());
+  ASSERT_EQ(e_attr->template value<std::string>(), "abc");
 
-  ASSERT_FALSE(e1->add_attribute<std::string>(5, "abcd"));
+  ASSERT_FALSE(e1->template AddAttribute<std::string>(5, "abcd").second);
 
-  ASSERT_TRUE(e1->set_attribute<std::string>(5, "abcd"));
+  ASSERT_TRUE(e1->SetAttribute<std::string>(5, "abcd").second);
 
-  ASSERT_EQ(e1->const_attribute<std::string>(5), "abcd");
+  auto e_cattr = e1->FindConstAttributePtr(5);
+  ASSERT_FALSE(e_cattr.IsNull());
+  ASSERT_EQ(e_cattr->template const_value<std::string>(), "abcd");
 
-  ASSERT_FALSE(e1->set_attribute<std::string>(6, "abcde"));
+  ASSERT_FALSE(e1->SetAttribute<std::string>(6, "abcde").second);
 
   auto g2{g1};
 

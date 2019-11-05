@@ -99,8 +99,12 @@ int JoinAbleCheck(PatternVertexPtr query_vertex_ptr,
     if (!match_state.count(temp_vertex_ptr)) continue;
     DataGraphVertexPtr temp_target_vertex_ptr = match_state[temp_vertex_ptr];
     int find_target_flag = 0;
+	// test by wenzhi:
+    std::cout << it->label().to_string() << std::endl;
+    auto wenzhi_label = it->label();
+    auto wenzhi_it = target_vertex_ptr->InEdgeCBegin();
     for (auto bit = ((edge_state == EdgeState::kIn_)
-                         ? target_vertex_ptr->InEdgeCBegin(it->label())
+                         ? target_vertex_ptr-> InEdgeCBegin(it->label())
                          : target_vertex_ptr->OutEdgeCBegin(it->label()));
          !bit.IsDone(); bit++) {
       auto temp_id = (edge_state == EdgeState::kIn_)
