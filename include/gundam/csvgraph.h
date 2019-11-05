@@ -1,7 +1,8 @@
+
 #ifndef _CSVGRAPH_H
 #define _CSVGRAPH_H
 
-#include "gundam/graph.h"
+#include "graph.h"
 
 #include <iostream>
 #include <sstream>
@@ -51,7 +52,7 @@ ReturnType ReadCSVGraph(GraphType<configures...>& graph, char* v_file,
     graph.AddEdge(from_id[i], to_id[i], EdgeLabelType(edge_label[i]),
                   edge_id[i]);
   }
-  return E_OK;
+  return 1;
 }
 
 template <template <typename...> class GraphType, typename... configures>
@@ -59,25 +60,24 @@ ReturnType OutputGraph(const GraphType<configures...>& graph) {
   using VertexType = typename GraphType<configures...>::VertexType;
   using EdgeType = typename GraphType<configures...>::EdgeType;
   using VertexIDType = typename VertexType::IDType;
-  using VertexAttributeType = typename VertexType::AttributeType;
   using VertexLabelType = typename VertexType::LabelType;
   using VertexLabelUnderlieType = typename VertexType::LabelType::UnderlieType;
   using EdgeLabelType = typename EdgeType::LabelType;
   using EdgeLabelUnderlieType = typename EdgeType::LabelType::UnderlieType;
   using VertexPtr = const VertexType*;
   std::cout << "node label:\n";
-  for (auto it = graph.VertexBegin; !it.IsDone(); it++) {
+  for (auto it = graph.VertexCBegin(); !it.IsDone(); it++) {
     std::cout << it->id() << " " << it->label().to_string() << std::endl;
   }
   std::cout << "src_id dst_id edge_label:\n";
-  for (auto it = graph.VertexBegin(); !it.IsDone(); it++) {
-    for (auto edge_it = graph.FindVertex(it->id())->edge_cbegin();
+  for (auto it = graph.VertexCBegin(); !it.IsDone(); it++) {
+    for (auto edge_it = graph.FindConstVertex(it->id())->OutEdgeCBegin();
          !edge_it.IsDone(); edge_it++) {
-      std::cout << edge_it->src_id() << " " << edge_it->dst_id() << " "
+      std::cout << edge_it->const_src_ptr()->id() << " " << edge_it->const_dst_ptr()->id() << " "
                 << edge_it->label().to_string() << std::endl;
     }
   }
-  return E_OK;
+  return 1;
 }
 }  // namespace GUNDAM
 
