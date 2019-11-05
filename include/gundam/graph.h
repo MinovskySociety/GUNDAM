@@ -570,13 +570,10 @@ class Graph {
     inline AttributeIterator
       EraseAttribute(AttributeIterator& attribute_iterator){
       void* const ptr = &attribute_iterator;
-      /// <iterator of AttributeContainer, bool>
-      auto ret = this->attributes_.Erase(static_cast<AttributeContentIterator*>(ptr)
-                                                         ->ConstInnerIterator());
-      if (!ret.second)
-        return AttributeIterator();
-      return AttributeIterator(ret.first,
-                               this->attributes_.end());
+      /// iterator of AttributeContainer
+      auto it = this->attributes_.Erase(static_cast<AttributeContentIterator*>(ptr)
+                                                        ->ConstInnerIterator());
+      return AttributeIterator(it,this->attributes_.end());
     }
   };
 

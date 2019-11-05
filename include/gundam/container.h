@@ -122,13 +122,13 @@ class Container<ContainerType::Vector,
     return std::pair<iterator, bool>(this->container_.end(), false);
   }
 
-  inline std::pair<iterator, bool> Erase(const iterator& it) {
+  inline iterator Erase(const iterator& it) {
     if (sort_type_ == SortType::None) {
-      return std::pair<iterator, bool>(this->container_.erase(it), true);
+      return this->container_.erase(it);
     }
     /// other sorting type are not implemented
     assert(false);
-    return std::pair<iterator, bool>(this->container_.end(), false);
+    return this->container_.end();
   }
 
   inline std::pair<iterator, bool> Find(const KeyType& key) {
