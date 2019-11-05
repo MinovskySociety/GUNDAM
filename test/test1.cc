@@ -1,4 +1,4 @@
-#include "gundam/graph.h"
+#include "GUNDAM/graph.h"
 
 #include <iostream>
 #include <string>
@@ -10,7 +10,7 @@ TEST(TestGUNDAM, GoogleTest) { ASSERT_TRUE(true); }
 TEST(TestGUNDAM, GraphClass) {
   using namespace GUNDAM;
 
-  Graph<> g;  
+  Graph<> g;
   Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<Label<std::string>>,
         SetEdgeIDType<uint64_t>, SetEdgeLabelType<Label<std::string>>,
         SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
@@ -164,11 +164,11 @@ TEST(TestGUNDAM, GraphClass) {
   for (auto e_in_it = v1->InEdgeCBegin(); !e_in_it.IsDone(); ++e_in_it) {
     ++count;
   }
-  ASSERT_EQ(count, 3);  
+  ASSERT_EQ(count, 3);
 
   // Attributes
-  ASSERT_TRUE(v1->add_attribute<std::string>(5, "abc"));  
-  
+  ASSERT_TRUE(v1->add_attribute(5, std::string("abc")));
+
   ASSERT_EQ(v1->attribute<std::string>(5), "abc");
 
   ASSERT_FALSE(v1->add_attribute<std::string>(5, "abcd"));
@@ -177,7 +177,7 @@ TEST(TestGUNDAM, GraphClass) {
 
   ASSERT_EQ(v1->const_attribute<std::string>(5), "abcd");
 
-  ASSERT_FALSE(v1->set_attribute<std::string>(6, "abcde"));  
+  ASSERT_FALSE(v1->set_attribute<std::string>(6, "abcde"));
 
   ASSERT_TRUE(e1->add_attribute<std::string>(5, "abc"));
 
@@ -189,7 +189,9 @@ TEST(TestGUNDAM, GraphClass) {
 
   ASSERT_EQ(e1->const_attribute<std::string>(5), "abcd");
 
-  ASSERT_FALSE(e1->set_attribute<std::string>(6, "abcde"));  
+  ASSERT_FALSE(e1->set_attribute<std::string>(6, "abcde"));
+
+  auto g2{g1};
 
   ASSERT_TRUE(true);
 }

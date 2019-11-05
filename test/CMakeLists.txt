@@ -10,15 +10,17 @@ include(GoogleTest)
 include_directories(${GTEST_INCLUDE_DIRS})
 
 add_executable (test1 "test1.cc")
-
-#target_link_libraries(test1 PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
 target_link_libraries(test1 GTest::GTest GTest::Main)
-
 add_test(AllTests test1)
 
 add_executable (test2 "test2.cc")
-
-#target_link_libraries(test1 PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
 target_link_libraries(test2 GTest::GTest GTest::Main)
-
 add_test(AllTests test2)
+
+add_executable (test_csvgraph "test_csvgraph.cc")
+target_link_libraries(test_csvgraph GTest::GTest GTest::Main)
+add_test(AllTests test_csvgraph)
+
+add_executable (test_vf2 "test_vf2.cc")
+target_link_libraries(test_vf2 GTest::GTest GTest::Main)
+add_test(AllTests test_vf2)

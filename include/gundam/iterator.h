@@ -29,12 +29,14 @@ class Iterator_ : protected ContentIterator_{
   template<bool judge = ContentIterator_::kIsConst_,
            typename std::enable_if<!judge,bool>::type = false>
   inline ContentPtr operator->(){
+    assert(!this->IsDone());
     return ContentIterator_::content_ptr();
   }
 
   template<bool judge = ContentIterator_::kIsConst_,
            typename std::enable_if<judge,bool>::type = false>
   inline ContentPtr operator->() const{
+    assert(!this->IsDone());
     return ContentIterator_::content_ptr();
   }
 
@@ -47,7 +49,7 @@ class Iterator_ : protected ContentIterator_{
   inline Iterator_ operator++(int){
     /// postfix
     assert(!this->IsDone());
-    Iterator_ temp(*this);    
+    Iterator_ temp(*this);
     //++(*this);
     ContentIterator_::ToNext();
     return temp;
