@@ -317,10 +317,10 @@ class Graph {
 
     friend typename VertexAttributeType::AttributeIterator
                     VertexAttributeType::EraseAttribute(
-           typename VertexAttributeType::AttributeIterator& attribute_iterator);
+     const typename VertexAttributeType::AttributeIterator& attribute_iterator);
     friend typename EdgeAttributeType::AttributeIterator
                     EdgeAttributeType::EraseAttribute(
-           typename EdgeAttributeType::AttributeIterator& attribute_iterator);
+     const typename EdgeAttributeType::AttributeIterator& attribute_iterator);
 
     inline const typename InnerIteratorType::IteratorType&
                      ConstInnerIterator() const {
@@ -568,10 +568,10 @@ class Graph {
     }
 
     inline AttributeIterator
-      EraseAttribute(AttributeIterator& attribute_iterator){
-      void* const ptr = &attribute_iterator;
+      EraseAttribute(const AttributeIterator& attribute_iterator){
+      const void* const ptr = &attribute_iterator;
       /// iterator of AttributeContainer
-      auto it = this->attributes_.Erase(static_cast<AttributeContentIterator*>(ptr)
+      auto it = this->attributes_.Erase(static_cast<const AttributeContentIterator*>(ptr)
                                                         ->ConstInnerIterator());
       return AttributeIterator(it,this->attributes_.end());
     }
