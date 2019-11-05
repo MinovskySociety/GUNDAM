@@ -204,7 +204,7 @@ class Graph {
     template<typename ConcreteDataType>
     inline const ConcreteDataType& const_value() const {
       assert(!this->is_null_);
-      return static_cast<ConcreteValue<ConcreteDataType>*>(
+      return static_cast<const ConcreteValue<ConcreteDataType>*>(
               std::get<kAttributeValuePtrIdx>(*(this->iterator_))
              )->const_value();
     }
@@ -296,6 +296,74 @@ class Graph {
                                 edge_attribute_container_type,
                                 edge_attribute_container_sort_type>;
 
+  /// these ContentIterator classes are transparent to programmers
+  template<typename                KeyType_,
+           typename          ContainerType_,
+           bool                   is_const_,
+           IteratorDepthType         depth_,
+           IteratorDepthType   begin_depth_,
+           TupleIdxType            key_idx_,
+           TupleIdxType      value_ptr_idx_>
+  class AttributeContentIterator_
+       : protected InnerIterator_<ContainerType_,
+                                       is_const_,
+                                          depth_>{
+   private:
+    using InnerIteratorType = InnerIterator_<ContainerType_,
+                                                  is_const_,
+                                                     depth_>;
+
+   protected:
+    using InnerIteratorType::ToNext;
+    using InnerIteratorType::IsDone;
+    using ContentPtr = typename std::conditional<is_const_,
+                           const AttributeContentIterator_*,
+                                 AttributeContentIterator_*>::type;
+    static constexpr bool kIsConst_ = is_const_;
+
+    template<bool judge = is_const_,
+             typename std::enable_if<!judge, bool>::type = false>
+    inline ContentPtr content_ptr(){
+      ContentPtr const temp_this_ptr = this;
+      return temp_this_ptr;
+    }
+
+    template<bool judge = is_const_,
+             typename std::enable_if<judge, bool>::type = false>
+    inline ContentPtr content_ptr() const{
+      ContentPtr const temp_this_ptr = this;
+      return temp_this_ptr;
+    }
+
+   public:
+    using InnerIteratorType::InnerIteratorType;
+
+    inline const KeyType_& key() const {
+      assert(!this->IsDone());
+      return InnerIteratorType::template get_const<KeyType_,
+                                                   key_idx_,
+                                               begin_depth_>();
+    }
+    template<typename ConcreteDataType>
+    inline const ConcreteDataType& const_value() const {
+      assert(!this->IsDone());
+      return static_cast<ConcreteValue<const ConcreteDataType>*>(
+               InnerIteratorType::template get_const<AbstractValue*,
+                                                     value_ptr_idx_,
+                                                       begin_depth_>()
+             )->const_value();
+    }
+    template<typename ConcreteDataType>
+    inline ConcreteDataType& value() {
+      assert(!this->IsDone());
+      return static_cast<ConcreteValue<ConcreteDataType>*>(
+                     InnerIteratorType::template get<AbstractValue*,
+                                                     value_ptr_idx_,
+                                                       begin_depth_>()
+             )->value();
+    }
+  };
+
   /// non-dynamic attribute
   template<typename AttributeType_,
            bool     is_const_,
@@ -375,6 +443,24 @@ class Graph {
     using AttributePtr      = AttributePtr_<AttributeContainerType, false>;
     using AttributeConstPtr = AttributePtr_<AttributeContainerType, true >;
 
+    using AttributeIterator
+                 = Iterator_<
+                     AttributeContentIterator_<
+                       KeyType_,
+                       AttributeContainerType,
+                       false,1,0,
+                      kAttributeKeyIdx,
+                      kAttributeValuePtrIdx>
+                      >;
+    using AttributeConstIterator
+                      = Iterator_<
+                          AttributeContentIterator_<
+                            KeyType_,
+                            AttributeContainerType,
+                            true,1,0,
+                           kAttributeKeyIdx,
+                           kAttributeValuePtrIdx>>;
+
     WithAttribute_():attributes_(){
       return;
     }
@@ -385,15 +471,15 @@ class Graph {
       return;
     }
 
-//    inline AttributeIterator AttributeBegin(){
-//      return AttributeIterator(this->attributes_.begin(),
-//                               this->attributes_.end());
-//    }
-//
-//    inline AttributeConstIterator AttributeCBegin() const{
-//      return AttributeConstIterator(this->attributes_.cbegin(),
-//                                    this->attributes_.cend());
-//    }
+    inline AttributeIterator AttributeBegin(){
+      return AttributeIterator(this->attributes_.begin(),
+                               this->attributes_.end());
+    }
+
+    inline AttributeConstIterator AttributeCBegin() const{
+      return AttributeConstIterator(this->attributes_.cbegin(),
+                                    this->attributes_.cend());
+    }
 
     inline AttributePtr FindAttributePtr(const KeyType_& key){
       /// <iterator of attribute container, bool>
@@ -440,8 +526,9 @@ class Graph {
         /// not find that attribute key in the container
         return std::pair<AttributePtr, bool>(AttributePtr(),false);
       }
-      std::get<kAttributeValuePtrIdx>(*(ret.first))
-        = new ConcreteValue<ConcreteDataType>(value);
+      static_cast<ConcreteValue<
+                   ConcreteDataType>*>
+      (std::get<kAttributeValuePtrIdx>(*(ret.first)))->set_value(value);
       return std::pair<AttributePtr, bool>(AttributePtr(ret.first),true);
     }
 
@@ -472,47 +559,26 @@ class Graph {
 //    }
   };
 
-  class InnerVertex_;
+ public:
+  using VertexAttributePtr           = typename VertexAttributeType
+                                                    ::AttributePtr;
+  using VertexAttributeConstPtr      = typename VertexAttributeType
+                                                    ::AttributeConstPtr;
+  using VertexAttributeIterator      = typename VertexAttributeType
+                                                    ::AttributeIterator;
+  using VertexAttributeConstIterator = typename VertexAttributeType
+                                                    ::AttributeConstIterator;
+  using EdgeAttributePtr           = typename EdgeAttributeType
+                                                ::AttributePtr;
+  using EdgeAttributeConstPtr      = typename EdgeAttributeType
+                                                ::AttributeConstPtr;
+  using EdgeAttributeIterator      = typename EdgeAttributeType
+                                                ::AttributeIterator;
+  using EdgeAttributeConstIterator = typename EdgeAttributeType
+                                                ::AttributeConstIterator;
 
-  /// these ContentIterator classes are transparent to programmers
-//  template<typename              ContainerType_,
-//           bool                       is_const_,
-//           IteratorDepthType             depth_,
-//           IteratorDepthType       begin_depth_,
-//           TupleIdxType edge_attribute_ptr_idx_>
-//  class AttributeContentIterator_
-//       : protected InnerIterator_<ContainerType_,
-//                                       is_const_,
-//                                          depth_>{
-//   private:
-//    using InnerIteratorType = InnerIterator_<ContainerType_,
-//                                                  is_const_,
-//                                                     depth_>;
-//
-//   protected:
-//    using InnerIteratorType::ToNext;
-//    using InnerIteratorType::IsDone;
-//    using ContentPtr = typename std::conditional<is_const_,
-//                                const EdgeContentIterator_*,
-//                                      EdgeContentIterator_*>::type;
-//    static constexpr bool kIsConst_ = is_const_;
-//
-//    template<bool judge = is_const_,
-//             typename std::enable_if<!judge, bool>::type = false>
-//    inline ContentPtr content_ptr(){
-//      ContentPtr const temp_this_ptr = this;
-//      return temp_this_ptr;
-//    }
-//
-//    template<bool judge = is_const_,
-//             typename std::enable_if<judge, bool>::type = false>
-//    inline ContentPtr content_ptr() const{
-//      ContentPtr const temp_this_ptr = this;
-//      return temp_this_ptr;
-//    }
-//
-//   public:
-//  };
+ private:
+  class InnerVertex_;
 
   template<typename              ContainerType_,
            bool                       is_const_,
@@ -540,18 +606,28 @@ class Graph {
     VertexPtrType vertex_ptr_;
 
     inline EdgeAttributeType& attribute(){
+      assert(!this->IsDone());
+      return *(InnerIteratorType::template get<EdgeAttributeType*,
+                                          edge_attribute_ptr_idx_,
+                                                     begin_depth_ + 2>());
+    }
+
+    inline const EdgeAttributeType& const_attribute() const{
+      assert(!this->IsDone());
       return *(InnerIteratorType::template get<EdgeAttributeType*,
                                           edge_attribute_ptr_idx_,
                                                      begin_depth_ + 2>());
     }
 
     inline VertexPtrType& VertexPtrContainerElement(){
+      assert(!this->IsDone());
       return InnerIteratorType::template get<VertexPtr,
                                           dst_ptr_idx_,
                                           begin_depth_ + 1>();
     }
 
     inline VertexConstPtr VertexPtrContainerConstElement() const{
+      assert(!this->IsDone());
       VertexPtr temp_vertex_ptr =
         InnerIteratorType::template get_const<VertexPtr,
                                             dst_ptr_idx_,
@@ -570,12 +646,14 @@ class Graph {
     template<bool judge = is_const_,
              typename std::enable_if<!judge, bool>::type = false>
     inline ContentPtr content_ptr(){
+      assert(!this->IsDone());
       ContentPtr const temp_this_ptr = this;
       return temp_this_ptr;
     }
     template<bool judge = is_const_,
              typename std::enable_if<judge, bool>::type = false>
     inline ContentPtr content_ptr() const{
+      assert(!this->IsDone());
       ContentPtr const temp_this_ptr = this;
       return temp_this_ptr;
     }
@@ -594,56 +672,75 @@ class Graph {
       return;
     }
     inline VertexPtrType& src_ptr(){
+      assert(!this->IsDone());
       if (this->direction_ == EdgeDirection::OutputEdge)
         return this->vertex_ptr_;
       return this->VertexPtrContainerElement();
     }
     inline VertexPtrType& dst_ptr(){
+      assert(!this->IsDone());
       if (this->direction_ == EdgeDirection::OutputEdge)
         return this->VertexPtrContainerElement();
       return this->vertex_ptr_;
     }
     inline const VertexConstPtr const_src_ptr() const{
+      assert(!this->IsDone());
       if (this->direction_ == EdgeDirection::OutputEdge)
         return this->vertex_ptr_;
       return this->VertexPtrContainerConstElement();
     }
     inline const VertexConstPtr const_dst_ptr() const{
+      assert(!this->IsDone());
       if (this->direction_ == EdgeDirection::OutputEdge)
         return this->VertexPtrContainerConstElement();
       return this->vertex_ptr_;
     }
     inline const EdgeLabelType& label() const{
+      assert(!this->IsDone());
       return InnerIteratorType::template get_const<EdgeLabelType,
                                                  edge_label_idx_,
                                                     begin_depth_>();
     }
     inline const EdgeIDType& id() const{
+      assert(!this->IsDone());
       return InnerIteratorType::template get_const<EdgeIDType,
                                                  edge_id_idx_,
                                                  begin_depth_ + 2>();
     }
-    template <typename ConcreteDataType>
-    inline const ConcreteDataType& const_attribute(
-        const EdgeAttributeKeyType& key) const {
-      return this->attribute().template const_attribute<ConcreteDataType>(key);
+
+    inline EdgeAttributeIterator AttributeBegin(){
+      assert(!this->IsDone());
+      return this->attribute().AttributeBegin();
     }
-    template <typename ConcreteDataType>
-    inline bool add_attribute(const EdgeAttributeKeyType& key,
-                              const ConcreteDataType& value) {
-      return this->attribute().template add_attribute(key, value);
+    inline EdgeAttributeConstIterator AttributeCBegin() const{
+      assert(!this->IsDone());
+      return this->const_attribute().AttributeCBegin();
     }
-    template <typename ConcreteDataType>
-    inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key) {
-      return this->attribute().template attribute<ConcreteDataType>(key);
+    inline EdgeAttributePtr FindAttributePtr(
+                      const EdgeAttributeKeyType& key){
+      assert(!this->IsDone());
+      return this->attribute().FindAttributePtr(key);
     }
-    template <typename ConcreteDataType>
-    inline bool set_attribute(const EdgeAttributeKeyType& key,
-                              const     ConcreteDataType& value){
-      return this->attribute().set_attribute(key,value);
+    inline EdgeAttributeConstPtr FindConstAttributePtr(
+                                const EdgeAttributeKeyType& key) const {
+      assert(!this->IsDone());
+      return this->const_attribute().FindConstAttributePtr(key);
     }
-    inline bool remove_attribute(const EdgeAttributeKeyType& key){
-      return this->attribute().remove_attribute(key);
+
+    template<typename ConcreteDataType>
+    inline std::pair<EdgeAttributePtr, bool>
+      AddAttribute(const EdgeAttributeKeyType& key,
+                   const     ConcreteDataType& value){
+      assert(!this->IsDone());
+      return this->attribute().AddAttribute(key, value);
+    }
+
+    template<typename ConcreteDataType>
+    inline std::pair<EdgeAttributePtr, bool>
+      SetAttribute(const EdgeAttributeKeyType& key,
+                   const     ConcreteDataType& value){
+      assert(!this->IsDone());
+      return this->attribute().SetAttribute(key, value);
     }
   };
 
@@ -687,12 +784,14 @@ class Graph {
     template<bool judge = is_const_,
              typename std::enable_if<!judge, bool>::type = false>
     inline ContentPtr content_ptr(){
+      assert(!this->IsDone());
       ContentPtr const temp_this_ptr = this;
       return temp_this_ptr;
     }
     template<bool judge = is_const_,
              typename std::enable_if<judge, bool>::type = false>
     inline ContentPtr content_ptr() const{
+      assert(!this->IsDone());
       ContentPtr const temp_this_ptr = this;
       return temp_this_ptr;
     }
@@ -709,6 +808,7 @@ class Graph {
       return;
     }
     inline const EdgeLabelType& label() const {
+      assert(!this->IsDone());
       return this->edge_label_;
     }
   };
@@ -741,6 +841,7 @@ class Graph {
     template<bool judge = is_const_,
              typename std::enable_if<!judge, bool>::type = false>
     inline ContentPtr& content_ptr(){
+      assert(!this->IsDone());
       return InnerIteratorType::template get<ContentPtr,
                                         vertex_ptr_idx_,
                                                  depth_ - 1>();
@@ -749,6 +850,7 @@ class Graph {
     template<bool judge = is_const_,
              typename std::enable_if<judge, bool>::type = false>
     inline ContentPtr content_ptr() const{
+      assert(!this->IsDone());
       auto temp_vertex_ptr
             = InnerIteratorType::template get_const<VertexPtr,
                                               vertex_ptr_idx_,
@@ -782,6 +884,7 @@ class Graph {
     template<bool judge = is_const_,
              typename std::enable_if<!judge, bool>::type = false>
     inline ContentPtr content_ptr(){
+      assert(!this->IsDone());
       ContentPtr const temp_this_ptr = this;
       return this;
     }
@@ -789,12 +892,14 @@ class Graph {
     template<bool judge = is_const_,
              typename std::enable_if<judge, bool>::type = false>
     inline ContentPtr content_ptr() const{
+      assert(!this->IsDone());
       ContentPtr const temp_this_ptr = this;
       return temp_this_ptr;
     }
 
    public:
     inline const EdgeLabelType& label() const{
+      assert(!this->IsDone());
       return InnerIteratorType::template get_const<EdgeLabelType,
                                                  edge_label_idx_,
                                                           depth_ - 1>();
@@ -1997,17 +2102,11 @@ class Graph {
                              vertex_has_dynamic_attribute,
                              VertexAttributeKeyType>;
     /// non-constant pointer
-    using   EdgePtr          = typename     InnerVertexType::     EdgePtr;
-    using VertexPtr          = typename     InnerVertexType::   VertexPtr;
-    using   EdgeAttributePtr = typename   EdgeAttributeType::AttributePtr;
-    using VertexAttributePtr = typename VertexAttributeType::AttributePtr;
+    using   EdgePtr = typename InnerVertexType::  EdgePtr;
+    using VertexPtr = typename InnerVertexType::VertexPtr;
     /// constant pointer
     using   EdgeConstPtr = typename InnerVertexType::  EdgeConstPtr;
     using VertexConstPtr = typename InnerVertexType::VertexConstPtr;
-    using   EdgeAttributeConstPtr = typename   EdgeAttributeType
-                                                 ::AttributeConstPtr;
-    using VertexAttributeConstPtr = typename VertexAttributeType
-                                                 ::AttributeConstPtr;
 
    private:
     static constexpr TupleIdxType kVertexIDIdx  = 0;
