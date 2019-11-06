@@ -846,15 +846,17 @@ class Graph {
     : protected InnerIterator_<ContainerType_,
                                     is_const_,
                                        depth_>{
-   private:
+   private:/*
     template<typename        _ContainerType_,
            IteratorDepthType         _depth_,
            TupleIdxType     _vertex_ptr_idx_>
-    friend inline void InnerVertex_::template VertexPtr_<is_const_>::Construct(
+    friend void InnerVertex_::template VertexPtr_<is_const_>::Construct(
       const Iterator_<VertexContentIterator_<_ContainerType_,
                                                    is_const_,
                                                      _depth_,
-                                            _vertex_ptr_idx_>>& vertex_ptr_iterator);
+                                            _vertex_ptr_idx_>>& vertex_ptr_iterator);*/
+
+    friend typename InnerVertex_::template VertexPtr_<is_const_>;
 
     using VertexPtr      = typename InnerVertex_::VertexPtr;
     using VertexConstPtr = typename InnerVertex_::VertexConstPtr;
@@ -1075,14 +1077,15 @@ class Graph {
                                                     _depth_,
                                            _vertex_ptr_idx_>>;
 
-      template<typename           _ContainerType_,
-               IteratorDepthType          _depth_,
-               TupleIdxType      _vertex_ptr_idx_>
-      inline void Construct(const FriendVertexIterator<
-                                          _ContainerType_,
-                                                  _depth_,
-                                         _vertex_ptr_idx_>&
-                                          vertex_ptr_iterator){
+	  template<typename     _ContainerType_,
+		  IteratorDepthType         _depth_,
+		  TupleIdxType     _vertex_ptr_idx_>
+	  inline void Construct(
+			const Iterator_<VertexContentIterator_<_ContainerType_,
+													     is_const_,
+														   _depth_,
+												  _vertex_ptr_idx_>>& 
+												   vertex_ptr_iterator) {
         const void* const ptr = &vertex_ptr_iterator;
         this->ptr_ = (static_cast<const FriendVertexContentIterator<
                                                       _ContainerType_,
@@ -2580,4 +2583,4 @@ class Graph {
   };
 }  // namespace GUNDAM
 
-#endif  // _GRAPH_HPP
+#endif  // _GRAPH_H

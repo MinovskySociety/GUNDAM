@@ -47,14 +47,10 @@ int InitCandidateSet(
   using DataGraphVertexPtr = typename DataGraphType::VertexConstPtr;
   for (auto query_it = query_graph.VertexCBegin(); !query_it.IsDone();
        query_it++) {
-    PatternVertexPtr query_ptr = query_graph.FindConstVertex(query_it->id());
-    for (auto target_it = target_graph.VertexCBegin(); !target_it.IsDone();
-         target_it++) {
-      if (!(query_it->label() == target_it->label())) {
-        continue;
-      }
-      DataGraphVertexPtr target_ptr =
-          target_graph.FindConstVertex(target_it->id());
+    PatternVertexPtr query_ptr = query_it;
+    for (auto target_it = target_graph.VertexCBegin(query_it->label()); 
+        !target_it.IsDone(); target_it++) {
+      DataGraphVertexPtr target_ptr = target_it;
       int query_in_count = 0, query_out_count = 0;
       int target_in_count = 0, target_out_count = 0;
       query_in_count = Degree<EdgeState::kIn_>(query_ptr);
@@ -189,7 +185,8 @@ int DetermineMatchOrder(
   }
   if (next_query_set.size()==0){
     for (auto bit = query_graph.VertexCBegin(); !bit.IsDone(); bit++){
-      next_query_set.insert(query_graph.FindConstVertex(bit->id()));
+      PatternVertexPtr query_it = bit;
+      next_query_set.insert(query_it);
     }
   }
   for (auto it : next_query_set) {
