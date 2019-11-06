@@ -108,18 +108,20 @@ class Container<ContainerType::Vector,
     return std::pair<iterator, bool>(this->container_.end(), false);
   }
 
-  inline std::pair<iterator, bool> Erase(const KeyType& key) {
+  inline bool Erase(const KeyType& key) {
     if (sort_type_ == SortType::None) {
       for (iterator it  = this->container_.begin();
                     it != this->container_. end ();++it){
-        if ((std::get<kKeyIdx>(*it)) == key)
-          return std::pair<iterator, bool>(this->container_.erase(it), true);
+        if ((std::get<kKeyIdx>(*it)) == key){
+          this->container_.erase(it);
+          return true;
+        }
       }
-      return std::pair<iterator, bool>(this->container_.end(), false);
+      return false;
     }
     /// other sorting type are not implemented
     assert(false);
-    return std::pair<iterator, bool>(this->container_.end(), false);
+    return false;
   }
 
   inline iterator Erase(const iterator& it) {

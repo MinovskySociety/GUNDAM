@@ -1,10 +1,10 @@
 #ifndef _GRAPH_H
 #define _GRAPH_H
 
-#include "gundam/graph_configure.h"
-#include "gundam/container.h"
-#include "gundam/iterator.h"
-#include "gundam/label.h"
+#include "graph_configure.h"
+#include "container.h"
+#include "iterator.h"
+#include "label.h"
 
 #include <map>
 
@@ -575,6 +575,10 @@ class Graph {
                                                         ->ConstInnerIterator());
       return AttributeIterator(it,this->attributes_.end());
     }
+
+    inline bool EraseAttribute(const KeyType_& key){
+      return this->attributes_.Erase(key);
+    }
   };
 
  public:
@@ -1084,7 +1088,7 @@ class Graph {
 			const Iterator_<VertexContentIterator_<_ContainerType_,
 													     is_const_,
 														   _depth_,
-												  _vertex_ptr_idx_>>& 
+												  _vertex_ptr_idx_>>&
 												   vertex_ptr_iterator) {
         const void* const ptr = &vertex_ptr_iterator;
         this->ptr_ = (static_cast<const FriendVertexContentIterator<
