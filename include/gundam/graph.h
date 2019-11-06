@@ -1807,6 +1807,14 @@ class Graph {
                                   const VertexIDType& dst_id) {
       return this->FindVertex(this->edges_.in_edges(), edge_label, dst_id);
     }
+    /// const in vertex:
+///    unimplemented:
+///    inline VertexConstPtr FindConstInVertex(const VertexPtr& dst_ptr) const;
+///    inline VertexConstPtr FindConstInVertex(const VertexIDType& dst_id ) const;
+///    inline VertexConstPtr FindConstInVertex(const EdgeLabelType& edge_label,
+///                                            const VertexPtr& dst_ptr) const;
+///    inline VertexConstPtr FindConstInVertex(const EdgeLabelType& edge_label,
+///                                            const VertexIDType& dst_id) const;
    private:
     inline typename VertexPtrContainerType::size_type
            CountVertex(const EdgeLabelContainerType& edge_label_container,
@@ -1827,6 +1835,12 @@ class Graph {
            CountInEdgeLabel() const{
       return this->edges_.const_in_edges().size();
     }
+
+///    unimplemented:
+///    inline typename VertexPtrContainerType::size_type
+///           CountOutVertex() const;
+///    inline typename VertexPtrContainerType::size_type
+///           CountInVertex() const;
     inline typename VertexPtrContainerType::size_type
            CountOutVertex(const EdgeLabelType& edge_label) const{
       return this->CountVertex(this->edges_.const_out_edges(),edge_label);
@@ -1835,6 +1849,29 @@ class Graph {
            CountInVertex(const EdgeLabelType& edge_label) const{
       return this->CountVertex(this->edges_.const_in_edges(),edge_label);
     }
+///    unimplemented:
+///    inline typename VertexPtrContainerType::size_type
+///           CountOutVertex(const   EdgeLabelType&   edge_label,
+///                          const VertexLabelType& vertex_label) const;
+///    inline typename VertexPtrContainerType::size_type
+///           CountInVertex(const   EdgeLabelType&   edge_label,
+///                         const VertexLabelType& vertex_label) const;
+
+///    unimplemented:
+///    inline typename DecomposedEdgeContainerType::size_type
+///           CountOutEdge() const;
+///    inline typename DecomposedEdgeContainerType::size_type
+///           CountInEdge() const;
+///    inline typename DecomposedEdgeContainerType::size_type
+///           CountOutEdge(const EdgeLabelType& edge_label) const;
+///    inline typename DecomposedEdgeContainerType::size_type
+///           CountInEdge(const EdgeLabelType& edge_label) const;
+///    inline typename DecomposedEdgeContainerType::size_type
+///           CountOutEdge(const   EdgeLabelType&   edge_label,
+///                        const VertexLabelType& vertex_label) const;
+///    inline typename DecomposedEdgeContainerType::size_type
+///           CountInEdge(const   EdgeLabelType&   edge_label,
+///                       const VertexLabelType& vertex_label) const;
 
    private:
     /// constant methods:
@@ -1990,6 +2027,13 @@ class Graph {
                             dst_ptr,
                             edge_id);
     }
+///    unimplemented:
+///    inline EdgeConstPtr FindConstOutEdge(const EdgeIDType& edge_id);
+///    inline EdgeConstPtr FindConstOutEdge(const EdgeLabelType& edge_label,
+///                                         const EdgeIDType& edge_id);
+///    inline EdgeConstPtr FindConstOutEdge(const EdgeLabelType& edge_label,
+///                                         const VertexPtr& dst_ptr,
+///                                         const EdgeIDType& edge_id);
     /// possible extension:
     ///     FindOutEdge(edge_label,dst_ptr)
     ///         when there are not duplicate edge
@@ -2018,6 +2062,13 @@ class Graph {
                             src_ptr,
                             edge_id);
     }
+///    unimplemented:
+///    inline EdgeConstPtr FindConstInEdge(const EdgeIDType& edge_id);
+///    inline EdgeConstPtr FindConstInEdge(const EdgeLabelType& edge_label,
+///                                        const EdgeIDType& edge_id);
+///    inline EdgeConstPtr FindConstInEdge(const EdgeLabelType& edge_label,
+///                                        const VertexPtr& dst_ptr,
+///                                        const EdgeIDType& edge_id);
     /// possible extension:
     ///     FindInEdge(edge_label,dst_ptr)
     ///         when there are not duplicate edge
@@ -2531,6 +2582,17 @@ class Graph {
     }
     return EdgePtr();
   }
+///  unimplemented:
+///  inline EdgeConstPtr FindConstEdge(
+///           const typename EdgeType::IDType& edge_id) const;
+///  inline EdgeConstPtr FindConstEdge(
+///           const typename EdgeType::   IDType& edge_id,
+///           const typename EdgeType::LabelType& edge_label) const;
+///  inline EdgeConstPtr FindConstEdge(
+///                const typename EdgeType::IDType& edge_id) const;
+///  inline EdgeConstPtr FindConstEdge(
+///                const typename EdgeType::   IDType& edge_id,
+///                const typename EdgeType::LabelType& edge_label) const;
 
   VertexSizeType CountVertex() const{
     VertexSizeType vertex_num = 0;
@@ -2600,6 +2662,11 @@ class Graph {
             std::get<kVertexIDContainerIdx>(*(ret.first)).cbegin(),
             std::get<kVertexIDContainerIdx>(*(ret.first)). cend ());
   }
+
+/// unimplemented:
+/// inline VertexIterator EraseVertex(const VertexIterator& iterator);
+/// inline VertexIteratorSpecifiedLabel
+///                       EraseVertex(const VertexIteratorSpecifiedLabel& iterator);
 };
 }  // namespace GUNDAM
 
