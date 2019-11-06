@@ -6,8 +6,6 @@
 #include "gundam/iterator.h"
 #include "gundam/label.h"
 
-#include <map>
-
 namespace GUNDAM {
 
 enum class EdgeDirection : bool{
@@ -2278,331 +2276,331 @@ class Graph {
     ///     InEdgeCBegin(edge_label,vertex_label)
   };
 
-    using InnerVertexType = InnerVertex_;
+  using InnerVertexType = InnerVertex_;
 
-   public:
-    using EdgeType = Type_<EdgeIDType,
-                           EdgeLabelType,
-                           edge_has_static_attribute,
-                           EdgeStaticAttributeType,
-                           edge_has_dynamic_attribute,
-                           EdgeAttributeKeyType>;
-    using VertexType = Type_<VertexIDType,
+ public:
+  using EdgeType = Type_<EdgeIDType,
+                         EdgeLabelType,
+                         edge_has_static_attribute,
+                         EdgeStaticAttributeType,
+                         edge_has_dynamic_attribute,
+                         EdgeAttributeKeyType>;
+  using VertexType = Type_<VertexIDType,
+                           VertexLabelType,
+                           vertex_has_static_attribute,
+                           VertexStaticAttributeType,
+                           vertex_has_dynamic_attribute,
+                           VertexAttributeKeyType>;
+  /// non-constant pointer
+  using   EdgePtr = typename InnerVertexType::  EdgePtr;
+  using VertexPtr = typename InnerVertexType::VertexPtr;
+  /// constant pointer
+  using   EdgeConstPtr = typename InnerVertexType::  EdgeConstPtr;
+  using VertexConstPtr = typename InnerVertexType::VertexConstPtr;
+
+ private:
+  static constexpr TupleIdxType kVertexIDIdx  = 0;
+  static constexpr TupleIdxType kVertexPtrIdx = 1;
+  using VertexIDContainerType
+              = Container<vertex_id_container_type,
+                          vertex_id_container_sort_type,
+                          VertexIDType,
+                          VertexPtr>;
+
+  static constexpr TupleIdxType kVertexLabelIdx       = 0;
+  static constexpr TupleIdxType kVertexIDContainerIdx = 1;
+  using VertexLabelContainerType
+                 = Container<vertex_label_container_type,
+                             vertex_label_container_sort_type,
                              VertexLabelType,
-                             vertex_has_static_attribute,
-                             VertexStaticAttributeType,
-                             vertex_has_dynamic_attribute,
-                             VertexAttributeKeyType>;
-    /// non-constant pointer
-    using   EdgePtr = typename InnerVertexType::  EdgePtr;
-    using VertexPtr = typename InnerVertexType::VertexPtr;
-    /// constant pointer
-    using   EdgeConstPtr = typename InnerVertexType::  EdgeConstPtr;
-    using VertexConstPtr = typename InnerVertexType::VertexConstPtr;
+                             VertexIDContainerType>;
+ public:
+  using VertexSizeType = typename VertexIDContainerType::size_type;
 
-   private:
-    static constexpr TupleIdxType kVertexIDIdx  = 0;
-    static constexpr TupleIdxType kVertexPtrIdx = 1;
-    using VertexIDContainerType
-                = Container<vertex_id_container_type,
-                            vertex_id_container_sort_type,
-                            VertexIDType,
-                            VertexPtr>;
+ private:
+  VertexLabelContainerType vertexes_;
 
-    static constexpr TupleIdxType kVertexLabelIdx       = 0;
-    static constexpr TupleIdxType kVertexIDContainerIdx = 1;
-    using VertexLabelContainerType
-                   = Container<vertex_label_container_type,
-                               vertex_label_container_sort_type,
-                               VertexLabelType,
-                               VertexIDContainerType>;
-   public:
-    using VertexSizeType = typename VertexIDContainerType::size_type;
-
-   private:
-    VertexLabelContainerType vertexes_;
-
-    inline void Deconstruct(){
-      for (auto& vertex_label_it : this->vertexes_){
-        for (auto& vertex_ptr_it : std::get<kVertexIDContainerIdx>
-                                                 (vertex_label_it)){
-          std::get<kVertexPtrIdx>(vertex_ptr_it).Release();
-        }
-        std::get<kVertexIDContainerIdx>(vertex_label_it).clear();
+  inline void Deconstruct(){
+    for (auto& vertex_label_it : this->vertexes_){
+      for (auto& vertex_ptr_it : std::get<kVertexIDContainerIdx>
+                                               (vertex_label_it)){
+        std::get<kVertexPtrIdx>(vertex_ptr_it).Release();
       }
-      this->vertexes_.clear();
-      return;
+      std::get<kVertexIDContainerIdx>(vertex_label_it).clear();
     }
+    this->vertexes_.clear();
+    return;
+  }
 
-    template<template <typename...> class GraphType_,
-             typename... configures_>
-    inline void CanConvertTo(const GraphType_<configures_...>& graph)const{
-      static_assert(std::is_base_of<Graph     <configures_...>,
-                                    GraphType_<configures_...>>::value,
-                   "Illegal input parameter, should be a graph");
-      using ConvertToGraphType = GraphType_<configures_...>;
-      static_assert(Graph::allow_duplicate_edge
-                  ||!ConvertToGraphType::allow_duplicate_edge,
-                  "Cannot convert from a graph allows duplicate edge\
-                   to a graph does not allow duplicate edge");
-      /// wenzhi ToDo:
-      ///     complete the checking process of the parameters,
-      ///     such as the above statement, if this graph type does
-      ///     not allow duplicate edges but the InputGraphType allows
-      ///     that, then this convert would be illegal
-      return;
-    }
+  template<template <typename...> class GraphType_,
+           typename... configures_>
+  inline void CanConvertTo(const GraphType_<configures_...>& graph)const{
+    static_assert(std::is_base_of<Graph     <configures_...>,
+                                  GraphType_<configures_...>>::value,
+                 "Illegal input parameter, should be a graph");
+    using ConvertToGraphType = GraphType_<configures_...>;
+    static_assert(Graph::allow_duplicate_edge
+                ||!ConvertToGraphType::allow_duplicate_edge,
+                "Cannot convert from a graph allows duplicate edge\
+                 to a graph does not allow duplicate edge");
+    /// wenzhi ToDo:
+    ///     complete the checking process of the parameters,
+    ///     such as the above statement, if this graph type does
+    ///     not allow duplicate edges but the InputGraphType allows
+    ///     that, then this convert would be illegal
+    return;
+  }
 
-    template<template <typename...> class GraphType_,
-             typename... configures_>
-    inline void Construct(const GraphType_<configures_...>& graph){
-      for (auto vit = graph.VertexCBegin();!vit.IsDone();vit++)
-        this->AddVertex(vit->id(),vit->label());
-      for (auto vit = graph.VertexCBegin();!vit.IsDone();vit++){
-        for (auto eit = vit->OutEdgeCBegin();
-                 !eit.IsDone();eit++){
-          this->AddEdge(eit->const_src_ptr()->id(),
-                        eit->const_dst_ptr()->id(),
-                        eit->label(),
-                        eit->id());
-        }
+  template<template <typename...> class GraphType_,
+           typename... configures_>
+  inline void Construct(const GraphType_<configures_...>& graph){
+    for (auto vit = graph.VertexCBegin();!vit.IsDone();vit++)
+      this->AddVertex(vit->id(),vit->label());
+    for (auto vit = graph.VertexCBegin();!vit.IsDone();vit++){
+      for (auto eit = vit->OutEdgeCBegin();
+               !eit.IsDone();eit++){
+        this->AddEdge(eit->const_src_ptr()->id(),
+                      eit->const_dst_ptr()->id(),
+                      eit->label(),
+                      eit->id());
       }
-      return;
     }
+    return;
+  }
 
-   public:
-    Graph() = default;
+ public:
+  Graph() = default;
 
-    ~Graph(){
-      this->Deconstruct();
-      return;
+  ~Graph(){
+    this->Deconstruct();
+    return;
+  }
+
+  Graph(const Graph& graph){
+    this->CanConvertTo(graph);
+    this->Construct(graph);
+    return;
+  }
+
+  Graph& operator =(const Graph& graph){
+    this->CanConvertTo(graph);
+    this->Deconstruct();
+    this->Construct(graph);
+    return *this;
+  }
+
+  inline void Clear(){
+    this->Deconstruct();
+    return;
+  }
+
+  inline std::pair<VertexPtr, bool>
+    AddVertex(const typename VertexType::IDType&    id,
+              const typename VertexType::LabelType& label){
+    const VertexPtr ret = this->FindVertex(id);
+    if (!ret.IsNull()) {
+      /// already exist
+      return std::pair<VertexPtr, bool>(ret, false);
     }
+    InnerVertex_* const temp_inner_vertex_ptr = new InnerVertex_(id, label);
+    VertexPtr temp_vertex_ptr(temp_inner_vertex_ptr);
+    /// vertex label iterator
+    auto vertex_label_it = this->vertexes_.Insert(label).first;
+    /// vertex ID iterator
+    auto vertex_id_it =
+        std::get<kVertexIDContainerIdx>(*vertex_label_it).Insert(id).first;
+    std::get<kVertexPtrIdx>(*vertex_id_it) = temp_vertex_ptr;
+    return std::pair<VertexPtr, bool>
+          (std::get<kVertexPtrIdx>(*vertex_id_it),true);
+  }
+  /// possible variant:
+  ///     AddVertex(id)
+  ///     AddVertex(id,label)
+  ///     AddVertex(id,label,attribute)
+  ///     AddVertex(id,label,attribute0,attribute1,...)
+  ///     AddVertex(id,attribute)
+  ///     AddVertex(id,attribute0,attribute1,...)
+  ///     ...
 
-    Graph(const Graph& graph){
-      this->CanConvertTo(graph);
-      this->Construct(graph);
-      return;
+  inline std::pair<EdgePtr, bool>
+    AddEdge(const typename VertexType::   IDType&  src_id,
+            const typename VertexType::   IDType&  dst_id,
+            const typename   EdgeType::LabelType& edge_label,
+            const typename   EdgeType::   IDType& edge_id){
+    VertexPtr src_ptr = this->FindVertex(src_id);
+    VertexPtr dst_ptr = this->FindVertex(dst_id);
+    if (src_ptr.IsNull() || dst_ptr.IsNull()){
+      /// the src vertex or the dst vertex does not exist
+      return std::pair<EdgePtr, bool>(EdgePtr(),false);
     }
-
-    Graph& operator =(const Graph& graph){
-      this->CanConvertTo(graph);
-      this->Deconstruct();
-      this->Construct(graph);
-      return *this;
-    }
-
-    inline void Clear(){
-      this->Deconstruct();
-      return;
-    }
-
-    inline std::pair<VertexPtr, bool>
-      AddVertex(const typename VertexType::IDType&    id,
-                const typename VertexType::LabelType& label){
-      const VertexPtr ret = this->FindVertex(id);
-      if (!ret.IsNull()) {
-        /// already exist
-        return std::pair<VertexPtr, bool>(ret, false);
+    for (auto vertex_ptr_it = this->VertexBegin();
+             !vertex_ptr_it.IsDone();
+            ++vertex_ptr_it){
+      EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
+      if (!edge_ptr.IsNull()){
+        /// the edge with this edge_id has already existed
+        return std::pair<EdgePtr, bool>(edge_ptr,false);
       }
-      InnerVertex_* const temp_inner_vertex_ptr = new InnerVertex_(id, label);
-      VertexPtr temp_vertex_ptr(temp_inner_vertex_ptr);
-      /// vertex label iterator
-      auto vertex_label_it = this->vertexes_.Insert(label).first;
-      /// vertex ID iterator
-      auto vertex_id_it =
-          std::get<kVertexIDContainerIdx>(*vertex_label_it).Insert(id).first;
-      std::get<kVertexPtrIdx>(*vertex_id_it) = temp_vertex_ptr;
-      return std::pair<VertexPtr, bool>
-            (std::get<kVertexPtrIdx>(*vertex_id_it),true);
     }
-    /// possible variant:
-    ///     AddVertex(id)
-    ///     AddVertex(id,label)
-    ///     AddVertex(id,label,attribute)
-    ///     AddVertex(id,label,attribute0,attribute1,...)
-    ///     AddVertex(id,attribute)
-    ///     AddVertex(id,attribute0,attribute1,...)
-    ///     ...
+    /// assume that the duplicate edge is allowed
+    return src_ptr->AddEdge(dst_ptr,
+                            edge_label,
+                            edge_id);
+  }
+  /// possible variant:
+  ///     AddEdge(src_id,dst_id)
+  ///     AddEdge(src_id,dst_id,edge_label)
+  ///     AddEdge(src_id,dst_id,edge_label,edge_id)
+  ///     AddEdge(src_id,dst_id,edge_label,edge_id,edge_attribute)
+  ///     ...
 
-    inline std::pair<EdgePtr, bool>
-      AddEdge(const typename VertexType::   IDType&  src_id,
-              const typename VertexType::   IDType&  dst_id,
-              const typename   EdgeType::LabelType& edge_label,
-              const typename   EdgeType::   IDType& edge_id){
-      VertexPtr src_ptr = this->FindVertex(src_id);
-      VertexPtr dst_ptr = this->FindVertex(dst_id);
-      if (src_ptr.IsNull() || dst_ptr.IsNull()){
-        /// the src vertex or the dst vertex does not exist
-        return std::pair<EdgePtr, bool>(EdgePtr(),false);
+  inline VertexPtr FindVertex(const typename VertexType::IDType& id){
+    for (auto& vertex_label_it : this->vertexes_){
+      /// <iterator of ID container, bool>
+      auto ret = std::get<kVertexIDContainerIdx>(vertex_label_it).Find(id);
+      if (ret.second){
+        /// found it
+        return std::get<kVertexPtrIdx>(*(ret.first));
       }
-      for (auto vertex_ptr_it = this->VertexBegin();
-               !vertex_ptr_it.IsDone();
-              ++vertex_ptr_it){
-        EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
-        if (!edge_ptr.IsNull()){
-          /// the edge with this edge_id has already existed
-          return std::pair<EdgePtr, bool>(edge_ptr,false);
-        }
-      }
-      /// assume that the duplicate edge is allowed
-      return src_ptr->AddEdge(dst_ptr,
-                              edge_label,
-                              edge_id);
     }
-    /// possible variant:
-    ///     AddEdge(src_id,dst_id)
-    ///     AddEdge(src_id,dst_id,edge_label)
-    ///     AddEdge(src_id,dst_id,edge_label,edge_id)
-    ///     AddEdge(src_id,dst_id,edge_label,edge_id,edge_attribute)
-    ///     ...
+    /// not found
+    return VertexPtr();
+  }
 
-    inline VertexPtr FindVertex(const typename VertexType::IDType& id){
-      for (auto& vertex_label_it : this->vertexes_){
-        /// <iterator of ID container, bool>
-        auto ret = std::get<kVertexIDContainerIdx>(vertex_label_it).Find(id);
-        if (ret.second){
-          /// found it
-          return std::get<kVertexPtrIdx>(*(ret.first));
-        }
+  inline VertexConstPtr
+           FindConstVertex(const typename VertexType::IDType& id) const{
+    for (auto vertex_label_it  = this->vertexes_.cbegin();
+              vertex_label_it != this->vertexes_.cend();
+            ++vertex_label_it){
+      /// <iterator of ID container, bool>
+      const auto ret
+       = std::get<kVertexIDContainerIdx>(*vertex_label_it).FindConst(id);
+      if (ret.second){
+        /// found it
+        return std::get<kVertexPtrIdx>(*(ret.first));
       }
-      /// not found
+    }
+    /// not found
+    return VertexConstPtr();
+  }
+
+  inline VertexPtr FindVertex(const typename VertexType::IDType&    id,
+                              const typename VertexType::LabelType& label){
+    /// <iterator of VertexLabelContainer, bool>
+    auto vertex_label_ret = this->vertexes_.Find(label);
+    if (!vertex_label_ret.second){
+      /// not have this vertex label
       return VertexPtr();
     }
+    auto vertex_id_ret = std::get<kVertexIDContainerIdx>
+                             (*(vertex_label_ret.first)).Find(id);
+    if (!vertex_id_ret.second){
+      /// not have this vertex id
+      return VertexPtr();
+    }
+    return std::get<kVertexPtrIdx>(*(vertex_id_ret.first));
+  }
 
-    inline VertexConstPtr
-             FindConstVertex(const typename VertexType::IDType& id) const{
-      for (auto vertex_label_it  = this->vertexes_.cbegin();
-                vertex_label_it != this->vertexes_.cend();
-              ++vertex_label_it){
-        /// <iterator of ID container, bool>
-        const auto ret
-         = std::get<kVertexIDContainerIdx>(*vertex_label_it).FindConst(id);
-        if (ret.second){
-          /// found it
-          return std::get<kVertexPtrIdx>(*(ret.first));
-        }
-      }
-      /// not found
+  inline VertexConstPtr FindConstVertex(
+                  const typename VertexType::IDType&    id,
+                  const typename VertexType::LabelType& label) const{
+    /// <iterator of VertexLabelContainer, bool>
+    auto vertex_label_ret = this->vertexes_.FindConst(label);
+    if (!vertex_label_ret.second){
+      /// not have this vertex label
+      return VertexPtr();
+    }
+    auto vertex_id_ret = std::get<kVertexIDContainerIdx>
+                             (*(vertex_label_ret.first)).FindConst(id);
+    if (!vertex_id_ret.second){
+      /// not have this vertex id
       return VertexConstPtr();
     }
+    return std::get<kVertexPtrIdx>(*(vertex_id_ret.first));
+  }
 
-    inline VertexPtr FindVertex(const typename VertexType::IDType&    id,
-                                const typename VertexType::LabelType& label){
-      /// <iterator of VertexLabelContainer, bool>
-      auto vertex_label_ret = this->vertexes_.Find(label);
-      if (!vertex_label_ret.second){
-        /// not have this vertex label
-        return VertexPtr();
+  inline EdgePtr FindEdge(const typename EdgeType::IDType& edge_id){
+    for (auto vertex_ptr_it = this->VertexBegin();
+             !vertex_ptr_it.IsDone();
+              vertex_ptr_it++){
+      EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
+      if (!edge_ptr.IsNull()){
+        /// the edge with this edge_id has already existed
+        return edge_ptr;
       }
-      auto vertex_id_ret = std::get<kVertexIDContainerIdx>
-                               (*(vertex_label_ret.first)).Find(id);
-      if (!vertex_id_ret.second){
-        /// not have this vertex id
-        return VertexPtr();
-      }
-      return std::get<kVertexPtrIdx>(*(vertex_id_ret.first));
     }
+    return EdgePtr();
+  }
 
-    inline VertexConstPtr FindConstVertex(
-                    const typename VertexType::IDType&    id,
-                    const typename VertexType::LabelType& label) const{
-      /// <iterator of VertexLabelContainer, bool>
-      auto vertex_label_ret = this->vertexes_.FindConst(label);
-      if (!vertex_label_ret.second){
-        /// not have this vertex label
-        return VertexPtr();
-      }
-      auto vertex_id_ret = std::get<kVertexIDContainerIdx>
-                               (*(vertex_label_ret.first)).FindConst(id);
-      if (!vertex_id_ret.second){
-        /// not have this vertex id
-        return VertexConstPtr();
-      }
-      return std::get<kVertexPtrIdx>(*(vertex_id_ret.first));
+  VertexSizeType CountVertex() const{
+    VertexSizeType vertex_num = 0;
+    for (auto vertex_label_it = this->vertexes_.cbegin();
+              vertex_label_it!= this->vertexes_.cend();
+              vertex_label_it++){
+      vertex_num += std::get<kVertexIDContainerIdx>
+                            (*vertex_label_it).size();
     }
+    return vertex_num;
+  }
 
-    inline EdgePtr FindEdge(const typename EdgeType::IDType& edge_id){
-      for (auto vertex_ptr_it = this->VertexBegin();
-               !vertex_ptr_it.IsDone();
-                vertex_ptr_it++){
-        EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
-        if (!edge_ptr.IsNull()){
-          /// the edge with this edge_id has already existed
-          return edge_ptr;
-        }
-      }
-      return EdgePtr();
+  VertexSizeType CountVertex(
+       const typename VertexType::LabelType& label) const{
+    /// <iterator of VertexLabelContainer, bool>
+    auto ret = this->vertexes_.FindConst(label);
+    if (!ret.second){
+      /// does not have this vertex label
+      return 0;
     }
+    return std::get<kVertexIDContainerIdx>(*(ret.first)).size();
+  }
 
-    VertexSizeType CountVertex() const{
-      VertexSizeType vertex_num = 0;
-      for (auto vertex_label_it = this->vertexes_.cbegin();
-                vertex_label_it!= this->vertexes_.cend();
-                vertex_label_it++){
-        vertex_num += std::get<kVertexIDContainerIdx>
-                              (*vertex_label_it).size();
-      }
-      return vertex_num;
-    }
+  using VertexIterator
+            = Iterator_<VertexContentIterator_<
+                        VertexLabelContainerType,false,2,
+                       kVertexPtrIdx>>;
+  using VertexConstIterator
+                 = Iterator_<VertexContentIterator_<
+                             VertexLabelContainerType,true,2,
+                            kVertexPtrIdx>>;
+  using VertexIteratorSpecifiedLabel
+            = Iterator_<VertexContentIterator_<
+                        VertexIDContainerType,false,1,
+                       kVertexPtrIdx>>;
+  using VertexConstIteratorSpecifiedLabel
+                 = Iterator_<VertexContentIterator_<
+                             VertexIDContainerType,true,1,
+                            kVertexPtrIdx>>;
 
-    VertexSizeType CountVertex(
-         const typename VertexType::LabelType& label) const{
-      /// <iterator of VertexLabelContainer, bool>
-      auto ret = this->vertexes_.FindConst(label);
-      if (!ret.second){
-        /// does not have this vertex label
-        return 0;
-      }
-      return std::get<kVertexIDContainerIdx>(*(ret.first)).size();
-    }
+  inline VertexIterator VertexBegin(){
+    return VertexIterator(this->vertexes_.begin(),
+                          this->vertexes_.end());
+  }
+  inline VertexConstIterator VertexCBegin() const{
+    return VertexConstIterator(this->vertexes_.cbegin(),
+                               this->vertexes_.cend());
+  }
 
-    using VertexIterator
-              = Iterator_<VertexContentIterator_<
-                          VertexLabelContainerType,false,2,
-                         kVertexPtrIdx>>;
-    using VertexConstIterator
-                   = Iterator_<VertexContentIterator_<
-                               VertexLabelContainerType,true,2,
-                              kVertexPtrIdx>>;
-    using VertexIteratorSpecifiedLabel
-              = Iterator_<VertexContentIterator_<
-                          VertexIDContainerType,false,1,
-                         kVertexPtrIdx>>;
-    using VertexConstIteratorSpecifiedLabel
-                   = Iterator_<VertexContentIterator_<
-                               VertexIDContainerType,true,1,
-                              kVertexPtrIdx>>;
-
-    inline VertexIterator VertexBegin(){
-      return VertexIterator(this->vertexes_.begin(),
-                            this->vertexes_.end());
-    }
-    inline VertexConstIterator VertexCBegin() const{
-      return VertexConstIterator(this->vertexes_.cbegin(),
-                                 this->vertexes_.cend());
-    }
-
-    inline VertexIteratorSpecifiedLabel VertexBegin(
-                        typename VertexType::LabelType label){
-      /// <iterator of VertexLabelContainer, bool>
-      auto ret = this->vertexes_.Find(label);
-      if (!ret.second) /// does not have this vertex label
-        return VertexIteratorSpecifiedLabel();
-      return VertexIteratorSpecifiedLabel(
-              std::get<kVertexIDContainerIdx>(*(ret.first)).begin(),
-              std::get<kVertexIDContainerIdx>(*(ret.first)). end ());
-    }
-    inline VertexConstIteratorSpecifiedLabel VertexCBegin(
-                        typename VertexType::LabelType label) const {
-      /// <iterator of VertexLabelContainer, bool>
-      auto ret = this->vertexes_.FindConst(label);
-      if (!ret.second) /// does not have this vertex label
-        return VertexConstIteratorSpecifiedLabel();
-      return VertexConstIteratorSpecifiedLabel(
-              std::get<kVertexIDContainerIdx>(*(ret.first)).cbegin(),
-              std::get<kVertexIDContainerIdx>(*(ret.first)). cend ());
-    }
-  };
+  inline VertexIteratorSpecifiedLabel VertexBegin(
+                      typename VertexType::LabelType label){
+    /// <iterator of VertexLabelContainer, bool>
+    auto ret = this->vertexes_.Find(label);
+    if (!ret.second) /// does not have this vertex label
+      return VertexIteratorSpecifiedLabel();
+    return VertexIteratorSpecifiedLabel(
+            std::get<kVertexIDContainerIdx>(*(ret.first)).begin(),
+            std::get<kVertexIDContainerIdx>(*(ret.first)). end ());
+  }
+  inline VertexConstIteratorSpecifiedLabel VertexCBegin(
+                      typename VertexType::LabelType label) const {
+    /// <iterator of VertexLabelContainer, bool>
+    auto ret = this->vertexes_.FindConst(label);
+    if (!ret.second) /// does not have this vertex label
+      return VertexConstIteratorSpecifiedLabel();
+    return VertexConstIteratorSpecifiedLabel(
+            std::get<kVertexIDContainerIdx>(*(ret.first)).cbegin(),
+            std::get<kVertexIDContainerIdx>(*(ret.first)). cend ());
+  }
+};
 }  // namespace GUNDAM
 
 #endif  // _GRAPH_H
