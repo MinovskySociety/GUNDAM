@@ -1,10 +1,10 @@
 #ifndef _GRAPH_H
 #define _GRAPH_H
 
-#include "graph_configure.h"
-#include "container.h"
-#include "iterator.h"
-#include "label.h"
+#include "gundam/graph_configure.h"
+#include "gundam/container.h"
+#include "gundam/iterator.h"
+#include "gundam/label.h"
 
 #include <map>
 
@@ -1364,7 +1364,7 @@ class Graph {
                   (*(EdgePtrContent::vertex_ptr_iterator_));
       }
 
-      inline EdgeAttributeType& attribute(){
+      inline EdgeAttributeType& _attribute(){
         return *(std::get<kEdgeAttributePtrIdx>
                   (*(EdgePtrContent::decomposed_edge_iterator_)));
       }
@@ -1386,30 +1386,39 @@ class Graph {
 
       template<typename ConcreteDataType>
       inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key){
-        return this->attribute().template attribute<ConcreteDataType>(key);
+        return this->_attribute().template attribute<ConcreteDataType>(key);
       }
 
       inline EdgeAttributeIterator AttributeBegin(){
-        return this->attribute().AttributeBegin();
+        return this->_attribute().AttributeBegin();
       }
 
       inline EdgeAttributePtr FindAttributePtr(
                         const EdgeAttributeKeyType& key){
-        return this->attribute().FindAttributePtr(key);
+        return this->_attribute().FindAttributePtr(key);
       }
 
       template<typename ConcreteDataType>
       inline std::pair<EdgeAttributePtr, bool>
         AddAttribute(const EdgeAttributeKeyType& key,
                      const     ConcreteDataType& value){
-        return this->attribute().AddAttribute(key, value);
+        return this->_attribute().AddAttribute(key, value);
       }
 
       template<typename ConcreteDataType>
       inline std::pair<EdgeAttributePtr, bool>
         SetAttribute(const EdgeAttributeKeyType& key,
                      const     ConcreteDataType& value){
-        return this->attribute().SetAttribute(key, value);
+        return this->_attribute().SetAttribute(key, value);
+      }
+
+      inline EdgeAttributeIterator
+        EraseAttribute(const EdgeAttributeIterator& attribute_iterator){
+        return this->_attribute().EraseAttribute(attribute_iterator);
+      }
+
+      inline bool EraseAttribute(const EdgeAttributeKeyType& key){
+        return this->_attribute().EraseAttribute(key);
       }
     };
 
