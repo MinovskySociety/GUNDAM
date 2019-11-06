@@ -847,6 +847,15 @@ class Graph {
                                     is_const_,
                                        depth_>{
    private:
+    template<typename        _ContainerType_,
+           IteratorDepthType         _depth_,
+           TupleIdxType     _vertex_ptr_idx_>
+    friend inline void InnerVertex_::template VertexPtr_<is_const_>::Construct(
+      const Iterator_<VertexContentIterator_<_ContainerType_,
+                                                   is_const_,
+                                                     _depth_,
+                                            _vertex_ptr_idx_>>& vertex_ptr_iterator);
+
     using VertexPtr      = typename InnerVertex_::VertexPtr;
     using VertexConstPtr = typename InnerVertex_::VertexConstPtr;
     using VertexPtrType  = typename std::conditional<is_const_,
@@ -855,6 +864,42 @@ class Graph {
     using InnerIteratorType = InnerIterator_<ContainerType_,
                                                   is_const_,
                                                      depth_>;
+
+    template<bool judge = is_const_,
+             typename std::enable_if<!judge, bool>::type = false>
+    inline VertexPtr& vertex_ptr(){
+      return InnerIteratorType::template get<ContentPtr,
+                                        vertex_ptr_idx_,
+                                                 depth_ - 1>();
+    }
+
+    template<bool judge = is_const_,
+             typename std::enable_if<judge, bool>::type = false>
+    inline VertexConstPtr vertex_ptr() const {
+      auto temp_vertex_ptr
+            = InnerIteratorType::template get_const<VertexPtr,
+                                              vertex_ptr_idx_,
+                                                       depth_ - 1>();
+      return ContentPtr(temp_vertex_ptr);
+    }
+
+    template<bool judge = is_const_,
+             typename std::enable_if<!judge, bool>::type = false>
+    inline const VertexPtr& const_vertex_ptr() const {
+      return InnerIteratorType::template get_const<VertexPtr,
+                                             vertex_ptr_idx_,
+                                                      depth_ - 1>();
+    }
+
+    template<bool judge = is_const_,
+             typename std::enable_if<judge, bool>::type = false>
+    inline VertexConstPtr const_vertex_ptr() const {
+      auto temp_vertex_ptr
+            = InnerIteratorType::template get_const<VertexPtr,
+                                              vertex_ptr_idx_,
+                                                       depth_ - 1>();
+      return VertexConstPtr(temp_vertex_ptr);
+    }
 
    protected:
     using InnerIteratorType::ToNext;
@@ -867,20 +912,14 @@ class Graph {
              typename std::enable_if<!judge, bool>::type = false>
     inline ContentPtr& content_ptr(){
       assert(!this->IsDone());
-      return InnerIteratorType::template get<ContentPtr,
-                                        vertex_ptr_idx_,
-                                                 depth_ - 1>();
+      return this->vertex_ptr();
     }
 
     template<bool judge = is_const_,
              typename std::enable_if<judge, bool>::type = false>
     inline ContentPtr content_ptr() const{
       assert(!this->IsDone());
-      auto temp_vertex_ptr
-            = InnerIteratorType::template get_const<VertexPtr,
-                                              vertex_ptr_idx_,
-                                                       depth_ - 1>();
-      return ContentPtr(temp_vertex_ptr);
+      return this->vertex_ptr();
     }
   };
 
@@ -1019,6 +1058,40 @@ class Graph {
                                                    InnerVertex_*>::type;
       VertexPtrType ptr_;
 
+      template<typename           _ContainerType_,
+               IteratorDepthType          _depth_,
+               TupleIdxType      _vertex_ptr_idx_>
+      using FriendVertexContentIterator
+                = VertexContentIterator_<_ContainerType_,
+                                               is_const_,
+                                                 _depth_,
+                                        _vertex_ptr_idx_>;
+
+      template<typename           _ContainerType_,
+               IteratorDepthType          _depth_,
+               TupleIdxType      _vertex_ptr_idx_>
+      using FriendVertexIterator = Iterator_<
+                FriendVertexContentIterator<_ContainerType_,
+                                                    _depth_,
+                                           _vertex_ptr_idx_>>;
+
+      template<typename           _ContainerType_,
+               IteratorDepthType          _depth_,
+               TupleIdxType      _vertex_ptr_idx_>
+      inline void Construct(const FriendVertexIterator<
+                                          _ContainerType_,
+                                                  _depth_,
+                                         _vertex_ptr_idx_>&
+                                          vertex_ptr_iterator){
+        const void* const ptr = &vertex_ptr_iterator;
+        this->ptr_ = (static_cast<const FriendVertexContentIterator<
+                                                      _ContainerType_,
+                                                              _depth_,
+                                                     _vertex_ptr_idx_>*
+                                 >(ptr))->const_vertex_ptr().ptr_;
+        return;
+      }
+
      public:
       VertexPtr_() : ptr_(nullptr) {
         return;
@@ -1027,6 +1100,29 @@ class Graph {
       VertexPtr_(VertexPtrType const ptr)
                        : ptr_(ptr) {
         return;
+      }
+
+      template<typename           _ContainerType_,
+               IteratorDepthType          _depth_,
+               TupleIdxType      _vertex_ptr_idx_>
+      VertexPtr_(const FriendVertexIterator<
+                               _ContainerType_,
+                                       _depth_,
+                              _vertex_ptr_idx_>& vertex_ptr_iterator){
+        this->Construct(vertex_ptr_iterator);
+        return;
+      }
+
+      template<typename           _ContainerType_,
+               IteratorDepthType          _depth_,
+               TupleIdxType      _vertex_ptr_idx_>
+      inline VertexPtr_& operator=(const FriendVertexIterator<
+                                                 _ContainerType_,
+                                                         _depth_,
+                                                _vertex_ptr_idx_>&
+                                                 vertex_ptr_iterator){
+        this->Construct(vertex_ptr_iterator);
+        return *this;
       }
 
       template<bool input_is_const_,
