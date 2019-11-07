@@ -2325,6 +2325,27 @@ class Graph {
     /// possible extension:
     ///     InEdgeBegin (edge_label,vertex_label)
     ///     InEdgeCBegin(edge_label,vertex_label)
+
+/// unimplemented:
+/// inline VertexIterator EraseVertex(const VertexIterator& iterator);
+/// inline VertexIteratorSpecifiedEdgeLabel
+///                       EraseVertex(const VertexIteratorSpecifiedEdgeLabel& iterator);
+/// inline EdgeIterator EraseEdge(const EdgeIterator& iterator);
+/// inline EdgeIteratorSpecifiedEdgeLabel
+///                     EraseEdge(const EdgeIteratorSpecifiedEdgeLabel& iterator);
+
+/// inline EdgePtr SetLabel(EdgePtr&       edge_ptr,
+///                   const EdgeLabelType& edge_label);
+/// inline EdgePtr SetLabel(const EdgeIDType&    edge_id,
+///                         const EdgeLabelType& edge_label);
+/// inline EdgePtr SetSrc(EdgePtr&     edge_ptr,
+///                 const VertexPtr& vertex_ptr);
+/// inline EdgePtr SetSrc(const EdgeIDType& edge_id,
+///                       const VertexPtr&  vertex_ptr);
+/// inline EdgePtr SetDst(EdgePtr&     edge_ptr,
+///                 const VertexPtr& vertex_ptr);
+/// inline EdgePtr SetDst(const EdgeIDType& edge_id,
+///                       const VertexPtr&  vertex_ptr);
   };
 
   using InnerVertexType = InnerVertex_;
@@ -2667,6 +2688,24 @@ class Graph {
 /// inline VertexIterator EraseVertex(const VertexIterator& iterator);
 /// inline VertexIteratorSpecifiedLabel
 ///                       EraseVertex(const VertexIteratorSpecifiedLabel& iterator);
+
+/// unimplemented:
+/// inline VertexPtr SetLabel(VertexPtr&       vertex_ptr,
+///                     const VertexLabelType& vertex_label);
+/// inline VertexPtr SetLabel(const VertexIDType&    vertex_id,
+///                           const VertexLabelType& vertex_label);
+/// inline   EdgePtr SetLabel(EdgePtr&       edge_ptr,
+///                     const EdgeLabelType& edge_label);
+/// inline   EdgePtr SetLabel(const   EdgeIDType&      edge_id,
+///                           const   EdgeLabelType&   edge_label);
+/// inline   EdgePtr SetSrc  (  EdgePtr&   edge_ptr,
+///                           VertexPtr& vertex_ptr);
+/// inline   EdgePtr SetDst  (  EdgePtr&   edge_ptr,
+///                           VertexPtr& vertex_ptr);
+/// inline   EdgePtr SetSrc (const EdgeIDType& edge_id,
+///                          VertexPtr& vertex_ptr);
+/// inline   EdgePtr SetDst (const EdgeIDType& edge_id,
+///                          VertexPtr& vertex_ptr);
 };
 }  // namespace GUNDAM
 
