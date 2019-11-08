@@ -1436,7 +1436,12 @@ class Graph {
      private:
       friend class EdgePtr_<!is_const_>;
       using EdgePtrContentType = EdgePtrContent_<is_const_,
-                                             !is_const_>;
+                                                !is_const_>;
+
+      using EdgePtrContentTypePtrType 
+            = typename std::conditional<is_const_,
+                        const EdgePtrContentType*,
+                              EdgePtrContentType*>::type;
 
      public:
       using EdgePtrContentType::EdgePtrContentType;
@@ -1461,19 +1466,19 @@ class Graph {
 
       template<bool judge = is_const_,
                typename std::enable_if<judge,bool>::type = false>
-      inline EdgePtrContentType* operator->() const{
+      inline EdgePtrContentTypePtrType operator->() const{
         static_assert(judge == is_const_,
                      "Illegal usage of this method");
-        EdgePtr_* const temp_ptr = this;
+        EdgePtrContentTypePtrType const temp_ptr = this;
         return temp_ptr;
       }
 
       template<bool judge = is_const_,
                typename std::enable_if<!judge,bool>::type = false>
-      inline EdgePtrContentType* operator->(){
+      inline EdgePtrContentTypePtrType operator->(){
         static_assert(judge == is_const_,
                      "Illegal usage of this method");
-        EdgePtr_* const temp_ptr = this;
+        EdgePtrContentTypePtrType const temp_ptr = this;
         return temp_ptr;
       }
     };
