@@ -101,17 +101,16 @@ int JoinableCheck(const GraphType0<configures0...> &query_graph,
                          ? target_vertex_ptr->InEdgeCBegin()
                          : target_vertex_ptr->OutEdgeCBegin());
          !bit.IsDone(); bit++) {
-      auto temp_ptr = (edge_state == EdgeState::kIn_)
-                         ? bit->const_src_ptr()
-                         : bit->const_dst_ptr();
+      auto temp_ptr = (edge_state == EdgeState::kIn_) ? bit->const_src_ptr()
+                                                      : bit->const_dst_ptr();
       if (temp_ptr->id() == temp_target_vertex_ptr->id()) {
         auto query_edge_ptr = (edge_state == EdgeState::kOut_)
                                   ? query_vertex_ptr->FindConstOutEdge(it->id())
                                   : temp_vertex_ptr->FindConstOutEdge(it->id());
         auto target_edge_ptr =
             (edge_state == EdgeState::kOut_)
-                ? target_vertex_ptr->FindConstOutEdge(it->id())
-                : temp_target_vertex_ptr->FindConstOutEdge(it->id());
+                ? target_vertex_ptr->FindConstOutEdge(bit->id())
+                : temp_target_vertex_ptr->FindConstOutEdge(bit->id());
         if (edge_equiv(query_edge_ptr, target_edge_ptr)) {
           find_target_flag = 1;
           break;
