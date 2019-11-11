@@ -1,4 +1,3 @@
-
 #ifndef _CSVGRAPH_H
 #define _CSVGRAPH_H
 
@@ -16,8 +15,8 @@ using ReturnType = int;
 // node :has label
 // edge: has label but not have attribute
 template <template <typename...> class GraphType, typename... configures>
-ReturnType ReadCSVGraph(GraphType<configures...>& graph, char* v_file,
-                        char* e_file) {
+ReturnType ReadCSVGraph(GraphType<configures...>& graph, const char* v_file,
+                        const char* e_file) {
   using VertexType = typename GraphType<configures...>::VertexType;
   using EdgeType = typename GraphType<configures...>::EdgeType;
   using VertexIDType = typename VertexType::IDType;
@@ -55,6 +54,7 @@ ReturnType ReadCSVGraph(GraphType<configures...>& graph, char* v_file,
   return 1;
 }
 
+<<<<<<< HEAD
 template <template <typename...> class GraphType, typename... configures>
 ReturnType OutputGraph(const GraphType<configures...>& graph) {
   using VertexType = typename GraphType<configures...>::VertexType;
@@ -172,6 +172,8 @@ ReturnType ReadGraph(GraphType<configures...>& graph, FileNameList& v_list,
   }
   return 1;
 }
+=======
+>>>>>>> 8529d596831ced853948d00e80a7fe8aeb60923b
 }  // namespace GUNDAM
 
 #endif
