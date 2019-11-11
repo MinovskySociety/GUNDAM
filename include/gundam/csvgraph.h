@@ -54,7 +54,6 @@ ReturnType ReadCSVGraph(GraphType<configures...>& graph, const char* v_file,
   return 1;
 }
 
-<<<<<<< HEAD
 template <template <typename...> class GraphType, typename... configures>
 ReturnType OutputGraph(const GraphType<configures...>& graph) {
   using VertexType = typename GraphType<configures...>::VertexType;
@@ -172,8 +171,6 @@ ReturnType ReadGraph(GraphType<configures...>& graph, FileNameList& v_list,
   }
   return 1;
 }
-=======
->>>>>>> 8529d596831ced853948d00e80a7fe8aeb60923b
 }  // namespace GUNDAM
 
 #endif

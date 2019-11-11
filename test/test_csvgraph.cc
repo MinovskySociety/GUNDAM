@@ -6,7 +6,6 @@
 
 TEST(TestGUNDAM, CSVGraph) {
   using namespace GUNDAM;
-<<<<<<< HEAD
   std::vector<char *> v_list, e_list;
   v_list.push_back(
       "C:\\Users\\Administrator\\Desktop\\buaa\\dmine-"
@@ -36,16 +35,4 @@ TEST(TestGUNDAM, CSVGraph) {
   GUNDAM::OutputGraph(g1);
   std::cout << "Output end!\n";
   ASSERT_TRUE(true);
-=======
-  
-  char e_file[1000] =
-      "C:\\Users\\Administrator\\Desktop\\buaa\\dmine-pro\\testdata\\liantong_e.csv";
-  char v_file[1000] =
-      "C:\\Users\\Administrator\\Desktop\\buaa\\dmine-pro\\testdata\\liantong_n.csv";
-  
-  Graph<> test_graph;
-  int res = ReadCSVGraph(test_graph, v_file, e_file);
-  
-  ASSERT_EQ(res, 1);
->>>>>>> 8529d596831ced853948d00e80a7fe8aeb60923b
 }
