@@ -330,19 +330,16 @@ int VF2(
   using PatternVertexPtr = typename PatternType::VertexConstPtr;
   using DataGraphVertexType = typename DataGraphType::VertexType;
   using DataGraphVertexPtr = typename DataGraphType::VertexConstPtr;
-
   std::map<typename GraphType0<configures0...>::VertexConstPtr,
            std::vector<typename GraphType1<configures1...>::VertexConstPtr>>
       candidate_set;
-  __VF2::InitCandidateSet<match_semantics>(query_graph, target_graph,
-                                           candidate_set);
+  __VF2::InitCandidateSet<match_semantics>(query_graph, target_graph, candidate_set);
 
   std::map<PatternVertexPtr, DataGraphVertexPtr> match_state;
   std::set<DataGraphVertexPtr> target_used_node;
-  match_result.clear();
   if (__VF2::VF2<match_semantics>(query_graph, target_graph, candidate_set,
-                                  match_state, target_used_node, match_result,
-                                  top_k)) {
+                                       match_state, target_used_node,
+                                       match_result, top_k)) {
     return static_cast<int>(match_result.size());
   }
   return static_cast<int>(match_result.size());

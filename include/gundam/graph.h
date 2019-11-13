@@ -12,9 +12,16 @@ enum class EdgeDirection : bool { InputEdge, OutputEdge };
 
 template <typename... configures>
 class Graph {
- private:
+ public:
   using Configures = GraphConfigures<configures...>;
+  static constexpr bool vertex_has_attribute =
+      Configures::vertex_has_static_attribute |
+      Configures::vertex_has_dynamic_attribute;
+  static constexpr bool edge_has_attribute =
+      Configures::edge_has_static_attribute |
+      Configures::edge_has_dynamic_attribute;
 
+ private:
   /// only used in Graph class
   /// use Graph<>::VertexType::IDType outside Graph class instead
   using VertexIDType = typename Configures::VertexIDType;
