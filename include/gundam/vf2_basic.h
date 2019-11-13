@@ -1,11 +1,15 @@
+#ifndef _VF2_BASIC_H
+#define _VF2_BASIC_H
+
+#include "gundam/graph.h"
+#include "gundam/vf2.h"
+
 #include <map>
 #include <set>
-#include "VF2.h"
-#include "graph.h"
 
 namespace GUNDAM {
 
-namespace VF2Basic {
+namespace __VF2Basic {
 
 enum class EdgeState : bool { kIn_, kOut_ };
 // Cal Degree
@@ -281,17 +285,17 @@ int VF2(
 }
 };  // namespace VF2Basic
 
-template <enum MatchSemantics match_semantics, class VertexEquiv,
-          class EdgeEquiv, template <typename...> class GraphType0,
-          typename... configures0, template <typename...> class GraphType1,
-          typename... configures1>
-int VF2(
-    const GraphType0<configures0...> &query_graph,
-    const GraphType1<configures1...> &target_graph,
-    std::vector<std::map<typename GraphType0<configures0...>::VertexConstPtr,
-                         typename GraphType1<configures1...>::VertexConstPtr>>
-        &match_result,
-    VertexEquiv vertex_equiv, EdgeEquiv edge_equiv, int top_k = -1) {
+template <enum MatchSemantics match_semantics, 
+	      template <typename...> class GraphType0, typename... configures0, 
+	      template <typename...> class GraphType1, typename... configures1,
+          class VertexEquiv, class EdgeEquiv>
+int VF2(const GraphType0<configures0...>& query_graph, 
+	    const GraphType1<configures1...>& target_graph,
+	    std::vector<std::map<typename GraphType0<configures0...>::VertexConstPtr, 
+	                         typename GraphType1<configures1...>::VertexConstPtr>>&
+	      match_result, VertexEquiv vertex_equiv, EdgeEquiv edge_equiv, 
+	    int top_k = -1) {
+
   using PatternType = GraphType0<configures0...>;
   using DataGraphType = GraphType1<configures1...>;
   using PatternIDType = typename PatternType::VertexType::IDType;
@@ -315,3 +319,5 @@ int VF2(
   return static_cast<int>(match_result.size());
 }
 };  // namespace GUNDAM
+
+#endif

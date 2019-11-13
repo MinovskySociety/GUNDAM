@@ -282,7 +282,7 @@ int VF2(
     std::vector<std::map<typename GraphType0<configures0...>::VertexConstPtr,
                          typename GraphType1<configures1...>::VertexConstPtr>>
         &match_result,
-    int top_k = 2147483647) {
+    int top_k = -1) {
   using PatternType = GraphType0<configures0...>;
   using DataGraphType = GraphType1<configures1...>;
   using PatternIDType = typename PatternType::VertexType::IDType;
