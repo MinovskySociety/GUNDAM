@@ -1,4 +1,5 @@
 #include "gundam/csvgraph.h"
+#include "gundam/util.h"
 
 #include <iostream>
 
@@ -24,15 +25,13 @@ TEST(TestGUNDAM, CSVGraph) {
   using VertexType = typename GraphType::VertexType;
   using EdgeType = typename GraphType::EdgeType;
   using VertexIDType = typename VertexType::IDType;
-  using VertexLabelType = typename VertexType::LabelType;
-  using VertexLabelUnderlieType = typename VertexType::LabelType::UnderlieType;
-  using EdgeLabelType = typename EdgeType::LabelType;
-  using EdgeLabelUnderlieType = typename EdgeType::LabelType::UnderlieType;
+  using VertexLabelType = typename VertexType::LabelType;  
+  using EdgeLabelType = typename EdgeType::LabelType;  
   using VertexPtr = typename GraphType::VertexPtr;
   using namespace GUNDAM;
   Graph<SetVertexHasAttribute<true>> g1;
-  GUNDAM::ReadGraph(g1, v_list, e_list);
-  GUNDAM::OutputGraph(g1);
+  ReadCSVGraph(g1, v_list, e_list);
+  PrintGraph(g1);
   std::cout << "Output end!\n";
   ASSERT_TRUE(true);
 }

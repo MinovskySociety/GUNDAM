@@ -21,12 +21,10 @@ int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
   using EdgeType = typename GraphType<configures...>::EdgeType;
   using VertexIDType = typename VertexType::IDType;
   using VertexLabelType = typename VertexType::LabelType;
-  using VertexLabelUnderlieType = typename VertexType::LabelType::UnderlieType;
-  using EdgeLabelType = typename EdgeType::LabelType;
-  using EdgeLabelUnderlieType = typename EdgeType::LabelType::UnderlieType;
+  using EdgeLabelType = typename EdgeType::LabelType;  
   using VertexPtr = typename GraphType<configures...>::VertexPtr;
   rapidcsv::Document node_file(v_file, rapidcsv::LabelParams(0, -1));
-  int col_num = node_file.GetColumnCount();
+  size_t col_num = node_file.GetColumnCount();
   // check col num >= 2
   if (col_num < 2) {
     std::cout << "node file does not have node_id or node_label!" << std::endl;
@@ -41,8 +39,8 @@ int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
   // todo:check data type
   //.....
   std::vector<VertexIDType> node_id = node_file.GetColumn<VertexIDType>(0);
-  std::vector<VertexLabelUnderlieType> node_label =
-      node_file.GetColumn<VertexLabelUnderlieType>(1);
+  std::vector<VertexLabelType> node_label =
+      node_file.GetColumn<VertexLabelType>(1);
   size_t sz = node_id.size();
   for (size_t i = 0; i < sz; i++) {
     // add node_id and node_label;
@@ -67,14 +65,12 @@ int ReadCSVEdgeFile(GraphType<configures...>& graph, const char* e_file) {
   using EdgeType = typename GraphType<configures...>::EdgeType;
   using VertexIDType = typename VertexType::IDType;
   using VertexLabelType = typename VertexType::LabelType;
-  using VertexLabelUnderlieType = typename VertexType::LabelType::UnderlieType;
-  using EdgeLabelType = typename EdgeType::LabelType;
-  using EdgeLabelUnderlieType = typename EdgeType::LabelType::UnderlieType;
+  using EdgeLabelType = typename EdgeType::LabelType;  
   using EdgePtr = typename GraphType<configures...>::EdgePtr;
   rapidcsv::Document edge_file(e_file, rapidcsv::LabelParams(0, -1));
   std::vector<VertexIDType> from_id, to_id, edge_id;
-  std::vector<EdgeLabelUnderlieType> edge_label;
-  int col_num = edge_file.GetColumnCount();
+  std::vector<EdgeLabelType> edge_label;
+  size_t col_num = edge_file.GetColumnCount();
   // check col_num >= 4
   if (col_num < 4) {
     std::cout << "edge file is not correct!(col num must >=4)" << std::endl;
@@ -88,7 +84,7 @@ int ReadCSVEdgeFile(GraphType<configures...>& graph, const char* e_file) {
   edge_id = edge_file.GetColumn<VertexIDType>(0);
   from_id = edge_file.GetColumn<VertexIDType>(1);
   to_id = edge_file.GetColumn<VertexIDType>(2);
-  edge_label = edge_file.GetColumn<EdgeLabelUnderlieType>(3);
+  edge_label = edge_file.GetColumn<EdgeLabelType>(3);
   size_t sz = from_id.size();
   for (size_t i = 0; i < sz; i++) {
     // std::cout<<from_id[i]<<" "<<to_id[i]<<" "<<edge_label[i]<<std::endl;
@@ -128,10 +124,8 @@ int WriteCsvGraph(const GraphType<configures...>& graph, const char* v_file,
   using VertexType = typename GraphType<configures...>::VertexType;
   using EdgeType = typename GraphType<configures...>::EdgeType;
   using VertexIDType = typename VertexType::IDType;
-  using VertexLabelType = typename VertexType::LabelType;
-  using VertexLabelUnderlieType = typename VertexType::LabelType::UnderlieType;
-  using EdgeLabelType = typename EdgeType::LabelType;
-  using EdgeLabelUnderlieType = typename EdgeType::LabelType::UnderlieType;
+  using VertexLabelType = typename VertexType::LabelType;  
+  using EdgeLabelType = typename EdgeType::LabelType;  
   using VertexPtr = typename GraphType<configures...>::VertexPtr;
   std::ofstream node_file(v_file);
   node_file << "node_id,node_label" << std::endl;

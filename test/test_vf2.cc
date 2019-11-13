@@ -17,9 +17,7 @@ TEST(TestGUNDAM, VF2_1) {
   using EdgeType = typename GraphType::EdgeType;
   using VertexIDType = typename VertexType::IDType;
   using VertexLabelType = typename VertexType::LabelType;
-  using EdgeLabelType = typename EdgeType::LabelType;
-  using EdgeLabelUnderlieType = typename EdgeType::LabelType::UnderlieType;
-  using VertexLabelUnderlieType = typename VertexType::LabelType::UnderlieType;
+  using EdgeLabelType = typename EdgeType::LabelType;  
   using VertexConstPtr = typename GraphType::VertexConstPtr;
   using EdgeConstPtr = typename GraphType::EdgeConstPtr;
 

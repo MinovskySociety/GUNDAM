@@ -80,9 +80,9 @@ class SetDuplicateNumType;
 template <>
 class GraphConfigures<> {
  private:
-  using DefaultIDType = uint32_t;
-  using DefaultKeyType = uint32_t;
-  using DefaultLabelType = Label<uint32_t>;
+  using DefaultIDType = unsigned int;
+  using DefaultKeyType = unsigned int;
+  using DefaultLabelType = unsigned int;
   using DefaultAttributeType = std::string;
 
   static constexpr enum ContainerType DefaultContainerType =

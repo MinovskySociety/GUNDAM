@@ -258,7 +258,7 @@ int VF2(
   size_t query_size = query_graph.CountVertex();
   if (match_state.size() == query_size) {
     match_result.push_back(match_state);
-    return 1;
+    return static_cast<int>(match_result.size());
   }
   std::vector<std::pair<int, PatternVertexPtr>> query_vertex_sequence;
   DetermineMatchOrder(query_graph, target_graph, candidate_set, match_state,
@@ -278,10 +278,8 @@ int VF2(
                    target_graph_used_node);
     }
   }
-  if (!match_result.empty())
-    return 1;
-  else
-    return 0;
+
+  return static_cast<int>(match_result.size());  
 }
 };  // namespace VF2Basic
 
@@ -293,7 +291,8 @@ int VF2(const GraphType0<configures0...>& query_graph,
 	    const GraphType1<configures1...>& target_graph,
 	    std::vector<std::map<typename GraphType0<configures0...>::VertexConstPtr, 
 	                         typename GraphType1<configures1...>::VertexConstPtr>>&
-	      match_result, VertexEquiv vertex_equiv, EdgeEquiv edge_equiv, 
+	      match_result, 
+	    VertexEquiv vertex_equiv, EdgeEquiv edge_equiv, 
 	    int top_k = -1) {
 
   using PatternType = GraphType0<configures0...>;
@@ -304,19 +303,21 @@ int VF2(const GraphType0<configures0...>& query_graph,
   using PatternVertexPtr = typename PatternType::VertexConstPtr;
   using DataGraphVertexType = typename DataGraphType::VertexType;
   using DataGraphVertexPtr = typename DataGraphType::VertexConstPtr;
-  std::map<typename GraphType0<configures0...>::VertexConstPtr,
-           std::vector<typename GraphType1<configures1...>::VertexConstPtr>>
-      candidate_set;
-  VF2Basic::InitCandidateSet<match_semantics>(query_graph, target_graph,
-                                              candidate_set, vertex_equiv);
+  
+  match_result.clear();
+  
+  std::map<PatternVertexPtr, std::vector<DataGraphVertexPtr>> candidate_set;
+  int res = __VF2Basic::InitCandidateSet<match_semantics>(
+      query_graph, target_graph, candidate_set, vertex_equiv);
+  if (res < 0) return res;
+
   std::map<PatternVertexPtr, DataGraphVertexPtr> match_state;
   std::set<DataGraphVertexPtr> target_used_node;
-  if (VF2Basic::VF2<match_semantics>(query_graph, target_graph, candidate_set,
-                                     match_state, target_used_node,
-                                     match_result, edge_equiv, top_k)) {
-    return static_cast<int>(match_result.size());
-  }
-  return static_cast<int>(match_result.size());
+  res = __VF2Basic::VF2<match_semantics>(
+      query_graph, target_graph, candidate_set, match_state, target_used_node,
+      match_result, edge_equiv, top_k);
+
+  return res;
 }
 };  // namespace GUNDAM
 
