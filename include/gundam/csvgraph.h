@@ -21,7 +21,7 @@ int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
   using EdgeType = typename GraphType<configures...>::EdgeType;
   using VertexIDType = typename VertexType::IDType;
   using VertexLabelType = typename VertexType::LabelType;
-  using EdgeLabelType = typename EdgeType::LabelType;  
+  using EdgeLabelType = typename EdgeType::LabelType;
   using VertexPtr = typename GraphType<configures...>::VertexPtr;
   rapidcsv::Document node_file(v_file, rapidcsv::LabelParams(0, -1));
   size_t col_num = node_file.GetColumnCount();
@@ -65,7 +65,7 @@ int ReadCSVEdgeFile(GraphType<configures...>& graph, const char* e_file) {
   using EdgeType = typename GraphType<configures...>::EdgeType;
   using VertexIDType = typename VertexType::IDType;
   using VertexLabelType = typename VertexType::LabelType;
-  using EdgeLabelType = typename EdgeType::LabelType;  
+  using EdgeLabelType = typename EdgeType::LabelType;
   using EdgePtr = typename GraphType<configures...>::EdgePtr;
   rapidcsv::Document edge_file(e_file, rapidcsv::LabelParams(0, -1));
   std::vector<VertexIDType> from_id, to_id, edge_id;
@@ -119,21 +119,34 @@ int ReadCSVGraph(GraphType<configures...>& graph, const VertexFileList& v_list,
 }
 
 template <template <typename...> class GraphType, typename... configures>
-int WriteCsvGraph(const GraphType<configures...>& graph, const char* v_file,
+int WriteCSVGraph(const GraphType<configures...>& graph, const char* v_file,
                   const char* e_file) {
   using VertexType = typename GraphType<configures...>::VertexType;
   using EdgeType = typename GraphType<configures...>::EdgeType;
   using VertexIDType = typename VertexType::IDType;
-  using VertexLabelType = typename VertexType::LabelType;  
-  using EdgeLabelType = typename EdgeType::LabelType;  
+  using VertexLabelType = typename VertexType::LabelType;
+  using EdgeLabelType = typename EdgeType::LabelType;
   using VertexPtr = typename GraphType<configures...>::VertexPtr;
+  using VertexConstPtr = typename GraphType<configures...>::VertexConstPtr;
   std::ofstream node_file(v_file);
+  int count = 0;
   node_file << "node_id,node_label" << std::endl;
   for (auto it = graph.VertexCBegin(); !it.IsDone(); it++) {
-    node_file << it->id() << " " << it->label() << std::endl;
+    count++;
+    node_file << it->id() << "," << it->label() << std::endl;
   }
-
-  return 1;
+  std::ofstream edge_file(e_file);
+  edge_file << "edge_id,src_id,dst_id,edge_label" << std::endl;
+  for (auto it = graph.VertexCBegin(); !it.IsDone(); it++) {
+    VertexConstPtr node_ptr = it;
+    for (auto bit = node_ptr->OutEdgeCBegin(); !bit.IsDone(); bit++) {
+      count++;
+      edge_file << bit->id() << "," << bit->const_src_ptr()->id() << ","
+                << bit->const_dst_ptr()->id() << "," << bit->label()
+                << std::endl;
+    }
+  }
+  return count;
 }
 }  // namespace GUNDAM
 
