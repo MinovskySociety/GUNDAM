@@ -1,5 +1,4 @@
 #include "gundam/csvgraph.h"
-#include "gundam/util.h"
 
 #include <iostream>
 
@@ -32,8 +31,8 @@ TEST(TestGUNDAM, CSVGraph) {
   using VertexPtr = typename GraphType::VertexPtr;
   using namespace GUNDAM;
   Graph<SetVertexHasAttribute<true>> g1;
-  GUNDAM::ReadCSVGraph(g1, v_list, e_list);
-  GUNDAM::PrintGraph(g1);
+  GUNDAM::ReadGraph(g1, v_list, e_list);
+  GUNDAM::OutputGraph(g1);
   std::cout << "Output end!\n";
   ASSERT_TRUE(true);
 }

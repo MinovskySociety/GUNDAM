@@ -292,24 +292,25 @@ class GraphConfigures<SetEdgeIDType<EIDType>, other_configures...>
 };
 
 // set edge label
-template <template <typename...> class ELabelType,
-          typename ELabelUnderlieConfigures, typename... other_configures>
-class GraphConfigures<SetEdgeLabelType<ELabelType<ELabelUnderlieConfigures>>,
+template <typename ELabelUnderlieConfigures, typename... other_configures>
+class GraphConfigures<SetEdgeLabelType<ELabelUnderlieConfigures>,
                       other_configures...>
     : public GraphConfigures<other_configures...> {
  private:
   static_assert(
       !GraphConfigures<other_configures...>::specified_edge_label_type,
       "Redefinition of Edge Label Type");
-  static_assert(std::is_base_of<Label<ELabelUnderlieConfigures>,
-                                ELabelType<ELabelUnderlieConfigures>>::value,
-                "Illegal Edge Label Type");
+  /*
+static_assert(std::is_base_of<Label<ELabelUnderlieConfigures>,
+                            ELabelType<ELabelUnderlieConfigures>>::value,
+            "Illegal Edge Label Type");
+            */
 
  protected:
   static constexpr bool specified_edge_label_type = true;
 
  public:
-  using EdgeLabelType = ELabelType<ELabelUnderlieConfigures>;
+  using EdgeLabelType = ELabelUnderlieConfigures;
 };
 
 // Has Edge Attribute
