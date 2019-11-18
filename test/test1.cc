@@ -1,4 +1,4 @@
-#include "GUNDAM/graph.h"
+#include "gundam/graph.h"
 
 #include <iostream>
 #include <string>
