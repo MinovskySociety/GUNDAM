@@ -16,13 +16,21 @@ using ReturnType = int;
 template <template <typename...> class GraphType, typename... configures>
 int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
   // read .v file(csv)
-  //.v file format: (id,label)
+  //.v file format: (id,label,......)
   using VertexType = typename GraphType<configures...>::VertexType;
   using EdgeType = typename GraphType<configures...>::EdgeType;
   using VertexIDType = typename VertexType::IDType;
   using VertexLabelType = typename VertexType::LabelType;
   using EdgeLabelType = typename EdgeType::LabelType;
   using VertexPtr = typename GraphType<configures...>::VertexPtr;
+  using AttributeType =
+      typename GraphType<configures...>::VertexType::AttributeKeyType;
+  // check file exist
+  std::ifstream check_node_file(v_file);
+  if (!check_node_file) {
+    std::cout << v_file << " not exist!" << std::endl;
+    return -1;
+  }
   rapidcsv::Document node_file(v_file, rapidcsv::LabelParams(0, -1));
   size_t col_num = node_file.GetColumnCount();
   // check col num >= 2
@@ -36,21 +44,74 @@ int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
               << std::endl;
     return -1;
   }
+  // parse col
+  std::vector<std::string> before_parse_col_name = node_file.GetColumnNames();
+  std::vector<std::string> after_parse_col_name, after_parse_value_type;
+  for (auto const& str : before_parse_col_name) {
+    std::string col_name, value_type;
+    int nameflag = 0;
+    for (int i = 0; i < str.size(); i++) {
+      if (str[i] == ':') {
+        nameflag = 1;
+        continue;
+      }
+      if (!nameflag) {
+        col_name.push_back(str[i]);
+      } else {
+        value_type.push_back(str[i]);
+      }
+    }
+    after_parse_col_name.push_back(col_name);
+    after_parse_value_type.push_back(value_type);
+  }
+  // check col name can change to attrkeytype
+  for (int j = 2; j < after_parse_col_name.size(); j++) {
+    std::string str = after_parse_col_name[j];
+    std::stringstream ss(str);
+    AttributeType check_flag;
+    ss >> check_flag;
+    std::stringstream s1;
+    std::string str1;
+    s1 << check_flag;
+    s1 >> str1;
+    // std::cout << str << " " << str1 << std::endl;
+    if (str1 != str) {
+      std::cout << "Attribute type is not correct!" << std::endl;
+      return -1;
+    }
+  }
   // todo:check data type
   //.....
   std::vector<VertexIDType> node_id = node_file.GetColumn<VertexIDType>(0);
   std::vector<VertexLabelType> node_label =
       node_file.GetColumn<VertexLabelType>(1);
+
   size_t sz = node_id.size();
   for (size_t i = 0; i < sz; i++) {
     // add node_id and node_label;
     VertexPtr node_ptr =
         graph.AddVertex(node_id[i], VertexLabelType(node_label[i])).first;
     // add other attribute
-    for (int col_iter = 2; col_iter < col_num; col_iter++) {
-      // key is col_iter
-      std::string cell_attr = node_file.GetCell<std::string>(col_iter, i);
-      node_ptr->AddAttribute(col_iter, cell_attr);
+    if (graph.vertex_has_attribute) {
+      for (int col_iter = 2; col_iter < col_num; col_iter++) {
+        // key is col_iter
+        std::stringstream ss(after_parse_col_name[col_iter]);
+        AttributeType attr_key;
+        ss >> attr_key;
+        if (after_parse_value_type[col_iter] == "string") {
+          auto cell_attr = node_file.GetCell<std::string>(col_iter, i);
+          node_ptr->AddAttribute(attr_key, cell_attr);
+        } else if (after_parse_value_type[col_iter] == "int") {
+          auto cell_attr = node_file.GetCell<int>(col_iter, i);
+          node_ptr->AddAttribute(attr_key, cell_attr);
+        } else if (after_parse_value_type[col_iter] == "double") {
+          auto cell_attr = node_file.GetCell<double>(col_iter, i);
+          node_ptr->AddAttribute(attr_key, cell_attr);
+        } else if (after_parse_value_type[col_iter] == "short") {
+          auto cell_attr = node_file.GetCell<short>(col_iter, i);
+          node_ptr->AddAttribute(attr_key, cell_attr);
+        }
+      }
     }
   }
 
@@ -60,13 +121,20 @@ int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
 template <template <typename...> class GraphType, typename... configures>
 int ReadCSVEdgeFile(GraphType<configures...>& graph, const char* e_file) {
   // read .e file(csv)
-  //.e file format: (edge_id,from_id,to_id,edge_label)
+  //.e file format: (edge_id,from_id,to_id,edge_label,......)
   using VertexType = typename GraphType<configures...>::VertexType;
   using EdgeType = typename GraphType<configures...>::EdgeType;
   using VertexIDType = typename VertexType::IDType;
   using VertexLabelType = typename VertexType::LabelType;
   using EdgeLabelType = typename EdgeType::LabelType;
   using EdgePtr = typename GraphType<configures...>::EdgePtr;
+  using AttributeType =
+      typename GraphType<configures...>::EdgeType::AttributeKeyType;
+  std::ifstream check_edge_file(e_file);
+  if (!check_edge_file) {
+    std::cout << e_file << " not exist!" << std::endl;
+    return -1;
+  }
   rapidcsv::Document edge_file(e_file, rapidcsv::LabelParams(0, -1));
   std::vector<VertexIDType> from_id, to_id, edge_id;
   std::vector<EdgeLabelType> edge_label;
@@ -81,6 +149,43 @@ int ReadCSVEdgeFile(GraphType<configures...>& graph, const char* e_file) {
               << std::endl;
     return -1;
   }
+  // parse col
+  std::vector<std::string> before_parse_col_name = edge_file.GetColumnNames();
+  std::vector<std::string> after_parse_col_name, after_parse_value_type;
+  for (auto const& str : before_parse_col_name) {
+    std::string col_name, value_type;
+    int nameflag = 0;
+    for (int i = 0; i < str.size(); i++) {
+      if (str[i] == ':') {
+        nameflag = 1;
+        continue;
+      }
+      if (!nameflag) {
+        col_name.push_back(str[i]);
+      } else {
+        value_type.push_back(str[i]);
+      }
+    }
+    after_parse_col_name.push_back(col_name);
+    after_parse_value_type.push_back(value_type);
+  }
+  // check col name can change to attrkeytype
+  for (int j = 4; j < after_parse_col_name.size(); j++) {
+    std::string str = after_parse_col_name[j];
+    std::stringstream ss(str);
+    AttributeType check_flag;
+    ss >> check_flag;
+    std::stringstream s1;
+    std::string str1;
+    s1 << check_flag;
+    s1 >> str1;
+    // std::cout << str << " " << str1 << std::endl;
+    if (str1 != str) {
+      std::cout << "Attribute type is not correct!" << std::endl;
+      return -1;
+    }
+  }
+
   edge_id = edge_file.GetColumn<VertexIDType>(0);
   from_id = edge_file.GetColumn<VertexIDType>(1);
   to_id = edge_file.GetColumn<VertexIDType>(2);
@@ -92,9 +197,25 @@ int ReadCSVEdgeFile(GraphType<configures...>& graph, const char* e_file) {
                            .AddEdge(from_id[i], to_id[i],
                                     EdgeLabelType(edge_label[i]), edge_id[i])
                            .first;
-    for (int col_iter = 4; col_iter < col_num; col_iter++) {
-      std::string cell = edge_file.GetCell<std::string>(col_iter, i);
-      edge_ptr->AddAttribute(col_iter, cell);
+    if (graph.edge_has_attribute) {
+      for (int col_iter = 4; col_iter < col_num; col_iter++) {
+        std::stringstream ss(after_parse_col_name[col_iter]);
+        AttributeType attr_key;
+        ss >> attr_key;
+        if (after_parse_value_type[col_iter] == "string") {
+          auto cell_attr = edge_file.GetCell<std::string>(col_iter, i);
+          edge_ptr->AddAttribute(attr_key, cell_attr);
+        } else if (after_parse_value_type[col_iter] == "int") {
+          auto cell_attr = edge_file.GetCell<int>(col_iter, i);
+          edge_ptr->AddAttribute(attr_key, cell_attr);
+        } else if (after_parse_value_type[col_iter] == "double") {
+          auto cell_attr = edge_file.GetCell<double>(col_iter, i);
+          edge_ptr->AddAttribute(attr_key, cell_attr);
+        } else if (after_parse_value_type[col_iter] == "short") {
+          auto cell_attr = edge_file.GetCell<short>(col_iter, i);
+          edge_ptr->AddAttribute(attr_key, cell_attr);
+        }
+      }
     }
   }
   return static_cast<int>(sz);

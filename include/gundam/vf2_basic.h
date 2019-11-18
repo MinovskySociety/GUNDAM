@@ -52,7 +52,7 @@ int InitCandidateSet(
       if (!vertex_equiv(query_it, target_it)) {
         continue;
       }
-      std::cout << query_it->id() << " " << target_it->id() << std::endl;
+      // std::cout << query_it->id() << " " << target_it->id() << std::endl;
       int query_in_count = 0, query_out_count = 0;
       int target_in_count = 0, target_out_count = 0;
       query_in_count = Degree<EdgeState::kIn_>(query_ptr);
@@ -279,22 +279,21 @@ int VF2(
     }
   }
 
-  return static_cast<int>(match_result.size());  
+  return static_cast<int>(match_result.size());
 }
-};  // namespace VF2Basic
+};  // namespace __VF2Basic
 
-template <enum MatchSemantics match_semantics, 
-	      template <typename...> class GraphType0, typename... configures0, 
-	      template <typename...> class GraphType1, typename... configures1,
+template <enum MatchSemantics match_semantics,
+          template <typename...> class GraphType0, typename... configures0,
+          template <typename...> class GraphType1, typename... configures1,
           class VertexEquiv, class EdgeEquiv>
-int VF2(const GraphType0<configures0...>& query_graph, 
-	    const GraphType1<configures1...>& target_graph,
-	    std::vector<std::map<typename GraphType0<configures0...>::VertexConstPtr, 
-	                         typename GraphType1<configures1...>::VertexConstPtr>>&
-	      match_result, 
-	    VertexEquiv vertex_equiv, EdgeEquiv edge_equiv, 
-	    int top_k = -1) {
-
+int VF2(
+    const GraphType0<configures0...> &query_graph,
+    const GraphType1<configures1...> &target_graph,
+    std::vector<std::map<typename GraphType0<configures0...>::VertexConstPtr,
+                         typename GraphType1<configures1...>::VertexConstPtr>>
+        &match_result,
+    VertexEquiv vertex_equiv, EdgeEquiv edge_equiv, int top_k = -1) {
   using PatternType = GraphType0<configures0...>;
   using DataGraphType = GraphType1<configures1...>;
   using PatternIDType = typename PatternType::VertexType::IDType;
@@ -303,9 +302,9 @@ int VF2(const GraphType0<configures0...>& query_graph,
   using PatternVertexPtr = typename PatternType::VertexConstPtr;
   using DataGraphVertexType = typename DataGraphType::VertexType;
   using DataGraphVertexPtr = typename DataGraphType::VertexConstPtr;
-  
+
   match_result.clear();
-  
+
   std::map<PatternVertexPtr, std::vector<DataGraphVertexPtr>> candidate_set;
   int res = __VF2Basic::InitCandidateSet<match_semantics>(
       query_graph, target_graph, candidate_set, vertex_equiv);
