@@ -1,5 +1,6 @@
 #ifndef _GRAPH_H
 #define _GRAPH_H
+#include <iostream>
 
 #include "gundam/container.h"
 #include "gundam/graph_configure.h"
@@ -528,10 +529,16 @@ class Graph {
 
     enum EdgeDirection direction_;
     VertexPtrType vertex_ptr_;
-    public:
-    inline const enum EdgeDirection& const_direction()const { return this->direction_; }
-    inline const VertexPtrType& const_vertex_ptr()const  { return this->vertex_ptr_; }
-    private:
+
+   public:
+    inline const enum EdgeDirection& const_direction() const {
+      return this->direction_;
+    }
+    inline const VertexPtrType& const_vertex_ptr() const {
+      return this->vertex_ptr_;
+    }
+
+   private:
     inline EdgeAttributeType& _attribute() {
       assert(!this->IsDone());
       return *(
@@ -1038,12 +1045,13 @@ class Graph {
     using VertexPtrContainerType =
         Container<vertex_ptr_container_type, vertex_ptr_container_sort_type,
                   VertexPtr, DecomposedEdgeContainerType>;
-
+    using VertexPtrIteratorType = typename VertexPtrContainerType::iterator;
     static constexpr TupleIdxType kEdgeLabelIdx = 0;
     static constexpr TupleIdxType kVertexPtrContainerIdx = 1;
     using EdgeLabelContainerType =
         Container<edge_label_container_type, edge_label_container_sort_type,
                   EdgeLabelType, VertexPtrContainerType>;
+    using EdgeLabelIteratorType = typename EdgeLabelContainerType::iterator;
 
     //    static constexpr TupleIdxType kEdgeIsOutputIdx = 0;
     //    static constexpr TupleIdxType kEdgeLabelContainerIdx = 1;
@@ -1080,7 +1088,8 @@ class Graph {
 
       using VertexPtrType =
           typename std::conditional<is_const_, VertexConstPtr, VertexPtr>::type;
-      public:
+
+     public:
       enum EdgeDirection direction_;
       VertexPtrType vertex_ptr_;
 
@@ -1247,7 +1256,7 @@ class Graph {
                 TupleIdxType dst_ptr_idx_, TupleIdxType edge_id_idx_,
                 TupleIdxType edge_attribute_ptr_idx_>
       using FriendEdgeContentIterator =
-          EdgeContentIterator_<ContainerType_,is_const_, depth_,  begin_depth_,
+          EdgeContentIterator_<ContainerType_, is_const_, depth_, begin_depth_,
                                edge_label_idx_, dst_ptr_idx_, edge_id_idx_,
                                edge_attribute_ptr_idx_>;
       template <typename ContainerType_, IteratorDepthType depth_,
@@ -1265,53 +1274,51 @@ class Graph {
           const FriendEdgeIterator<ContainerType_, depth_, begin_depth_,
                                    edge_label_idx_, dst_ptr_idx_, edge_id_idx_,
                                    edge_attribute_ptr_idx_>&
-              vertex_ptr_iterator){
-
+              vertex_ptr_iterator) {
         using FriendEdgeConstPtrType = const FriendEdgeContentIterator<
-                 ContainerType_, depth_, begin_depth_, edge_label_idx_,
-                 dst_ptr_idx_, edge_id_idx_, edge_attribute_ptr_idx_>* ;
+            ContainerType_, depth_, begin_depth_, edge_label_idx_, dst_ptr_idx_,
+            edge_id_idx_, edge_attribute_ptr_idx_>*;
 
         const void* const ptr = &vertex_ptr_iterator;
         this->direction_ =
-            (static_cast<FriendEdgeConstPtrType>(ptr))
-                ->const_direction();
+            (static_cast<FriendEdgeConstPtrType>(ptr))->const_direction();
         this->vertex_ptr_ =
-            (static_cast<FriendEdgeConstPtrType>(ptr))
-                ->const_vertex_ptr();
-        
+            (static_cast<FriendEdgeConstPtrType>(ptr))->const_vertex_ptr();
+
         this->edge_label_iterator_ =
             (static_cast<FriendEdgeConstPtrType>(ptr))
-                ->template get_const_iterator<typename EdgePtrContentType
-                                                   ::EdgeLabelIteratorType, 0>();
-        
+                ->template get_const_iterator<
+                    typename EdgePtrContentType ::EdgeLabelIteratorType, 0>();
+
         this->vertex_ptr_iterator_ =
             (static_cast<FriendEdgeConstPtrType>(ptr))
-                ->template get_const_iterator<typename EdgePtrContentType
-                                                    ::VertexPtrIteratorType, 1>();
+                ->template get_const_iterator<
+                    typename EdgePtrContentType ::VertexPtrIteratorType, 1>();
         this->decomposed_edge_iterator_ =
             (static_cast<FriendEdgeConstPtrType>(ptr))
-                ->template get_const_iterator<typename EdgePtrContentType
-                                                ::DecomposedEdgeIteratorType, 2>();
-        
+                ->template get_const_iterator<
+                    typename EdgePtrContentType ::DecomposedEdgeIteratorType,
+                    2>();
+
         return;
       }
 
      public:
       using EdgePtrContentType::IsNull;
 
-      template <typename... ParameterTypes>      
-      EdgePtr_ (const ParameterTypes&... parameters)
-                     :EdgePtrContentType(parameters...){
+      template <typename... ParameterTypes>
+      EdgePtr_(const ParameterTypes&... parameters)
+          : EdgePtrContentType(parameters...) {
         return;
       }
       template <typename ContainerType_, IteratorDepthType depth_,
                 IteratorDepthType begin_depth_, TupleIdxType edge_label_idx_,
                 TupleIdxType dst_ptr_idx_, TupleIdxType edge_id_idx_,
-                TupleIdxType edge_attribute_ptr_idx_>      
-      EdgePtr_ (const FriendEdgeIterator<ContainerType_, depth_, begin_depth_,
-                                   edge_label_idx_, dst_ptr_idx_, edge_id_idx_,
-                                   edge_attribute_ptr_idx_>&
-              vertex_ptr_iterator){
+                TupleIdxType edge_attribute_ptr_idx_>
+      EdgePtr_(const FriendEdgeIterator<ContainerType_, depth_, begin_depth_,
+                                        edge_label_idx_, dst_ptr_idx_,
+                                        edge_id_idx_, edge_attribute_ptr_idx_>&
+                   vertex_ptr_iterator) {
         this->Construct(vertex_ptr_iterator);
         return;
       }
@@ -1327,7 +1334,6 @@ class Graph {
         this->Construct(vertex_ptr_iterator);
         return *this;
       }
-
 
       template <bool input_is_const_>
       inline bool operator==(const EdgePtr_<input_is_const_>& edge_ptr) const {
@@ -1398,7 +1404,28 @@ class Graph {
     };
 
     Edges<store_data, true> edges_;
-
+    inline void EraseInEdge(const VertexPtr& dst_ptr,
+                            const EdgeLabelType& edge_label,
+                            const EdgeIDType& edge_id) {
+      auto& edge_label_container = this->edges_.in_edges();
+      auto edge_label_it = edge_label_container.Find(edge_label).first;
+      auto& vertex_ptr_container =
+          std::get<kVertexPtrContainerIdx>(*edge_label_it);
+      auto vertex_ptr_it = vertex_ptr_container.Find(dst_ptr).first;
+      auto& edge_id_container =
+          std::get<kDecomposedEdgeContainerIdx>(*vertex_ptr_it);
+      auto edge_it = edge_id_container.Find(edge_id).first;
+      // erase edge_id
+      edge_id_container.Erase(edge_it);
+      // erase dst_ptr
+      if (edge_id_container.empty()) {
+        vertex_ptr_container.Erase(vertex_ptr_it);
+      }
+      // erase edge_label
+      if (vertex_ptr_container.empty()) {
+        edge_label_container.Erase(edge_label_it);
+      }
+    }
     inline void AddInEdge(const VertexPtr& dst_ptr,
                           const EdgeLabelType& edge_label,
                           const EdgeIDType& edge_id,
@@ -1437,6 +1464,34 @@ class Graph {
           true);
     }
 
+    /*
+    inline bool EraseOutEdge(const VertexPtr& dst_ptr,
+                             const EdgeLabelType& edge_label,
+                             const EdgeIDType& edge_id) {
+      auto& out_edges_container = this->edges_.out_edges();
+      auto edge_label_it = out_edges_container.Find(edge_label).first;
+      auto& vertex_ptr_container =
+          std::get<kVertexPtrContainerIdx>(*edge_label_it);
+      auto vertex_ptr_it = vertex_ptr_container.Find(dst_ptr).first;
+      auto& edge_id_container =
+          std::get<kDecomposedEdgeContainerIdx>(*vertex_ptr_it);
+      auto edge_it = edge_id_container.Find(edge_id).first;
+      // erase edge_attr
+      delete std::get<kEdgeAttributePtrIdx>(*edge_it);
+      // erase edge_id
+      edge_id_container.Erase(edge_it);
+      // erase dst_ptr
+      if (edge_id_container.empty()) {
+        vertex_ptr_container.Erase(vertex_ptr_it);
+      }
+      // erase edge_label
+      if (vertex_ptr_container.empty()) {
+        out_edges_container.Erase(edge_label_it);
+      }
+      return true;
+    }
+    */
+
    public:
     InnerVertex_(const VertexIDType& id, const VertexLabelType& label)
         : VertexWithIDType(id),
@@ -1457,6 +1512,120 @@ class Graph {
       }
       return;
     }
+    /*
+    inline bool EraseEdge(VertexPtr& dst_ptr, const EdgeLabelType& edge_label,
+                          const EdgeIDType& edge_id) {
+      auto ret = this->FindOutEdge(edge_id);
+      if (ret.IsNull()) {
+        return false;
+      }
+      InnerVertex_* const temp_this_ptr = this;
+      VertexPtr temp_vertex_ptr = VertexPtr(temp_this_ptr);
+      dst_ptr->EraseInEdge(temp_vertex_ptr, edge_label, edge_id);
+      this->EraseOutEdge(dst_ptr, edge_label, edge_id);
+      return true;
+    }*/
+
+   private:
+    inline void EraseEdge(const enum EdgeDirection& edge_direction,
+                          const EdgeLabelType& edge_label,
+                          const VertexPtr& vertex_ptr,
+                          const EdgeIDType& edge_id) {
+      // first level container, decide which container to remove
+      EdgeLabelContainerType* edge_label_container_ptr = nullptr;
+      if (edge_direction == EdgeDirection::OutputEdge)
+        edge_label_container_ptr = &this->edges_.out_edges();
+      else
+        edge_label_container_ptr = &this->edges_.in_edges();
+      assert(edge_label_container_ptr != nullptr);
+      /// <iterator of EdgeLabelContainer, bool>
+      auto edge_label_ret = edge_label_container_ptr->Find(edge_label);
+      assert(edge_label_ret.second);
+      // second level container
+      VertexPtrContainerType& vertex_ptr_container =
+          std::get<kVertexPtrContainerIdx>(*(edge_label_ret.first));
+      /// <iterator of VertexPtrContainer, bool>
+      auto vertex_ptr_ret = vertex_ptr_container.Find(vertex_ptr);
+      assert(vertex_ptr_ret.second);
+      // third level container
+      DecomposedEdgeContainerType& decomposed_edge_container =
+          std::get<kDecomposedEdgeContainerIdx>(*(vertex_ptr_ret.first));
+      /// <iterator of DecomposedEdgeContainer, bool>
+      auto decomposed_edge_ret = decomposed_edge_container.Find(edge_id);
+      assert(decomposed_edge_ret.second);
+
+      decomposed_edge_container.Erase(decomposed_edge_ret.first);
+      if (!decomposed_edge_container.empty()) return;
+      // the decomposed_edge_container is empty,
+      // therefore, there are no edge point to vertex_ptr
+      // remove it from the vertex_ptr_container
+      vertex_ptr_container.Erase(vertex_ptr_ret.first);
+      if (!vertex_ptr_container.empty()) return;
+      // the vertex_ptr_container is empty,
+      // therefore, there are no edge has Label edge_label
+      // remove it from the edge_label_container
+      edge_label_container_ptr->Erase(edge_label_ret.first);
+      return;
+    }
+
+    inline bool EraseEdge(EdgeLabelContainerType& edge_label_contaienr,
+                          const enum EdgeDirection& edge_direction,
+                          const EdgeIDType& edge_id) {
+      for (auto edge_label_it  = edge_label_contaienr.begin();
+                edge_label_it != edge_label_contaienr.end(); edge_label_it++) {
+        VertexPtrContainerType& vertex_ptr_container =
+            std::get<kVertexPtrContainerIdx>(*edge_label_it);
+        for (auto vertex_ptr_it  = vertex_ptr_container.begin();
+                  vertex_ptr_it != vertex_ptr_container.end(); vertex_ptr_it++) {
+          DecomposedEdgeContainerType& decomposed_edge_container =
+              std::get<kDecomposedEdgeContainerIdx>(*vertex_ptr_it);
+          auto edge_id_ret = decomposed_edge_container.Find(edge_id);
+          if (!edge_id_ret.second) {
+            //  not found edge_id in this container
+            continue;
+          }
+          delete std::get<kEdgeAttributePtrIdx>(*(edge_id_ret.first));
+          decomposed_edge_container.Erase(edge_id_ret.first);
+          InnerVertex_* temp_this_ptr = this;
+          VertexPtr temp_vertex_ptr(temp_this_ptr);
+          std::get<kVertexPtrIdx>(*vertex_ptr_it)
+              ->EraseEdge(edge_direction == EdgeDirection::InputEdge?
+                                            EdgeDirection::OutputEdge:
+                                            EdgeDirection::InputEdge,
+                          std::get<kEdgeLabelIdx>(*edge_label_it),
+                          temp_vertex_ptr, edge_id);
+                          
+          if (!decomposed_edge_container.empty()) return true;
+          // the decomposed_edge_container is empty,
+          // therefore, there are no edge point to vertex_ptr
+          // remove it from the vertex_ptr_container
+          vertex_ptr_container.Erase(vertex_ptr_it);
+          if (!vertex_ptr_container.empty()) return true;
+          // the vertex_ptr_container is empty,
+          // therefore, there are no edge has Label edge_label
+          // remove it from the edge_label_container
+          edge_label_contaienr.Erase(edge_label_it);
+          return true;
+        }
+      }
+      return false;
+    }
+
+   public:
+    inline bool EraseEdge(const EdgeIDType& edge_id) {
+      if (this->EraseEdge(this->edges_.out_edges(), EdgeDirection::OutputEdge,
+                          edge_id))
+        return true;
+      return this->EraseEdge(this->edges_.in_edges(), EdgeDirection::InputEdge,
+                             edge_id);
+    }
+    /*
+    inline bool EraseOutEdge(const EdgeIDType& edge_id) {
+      return this->EraseEdge(this->edges_.out_edges(), edge_id);
+    }
+    inline bool EraseInEdge(const EdgeIDType& edge_id) {
+      return this->EraseEdge(this->edges_.in_edges(), edge_id);
+    }*/
 
     inline std::pair<EdgePtr, bool> AddEdge(VertexPtr& dst_ptr,
                                             const EdgeLabelType& edge_label,
@@ -1867,9 +2036,11 @@ class Graph {
     }
     ///    unimplemented:
     ///    inline EdgeConstPtr FindConstOutEdge(const EdgeIDType& edge_id);
-    ///    inline EdgeConstPtr FindConstOutEdge(const EdgeLabelType& edge_label,
+    ///    inline EdgeConstPtr FindConstOutEdge(const EdgeLabelType&
+    ///    edge_label,
     ///                                         const EdgeIDType& edge_id);
-    ///    inline EdgeConstPtr FindConstOutEdge(const EdgeLabelType& edge_label,
+    ///    inline EdgeConstPtr FindConstOutEdge(const EdgeLabelType&
+    ///    edge_label,
     ///                                         const VertexPtr& dst_ptr,
     ///                                         const EdgeIDType& edge_id);
     /// possible extension:
@@ -1896,9 +2067,11 @@ class Graph {
     }
     ///    unimplemented:
     ///    inline EdgeConstPtr FindConstInEdge(const EdgeIDType& edge_id);
-    ///    inline EdgeConstPtr FindConstInEdge(const EdgeLabelType& edge_label,
+    ///    inline EdgeConstPtr FindConstInEdge(const EdgeLabelType&
+    ///    edge_label,
     ///                                        const EdgeIDType& edge_id);
-    ///    inline EdgeConstPtr FindConstInEdge(const EdgeLabelType& edge_label,
+    ///    inline EdgeConstPtr FindConstInEdge(const EdgeLabelType&
+    ///    edge_label,
     ///                                        const VertexPtr& dst_ptr,
     ///                                        const EdgeIDType& edge_id);
     /// possible extension:
@@ -2281,206 +2454,227 @@ class Graph {
   ///     AddVertex(id,attribute0,attribute1,...)
   ///     ...
 
-  inline std::pair<EdgePtr, bool> AddEdge(
-      const typename VertexType::IDType& src_id,
-      const typename VertexType::IDType& dst_id,
-      const typename EdgeType::LabelType& edge_label,
-      const typename EdgeType::IDType& edge_id) {
-    VertexPtr src_ptr = this->FindVertex(src_id);
-    VertexPtr dst_ptr = this->FindVertex(dst_id);
-    if (src_ptr.IsNull() || dst_ptr.IsNull()) {
-      /// the src vertex or the dst vertex does not exist
-      return std::pair<EdgePtr, bool>(EdgePtr(), false);
+  inline bool EraseEdge(const typename EdgeType::IDType& edge_id) {
+    for (auto vertex_it = this->VertexBegin(); !vertex_it.IsDone();
+         vertex_it++) {
+      if (vertex_it->EraseEdge(edge_id)) return true;
     }
-    for (auto vertex_ptr_it = this->VertexBegin(); !vertex_ptr_it.IsDone();
-         ++vertex_ptr_it) {
-      EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
-      if (!edge_ptr.IsNull()) {
-        /// the edge with this edge_id has already existed
-        return std::pair<EdgePtr, bool>(edge_ptr, false);
-      }
-    }
-    /// assume that the duplicate edge is allowed
-    return src_ptr->AddEdge(dst_ptr, edge_label, edge_id);
+    return false;
   }
-  /// possible variant:
-  ///     AddEdge(src_id,dst_id)
-  ///     AddEdge(src_id,dst_id,edge_label)
-  ///     AddEdge(src_id,dst_id,edge_label,edge_id)
-  ///     AddEdge(src_id,dst_id,edge_label,edge_id,edge_attribute)
-  ///     ...
+  /*
+  bool find_flag = false;
 
-  inline VertexPtr FindVertex(const typename VertexType::IDType& id) {
-    for (auto& vertex_label_it : this->vertexes_) {
-      /// <iterator of ID container, bool>
-      auto ret = std::get<kVertexIDContainerIdx>(vertex_label_it).Find(id);
-      if (ret.second) {
-        /// found it
-        return std::get<kVertexPtrIdx>(*(ret.first));
+      for (auto vertex_ptr_it = this->VertexBegin(); !vertex_ptr_it.IsDone();
+           ++vertex_ptr_it) {
+        EdgePtr edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
+        VertexPtr src_ptr = vertex_ptr_it;
+        VertexPtr dst_ptr = edge_ptr->dst_ptr();
+        EdgeLabelType edge_label = edge_ptr->label();
+        if (!edge_ptr.IsNull()) {
+          find_flag = true;
+          src_ptr->EraseEdge(dst_ptr, edge_label, edge_id);
+          break;
+        }
       }
+      return find_flag;*/
+
+
+inline std::pair<EdgePtr, bool>
+AddEdge(const typename VertexType::IDType& src_id,
+        const typename VertexType::IDType& dst_id,
+        const typename EdgeType::LabelType& edge_label,
+        const typename EdgeType::IDType& edge_id) {
+  VertexPtr src_ptr = this->FindVertex(src_id);
+  VertexPtr dst_ptr = this->FindVertex(dst_id);
+  if (src_ptr.IsNull() || dst_ptr.IsNull()) {
+    /// the src vertex or the dst vertex does not exist
+    return std::pair<EdgePtr, bool>(EdgePtr(), false);
+  }
+  for (auto vertex_ptr_it = this->VertexBegin(); !vertex_ptr_it.IsDone();
+       ++vertex_ptr_it) {
+    EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
+    if (!edge_ptr.IsNull()) {
+      /// the edge with this edge_id has already existed
+      return std::pair<EdgePtr, bool>(edge_ptr, false);
     }
-    /// not found
+  }
+  /// assume that the duplicate edge is allowed
+  return src_ptr->AddEdge(dst_ptr, edge_label, edge_id);
+}
+/// possible variant:
+///     AddEdge(src_id,dst_id)
+///     AddEdge(src_id,dst_id,edge_label)
+///     AddEdge(src_id,dst_id,edge_label,edge_id)
+///     AddEdge(src_id,dst_id,edge_label,edge_id,edge_attribute)
+///     ...
+
+inline VertexPtr FindVertex(const typename VertexType::IDType& id) {
+  for (auto& vertex_label_it : this->vertexes_) {
+    /// <iterator of ID container, bool>
+    auto ret = std::get<kVertexIDContainerIdx>(vertex_label_it).Find(id);
+    if (ret.second) {
+      /// found it
+      return std::get<kVertexPtrIdx>(*(ret.first));
+    }
+  }
+  /// not found
+  return VertexPtr();
+}
+
+inline VertexConstPtr FindConstVertex(
+    const typename VertexType::IDType& id) const {
+  for (auto vertex_label_it = this->vertexes_.cbegin();
+       vertex_label_it != this->vertexes_.cend(); ++vertex_label_it) {
+    /// <iterator of ID container, bool>
+    const auto ret =
+        std::get<kVertexIDContainerIdx>(*vertex_label_it).FindConst(id);
+    if (ret.second) {
+      /// found it
+      return std::get<kVertexPtrIdx>(*(ret.first));
+    }
+  }
+  /// not found
+  return VertexConstPtr();
+}
+
+inline VertexPtr FindVertex(const typename VertexType::IDType& id,
+                            const typename VertexType::LabelType& label) {
+  /// <iterator of VertexLabelContainer, bool>
+  auto vertex_label_ret = this->vertexes_.Find(label);
+  if (!vertex_label_ret.second) {
+    /// not have this vertex label
     return VertexPtr();
   }
+  auto vertex_id_ret =
+      std::get<kVertexIDContainerIdx>(*(vertex_label_ret.first)).Find(id);
+  if (!vertex_id_ret.second) {
+    /// not have this vertex id
+    return VertexPtr();
+  }
+  return std::get<kVertexPtrIdx>(*(vertex_id_ret.first));
+}
 
-  inline VertexConstPtr FindConstVertex(
-      const typename VertexType::IDType& id) const {
-    for (auto vertex_label_it = this->vertexes_.cbegin();
-         vertex_label_it != this->vertexes_.cend(); ++vertex_label_it) {
-      /// <iterator of ID container, bool>
-      const auto ret =
-          std::get<kVertexIDContainerIdx>(*vertex_label_it).FindConst(id);
-      if (ret.second) {
-        /// found it
-        return std::get<kVertexPtrIdx>(*(ret.first));
-      }
-    }
-    /// not found
+inline VertexConstPtr FindConstVertex(
+    const typename VertexType::IDType& id,
+    const typename VertexType::LabelType& label) const {
+  /// <iterator of VertexLabelContainer, bool>
+  auto vertex_label_ret = this->vertexes_.FindConst(label);
+  if (!vertex_label_ret.second) {
+    /// not have this vertex label
+    return VertexPtr();
+  }
+  auto vertex_id_ret =
+      std::get<kVertexIDContainerIdx>(*(vertex_label_ret.first)).FindConst(id);
+  if (!vertex_id_ret.second) {
+    /// not have this vertex id
     return VertexConstPtr();
   }
+  return std::get<kVertexPtrIdx>(*(vertex_id_ret.first));
+}
 
-  inline VertexPtr FindVertex(const typename VertexType::IDType& id,
-                              const typename VertexType::LabelType& label) {
-    /// <iterator of VertexLabelContainer, bool>
-    auto vertex_label_ret = this->vertexes_.Find(label);
-    if (!vertex_label_ret.second) {
-      /// not have this vertex label
-      return VertexPtr();
+inline EdgePtr FindEdge(const typename EdgeType::IDType& edge_id) {
+  for (auto vertex_ptr_it = this->VertexBegin(); !vertex_ptr_it.IsDone();
+       vertex_ptr_it++) {
+    EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
+    if (!edge_ptr.IsNull()) {
+      /// the edge with this edge_id has already existed
+      return edge_ptr;
     }
-    auto vertex_id_ret =
-        std::get<kVertexIDContainerIdx>(*(vertex_label_ret.first)).Find(id);
-    if (!vertex_id_ret.second) {
-      /// not have this vertex id
-      return VertexPtr();
-    }
-    return std::get<kVertexPtrIdx>(*(vertex_id_ret.first));
   }
+  return EdgePtr();
+}
+///  unimplemented:
+///  inline EdgeConstPtr FindConstEdge(
+///           const typename EdgeType::IDType& edge_id) const;
+///  inline EdgeConstPtr FindConstEdge(
+///           const typename EdgeType::   IDType& edge_id,
+///           const typename EdgeType::LabelType& edge_label) const;
+///  inline EdgeConstPtr FindConstEdge(
+///                const typename EdgeType::IDType& edge_id) const;
+///  inline EdgeConstPtr FindConstEdge(
+///                const typename EdgeType::   IDType& edge_id,
+///                const typename EdgeType::LabelType& edge_label) const;
 
-  inline VertexConstPtr FindConstVertex(
-      const typename VertexType::IDType& id,
-      const typename VertexType::LabelType& label) const {
-    /// <iterator of VertexLabelContainer, bool>
-    auto vertex_label_ret = this->vertexes_.FindConst(label);
-    if (!vertex_label_ret.second) {
-      /// not have this vertex label
-      return VertexPtr();
-    }
-    auto vertex_id_ret =
-        std::get<kVertexIDContainerIdx>(*(vertex_label_ret.first))
-            .FindConst(id);
-    if (!vertex_id_ret.second) {
-      /// not have this vertex id
-      return VertexConstPtr();
-    }
-    return std::get<kVertexPtrIdx>(*(vertex_id_ret.first));
+VertexSizeType CountVertex() const {
+  VertexSizeType vertex_num = 0;
+  for (auto vertex_label_it = this->vertexes_.cbegin();
+       vertex_label_it != this->vertexes_.cend(); vertex_label_it++) {
+    vertex_num += std::get<kVertexIDContainerIdx>(*vertex_label_it).size();
   }
+  return vertex_num;
+}
 
-  inline EdgePtr FindEdge(const typename EdgeType::IDType& edge_id) {
-    for (auto vertex_ptr_it = this->VertexBegin(); !vertex_ptr_it.IsDone();
-         vertex_ptr_it++) {
-      EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
-      if (!edge_ptr.IsNull()) {
-        /// the edge with this edge_id has already existed
-        return edge_ptr;
-      }
-    }
-    return EdgePtr();
+VertexSizeType CountVertex(const typename VertexType::LabelType& label) const {
+  /// <iterator of VertexLabelContainer, bool>
+  auto ret = this->vertexes_.FindConst(label);
+  if (!ret.second) {
+    /// does not have this vertex label
+    return 0;
   }
-  ///  unimplemented:
-  ///  inline EdgeConstPtr FindConstEdge(
-  ///           const typename EdgeType::IDType& edge_id) const;
-  ///  inline EdgeConstPtr FindConstEdge(
-  ///           const typename EdgeType::   IDType& edge_id,
-  ///           const typename EdgeType::LabelType& edge_label) const;
-  ///  inline EdgeConstPtr FindConstEdge(
-  ///                const typename EdgeType::IDType& edge_id) const;
-  ///  inline EdgeConstPtr FindConstEdge(
-  ///                const typename EdgeType::   IDType& edge_id,
-  ///                const typename EdgeType::LabelType& edge_label) const;
+  return std::get<kVertexIDContainerIdx>(*(ret.first)).size();
+}
 
-  VertexSizeType CountVertex() const {
-    VertexSizeType vertex_num = 0;
-    for (auto vertex_label_it = this->vertexes_.cbegin();
-         vertex_label_it != this->vertexes_.cend(); vertex_label_it++) {
-      vertex_num += std::get<kVertexIDContainerIdx>(*vertex_label_it).size();
-    }
-    return vertex_num;
-  }
+using VertexIterator = Iterator_<
+    VertexContentIterator_<VertexLabelContainerType, false, 2, kVertexPtrIdx>>;
+using VertexConstIterator = Iterator_<
+    VertexContentIterator_<VertexLabelContainerType, true, 2, kVertexPtrIdx>>;
+using VertexIteratorSpecifiedLabel = Iterator_<
+    VertexContentIterator_<VertexIDContainerType, false, 1, kVertexPtrIdx>>;
+using VertexConstIteratorSpecifiedLabel = Iterator_<
+    VertexContentIterator_<VertexIDContainerType, true, 1, kVertexPtrIdx>>;
 
-  VertexSizeType CountVertex(
-      const typename VertexType::LabelType& label) const {
-    /// <iterator of VertexLabelContainer, bool>
-    auto ret = this->vertexes_.FindConst(label);
-    if (!ret.second) {
-      /// does not have this vertex label
-      return 0;
-    }
-    return std::get<kVertexIDContainerIdx>(*(ret.first)).size();
-  }
+inline VertexIterator VertexBegin() {
+  return VertexIterator(this->vertexes_.begin(), this->vertexes_.end());
+}
+inline VertexConstIterator VertexCBegin() const {
+  return VertexConstIterator(this->vertexes_.cbegin(), this->vertexes_.cend());
+}
 
-  using VertexIterator =
-      Iterator_<VertexContentIterator_<VertexLabelContainerType, false, 2,
-                                       kVertexPtrIdx>>;
-  using VertexConstIterator = Iterator_<
-      VertexContentIterator_<VertexLabelContainerType, true, 2, kVertexPtrIdx>>;
-  using VertexIteratorSpecifiedLabel = Iterator_<
-      VertexContentIterator_<VertexIDContainerType, false, 1, kVertexPtrIdx>>;
-  using VertexConstIteratorSpecifiedLabel = Iterator_<
-      VertexContentIterator_<VertexIDContainerType, true, 1, kVertexPtrIdx>>;
+inline VertexIteratorSpecifiedLabel VertexBegin(
+    typename VertexType::LabelType label) {
+  /// <iterator of VertexLabelContainer, bool>
+  auto ret = this->vertexes_.Find(label);
+  if (!ret.second)  /// does not have this vertex label
+    return VertexIteratorSpecifiedLabel();
+  return VertexIteratorSpecifiedLabel(
+      std::get<kVertexIDContainerIdx>(*(ret.first)).begin(),
+      std::get<kVertexIDContainerIdx>(*(ret.first)).end());
+}
+inline VertexConstIteratorSpecifiedLabel VertexCBegin(
+    typename VertexType::LabelType label) const {
+  /// <iterator of VertexLabelContainer, bool>
+  auto ret = this->vertexes_.FindConst(label);
+  if (!ret.second)  /// does not have this vertex label
+    return VertexConstIteratorSpecifiedLabel();
+  return VertexConstIteratorSpecifiedLabel(
+      std::get<kVertexIDContainerIdx>(*(ret.first)).cbegin(),
+      std::get<kVertexIDContainerIdx>(*(ret.first)).cend());
+}
 
-  inline VertexIterator VertexBegin() {
-    return VertexIterator(this->vertexes_.begin(), this->vertexes_.end());
-  }
-  inline VertexConstIterator VertexCBegin() const {
-    return VertexConstIterator(this->vertexes_.cbegin(),
-                               this->vertexes_.cend());
-  }
+/// unimplemented:
+/// inline VertexIterator EraseVertex(const VertexIterator& iterator);
+/// inline VertexIteratorSpecifiedLabel
+///                       EraseVertex(const VertexIteratorSpecifiedLabel&
+///                       iterator);
 
-  inline VertexIteratorSpecifiedLabel VertexBegin(
-      typename VertexType::LabelType label) {
-    /// <iterator of VertexLabelContainer, bool>
-    auto ret = this->vertexes_.Find(label);
-    if (!ret.second)  /// does not have this vertex label
-      return VertexIteratorSpecifiedLabel();
-    return VertexIteratorSpecifiedLabel(
-        std::get<kVertexIDContainerIdx>(*(ret.first)).begin(),
-        std::get<kVertexIDContainerIdx>(*(ret.first)).end());
-  }
-  inline VertexConstIteratorSpecifiedLabel VertexCBegin(
-      typename VertexType::LabelType label) const {
-    /// <iterator of VertexLabelContainer, bool>
-    auto ret = this->vertexes_.FindConst(label);
-    if (!ret.second)  /// does not have this vertex label
-      return VertexConstIteratorSpecifiedLabel();
-    return VertexConstIteratorSpecifiedLabel(
-        std::get<kVertexIDContainerIdx>(*(ret.first)).cbegin(),
-        std::get<kVertexIDContainerIdx>(*(ret.first)).cend());
-  }
-
-  /// unimplemented:
-  /// inline VertexIterator EraseVertex(const VertexIterator& iterator);
-  /// inline VertexIteratorSpecifiedLabel
-  ///                       EraseVertex(const VertexIteratorSpecifiedLabel&
-  ///                       iterator);
-
-  /// unimplemented:
-  /// inline VertexPtr SetLabel(VertexPtr&       vertex_ptr,
-  ///                     const VertexLabelType& vertex_label);
-  /// inline VertexPtr SetLabel(const VertexIDType&    vertex_id,
-  ///                           const VertexLabelType& vertex_label);
-  /// inline   EdgePtr SetLabel(EdgePtr&       edge_ptr,
-  ///                     const EdgeLabelType& edge_label);
-  /// inline   EdgePtr SetLabel(const   EdgeIDType&      edge_id,
-  ///                           const   EdgeLabelType&   edge_label);
-  /// inline   EdgePtr SetSrc  (  EdgePtr&   edge_ptr,
-  ///                           VertexPtr& vertex_ptr);
-  /// inline   EdgePtr SetDst  (  EdgePtr&   edge_ptr,
-  ///                           VertexPtr& vertex_ptr);
-  /// inline   EdgePtr SetSrc (const EdgeIDType& edge_id,
-  ///                          VertexPtr& vertex_ptr);
-  /// inline   EdgePtr SetDst (const EdgeIDType& edge_id,
-  ///                          VertexPtr& vertex_ptr);
-};
+/// unimplemented:
+/// inline VertexPtr SetLabel(VertexPtr&       vertex_ptr,
+///                     const VertexLabelType& vertex_label);
+/// inline VertexPtr SetLabel(const VertexIDType&    vertex_id,
+///                           const VertexLabelType& vertex_label);
+/// inline   EdgePtr SetLabel(EdgePtr&       edge_ptr,
+///                     const EdgeLabelType& edge_label);
+/// inline   EdgePtr SetLabel(const   EdgeIDType&      edge_id,
+///                           const   EdgeLabelType&   edge_label);
+/// inline   EdgePtr SetSrc  (  EdgePtr&   edge_ptr,
+///                           VertexPtr& vertex_ptr);
+/// inline   EdgePtr SetDst  (  EdgePtr&   edge_ptr,
+///                           VertexPtr& vertex_ptr);
+/// inline   EdgePtr SetSrc (const EdgeIDType& edge_id,
+///                          VertexPtr& vertex_ptr);
+/// inline   EdgePtr SetDst (const EdgeIDType& edge_id,
+///                          VertexPtr& vertex_ptr);
+};  // namespace GUNDAM
 }  // namespace GUNDAM
 
 #endif  // _GRAPH_H
