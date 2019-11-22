@@ -222,7 +222,7 @@ class InnerIterator_<
     return;
   }
 
- protected:
+ public:
   inline bool IsDone() const { return this->iterator_ == this->kIteratorEnd_; }
 
   inline void ToNext() {
