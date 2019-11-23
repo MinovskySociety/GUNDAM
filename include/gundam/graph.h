@@ -526,18 +526,20 @@ class Graph {
     InnerVertex_::EraseEdge(
         typename InnerVertex_::EdgeIteratorSpecifiedEdgeLabel& edge_iterator);
     friend typename InnerVertex_::template EdgePtr_<is_const_>;
-   private:
+   protected:
     
     using InnerIteratorType = InnerIterator_<ContainerType_, is_const_, depth_>;
     using VertexPtr = typename InnerVertex_::VertexPtr;
     using VertexConstPtr = typename InnerVertex_::VertexConstPtr;
     using VertexPtrType =
         typename std::conditional<is_const_, VertexConstPtr, VertexPtr>::type;
+    using VertexPtrIteratorType = typename InnerVertex_::VertexPtrContainerType::iterator;
+    using DecomposedEdgeIteratorType = typename InnerVertex_::DecomposedEdgeIteratorType;
+    
 
     enum EdgeDirection direction_;
     VertexPtrType vertex_ptr_;
 
-   public:
     inline const enum EdgeDirection& const_direction() const {
       return this->direction_;
     }
@@ -547,7 +549,6 @@ class Graph {
     }
     inline VertexPtrType& vertex_ptr() { return this->vertex_ptr_; }
 
-   private:
     inline EdgeAttributeType& _attribute() {
       assert(!this->IsDone());
       return *(
@@ -598,7 +599,6 @@ class Graph {
       ContentPtr const temp_this_ptr = this;
       return temp_this_ptr;
     }
-
    public:
     EdgeContentIterator_() : InnerIteratorType(), direction_(), vertex_ptr_() {
       return;
@@ -612,7 +612,18 @@ class Graph {
           vertex_ptr_(vertex_ptr) {
       return;
     }
-
+    inline VertexPtrIteratorType get_vertex_ptr_iterator(){
+        return this->template get_iterator<VertexPtrIteratorType, begin_depth_ + 1>();
+    }
+    inline VertexPtrIteratorType& get_vertex_ptr_iterator_ref(){
+        return this->template get_iterator<VertexPtrIteratorType, begin_depth_ + 1>();
+    }
+    inline DecomposedEdgeIteratorType get_decomposed_edge_iterator(){
+        return this->template get_iterator<DecomposedEdgeIteratorType, begin_depth_ + 2>();
+    }
+    inline DecomposedEdgeIteratorType& get_decomposed_edge_iterator_ref(){
+        return this->template get_iterator<DecomposedEdgeIteratorType, begin_depth_ + 2>();
+    }
     inline VertexPtrType& src_ptr() {
       assert(!this->IsDone());
       if (this->direction_ == EdgeDirection::OutputEdge)
@@ -709,12 +720,21 @@ class Graph {
                                     dst_ptr_idx_, edge_id_idx_,
                                     edge_attribute_ptr_idx_> {
    private:
+    friend typename InnerVertex_::EdgeIteratorSpecifiedEdgeLabel
+    InnerVertex_::EraseEdge(
+        typename InnerVertex_::EdgeIteratorSpecifiedEdgeLabel& edge_iterator);
+
     using InnerIteratorType =
         EdgeContentIterator_<ContainerType_, is_const_, depth_,
                              begin_depth_ - 1, edge_label_idx_, dst_ptr_idx_,
                              edge_id_idx_, edge_attribute_ptr_idx_>;
     using VertexPtr = typename InnerVertex_::VertexPtr;
-    const EdgeLabelType edge_label_;
+ //   const EdgeLabelType edge_label_;
+    using EdgeLabelIterator = 
+        typename std::conditional<is_const_,
+        typename InnerVertex_::EdgeLabelContainerType::const_iterator,
+        typename InnerVertex_::EdgeLabelContainerType::      iterator>::type;
+    EdgeLabelIterator edge_label_iterator_;
 
    protected:
     using InnerIteratorType::IsDone;
@@ -738,25 +758,25 @@ class Graph {
       ContentPtr const temp_this_ptr = this;
       return temp_this_ptr;
     }
+    EdgeLabelIterator get_iterator(){
+        return this->edge_label_iterator_;
+    }
 
    public:
     EdgeContentIteratorSpecifiedEdgeLabel_()
-        : InnerIteratorType(), edge_label_() {
+        : InnerIteratorType(), edge_label_iterator_() {
       return;
     }
     template <typename... ParameterTypes>
-    EdgeContentIteratorSpecifiedEdgeLabel_(const EdgeLabelType& edge_label,
+    EdgeContentIteratorSpecifiedEdgeLabel_(const EdgeLabelIterator& edge_label_iterator,
                                            const ParameterTypes&... parameters)
-        : InnerIteratorType(parameters...), edge_label_(edge_label) {
+        : InnerIteratorType(parameters...), edge_label_iterator_(edge_label_iterator) {
       return;
     }
     inline const EdgeLabelType& label() const {
       assert(!this->IsDone());
-      return this->edge_label_;
+      return std::get<InnerVertex_::kEdgeLabelIdx>(*(this->edge_label_iterator_));
     }
-    friend typename InnerVertex_::EdgeIteratorSpecifiedEdgeLabel
-    InnerVertex_::EraseEdge(
-        typename InnerVertex_::EdgeIteratorSpecifiedEdgeLabel& edge_iterator);
   };
 
   template <typename ContainerType_, bool is_const_, IteratorDepthType depth_,
@@ -1046,7 +1066,7 @@ class Graph {
     using VertexPtr = VertexPtr_<false>;
     using VertexConstPtr = VertexPtr_<true>;
 
-   private:
+   public:
     static constexpr TupleIdxType kEdgeIDIdx = 0;
     static constexpr TupleIdxType kEdgeAttributePtrIdx = 1;
     using DecomposedEdgeContainerType =
@@ -1729,6 +1749,7 @@ class Graph {
     inline VertexPtr FindVertex(EdgeLabelContainerType& edge_label_container,
                                 const EdgeLabelType& edge_label,
                                 const VertexPtr& dst_ptr) {
+      
       /// <iterator of EdgeLabelContainer, bool>
       auto edge_label_ret = edge_label_container.Find(edge_label);
       if (!edge_label_ret.second)  /// does not have edge_label
@@ -2128,22 +2149,18 @@ class Graph {
     inline EdgeIteratorSpecifiedEdgeLabel EraseEdge(
         EdgeIteratorSpecifiedEdgeLabel& edge_iterator) {
       void* ptr = &edge_iterator;
-      EdgeContentIterator* edge_content_iterator_ptr =
-          static_cast<EdgeContentIterator*>(ptr);
+      EdgeContentIteratorSpecifiedEdgeLabel* edge_it_ptr =   
+      static_cast<EdgeContentIteratorSpecifiedEdgeLabel*>(ptr);      
       enum EdgeDirection edge_direction =
-          edge_content_iterator_ptr->direction();
-      VertexPtrContainerType& vertex_ptr_container =
-          edge_content_iterator_ptr->template get<VertexPtrContainerType,
-                                                  kVertexPtrContainerIdx, 0>();
-      DecomposedEdgeContainerType& decomposed_edge_container =
-          edge_content_iterator_ptr->template get<
-              DecomposedEdgeContainerType, kDecomposedEdgeContainerIdx, 1>();
-      auto vertex_ptr_iterator =
-          edge_content_iterator_ptr
-              ->template get_iterator<VertexPtrIteratorType, 1>();
+          edge_it_ptr->direction();      
+      auto edge_label_iterator = edge_it_ptr->get_iterator();
+      VertexPtrContainerType& vertex_ptr_container = 
+        std::get<kVertexPtrContainerIdx>(*edge_label_iterator);
+      auto vertex_ptr_iterator = edge_it_ptr->get_vertex_ptr_iterator();
+      DecomposedEdgeContainerType& decomposed_edge_container = 
+        std::get<kDecomposedEdgeContainerIdx>(*vertex_ptr_iterator);
       auto decomposed_edge_iterator =
-          edge_content_iterator_ptr
-              ->template get_iterator<DecomposedEdgeIteratorType, 2>();
+          edge_it_ptr->get_decomposed_edge_iterator();
       // erase dst_ptr iterator
       EdgeLabelType edge_label = edge_iterator->label();
       EdgeIDType edge_id = edge_iterator->id();
@@ -2151,9 +2168,9 @@ class Graph {
       VertexPtr temp_vertex_ptr = VertexPtr(temp_this_ptr);
       VertexPtr dst_ptr;
       if (edge_direction == EdgeDirection::OutputEdge) {
-        dst_ptr = edge_content_iterator_ptr->dst_ptr();
+        dst_ptr = edge_it_ptr->dst_ptr();
       } else {
-        dst_ptr = edge_content_iterator_ptr->src_ptr();
+        dst_ptr = edge_it_ptr->src_ptr();
       }
       enum EdgeDirection reverse_edge_direction;
       if (edge_direction == EdgeDirection::OutputEdge) {
@@ -2161,22 +2178,23 @@ class Graph {
       } else {
         reverse_edge_direction = EdgeDirection::OutputEdge;
       }
+      //debug
+      /*
       std::cout<<"dst ptr id = "<<dst_ptr->id()<<std::endl;
       std::cout<<"label = "<<edge_label<<std::endl;
       std::cout<<"src ptr id = "<<temp_vertex_ptr->id()<<std::endl;
+      */
       dst_ptr->EraseEdge(reverse_edge_direction, edge_label, temp_vertex_ptr,
                          edge_id);
       EdgeIteratorSpecifiedEdgeLabel ret_iterator = edge_iterator;
-      
       void* ret_ptr = &ret_iterator;
-      EdgeContentIterator*
-        ret_it = static_cast<EdgeContentIterator*>(ret_ptr);
+      EdgeContentIteratorSpecifiedEdgeLabel* ret_it_ptr = 
+        static_cast<EdgeContentIteratorSpecifiedEdgeLabel*>(ret_ptr);
       auto& ret_vertex_ptr_iterator =
-          ret_it->template get_iterator<VertexPtrIteratorType, 1>();
+          ret_it_ptr->get_vertex_ptr_iterator_ref();
       auto& ret_decomposed_edge_iterator =
-          ret_it->template get_iterator<DecomposedEdgeIteratorType, 2>();
+          ret_it_ptr->get_decomposed_edge_iterator_ref();
       // erase decomposed edge
-      std::cout<<"state 1\n";
       decomposed_edge_iterator =
           decomposed_edge_container.Erase(decomposed_edge_iterator);
       if (!decomposed_edge_container.empty()) {
@@ -2193,7 +2211,6 @@ class Graph {
         // erase vertex_ptr_iterator
         vertex_ptr_iterator = vertex_ptr_container.Erase(vertex_ptr_iterator);
       }
-      std::cout<<"state 2\n";
       if ((!vertex_ptr_container.empty()) &&
           (vertex_ptr_iterator != vertex_ptr_container.end())) {
         auto& decomposed_edge_container_ref =
@@ -2203,9 +2220,7 @@ class Graph {
         return ret_iterator;
       } else {
         return EdgeIteratorSpecifiedEdgeLabel();
-      }
-      
-      
+      }      
     }
 
     inline EdgeIterator EraseEdge(EdgeIterator& edge_iterator) {
@@ -2387,7 +2402,7 @@ class Graph {
       InnerVertex_* const temp_this_ptr = this;
       const VertexPtr temp_vertex_ptr(temp_this_ptr);
       return EdgeIteratorSpecifiedEdgeLabel(
-          edge_label, direction, temp_vertex_ptr,
+          ret.first, direction, temp_vertex_ptr,
           std::get<kVertexPtrContainerIdx>(*(ret.first)).begin(),
           std::get<kVertexPtrContainerIdx>(*(ret.first)).end());
     }
@@ -2404,7 +2419,7 @@ class Graph {
       const InnerVertex_* const temp_this_ptr = this;
       VertexConstPtr temp_vertex_ptr(temp_this_ptr);
       return EdgeConstIteratorSpecifiedEdgeLabel(
-          edge_label, direction, temp_vertex_ptr,
+          ret.first, direction, temp_vertex_ptr,
           std::get<kVertexPtrContainerIdx>(*(ret.first)).cbegin(),
           std::get<kVertexPtrContainerIdx>(*(ret.first)).cend());
     }
@@ -2462,7 +2477,7 @@ class Graph {
     inline EdgeIterator OutEdgeBegin() {
       return this->EdgeBegin(EdgeDirection::OutputEdge,
                              this->edges_.out_edges());
-    }
+    } 
     inline EdgeConstIterator OutEdgeCBegin() const {
       return this->EdgeCBegin(EdgeDirection::OutputEdge,
                               this->edges_.const_out_edges());
