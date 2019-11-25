@@ -1,6 +1,7 @@
 #ifndef _GRAPH_H
 #define _GRAPH_H
 #include <iostream>
+#include <set>
 
 #include "gundam/container.h"
 #include "gundam/graph_configure.h"
@@ -612,16 +613,10 @@ class Graph {
           vertex_ptr_(vertex_ptr) {
       return;
     }
-    inline VertexPtrIteratorType get_vertex_ptr_iterator(){
+    inline VertexPtrIteratorType& vertex_ptr_iterator(){
         return this->template get_iterator<VertexPtrIteratorType, begin_depth_ + 1>();
     }
-    inline VertexPtrIteratorType& get_vertex_ptr_iterator_ref(){
-        return this->template get_iterator<VertexPtrIteratorType, begin_depth_ + 1>();
-    }
-    inline DecomposedEdgeIteratorType get_decomposed_edge_iterator(){
-        return this->template get_iterator<DecomposedEdgeIteratorType, begin_depth_ + 2>();
-    }
-    inline DecomposedEdgeIteratorType& get_decomposed_edge_iterator_ref(){
+    inline DecomposedEdgeIteratorType& decomposed_edge_iterator(){
         return this->template get_iterator<DecomposedEdgeIteratorType, begin_depth_ + 2>();
     }
     inline VertexPtrType& src_ptr() {
@@ -1897,6 +1892,46 @@ class Graph {
     ///           CountOutVertex() const;
     ///    inline typename VertexPtrContainerType::size_type
     ///           CountInVertex() const;
+
+
+    inline typename VertexPtrContainerType::size_type CountOutVertex() const {
+      if (allow_duplicate_edge){
+         std::set<VertexConstPtr> erase_multi_result;
+         for (auto it = this->OutEdgeCBegin();!it.IsDone();it++){
+             erase_multi_result.insert(it->const_dst_ptr());
+         }
+         return static_cast
+            <typename VertexPtrContainerType::size_type>(erase_multi_result.size());
+      }
+      typename VertexPtrContainerType::size_type out_vertex_num = 0;
+      for (auto it = this->edges_.const_out_edges().cbegin();
+           it != this->edges_.const_out_edges().cend();it++){
+          const EdgeLabelType edge_label = 
+            std::get<InnerVertex_::kEdgeLabelIdx>(*(it));
+          out_vertex_num += this->CountOutVertex(edge_label);
+      }
+      return out_vertex_num;
+    }
+
+    inline typename VertexPtrContainerType::size_type CountInVertex() const {
+      if (allow_duplicate_edge){
+         std::set<VertexConstPtr> erase_multi_result;
+         for (auto it = this->InEdgeCBegin();!it.IsDone();it++){
+             erase_multi_result.insert(it->const_src_ptr());
+         }
+         return static_cast
+            <typename VertexPtrContainerType::size_type>(erase_multi_result.size());
+      }
+      typename VertexPtrContainerType::size_type in_vertex_num = 0;
+      for (auto it = this->edges_.const_in_edges().cbegin();
+           it != this->edges_.const_in_edges().cend();it++){
+          const EdgeLabelType edge_label = 
+            std::get<InnerVertex_::kEdgeLabelIdx>(*(it));
+          in_vertex_num += this->CountInVertex(edge_label);
+      }
+      return in_vertex_num;
+    }
+
     inline typename VertexPtrContainerType::size_type CountOutVertex(
         const EdgeLabelType& edge_label) const {
       return this->CountVertex(this->edges_.const_out_edges(), edge_label);
@@ -2156,11 +2191,11 @@ class Graph {
       auto edge_label_iterator = edge_it_ptr->get_iterator();
       VertexPtrContainerType& vertex_ptr_container = 
         std::get<kVertexPtrContainerIdx>(*edge_label_iterator);
-      auto vertex_ptr_iterator = edge_it_ptr->get_vertex_ptr_iterator();
+      auto vertex_ptr_iterator = edge_it_ptr->vertex_ptr_iterator();
       DecomposedEdgeContainerType& decomposed_edge_container = 
         std::get<kDecomposedEdgeContainerIdx>(*vertex_ptr_iterator);
       auto decomposed_edge_iterator =
-          edge_it_ptr->get_decomposed_edge_iterator();
+          edge_it_ptr->decomposed_edge_iterator();
       // erase dst_ptr iterator
       EdgeLabelType edge_label = edge_iterator->label();
       EdgeIDType edge_id = edge_iterator->id();
@@ -2191,9 +2226,9 @@ class Graph {
       EdgeContentIteratorSpecifiedEdgeLabel* ret_it_ptr = 
         static_cast<EdgeContentIteratorSpecifiedEdgeLabel*>(ret_ptr);
       auto& ret_vertex_ptr_iterator =
-          ret_it_ptr->get_vertex_ptr_iterator_ref();
+          ret_it_ptr->vertex_ptr_iterator();
       auto& ret_decomposed_edge_iterator =
-          ret_it_ptr->get_decomposed_edge_iterator_ref();
+          ret_it_ptr->decomposed_edge_iterator();
       // erase decomposed edge
       decomposed_edge_iterator =
           decomposed_edge_container.Erase(decomposed_edge_iterator);
