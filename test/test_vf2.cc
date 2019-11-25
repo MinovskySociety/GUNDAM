@@ -8,17 +8,22 @@
 
 #include "gtest/gtest.h"
 
-#ifdef WIN32
-#include <windows.h>
-inline uint64_t GetTime() { return GetTickCount64(); }
-#else
-#include <sys/time.h>
-inline uint64_t GetTime() {
-  timeval t;
-  gettimeofday(&t, NULL);
-  return t.tv_sec * 1000 + t.tv_usec / 1000;
-}
-#endif
+//#ifdef WIN32
+//#include <windows.h>
+//inline uint64_t GetTime() {
+//  return GetTickCount64(); 
+//}
+//#else
+//#include <sys/time.h>
+//inline uint64_t GetTime() {
+//  timeval t;
+//  gettimeofday(&t, NULL);
+//  return t.tv_sec * 1000 + t.tv_usec / 1000;
+//}
+//#endif
+
+#include <ctime>
+inline uint64_t GetTime() { return clock() * 1000 / CLOCKS_PER_SEC; }
 
 template <typename Ptr1, typename Ptr2>
 bool LabelEqual(const Ptr1& a, const Ptr2& b) {
