@@ -249,8 +249,30 @@ int WriteCSVGraph(const GraphType<configures...>& graph, const char* v_file,
   using EdgeLabelType = typename EdgeType::LabelType;
   using VertexPtr = typename GraphType<configures...>::VertexPtr;
   using VertexConstPtr = typename GraphType<configures...>::VertexConstPtr;
+  using AttributeKeyType = typename VertexType::AttributeKeyType;
   std::ofstream node_file(v_file);
   int count = 0;
+  /*
+  std::vector<std::string> node_col_name;
+  node_col_name.push_back("node_id");
+  node_col_name.push_back("node_label");
+  std::set<AttributeKeyType> temp_attr_name;
+  for (auto node_it = graph.VertexCBegin(); !node_it.IsDone(); node_it++) {
+    VertexConstPtr node_ptr = node_it;
+    for (auto attr_it = node_ptr->AttributeCBegin(); !attr_it.IsDone();
+         attr_it++) {
+      temp_attr_name.insert(attr_it->key());
+    }
+  }
+  for (auto& attr_key_it : temp_attr_name) {
+    std::stringstream ss;
+    ss << attr_key_it;
+    std::string col_name;
+    ss >> col_name;
+    node_col_name.push_back(col_name);
+  }
+  */
+
   node_file << "node_id,node_label" << std::endl;
   for (auto it = graph.VertexCBegin(); !it.IsDone(); it++) {
     count++;
