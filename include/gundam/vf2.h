@@ -740,7 +740,7 @@ int VF2(const GraphType0<configures0...> &query_graph,
         const GraphType1<configures1...> &target_graph,
         MatchCallback user_callback) {
   return _vf2::VF2_Recursive<match_semantics>(query_graph, target_graph,
-                                                 user_callback);
+                                              user_callback);
 }
 
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
@@ -822,7 +822,6 @@ int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
                                               ResultContainer>,
                 std::placeholders::_1, &max_result, &match_result));
 }
-
 }  // namespace GUNDAM
 
 #endif
