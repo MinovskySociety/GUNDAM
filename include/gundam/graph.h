@@ -90,9 +90,12 @@ class Graph {
   class WithID_ {
    private:
     const IDType_ id_;
+    std::string id_type_;
 
    public:
     WithID_(const IDType_& id) : id_(id) { return; }
+    inline void SetIDType(const std::string id_type) { id_type_ = id_type; }
+    inline const std::string id_type() const { return id_type_; }
     inline const IDType_& id() const { return this->id_; }
   };
 
@@ -101,9 +104,14 @@ class Graph {
    private:
     typename std::conditional<is_const_, const LabelType_, LabelType_>::type
         label_;
+    std::string label_type_;
 
    public:
     WithLabel_(const LabelType_& label) : label_(label) { return; }
+    inline void SetLabelType(const std::string label_type) {
+      label_type_ = label_type;
+    }
+    inline const std::string label_type() const { return label_type_; }
     inline const LabelType_& label() const { return this->label_; }
     template <bool judge = is_const_,
               typename std::enable_if<!judge, bool>::type = false>
@@ -392,6 +400,8 @@ class Graph {
         AttributeContentIterator_<KeyType_, AttributeContainerType, false, 1, 0,
                                   kAttributeKeyIdx, kAttributeValuePtrIdx>;
 
+    std::map<KeyType_, std::string> key_to_value_type_map;
+
    public:
     using AttributePtr = AttributePtr_<AttributeContainerType, false>;
     using AttributeConstPtr = AttributePtr_<AttributeContainerType, true>;
@@ -401,14 +411,29 @@ class Graph {
         AttributeContentIterator_<KeyType_, AttributeContainerType, true, 1, 0,
                                   kAttributeKeyIdx, kAttributeValuePtrIdx>>;
 
-    WithAttribute_() : attributes_() { return; }
+    WithAttribute_() : attributes_() {
+      key_to_value_type_map.clear();
+      return;
+    }
 
     ~WithAttribute_() {
       for (auto& it : this->attributes_)
         delete std::get<kAttributeValuePtrIdx>(it);
+      key_to_value_type_map.clear();
       return;
     }
 
+    inline bool SetValueType(const KeyType_& key, std::string value_type) {
+      if (key_to_value_type_map.find(key) != key_to_value_type_map.end()) {
+        return false;
+      }
+      key_to_value_type_map.insert(std::make_pair(key, value_type));
+      return true;
+    }
+    inline const std::string GetValueType(const KeyType_& key) const {
+      assert(key_to_value_type_map.find(key) != key_to_value_type_map.end());
+      return key_to_value_type_map.find(key)->second;
+    }
     inline AttributeIterator AttributeBegin() {
       return AttributeIterator(this->attributes_.begin(),
                                this->attributes_.end());
@@ -1111,6 +1136,7 @@ class Graph {
     class EdgePtrContent_<is_const_, false, meaning_less_> {
       static_assert(meaning_less_, "Illegal usage of this method");
 
+     public:
      protected:
       using EdgeLabelIteratorType = typename std::conditional<
           is_const_, typename EdgeLabelContainerType::const_iterator,
@@ -1171,7 +1197,6 @@ class Graph {
       inline const EdgeLabelType& label() const {
         return std::get<kEdgeLabelIdx>(*(this->edge_label_iterator_));
       }
-
       inline const EdgeIDType& id() const {
         return std::get<kEdgeIDIdx>(*(this->decomposed_edge_iterator_));
       }
@@ -1203,6 +1228,10 @@ class Graph {
           const EdgeAttributeKeyType& key) const {
         return this->const_attribute().FindConstAttributePtr(key);
       }
+      inline const std::string GetValueType(
+          const EdgeAttributeKeyType& key) const {
+        return this->const_attribute().GetValueType(key);
+      }
     };
 
     /// content pointer with non-constant method
@@ -1225,7 +1254,6 @@ class Graph {
 
      public:
       using EdgePtrContent::EdgePtrContent;
-
       inline VertexPtr& src_ptr() {
         if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
           return EdgePtrContent::vertex_ptr_;
@@ -1237,7 +1265,6 @@ class Graph {
           return this->VertexPtrContainerElement();
         return EdgePtrContent::vertex_ptr_;
       }
-
       template <typename ConcreteDataType>
       inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key) {
         return this->_attribute().template attribute<ConcreteDataType>(key);
@@ -1251,7 +1278,10 @@ class Graph {
           const EdgeAttributeKeyType& key) {
         return this->_attribute().FindAttributePtr(key);
       }
-
+      inline bool SetValueType(const EdgeAttributeKeyType& key,
+                               const std::string value_type) {
+        return this->_attribute().SetValueType(key, value_type);
+      }
       template <typename ConcreteDataType>
       inline std::pair<EdgeAttributePtr, bool> AddAttribute(
           const EdgeAttributeKeyType& key, const ConcreteDataType& value) {
@@ -1286,7 +1316,6 @@ class Graph {
                                     EdgePtrContentType*>::type;
 
       // add by wangyj
-
       template <typename ContainerType_, IteratorDepthType depth_,
                 IteratorDepthType begin_depth_, TupleIdxType edge_label_idx_,
                 TupleIdxType dst_ptr_idx_, TupleIdxType edge_id_idx_,
@@ -1387,7 +1416,6 @@ class Graph {
         return edge_ptr.InputEdgePtrContentType::id() ==
                EdgePtrContentType::id();
       }
-
       template <bool judge = is_const_,
                 typename std::enable_if<judge, bool>::type = false>
       inline EdgePtrContentTypePtrType operator->() const {
@@ -2945,8 +2973,21 @@ class Graph {
   /// inline   EdgePtr SetSrc (const EdgeIDType& edge_id,
   ///                          VertexPtr& vertex_ptr);
   /// inline   EdgePtr SetDst (const EdgeIDType& edge_id,
-  ///                          VertexPtr& vertex_ptr);
+  ///            G             VertexPtr& vertex_ptr);
+ private:
+  std::string edge_label_type_;
+  std::string edge_id_type_;
+
+ public:
+  void SetEdgeLabelType(const std::string& label_type) {
+    this->edge_label_type_ = label_type;
+  }
+  void SetEdgeIDType(const std::string& id_type) {
+    this->edge_id_type_ = id_type;
+  }
+  const std::string edge_id_type() const { return this->edge_id_type_; }
+  const std::string edge_label_type() const { return this->edge_label_type_; }
 };  // namespace GUNDAM
 }  // namespace GUNDAM
-
+   // es _GRAPH_G# // es _GRAPH_G#
 #endif  // _GRAPH_H
