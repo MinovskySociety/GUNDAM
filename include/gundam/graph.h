@@ -9,7 +9,7 @@
 #include "gundam/label.h"
 
 namespace GUNDAM {
-enum class BasicDataType : int { int_, double_, long_, short_, string_ };
+enum class BasicDataType { int_, double_, long_, short_, string_ };
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, int>::value,
                                   bool>::type = false>
@@ -40,60 +40,64 @@ template <typename DataType,
 std::string TypeToString(DataType data) {
   return "string";
 }
-template <typename DataType,
-          typename std::enable_if<std::is_same<DataType, int>::value,
-                                  bool>::type = false>
-enum BasicDataType TypeToEnum(DataType data) {
+template <typename DataT,
+          typename std::enable_if<std::is_same<DataT, int>::value, bool>::type =
+              false>
+const GUNDAM::BasicDataType TypeToEnum(DataT data) {
   return BasicDataType::int_;
 }
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, long long>::value,
                                   bool>::type = false>
-enum BasicDataType TypeToEnum(DataType data) {
+const GUNDAM::BasicDataType TypeToEnum(DataType data) {
   return BasicDataType::long_;
 }
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, double>::value,
                                   bool>::type = false>
-enum BasicDataType TypeToEnum(DataType data) {
+const GUNDAM::BasicDataType TypeToEnum(DataType data) {
   return BasicDataType::double_;
 }
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, short>::value,
                                   bool>::type = false>
-enum BasicDataType TypeToEnum(DataType data) {
+const GUNDAM::BasicDataType TypeToEnum(DataType data) {
   return BasicDataType::short_;
 }
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, std::string>::value,
                                   bool>::type = false>
-enum BasicDataType TypeToEnum(DataType data) {
+const GUNDAM::BasicDataType TypeToEnum(DataType data) {
   return BasicDataType::string_;
 }
-const std::string EnumToString(const enum BasicDataType& data) {
-  switch (data) {
-    case BasicDataType::double_:
-      return "double";
-      break;
-    case BasicDataType::int_:
-      return "int";
-      break;
-    case BasicDataType::long_:
-      return "long";
-      break;
-    case BasicDataType::short_:
-      return "short";
-      break;
-    case BasicDataType::string_:
-      return "string";
-      break;
-    default:
-      return "";
-      break;
-  }
-}
+
 
 enum class EdgeDirection : bool { InputEdge, OutputEdge };
+
+
+const std::string EnumToString(const GUNDAM::BasicDataType data) {
+	switch (data) {
+	case BasicDataType::double_:
+		return "double";
+		break;
+	case BasicDataType::int_:
+		return "int";
+		break;
+	case BasicDataType::long_:
+		return "long";
+		break;
+	case BasicDataType::short_:
+		return "short";
+		break;
+	case BasicDataType::string_:
+		return "string";
+		break;
+	default:
+		return "";
+		break;
+	}
+}
+
 
 template <typename... configures>
 class Graph {
@@ -483,7 +487,7 @@ class Graph {
         AttributeContentIterator_<KeyType_, AttributeContainerType, false, 1, 0,
                                   kAttributeKeyIdx, kAttributeValuePtrIdx>;
 
-    std::map<KeyType_, BasicDataType> key_to_value_type_map;
+    std::map<KeyType_, enum BasicDataType> key_to_value_type_map;
 
    public:
     using AttributePtr = AttributePtr_<AttributeContainerType, false>;
