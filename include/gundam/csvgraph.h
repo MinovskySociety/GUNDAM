@@ -97,23 +97,18 @@ void LoadVertexAttribue(GraphType<configures...>& graph,
     if (after_parse_value_type[col_iter] == "string") {
       auto cell_attr = node_file.GetCell<std::string>(col_iter, row_pos);
       node_ptr->AddAttribute(attr_key, cell_attr);
-      node_ptr->SetValueType(attr_key, "string");
     } else if (after_parse_value_type[col_iter] == "int") {
       auto cell_attr = node_file.GetCell<int>(col_iter, row_pos);
       node_ptr->AddAttribute(attr_key, cell_attr);
-      node_ptr->SetValueType(attr_key, "int");
     } else if (after_parse_value_type[col_iter] == "double") {
       auto cell_attr = node_file.GetCell<double>(col_iter, row_pos);
       node_ptr->AddAttribute(attr_key, cell_attr);
-      node_ptr->SetValueType(attr_key, "double");
     } else if (after_parse_value_type[col_iter] == "short") {
       auto cell_attr = node_file.GetCell<short>(col_iter, row_pos);
       node_ptr->AddAttribute(attr_key, cell_attr);
-      node_ptr->SetValueType(attr_key, "short");
     } else if (after_parse_value_type[col_iter] == "long") {
       auto cell_attr = node_file.GetCell<long long>(col_iter, row_pos);
       node_ptr->AddAttribute(attr_key, cell_attr);
-      node_ptr->SetValueType(attr_key, "long");
     }
   }
   return;
@@ -215,23 +210,18 @@ void LoadEdgeAttribue(GraphType<configures...>& graph,
     if (after_parse_value_type[col_iter] == "string") {
       auto cell_attr = edge_file.GetCell<std::string>(col_iter, row_pos);
       edge_ptr->AddAttribute(attr_key, cell_attr);
-      edge_ptr->SetValueType(attr_key, "string");
     } else if (after_parse_value_type[col_iter] == "int") {
       auto cell_attr = edge_file.GetCell<int>(col_iter, row_pos);
       edge_ptr->AddAttribute(attr_key, cell_attr);
-      edge_ptr->SetValueType(attr_key, "int");
     } else if (after_parse_value_type[col_iter] == "double") {
       auto cell_attr = edge_file.GetCell<double>(col_iter, row_pos);
       edge_ptr->AddAttribute(attr_key, cell_attr);
-      edge_ptr->SetValueType(attr_key, "double");
     } else if (after_parse_value_type[col_iter] == "short") {
       auto cell_attr = edge_file.GetCell<short>(col_iter, row_pos);
       edge_ptr->AddAttribute(attr_key, cell_attr);
-      edge_ptr->SetValueType(attr_key, "short");
     } else if (after_parse_value_type[col_iter] == "long") {
       auto cell_attr = edge_file.GetCell<long long>(col_iter, row_pos);
       edge_ptr->AddAttribute(attr_key, cell_attr);
-      edge_ptr->SetValueType(attr_key, "long");
     }
   }
   return;
@@ -323,11 +313,11 @@ int ReadCSVGraph(GraphType<configures...>& graph, const VertexFileList& v_list,
 // ToString
 template <typename ElementType>
 std::string ToString(ElementType element) {
-    std::stringstream ss;
-    ss<<element;
-    std::string ret;
-    ss>>ret;
-    return ret;
+  std::stringstream ss;
+  ss << element;
+  std::string ret;
+  ss >> ret;
+  return ret;
 }
 // Write CSV col
 void WriteCSVCol(std::ofstream& file_stream, std::vector<std::string>& col_name,
@@ -395,7 +385,7 @@ void GetVertexAttributeValueType(
     for (auto attr_it = node_ptr->AttributeCBegin(); !attr_it.IsDone();
          attr_it++) {
       AttributeKeyType attr_key = attr_it->key();
-      std::string attr_value_type = node_ptr->GetValueType(attr_key);
+      std::string attr_value_type = node_ptr->GetValueTypeName(attr_key);
       std::stringstream ss;
       ss << attr_key;
       std::string col_name;
@@ -450,7 +440,7 @@ void GetEdgeAttributeValueType(
       for (auto edge_attr_it = edge_ptr->AttributeCBegin();
            !edge_attr_it.IsDone(); edge_attr_it++) {
         EdgeAttributeKeyType attr_key = edge_attr_it->key();
-        std::string attr_value_type = edge_ptr->GetValueType(attr_key);
+        std::string attr_value_type = edge_ptr->GetValueTypeName(attr_key);
         std::stringstream ss;
         ss << attr_key;
         std::string col_name;
@@ -470,7 +460,8 @@ template <
 void WriteVertexAttribute(
     const GraphType<configures...>& graph,
     typename GraphType<configures...>::VertexConstPtr& node_ptr,
-    std::vector<typename GraphType<configures...>::VertexType::AttributeKeyType>&
+    std::vector<
+        typename GraphType<configures...>::VertexType::AttributeKeyType>&
         node_attr_key,
     std::vector<std::string>& col_value_type,
     std::vector<std::string>& line_node_info) {
@@ -483,7 +474,8 @@ template <
 void WriteVertexAttribute(
     const GraphType<configures...>& graph,
     typename GraphType<configures...>::VertexConstPtr& node_ptr,
-    std::vector<typename GraphType<configures...>::VertexType::AttributeKeyType>&
+    std::vector<
+        typename GraphType<configures...>::VertexType::AttributeKeyType>&
         node_attr_key,
     std::vector<std::string>& col_value_type,
     std::vector<std::string>& line_node_info) {
@@ -507,21 +499,30 @@ void WriteVertexAttribute(
         break;
       }
     }
-    if (col_value_type[attr_key_pos] == "string") {
-      line_node_info[attr_key_pos] =
-          attr_it->template const_value<std::string>();
-    } else if (col_value_type[attr_key_pos] == "int") {
-      line_node_info[attr_key_pos] =
-          std::to_string(attr_it->template const_value<int>());
-    } else if (col_value_type[attr_key_pos] == "short") {
-      line_node_info[attr_key_pos] =
-          std::to_string(attr_it->template const_value<short>());
-    } else if (col_value_type[attr_key_pos] == "double") {
-      line_node_info[attr_key_pos] =
-          std::to_string(attr_it->template const_value<double>());
-    } else if (col_value_type[attr_key_pos] == "long") {
-      line_node_info[attr_key_pos] =
-          std::to_string(attr_it->template const_value<long>());
+    enum BasicDataType value_type_id = node_ptr->GetValueTypeID(attr_key);
+    switch (value_type_id) {
+      case BasicDataType::int_:
+        line_node_info[attr_key_pos] =
+            std::to_string(attr_it->template const_value<int>());
+        break;
+      case BasicDataType::long_:
+        line_node_info[attr_key_pos] =
+            std::to_string(attr_it->template const_value<long long>());
+        break;
+      case BasicDataType::double_:
+        line_node_info[attr_key_pos] =
+            std::to_string(attr_it->template const_value<double>());
+        break;
+      case BasicDataType::short_:
+        line_node_info[attr_key_pos] =
+            std::to_string(attr_it->template const_value<short>());
+        break;
+      case BasicDataType::string_:
+        line_node_info[attr_key_pos] =
+            attr_it->template const_value<std::string>();
+        break;
+      default:
+        break;
     }
   }
   return;
@@ -570,21 +571,30 @@ void WriteEdgeAttribute(
         break;
       }
     }
-    if (edge_col_value_type[attr_key_pos] == "string") {
-      line_edge_info[attr_key_pos] =
-          attr_it->template const_value<std::string>();
-    } else if (edge_col_value_type[attr_key_pos] == "int") {
-      line_edge_info[attr_key_pos] =
-          std::to_string(attr_it->template const_value<int>());
-    } else if (edge_col_value_type[attr_key_pos] == "short") {
-      line_edge_info[attr_key_pos] =
-          std::to_string(attr_it->template const_value<short>());
-    } else if (edge_col_value_type[attr_key_pos] == "double") {
-      line_edge_info[attr_key_pos] =
-          std::to_string(attr_it->template const_value<double>());
-    } else if (edge_col_value_type[attr_key_pos] == "long") {
-      line_edge_info[attr_key_pos] =
-          std::to_string(attr_it->template const_value<long>());
+    enum BasicDataType value_type_id = edge_ptr->GetValueTypeID(attr_key);
+    switch (value_type_id) {
+      case BasicDataType::double_:
+        line_edge_info[attr_key_pos] =
+            std::to_string(attr_it->template const_value<double>());
+        break;
+      case BasicDataType::int_:
+        line_edge_info[attr_key_pos] =
+            std::to_string(attr_it->template const_value<int>());
+        break;
+      case BasicDataType::long_:
+        line_edge_info[attr_key_pos] =
+            std::to_string(attr_it->template const_value<long>());
+        break;
+      case BasicDataType::short_:
+        line_edge_info[attr_key_pos] =
+            std::to_string(attr_it->template const_value<short>());
+        break;
+      case BasicDataType::string_:
+        line_edge_info[attr_key_pos] =
+            attr_it->template const_value<std::string>();
+        break;
+      default:
+        break;
     }
   }
   return;
@@ -611,11 +621,16 @@ int WriteCSVGraph(const GraphType<configures...>& graph, const char* v_file,
   node_col_name.push_back("node_id");
   node_col_name.push_back("node_label");
   // get ID and Label Type
+  int has_vertex_flag = 0;
   for (auto node_it = graph.VertexCBegin(); !node_it.IsDone(); node_it++) {
     VertexConstPtr node_ptr = node_it;
     col_value_type.push_back(node_ptr->id_type());
     col_value_type.push_back(node_ptr->label_type());
+    has_vertex_flag = 1;
     break;
+  }
+  if (!has_vertex_flag) {
+    return 0;
   }
   // Get Attribute value type
   if (graph.vertex_has_attribute) {
@@ -648,8 +663,8 @@ int WriteCSVGraph(const GraphType<configures...>& graph, const char* v_file,
   edge_col_name.push_back("target_node_id");
   edge_col_name.push_back("edge_label_id");
   // get ID and Label Type
+  int insert_edge_flag = 0;
   for (auto node_it = graph.VertexCBegin(); !node_it.IsDone(); node_it++) {
-    int insert_edge_flag = 0;
     VertexConstPtr node_ptr = node_it;
     for (auto edge_it = node_ptr->OutEdgeCBegin(); !edge_it.IsDone();
          edge_it++) {
@@ -662,6 +677,9 @@ int WriteCSVGraph(const GraphType<configures...>& graph, const char* v_file,
       break;
     }
     if (insert_edge_flag) break;
+  }
+  if (!insert_edge_flag) {
+    return count;
   }
   // std::cout << "size=" << edge_col_value_type.size() << std::endl;
   // Get Attribute value type
@@ -680,10 +698,8 @@ int WriteCSVGraph(const GraphType<configures...>& graph, const char* v_file,
       std::vector<std::string> line_edge_info;
       line_edge_info.resize(edge_col_name.size());
       line_edge_info[0] = ToString(edge_it->id());
-      line_edge_info[1] =
-          ToString(edge_it->const_src_ptr()->id());
-      line_edge_info[2] =
-          ToString(edge_it->const_dst_ptr()->id());
+      line_edge_info[1] = ToString(edge_it->const_src_ptr()->id());
+      line_edge_info[2] = ToString(edge_it->const_dst_ptr()->id());
       line_edge_info[3] = ToString(edge_it->label());
       EdgeConstPtr edge_ptr = edge_it;
       if (graph.edge_has_attribute) {

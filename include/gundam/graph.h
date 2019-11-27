@@ -9,6 +9,89 @@
 #include "gundam/label.h"
 
 namespace GUNDAM {
+enum class BasicDataType : int { int_, double_, long_, short_, string_ };
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, int>::value,
+                                  bool>::type = false>
+std::string TypeToString(DataType data) {
+  return "int";
+}
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, double>::value,
+                                  bool>::type = false>
+std::string TypeToString(DataType data) {
+  return "double";
+}
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, long long>::value,
+                                  bool>::type = false>
+std::string TypeToString(DataType data) {
+  return "long";
+}
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, short>::value,
+                                  bool>::type = false>
+std::string TypeToString(DataType data) {
+  return "short";
+}
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, std::string>::value,
+                                  bool>::type = false>
+std::string TypeToString(DataType data) {
+  return "string";
+}
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, int>::value,
+                                  bool>::type = false>
+enum BasicDataType TypeToEnum(DataType data) {
+  return BasicDataType::int_;
+}
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, long long>::value,
+                                  bool>::type = false>
+enum BasicDataType TypeToEnum(DataType data) {
+  return BasicDataType::long_;
+}
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, double>::value,
+                                  bool>::type = false>
+enum BasicDataType TypeToEnum(DataType data) {
+  return BasicDataType::double_;
+}
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, short>::value,
+                                  bool>::type = false>
+enum BasicDataType TypeToEnum(DataType data) {
+  return BasicDataType::short_;
+}
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, std::string>::value,
+                                  bool>::type = false>
+enum BasicDataType TypeToEnum(DataType data) {
+  return BasicDataType::string_;
+}
+const std::string EnumToString(const enum BasicDataType& data) {
+  switch (data) {
+    case BasicDataType::double_:
+      return "double";
+      break;
+    case BasicDataType::int_:
+      return "int";
+      break;
+    case BasicDataType::long_:
+      return "long";
+      break;
+    case BasicDataType::short_:
+      return "short";
+      break;
+    case BasicDataType::string_:
+      return "string";
+      break;
+    default:
+      return "";
+      break;
+  }
+}
 
 enum class EdgeDirection : bool { InputEdge, OutputEdge };
 
@@ -400,7 +483,7 @@ class Graph {
         AttributeContentIterator_<KeyType_, AttributeContainerType, false, 1, 0,
                                   kAttributeKeyIdx, kAttributeValuePtrIdx>;
 
-    std::map<KeyType_, std::string> key_to_value_type_map;
+    std::map<KeyType_, BasicDataType> key_to_value_type_map;
 
    public:
     using AttributePtr = AttributePtr_<AttributeContainerType, false>;
@@ -423,16 +506,21 @@ class Graph {
       return;
     }
 
-    inline bool SetValueType(const KeyType_& key, std::string value_type) {
+    inline bool SetValueType(const KeyType_& key,
+                             enum BasicDataType value_type) {
       if (key_to_value_type_map.find(key) != key_to_value_type_map.end()) {
         return false;
       }
       key_to_value_type_map.insert(std::make_pair(key, value_type));
       return true;
     }
-    inline const std::string GetValueType(const KeyType_& key) const {
+    inline const enum BasicDataType GetValueTypeID(const KeyType_& key) const {
       assert(key_to_value_type_map.find(key) != key_to_value_type_map.end());
       return key_to_value_type_map.find(key)->second;
+    }
+    inline const std::string GetValueTypeName(const KeyType_& key) const {
+      assert(key_to_value_type_map.find(key) != key_to_value_type_map.end());
+      return EnumToString(key_to_value_type_map.find(key)->second);
     }
     inline AttributeIterator AttributeBegin() {
       return AttributeIterator(this->attributes_.begin(),
@@ -488,6 +576,8 @@ class Graph {
         /// has already existed in the Container
         return std::pair<AttributePtr, bool>(AttributePtr(ret.first), false);
       }
+      enum BasicDataType value_type_id = TypeToEnum(value);
+      this->SetValueType(key, value_type_id);
       std::get<kAttributeValuePtrIdx>(*(ret.first)) =
           new ConcreteValue<ConcreteDataType>(value);
       return std::pair<AttributePtr, bool>(AttributePtr(ret.first), true);
@@ -586,7 +676,7 @@ class Graph {
     inline const EdgeAttributeType& _const_attribute() const {
       assert(!this->IsDone());
       return *(
-          InnerIteratorType::template get<
+          InnerIteratorType::template get_const<
               EdgeAttributeType*, edge_attribute_ptr_idx_, begin_depth_ + 2>());
     }
 
@@ -709,7 +799,14 @@ class Graph {
       assert(!this->IsDone());
       return this->_const_attribute().FindConstAttributePtr(key);
     }
-
+    inline const std::string GetValueTypeName(
+        const EdgeAttributeKeyType& key) const {
+      return this->_const_attribute().GetValueTypeName(key);
+    }
+    inline const enum BasicDataType GetValueTypeID(
+        const EdgeAttributeKeyType& key) const {
+      return this->_const_attribute().GetValueTypeID(key);
+    }
     template <typename ConcreteDataType>
     inline std::pair<EdgeAttributePtr, bool> AddAttribute(
         const EdgeAttributeKeyType& key, const ConcreteDataType& value) {
@@ -1228,9 +1325,13 @@ class Graph {
           const EdgeAttributeKeyType& key) const {
         return this->const_attribute().FindConstAttributePtr(key);
       }
-      inline const std::string GetValueType(
+      inline const std::string GetValueTypeName(
           const EdgeAttributeKeyType& key) const {
-        return this->const_attribute().GetValueType(key);
+        return this->const_attribute().GetValueTypeName(key);
+      }
+      inline const enum BasicDataType GetValueTypeID(
+          const EdgeAttributeKeyType& key) const {
+        return this->const_attribute().GetValueTypeID(key);
       }
     };
 
@@ -1278,10 +1379,12 @@ class Graph {
           const EdgeAttributeKeyType& key) {
         return this->_attribute().FindAttributePtr(key);
       }
+      /*
       inline bool SetValueType(const EdgeAttributeKeyType& key,
                                const std::string value_type) {
         return this->_attribute().SetValueType(key, value_type);
       }
+      */
       template <typename ConcreteDataType>
       inline std::pair<EdgeAttributePtr, bool> AddAttribute(
           const EdgeAttributeKeyType& key, const ConcreteDataType& value) {
