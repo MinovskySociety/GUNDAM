@@ -490,11 +490,11 @@ class Graph {
       key_to_value_type_map.insert(std::make_pair(key, value_type));
       return true;
     }
-    inline const enum BasicDataType GetValueTypeID(const KeyType_& key) const {
+    inline const enum BasicDataType GetAttributeValueTypeID(const KeyType_& key) const {
       assert(key_to_value_type_map.find(key) != key_to_value_type_map.end());
       return key_to_value_type_map.find(key)->second;
     }
-    inline const std::string GetValueTypeName(const KeyType_& key) const {
+    inline const std::string GetAttributeValueTypeName(const KeyType_& key) const {
       assert(key_to_value_type_map.find(key) != key_to_value_type_map.end());
       return EnumToString(key_to_value_type_map.find(key)->second);
     }
@@ -775,13 +775,13 @@ class Graph {
       assert(!this->IsDone());
       return this->_const_attribute().FindConstAttributePtr(key);
     }
-    inline const std::string GetValueTypeName(
+    inline const std::string GetAttributeValueTypeName(
         const EdgeAttributeKeyType& key) const {
-      return this->_const_attribute().GetValueTypeName(key);
+      return this->_const_attribute().GetAttributeValueTypeName(key);
     }
-    inline const enum BasicDataType GetValueTypeID(
+    inline const enum BasicDataType GetAttributeValueTypeID(
         const EdgeAttributeKeyType& key) const {
-      return this->_const_attribute().GetValueTypeID(key);
+      return this->_const_attribute().GetAttributeValueTypeID(key);
     }
     template <typename ConcreteDataType>
     inline std::pair<EdgeAttributePtr, bool> AddAttribute(
@@ -1301,13 +1301,13 @@ class Graph {
           const EdgeAttributeKeyType& key) const {
         return this->const_attribute().FindConstAttributePtr(key);
       }
-      inline const std::string GetValueTypeName(
+      inline const std::string GetAttributeValueTypeName(
           const EdgeAttributeKeyType& key) const {
-        return this->const_attribute().GetValueTypeName(key);
+        return this->const_attribute().GetAttributeValueTypeName(key);
       }
-      inline const enum BasicDataType GetValueTypeID(
+      inline const enum BasicDataType GetAttributeValueTypeID(
           const EdgeAttributeKeyType& key) const {
-        return this->const_attribute().GetValueTypeID(key);
+        return this->const_attribute().GetAttributeValueTypeID(key);
       }
     };
 
