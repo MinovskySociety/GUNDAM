@@ -57,20 +57,20 @@ TEST(TestGUNDAM, WriteCSVGraph) {
   ASSERT_TRUE(g1.AddEdge(1, 2, "10", 1).second);
   ASSERT_TRUE(g1.AddEdge(1, 3, "10", 2).second);
 
-   auto v1 = g1.FindVertex(1);
-   ASSERT_FALSE(v1.IsNull());
-   ASSERT_TRUE(v1->AddAttribute<std::string>("name", "v1").second);
+  auto v1 = g1.FindVertex(1);
+  ASSERT_FALSE(v1.IsNull());
+  ASSERT_TRUE(v1->AddAttribute<std::string>("name", "v1").second);
 
-   auto e1 = g1.FindEdge(1);
-   ASSERT_FALSE(e1.IsNull());
-   ASSERT_TRUE(e1->AddAttribute<std::string>(100, "e1").second);
+  auto e1 = g1.FindEdge(1);
+  ASSERT_FALSE(e1.IsNull());
+  ASSERT_TRUE(e1->AddAttribute<std::string>(100, "e1").second);
 
-   PrintGraph(g1);
+  PrintGraph(g1);
 
-   ASSERT_TRUE(WriteCSVGraph(g1, "g1_v.csv", "g1_e.csv") >= 0);
+  ASSERT_TRUE(WriteCSVGraph(g1, "g1_v.csv", "g1_e.csv") >= 0);
 
-   ASSERT_TRUE(ReadCSVGraph(g1a, std::vector<const char *>{"g1_v.csv"},
-                            std::vector<const char *>{"g1.e.csv"}) >= 0);
+  ASSERT_TRUE(ReadCSVGraph(g1a, std::vector<const char *>{"g1_v.csv"},
+                           std::vector<const char *>{"g1_e.csv"}) >= 0);
 
-   PrintGraph(g1a);
+  PrintGraph(g1a);
 }

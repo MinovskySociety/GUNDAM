@@ -146,6 +146,9 @@ int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
   }
   // parse col
   std::vector<std::string> before_parse_col_name = node_file.GetColumnNames();
+  for (auto &it:before_parse_col_name){
+      std::cout<<it<<std::endl;
+  }
   std::vector<std::string> after_parse_col_name, after_parse_value_type;
   ParseCol(before_parse_col_name, after_parse_col_name, after_parse_value_type);
   // check attribute key type is correct
@@ -158,8 +161,10 @@ int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
   std::vector<VertexLabelType> node_label =
       node_file.GetColumn<VertexLabelType>(1);
   size_t sz = node_id.size();
+  std::cout << col_num << " " << sz << std::endl;
   for (size_t i = 0; i < sz; i++) {
     // add node_id and node_label;
+    // std::cout << "i=" << i << std::endl;
     VertexPtr node_ptr =
         graph.AddVertex(node_id[i], VertexLabelType(node_label[i])).first;
     node_ptr->SetIDType(after_parse_value_type[0]);
@@ -291,6 +296,18 @@ int ReadCSVEdgeFile(GraphType<configures...>& graph, const char* e_file) {
   }
   return static_cast<int>(sz);
 }
+template <template <typename...> class GraphType, typename... configures>
+int ReadCSVGraph(GraphType<configures...>& graph, const char* v_file,
+                 const char* e_file) {
+  int count = 0;
+    int res = ReadCSVVertexFile(graph, v_file);
+    if (res < 0) return res;
+    count += res;
+    int res = ReadCSVEdgeFile(graph, e_file);
+    if (res < 0) return res;
+    count += res;
+  return count;
+}
 
 template <template <typename...> class GraphType, typename... configures,
           typename VertexFileList, typename EdgeFileList>
@@ -385,6 +402,9 @@ void GetVertexAttributeValueType(
     for (auto attr_it = node_ptr->AttributeCBegin(); !attr_it.IsDone();
          attr_it++) {
       AttributeKeyType attr_key = attr_it->key();
+      if (std::find(node_attr_key.begin(), node_attr_key.end(), attr_key) !=
+          node_attr_key.end())
+        continue;
       std::string attr_value_type = node_ptr->GetValueTypeName(attr_key);
       std::stringstream ss;
       ss << attr_key;
@@ -440,6 +460,9 @@ void GetEdgeAttributeValueType(
       for (auto edge_attr_it = edge_ptr->AttributeCBegin();
            !edge_attr_it.IsDone(); edge_attr_it++) {
         EdgeAttributeKeyType attr_key = edge_attr_it->key();
+        if (std::find(edge_attr_key.begin(), edge_attr_key.end(), attr_key) !=
+            edge_attr_key.end())
+          continue;
         std::string attr_value_type = edge_ptr->GetValueTypeName(attr_key);
         std::stringstream ss;
         ss << attr_key;
