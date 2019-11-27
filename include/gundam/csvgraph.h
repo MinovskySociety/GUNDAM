@@ -405,7 +405,7 @@ void GetVertexAttributeValueType(
       if (std::find(node_attr_key.begin(), node_attr_key.end(), attr_key) !=
           node_attr_key.end())
         continue;
-      std::string attr_value_type = node_ptr->GetValueTypeName(attr_key);
+      std::string attr_value_type = node_ptr->GetAttributeValueTypeName(attr_key);
       std::stringstream ss;
       ss << attr_key;
       std::string col_name;
@@ -463,7 +463,7 @@ void GetEdgeAttributeValueType(
         if (std::find(edge_attr_key.begin(), edge_attr_key.end(), attr_key) !=
             edge_attr_key.end())
           continue;
-        std::string attr_value_type = edge_ptr->GetValueTypeName(attr_key);
+        std::string attr_value_type = edge_ptr->GetAttributeValueTypeName(attr_key);
         std::stringstream ss;
         ss << attr_key;
         std::string col_name;
@@ -522,7 +522,7 @@ void WriteVertexAttribute(
         break;
       }
     }
-    enum BasicDataType value_type_id = node_ptr->GetValueTypeID(attr_key);
+    enum BasicDataType value_type_id = node_ptr->GetAttributeValueTypeID(attr_key);
     switch (value_type_id) {
       case BasicDataType::int_:
         line_node_info[attr_key_pos] =
@@ -594,7 +594,7 @@ void WriteEdgeAttribute(
         break;
       }
     }
-    enum BasicDataType value_type_id = edge_ptr->GetValueTypeID(attr_key);
+    enum BasicDataType value_type_id = edge_ptr->GetAttributeValueTypeID(attr_key);
     switch (value_type_id) {
       case BasicDataType::double_:
         line_edge_info[attr_key_pos] =
