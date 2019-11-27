@@ -30,19 +30,20 @@ std::string TypeToString(const DataType data) {
 template <typename DataT,
           typename std::enable_if<std::is_integral<DataT>::value, bool>::type =
               false>
-const GUNDAM::BasicDataType TypeToEnum(DataT data) {
+const BasicDataType TypeToEnum(DataT data) {
   return BasicDataType::int_;
 }
 template <typename DataType,
           typename std::enable_if<std::is_floating_point<DataType>::value,
                                   bool>::type = false>
-const GUNDAM::BasicDataType TypeToEnum(DataType data) {
+const BasicDataType TypeToEnum(DataType data) {
   return BasicDataType::double_;
 }
+
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, std::string>::value,
                                   bool>::type = false>
-const GUNDAM::BasicDataType TypeToEnum(DataType data) {
+const BasicDataType TypeToEnum(DataType data) {
   return BasicDataType::string_;
 }
 
