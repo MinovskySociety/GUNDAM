@@ -7,62 +7,37 @@
 #include "gundam/graph_configure.h"
 #include "gundam/iterator.h"
 #include "gundam/label.h"
-
 namespace GUNDAM {
 enum class BasicDataType { int_, double_, long_, short_, string_ };
 template <typename DataType,
-          typename std::enable_if<std::is_same<DataType, int>::value,
+          typename std::enable_if<std::is_integral<DataType>::value,
                                   bool>::type = false>
-std::string TypeToString(DataType data) {
+std::string TypeToString(const DataType data) {
   return "int";
 }
 template <typename DataType,
-          typename std::enable_if<std::is_same<DataType, double>::value,
+          typename std::enable_if<std::is_floating_point<DataType>::value,
                                   bool>::type = false>
-std::string TypeToString(DataType data) {
+std::string TypeToString(const DataType data) {
   return "double";
-}
-template <typename DataType,
-          typename std::enable_if<std::is_same<DataType, long long>::value,
-                                  bool>::type = false>
-std::string TypeToString(DataType data) {
-  return "long";
-}
-template <typename DataType,
-          typename std::enable_if<std::is_same<DataType, short>::value,
-                                  bool>::type = false>
-std::string TypeToString(DataType data) {
-  return "short";
 }
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, std::string>::value,
                                   bool>::type = false>
-std::string TypeToString(DataType data) {
+std::string TypeToString(const DataType data) {
   return "string";
 }
 template <typename DataT,
-          typename std::enable_if<std::is_same<DataT, int>::value, bool>::type =
+          typename std::enable_if<std::is_integral<DataT>::value, bool>::type =
               false>
 const GUNDAM::BasicDataType TypeToEnum(DataT data) {
   return BasicDataType::int_;
 }
 template <typename DataType,
-          typename std::enable_if<std::is_same<DataType, long long>::value,
-                                  bool>::type = false>
-const GUNDAM::BasicDataType TypeToEnum(DataType data) {
-  return BasicDataType::long_;
-}
-template <typename DataType,
-          typename std::enable_if<std::is_same<DataType, double>::value,
+          typename std::enable_if<std::is_floating_point<DataType>::value,
                                   bool>::type = false>
 const GUNDAM::BasicDataType TypeToEnum(DataType data) {
   return BasicDataType::double_;
-}
-template <typename DataType,
-          typename std::enable_if<std::is_same<DataType, short>::value,
-                                  bool>::type = false>
-const GUNDAM::BasicDataType TypeToEnum(DataType data) {
-  return BasicDataType::short_;
 }
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, std::string>::value,
@@ -71,33 +46,30 @@ const GUNDAM::BasicDataType TypeToEnum(DataType data) {
   return BasicDataType::string_;
 }
 
-
 enum class EdgeDirection : bool { InputEdge, OutputEdge };
 
-
 const std::string EnumToString(const GUNDAM::BasicDataType data) {
-	switch (data) {
-	case BasicDataType::double_:
-		return "double";
-		break;
-	case BasicDataType::int_:
-		return "int";
-		break;
-	case BasicDataType::long_:
-		return "long";
-		break;
-	case BasicDataType::short_:
-		return "short";
-		break;
-	case BasicDataType::string_:
-		return "string";
-		break;
-	default:
-		return "";
-		break;
-	}
+  switch (data) {
+    case BasicDataType::double_:
+      return "double";
+      break;
+    case BasicDataType::int_:
+      return "int";
+      break;
+    case BasicDataType::long_:
+      return "long";
+      break;
+    case BasicDataType::short_:
+      return "short";
+      break;
+    case BasicDataType::string_:
+      return "string";
+      break;
+    default:
+      return "";
+      break;
+  }
 }
-
 
 template <typename... configures>
 class Graph {
@@ -2845,6 +2817,8 @@ class Graph {
     /// vertex ID iterator
     auto vertex_id_it =
         std::get<kVertexIDContainerIdx>(*vertex_label_it).Insert(id).first;
+    temp_vertex_ptr->SetIDType(GUNDAM::TypeToString(id));
+    temp_vertex_ptr->SetLabelType(GUNDAM::TypeToString(label));
     std::get<kVertexPtrIdx>(*vertex_id_it) = temp_vertex_ptr;
     return std::pair<VertexPtr, bool>(std::get<kVertexPtrIdx>(*vertex_id_it),
                                       true);
@@ -2889,6 +2863,8 @@ class Graph {
       const typename EdgeType::IDType& edge_id) {
     VertexPtr src_ptr = this->FindVertex(src_id);
     VertexPtr dst_ptr = this->FindVertex(dst_id);
+    this->SetEdgeIDType(TypeToString(edge_id));
+    this->SetEdgeLabelType(TypeToString(edge_label));
     if (src_ptr.IsNull() || dst_ptr.IsNull()) {
       /// the src vertex or the dst vertex does not exist
       return std::pair<EdgePtr, bool>(EdgePtr(), false);
