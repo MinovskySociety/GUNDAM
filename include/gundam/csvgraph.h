@@ -146,8 +146,8 @@ int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
   }
   // parse col
   std::vector<std::string> before_parse_col_name = node_file.GetColumnNames();
-  for (auto &it:before_parse_col_name){
-      std::cout<<it<<std::endl;
+  for (auto& it : before_parse_col_name) {
+    std::cout << it << std::endl;
   }
   std::vector<std::string> after_parse_col_name, after_parse_value_type;
   ParseCol(before_parse_col_name, after_parse_col_name, after_parse_value_type);
@@ -167,8 +167,6 @@ int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
     // std::cout << "i=" << i << std::endl;
     VertexPtr node_ptr =
         graph.AddVertex(node_id[i], VertexLabelType(node_label[i])).first;
-    node_ptr->SetIDType(after_parse_value_type[0]);
-    node_ptr->SetLabelType(after_parse_value_type[1]);
     // add other attribute
     if (graph.vertex_has_attribute) {
       LoadVertexAttribue(graph, node_ptr, node_file, after_parse_col_name,
@@ -285,10 +283,6 @@ int ReadCSVEdgeFile(GraphType<configures...>& graph, const char* e_file) {
                            .AddEdge(from_id[i], to_id[i],
                                     EdgeLabelType(edge_label[i]), edge_id[i])
                            .first;
-    graph.SetEdgeIDType(after_parse_value_type[0]);
-    graph.SetEdgeLabelType(after_parse_value_type[3]);
-    edge_ptr->src_ptr()->SetIDType(after_parse_value_type[1]);
-    edge_ptr->dst_ptr()->SetIDType(after_parse_value_type[2]);
     if (graph.edge_has_attribute) {
       LoadEdgeAttribue(graph, edge_ptr, edge_file, after_parse_col_name,
                        after_parse_value_type, i);
@@ -300,12 +294,12 @@ template <template <typename...> class GraphType, typename... configures>
 int ReadCSVGraph(GraphType<configures...>& graph, const char* v_file,
                  const char* e_file) {
   int count = 0;
-    int res = ReadCSVVertexFile(graph, v_file);
-    if (res < 0) return res;
-    count += res;
-    int res = ReadCSVEdgeFile(graph, e_file);
-    if (res < 0) return res;
-    count += res;
+  int res = ReadCSVVertexFile(graph, v_file);
+  if (res < 0) return res;
+  count += res;
+  res = ReadCSVEdgeFile(graph, e_file);
+  if (res < 0) return res;
+  count += res;
   return count;
 }
 
@@ -405,7 +399,8 @@ void GetVertexAttributeValueType(
       if (std::find(node_attr_key.begin(), node_attr_key.end(), attr_key) !=
           node_attr_key.end())
         continue;
-      std::string attr_value_type = node_ptr->GetAttributeValueTypeName(attr_key);
+      std::string attr_value_type =
+          node_ptr->attribute_value_type_name(attr_key);
       std::stringstream ss;
       ss << attr_key;
       std::string col_name;
@@ -463,7 +458,8 @@ void GetEdgeAttributeValueType(
         if (std::find(edge_attr_key.begin(), edge_attr_key.end(), attr_key) !=
             edge_attr_key.end())
           continue;
-        std::string attr_value_type = edge_ptr->GetAttributeValueTypeName(attr_key);
+        std::string attr_value_type =
+            edge_ptr->attribute_value_type_name(attr_key);
         std::stringstream ss;
         ss << attr_key;
         std::string col_name;
@@ -522,7 +518,8 @@ void WriteVertexAttribute(
         break;
       }
     }
-    enum BasicDataType value_type_id = node_ptr->GetAttributeValueTypeID(attr_key);
+    enum BasicDataType value_type_id =
+        node_ptr->attribute_value_type_id(attr_key);
     switch (value_type_id) {
       case BasicDataType::int_:
         line_node_info[attr_key_pos] =
@@ -594,7 +591,8 @@ void WriteEdgeAttribute(
         break;
       }
     }
-    enum BasicDataType value_type_id = edge_ptr->GetAttributeValueTypeID(attr_key);
+    enum BasicDataType value_type_id =
+        edge_ptr->attribute_value_type_id(attr_key);
     switch (value_type_id) {
       case BasicDataType::double_:
         line_edge_info[attr_key_pos] =
@@ -647,8 +645,8 @@ int WriteCSVGraph(const GraphType<configures...>& graph, const char* v_file,
   int has_vertex_flag = 0;
   for (auto node_it = graph.VertexCBegin(); !node_it.IsDone(); node_it++) {
     VertexConstPtr node_ptr = node_it;
-    col_value_type.push_back(node_ptr->id_type());
-    col_value_type.push_back(node_ptr->label_type());
+    col_value_type.push_back(graph.vertex_id_type());
+    col_value_type.push_back(graph.vertex_label_type());
     has_vertex_flag = 1;
     break;
   }
@@ -693,8 +691,8 @@ int WriteCSVGraph(const GraphType<configures...>& graph, const char* v_file,
          edge_it++) {
       EdgeConstPtr edge_ptr = edge_it;
       edge_col_value_type.push_back(graph.edge_id_type());
-      edge_col_value_type.push_back(edge_ptr->const_src_ptr()->id_type());
-      edge_col_value_type.push_back(edge_ptr->const_dst_ptr()->id_type());
+      edge_col_value_type.push_back(graph.vertex_id_type());
+      edge_col_value_type.push_back(graph.vertex_id_type());
       edge_col_value_type.push_back(graph.edge_label_type());
       insert_edge_flag = 1;
       break;

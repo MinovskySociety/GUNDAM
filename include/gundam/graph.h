@@ -8,7 +8,14 @@
 #include "gundam/iterator.h"
 #include "gundam/label.h"
 namespace GUNDAM {
-enum class BasicDataType { int_, double_, long_, short_, string_ };
+enum class BasicDataType {
+  int_,
+  double_,
+  long_,
+  short_,
+  string_,
+  unknown_type_
+};
 template <typename DataType,
           typename std::enable_if<std::is_integral<DataType>::value,
                                   bool>::type = false>
@@ -27,9 +34,19 @@ template <typename DataType,
 std::string TypeToString(const DataType data) {
   return "string";
 }
-template <typename DataT,
-          typename std::enable_if<std::is_integral<DataT>::value, bool>::type =
-              false>
+
+template <typename DataType,
+          typename std::enable_if<std::is_fundamental<DataType>::value,
+                                  bool>::type = true,
+          typename std::enable_if<std::is_same<DataType, std::string>::value,
+                                  bool>::type = true>
+std::string TypeToString(const DataType data) {
+  return "unknown type";
+}
+
+template <
+    typename DataT,
+    typename std::enable_if<std::is_integral<DataT>::value, bool>::type = false>
 const BasicDataType TypeToEnum(DataT data) {
   return BasicDataType::int_;
 }
@@ -45,6 +62,15 @@ template <typename DataType,
                                   bool>::type = false>
 const BasicDataType TypeToEnum(DataType data) {
   return BasicDataType::string_;
+}
+
+template <typename DataType,
+          typename std::enable_if<std::is_fundamental<DataType>::value,
+                                  bool>::type = true,
+          typename std::enable_if<std::is_same<DataType, std::string>::value,
+                                  bool>::type = true>
+const BasicDataType TypeToEnum(DataType data) {
+  return BasicDataType::unknown_type_;
 }
 
 enum class EdgeDirection : bool { InputEdge, OutputEdge };
@@ -65,6 +91,9 @@ const std::string EnumToString(const GUNDAM::BasicDataType data) {
       break;
     case BasicDataType::string_:
       return "string";
+      break;
+    case BasicDataType::unknown_type_:
+      return "unknown type";
       break;
     default:
       return "";
@@ -150,12 +179,9 @@ class Graph {
   class WithID_ {
    private:
     const IDType_ id_;
-    std::string id_type_;
 
    public:
     WithID_(const IDType_& id) : id_(id) { return; }
-    inline void SetIDType(const std::string id_type) { id_type_ = id_type; }
-    inline const std::string id_type() const { return id_type_; }
     inline const IDType_& id() const { return this->id_; }
   };
 
@@ -164,14 +190,9 @@ class Graph {
    private:
     typename std::conditional<is_const_, const LabelType_, LabelType_>::type
         label_;
-    std::string label_type_;
 
    public:
     WithLabel_(const LabelType_& label) : label_(label) { return; }
-    inline void SetLabelType(const std::string label_type) {
-      label_type_ = label_type;
-    }
-    inline const std::string label_type() const { return label_type_; }
     inline const LabelType_& label() const { return this->label_; }
     template <bool judge = is_const_,
               typename std::enable_if<!judge, bool>::type = false>
@@ -461,6 +482,14 @@ class Graph {
                                   kAttributeKeyIdx, kAttributeValuePtrIdx>;
 
     std::map<KeyType_, enum BasicDataType> key_to_value_type_map;
+    inline bool SetValueType(const KeyType_& key,
+                             enum BasicDataType value_type) {
+      if (key_to_value_type_map.find(key) != key_to_value_type_map.end()) {
+        return false;
+      }
+      key_to_value_type_map.insert(std::make_pair(key, value_type));
+      return true;
+    }
 
    public:
     using AttributePtr = AttributePtr_<AttributeContainerType, false>;
@@ -482,20 +511,13 @@ class Graph {
       key_to_value_type_map.clear();
       return;
     }
-
-    inline bool SetValueType(const KeyType_& key,
-                             enum BasicDataType value_type) {
-      if (key_to_value_type_map.find(key) != key_to_value_type_map.end()) {
-        return false;
-      }
-      key_to_value_type_map.insert(std::make_pair(key, value_type));
-      return true;
-    }
-    inline const enum BasicDataType GetAttributeValueTypeID(const KeyType_& key) const {
+    inline const enum BasicDataType attribute_value_type_id(
+        const KeyType_& key) const {
       assert(key_to_value_type_map.find(key) != key_to_value_type_map.end());
       return key_to_value_type_map.find(key)->second;
     }
-    inline const std::string GetAttributeValueTypeName(const KeyType_& key) const {
+    inline const std::string attribute_value_type_name(
+        const KeyType_& key) const {
       assert(key_to_value_type_map.find(key) != key_to_value_type_map.end());
       return EnumToString(key_to_value_type_map.find(key)->second);
     }
@@ -776,13 +798,13 @@ class Graph {
       assert(!this->IsDone());
       return this->_const_attribute().FindConstAttributePtr(key);
     }
-    inline const std::string GetAttributeValueTypeName(
+    inline const std::string attribute_value_type_name(
         const EdgeAttributeKeyType& key) const {
-      return this->_const_attribute().GetAttributeValueTypeName(key);
+      return this->_const_attribute().attribute_value_type_name(key);
     }
-    inline const enum BasicDataType GetAttributeValueTypeID(
+    inline const enum BasicDataType attribute_value_type_id(
         const EdgeAttributeKeyType& key) const {
-      return this->_const_attribute().GetAttributeValueTypeID(key);
+      return this->_const_attribute().attribute_value_type_id(key);
     }
     template <typename ConcreteDataType>
     inline std::pair<EdgeAttributePtr, bool> AddAttribute(
@@ -1302,13 +1324,13 @@ class Graph {
           const EdgeAttributeKeyType& key) const {
         return this->const_attribute().FindConstAttributePtr(key);
       }
-      inline const std::string GetAttributeValueTypeName(
+      inline const std::string attribute_value_type_name(
           const EdgeAttributeKeyType& key) const {
-        return this->const_attribute().GetAttributeValueTypeName(key);
+        return this->const_attribute().attribute_value_type_name(key);
       }
-      inline const enum BasicDataType GetAttributeValueTypeID(
+      inline const enum BasicDataType attribute_value_type_id(
           const EdgeAttributeKeyType& key) const {
-        return this->const_attribute().GetAttributeValueTypeID(key);
+        return this->const_attribute().attribute_value_type_id(key);
       }
     };
 
@@ -2818,8 +2840,6 @@ class Graph {
     /// vertex ID iterator
     auto vertex_id_it =
         std::get<kVertexIDContainerIdx>(*vertex_label_it).Insert(id).first;
-    temp_vertex_ptr->SetIDType(GUNDAM::TypeToString(id));
-    temp_vertex_ptr->SetLabelType(GUNDAM::TypeToString(label));
     std::get<kVertexPtrIdx>(*vertex_id_it) = temp_vertex_ptr;
     return std::pair<VertexPtr, bool>(std::get<kVertexPtrIdx>(*vertex_id_it),
                                       true);
@@ -2864,8 +2884,6 @@ class Graph {
       const typename EdgeType::IDType& edge_id) {
     VertexPtr src_ptr = this->FindVertex(src_id);
     VertexPtr dst_ptr = this->FindVertex(dst_id);
-    this->SetEdgeIDType(TypeToString(edge_id));
-    this->SetEdgeLabelType(TypeToString(edge_label));
     if (src_ptr.IsNull() || dst_ptr.IsNull()) {
       /// the src vertex or the dst vertex does not exist
       return std::pair<EdgePtr, bool>(EdgePtr(), false);
@@ -3058,19 +3076,24 @@ class Graph {
   ///                          VertexPtr& vertex_ptr);
   /// inline   EdgePtr SetDst (const EdgeIDType& edge_id,
   ///            G             VertexPtr& vertex_ptr);
- private:
-  std::string edge_label_type_;
-  std::string edge_id_type_;
 
  public:
-  void SetEdgeLabelType(const std::string& label_type) {
-    this->edge_label_type_ = label_type;
+  const std::string vertex_id_type() const {
+    VertexIDType data;
+    return TypeToString(data);
   }
-  void SetEdgeIDType(const std::string& id_type) {
-    this->edge_id_type_ = id_type;
+  const std::string vertex_label_type() const {
+    VertexLabelType data;
+    return TypeToString(data);
   }
-  const std::string edge_id_type() const { return this->edge_id_type_; }
-  const std::string edge_label_type() const { return this->edge_label_type_; }
+  const std::string edge_id_type() const {
+    EdgeIDType data;
+    return TypeToString(data);
+  }
+  const std::string edge_label_type() const {
+    EdgeLabelType data;
+    return TypeToString(data);
+  }
 };  // namespace GUNDAM
 }  // namespace GUNDAM
    // es _GRAPH_G# // es _GRAPH_G#
