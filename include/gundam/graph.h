@@ -19,19 +19,37 @@ enum class BasicDataType {
 template <typename DataType,
           typename std::enable_if<std::is_integral<DataType>::value,
                                   bool>::type = false>
-std::string TypeToString(const DataType data) {
+inline constexpr std::string TypeToString(const DataType& data) {
+  return "int";
+}
+template <typename DataType,
+          typename std::enable_if<std::is_integral<DataType>::value,
+                                  bool>::type = false>
+inline constexpr std::string TypeToString() {
   return "int";
 }
 template <typename DataType,
           typename std::enable_if<std::is_floating_point<DataType>::value,
                                   bool>::type = false>
-std::string TypeToString(const DataType data) {
+inline constexpr std::string TypeToString(const DataType& data) {
+  return "double";
+}
+template <typename DataType,
+          typename std::enable_if<std::is_floating_point<DataType>::value,
+                                  bool>::type = false>
+inline constexpr std::string TypeToString() {
   return "double";
 }
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, std::string>::value,
                                   bool>::type = false>
-std::string TypeToString(const DataType data) {
+inline constexpr std::string TypeToString(const DataType& data) {
+  return "string";
+}
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, std::string>::value,
+                                  bool>::type = false>
+inline constexpr std::string TypeToString() {
   return "string";
 }
 
@@ -40,7 +58,16 @@ template <typename DataType,
                                   bool>::type = true,
           typename std::enable_if<std::is_same<DataType, std::string>::value,
                                   bool>::type = true>
-std::string TypeToString(const DataType data) {
+inline constexpr std::string TypeToString(const DataType& data) {
+  return "unknown type";
+}
+
+template <typename DataType,
+          typename std::enable_if<std::is_fundamental<DataType>::value,
+                                  bool>::type = true,
+          typename std::enable_if<std::is_same<DataType, std::string>::value,
+                                  bool>::type = true>
+inline constexpr std::string TypeToString() {
   return "unknown type";
 }
 
@@ -3078,22 +3105,12 @@ class Graph {
   ///            G             VertexPtr& vertex_ptr);
 
  public:
-  const std::string vertex_id_type() const {
-    VertexIDType data;
-    return TypeToString(data);
+  std::string vertex_id_type() const { return TypeToString<VertexIDType>(); }
+  std::string vertex_label_type() const {
+    return TypeToString<VertexLabelType>();
   }
-  const std::string vertex_label_type() const {
-    VertexLabelType data;
-    return TypeToString(data);
-  }
-  const std::string edge_id_type() const {
-    EdgeIDType data;
-    return TypeToString(data);
-  }
-  const std::string edge_label_type() const {
-    EdgeLabelType data;
-    return TypeToString(data);
-  }
+  std::string edge_id_type() const { return TypeToString<EdgeIDType>(); }
+  std::string edge_label_type() const { return TypeToString<EdgeLabelType>(); }
 };  // namespace GUNDAM
 }  // namespace GUNDAM
    // es _GRAPH_G# // es _GRAPH_G#

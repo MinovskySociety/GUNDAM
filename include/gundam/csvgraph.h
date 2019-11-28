@@ -88,7 +88,7 @@ void LoadVertexAttribue(GraphType<configures...>& graph,
   using VertexPtr = typename GraphType<configures...>::VertexPtr;
   using AttributeType =
       typename GraphType<configures...>::VertexType::AttributeKeyType;
-  int col_num = after_parse_col_name.size();
+  int col_num = static_cast<int>(after_parse_col_name.size());
   for (int col_iter = 2; col_iter < col_num; col_iter++) {
     // key is col_iter
     std::stringstream ss(after_parse_col_name[col_iter]);
@@ -162,7 +162,7 @@ int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
       node_file.GetColumn<VertexLabelType>(1);
   size_t sz = node_id.size();
   std::cout << col_num << " " << sz << std::endl;
-  for (size_t i = 0; i < sz; i++) {
+  for (int i = 0; i < sz; i++) {
     // add node_id and node_label;
     // std::cout << "i=" << i << std::endl;
     VertexPtr node_ptr =
@@ -205,7 +205,7 @@ void LoadEdgeAttribue(GraphType<configures...>& graph,
   using EdgePtr = typename GraphType<configures...>::EdgePtr;
   using AttributeType =
       typename GraphType<configures...>::EdgeType::AttributeKeyType;
-  int col_num = after_parse_col_name.size();
+  int col_num = static_cast<int>(after_parse_col_name.size());
   for (int col_iter = 4; col_iter < col_num; col_iter++) {
     std::stringstream ss(after_parse_col_name[col_iter]);
     AttributeType attr_key;
@@ -276,7 +276,7 @@ int ReadCSVEdgeFile(GraphType<configures...>& graph, const char* e_file) {
   to_id = edge_file.GetColumn<VertexIDType>(2);
   edge_label = edge_file.GetColumn<EdgeLabelType>(3);
   size_t sz = from_id.size();
-  for (size_t i = 0; i < sz; i++) {
+  for (int i = 0; i < sz; i++) {
     // std::cout << "j=" << i << std::endl;
     // std::cout<<from_id[i]<<" "<<to_id[i]<<" "<<edge_label[i]<<std::endl;
     EdgePtr edge_ptr = graph
