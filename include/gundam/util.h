@@ -26,7 +26,7 @@ void PrintGraph(const GraphType<configures...>& graph) {
     if (graph.vertex_has_attribute) {
       for (auto attr_it = node_ptr->AttributeCBegin(); !attr_it.IsDone();
            attr_it++) {
-        enum BasicDataType value_type = it->GetAttributeValueTypeID(attr_it->key());
+        enum BasicDataType value_type = it->attribute_value_type_id(attr_it->key());
         std::cout << attr_it->key() << ":";
         switch (value_type) {
           case BasicDataType::int_:
@@ -63,7 +63,7 @@ void PrintGraph(const GraphType<configures...>& graph) {
         for (auto attr_it = edge_ptr->AttributeCBegin(); !attr_it.IsDone();
              attr_it++) {
           enum BasicDataType value_type =
-              edge_it->GetAttributeValueTypeID(attr_it->key());
+              edge_it->attribute_value_type_id(attr_it->key());
           std::cout << attr_it->key() << ":";
           switch (value_type) {
             case BasicDataType::int_:

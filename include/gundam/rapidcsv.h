@@ -159,8 +159,7 @@ class Converter {
         pVal = static_cast<T>(std::stoull(pStr));
         return;
       }
-      /*
-      else if (typeid(T) == typeid(unsigned short)){
+      else if (typeid(T) == typeid(uint16_t)){
         //add by wangyj!
         pVal = static_cast<T>(std::stoi(pStr));
         return ;
@@ -170,7 +169,6 @@ class Converter {
         pVal = static_cast<T>(std::stoi(pStr));
         return ;
       }
-      */
     } catch (...) {
       if (!mConverterParams.mHasDefaultConverter) {
         throw;
