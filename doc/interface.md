@@ -1,19 +1,24 @@
-[GUNDAM::Graph使用说明](#)
+[GUNDAM::Graph使用说明](#1)
+* [1.相关规定](#1.1)
+* [2.定义](#1.2)
+* [3.接口](#1.3)
+* [4.示例程序](#1.4)
+* [5.相关类型定义](#1.5)
+<h2 id="1">GUNDAM::Graph 使用说明</h2>
 
-* [1.相关规定](#1)
-* [2.定义](#2)
-* [3.接口](#3)
-* [4.示例程序](#4)
-* [5.相关类型定义](#5)
-## <h2 id="1">GUNDAM::Graph 使用说明</h2>
         本篇文档的目的主要是针对GUNDAM::Graph进行一些接口和使用上的说明，并提供相应的示例程序。
 
-## <h2 id="1">1.相关规定</h2>
+<h3 id="1.1">1.相关规定</h3>
+
         1.图的节点与边均有ID以及Label，且节点的ID需要两两不同，边的ID需要两两不同
         2.图的节点和边可以选择是否存在Attribute
         3.属性由(key,value)二元组构成。以联通数据为例，phone节点的phonenumber:123456789 属性中，key是phonenumber,value是13456789
-## <h2 id="2">2.定义</h2>定义
+
+
+<h3 id="1.2">2.定义</h3>
+
         Graph的一般性定义如下所示:
+
 ```c++
 //when no "using namespace GUNDAM;"
 GUNDAM::Graph<configure...> g;
@@ -50,7 +55,7 @@ SetVertexAttributeKeyType<std::string>,
 SetEdgeAttributeKeyType<uint32_t>> g;
 ```
 
-## <h2 id="3">3.接口</h2>
+<h3 id="1.3">3.接口</h3>
 
         Graph的可调用接口表如下所示:
 |接口|参数|接口说明|返回值|
@@ -68,7 +73,7 @@ SetEdgeAttributeKeyType<uint32_t>> g;
 |edge_id_type|无|返回EdgeIDType的字符串|若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string",其他类型返回"unknown type"|
 |edge_label_type|无|返回EdgeLabelType的字符串|若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string",其他类型返回"unknown type"|
 
-## <h2 id="4">4.示例程序</h2>
+<h3 id="1.4">4.示例程序</h3>
 
         Graph的相关实例程序如下所示：
 
@@ -115,7 +120,7 @@ std::cout<<"edge label type = "<<g.edge_label_type()<<std::endl;
 
 ```
 
-## <h2 id="5">5.相关类型定义</h2>
+<h3 id="1.5">5.相关类型定义</h3>
 
         GUNDAM中常见的类型定义如下所示：
 ```c++
