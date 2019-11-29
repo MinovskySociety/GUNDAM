@@ -13,8 +13,7 @@ TEST(TestGUNDAM, GraphClass) {
         SetEdgeIDType<uint64_t>, SetEdgeLabelType<Label<int64_t>>,
         SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
         SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>
-      g1;
-
+      g1; 
   // AddVertex
   auto res1 = g1.AddVertex(1, Label<std::string>("AAA"));
   ASSERT_TRUE(res1.second);

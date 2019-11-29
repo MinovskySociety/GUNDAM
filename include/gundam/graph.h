@@ -1,5 +1,6 @@
 #ifndef _GRAPH_H
 #define _GRAPH_H
+#pragma once
 #include <iostream>
 #include <set>
 
@@ -16,6 +17,43 @@ enum class BasicDataType {
   string_,
   unknown_type_
 };
+
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, BasicDataType>::value,
+                                  bool>::type = false>
+std::string EnumToString(DataType data) {
+  std::string ret;
+
+  switch (data) {
+    case BasicDataType::int_: {
+      ret = "int";
+      break;
+    }
+    case BasicDataType::double_: {
+      ret = "double";
+      break;
+    }
+    case BasicDataType::long_: {
+      ret = "long";
+      break;
+    }
+    case BasicDataType::short_: {
+      ret = "short";
+      break;
+    }
+    case BasicDataType::string_: {
+      ret = "string";
+      break;
+    }
+    case BasicDataType::unknown_type_: {
+      ret = "unknown type";
+      break;
+    }
+    default:
+      ret = "";
+  }
+  return ret;
+}
 template <typename DataType,
           typename std::enable_if<std::is_integral<DataType>::value,
                                   bool>::type = false>
@@ -53,20 +91,22 @@ inline constexpr std::string TypeToString() {
   return "string";
 }
 
-template <typename DataType,
-          typename std::enable_if<std::is_fundamental<DataType>::value,
-                                  bool>::type = true,
-          typename std::enable_if<std::is_same<DataType, std::string>::value,
-                                  bool>::type = true>
+template <
+    typename DataType,
+    typename std::enable_if<!std::is_integral<DataType>::value &&
+                                !std::is_floating_point<DataType>::value &&
+                                !std::is_same<DataType, std::string>::value,
+                            bool>::type = false>
 inline constexpr std::string TypeToString(const DataType& data) {
   return "unknown type";
 }
 
-template <typename DataType,
-          typename std::enable_if<std::is_fundamental<DataType>::value,
-                                  bool>::type = true,
-          typename std::enable_if<std::is_same<DataType, std::string>::value,
-                                  bool>::type = true>
+template <
+    typename DataType,
+    typename std::enable_if<!std::is_integral<DataType>::value &&
+                                !std::is_floating_point<DataType>::value &&
+                                !std::is_same<DataType, std::string>::value,
+                            bool>::type = false>
 inline constexpr std::string TypeToString() {
   return "unknown type";
 }
@@ -101,32 +141,6 @@ const BasicDataType TypeToEnum(DataType data) {
 }
 
 enum class EdgeDirection : bool { InputEdge, OutputEdge };
-
-const std::string EnumToString(const GUNDAM::BasicDataType data) {
-  switch (data) {
-    case BasicDataType::double_:
-      return "double";
-      break;
-    case BasicDataType::int_:
-      return "int";
-      break;
-    case BasicDataType::long_:
-      return "long";
-      break;
-    case BasicDataType::short_:
-      return "short";
-      break;
-    case BasicDataType::string_:
-      return "string";
-      break;
-    case BasicDataType::unknown_type_:
-      return "unknown type";
-      break;
-    default:
-      return "";
-      break;
-  }
-}
 
 template <typename... configures>
 class Graph {
@@ -546,6 +560,7 @@ class Graph {
     inline const std::string attribute_value_type_name(
         const KeyType_& key) const {
       assert(key_to_value_type_map.find(key) != key_to_value_type_map.end());
+      //return "";
       return EnumToString(key_to_value_type_map.find(key)->second);
     }
     inline AttributeIterator AttributeBegin() {

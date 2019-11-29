@@ -1,4 +1,6 @@
 
+#ifndef _VF2_TEMP_H
+#define _VF2_TEMP_H
 #include "graph.h"
 
 #include <algorithm>
@@ -336,3 +338,4 @@ int VF2(
   return res;
 }
 }  // namespace GUNDAM
+#endif  // _GRAPH_H
