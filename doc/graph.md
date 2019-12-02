@@ -59,7 +59,10 @@ SetEdgeAttributeKeyType<uint32_t>> g;
 
 ### 1.3 接口
 
-Graph的可调用接口表如下所示:
+Graph的可调用接口表如下所示:<br>
+
+
+
 |接口|接口格式|接口说明|
 |:--|:--|:--|
 |AddVertex|pair\<VertexPtr,bool\> AddVertex(vertex_id,vertex_label)<br>vertex_id:点的id<br>vertex_label:点的label<br>返回值:first表示该节点的指针，second表示加入前Graph中是否存在VertexID为vertex_id的点|往Graph中新加入一个ID为vertex_id,Label为vertex_label的节点|
