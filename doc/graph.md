@@ -7,17 +7,17 @@
    - [1.5相关类型定义](#15-%E7%9B%B8%E5%85%B3%E7%B1%BB%E5%9E%8B%E5%AE%9A%E4%B9%89)
 ## 1. GUNDAM::Graph 使用说明
 
-        本篇文档的目的主要是针对GUNDAM::Graph进行一些接口和使用上的说明，并提供相应的示例程序。
+本篇文档的目的主要是针对GUNDAM::Graph进行一些接口和使用上的说明，并提供相应的示例程序。
 ### 1.1 相关规定
 
-        1.图的节点与边均有ID以及Label，且节点的ID需要两两不同，边的ID需要两两不同
-        2.图的节点和边可以选择是否存在Attribute
-        3.属性由(key,value)二元组构成。以联通数据为例，phone节点的phonenumber:123456789 属性中，key是phonenumber,value是13456789
+1.图的节点与边均有ID以及Label，且节点的ID需要两两不同，边的ID需要两两不同<br>
+2.图的节点和边可以选择是否存在Attribute<br>
+3.属性由(key,value)二元组构成。以联通数据为例，phone节点的phonenumber:123456789 属性中，key是phonenumber,value是13456789
 
 
 ### 1.2 定义
 
-        Graph的一般性定义如下所示:
+Graph的一般性定义如下所示:
 
 ```c++
 //when no "using namespace GUNDAM;"
@@ -26,8 +26,8 @@ GUNDAM::Graph<configure...> g;
 using namespace GUNDAM;
 Graph<configures...> g;
 ```
-        其中，configures...表示对于图中一些类型的配置项。按需配置即可，不想配置的项可以不写，会有默认类型。配置项书写的前后顺序没有要求，可以随意调换位置。
-        configures...中可配置项如下表所示：
+其中，configures...表示对于图中一些类型的配置项。按需配置即可，不想配置的项可以不写，会有默认类型。配置项书写的前后顺序没有要求，可以随意调换位置。<br>
+configures...中可配置项如下表所示：<br>
 |configure|说明|type配置类型|type默认类型/值|
 |:--|:--|:--|:--|
 |SetVertexIDType\<type\>|设置节点的ID类型|基础数据类型/std::string|unsigned int|
@@ -40,7 +40,7 @@ Graph<configures...> g;
 |SetEdgeAttributeKeyType\<type\>|设置边的属性的key的类型|基础数据类型/std::string|unsigned int|
 |SetAllowMultipleEdge\<type\>|设置图是否有重边|true/false|false|
 
-        一些图的配置样例如下所示:
+一些图的配置样例如下所示:
 ```c++
 //只配置节点id和label,其他采用默认配置
 //其他部分配置情况类似
@@ -57,7 +57,7 @@ SetEdgeAttributeKeyType<uint32_t>> g;
 
 ### 1.3 接口
 
-        Graph的可调用接口表如下所示:
+Graph的可调用接口表如下所示:
 |接口|接口格式|接口说明|
 |:--|:--|:--|
 |AddVertex|pair\<VertexPtr,bool\> AddVertex(vertex_id,vertex_label)<br>vertex_id:点的id<br>vertex_label:点的label<br>返回值:first表示该节点的指针，second表示加入前Graph中是否存在VertexID为vertex_id的点|往Graph中新加入一个ID为vertex_id,Label为vertex_label的节点|
@@ -75,7 +75,7 @@ SetEdgeAttributeKeyType<uint32_t>> g;
 
 ### 1.4 示例程序
 
-        Graph的相关实例程序如下所示：
+Graph的相关实例程序如下所示：
 
 ```c++
 GUNDAM::Graph<> g;
@@ -122,7 +122,7 @@ std::cout<<"edge label type = "<<g.edge_label_type()<<std::endl;
 
 ### 1.5 相关类型定义
 
-        GUNDAM中常见的类型定义如下所示：
+GUNDAM中常见的类型定义如下所示：
 ```c++
 using GraphType = GUNDAM::Graph<>;
 using VertexType = typename GraphType::VertexType;
