@@ -12,8 +12,17 @@
 
 1.图的节点与边均有ID以及Label，且节点的ID需要两两不同，边的ID需要两两不同<br>
 2.图的节点和边可以选择是否存在Attribute<br>
-3.属性由(key,value)二元组构成。以联通数据为例，phone节点的phonenumber:123456789 属性中，key是phonenumber,value是13456789
-
+3.属性由(key,value)二元组构成。以联通数据为例，phone节点的phonenumber:123456789 属性中，key是phonenumber,value是13456789<br>
+4.GUNDAM中有数据类型到枚举类型的映射，用BasicDataType表示，其结构为:<br>
+```c++
+enum class BasicDataType {
+  int_,
+  double_,
+  string_,
+  unknown_type_
+};
+```
+其中前三个枚举表示全部整型，全部浮点型以及字符串类型，最后一个表示其他类型
 
 ### 1.2 定义
 
