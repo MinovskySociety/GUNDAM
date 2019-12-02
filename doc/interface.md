@@ -67,7 +67,7 @@ SetEdgeAttributeKeyType<uint32_t>> g;
 |FindConstVertex|VertexConstPtr FindConstVedrtex(vertex_id)|找到Graph中VertexID为vertex_id的节点的Const指针，若图中存在vertex_id对应的节点，则返回其Const指针，否则返回Null指针|
 |FindEdge|EdgePtr FindEdge(edge_id)|找到Graph中EdgeID为edge_id的边的指针，若图中存在edge_id对应的边，则返回其指针，否则返回Null指针|
 |EraseEdge|bool EraseEdge(edge_id)|删除Graph中EdgeID为edge_id的边的指针，若成功删除返回true,否则返回false|
-|VertexBegin/VertexCBegin|VertexBegin()</br>VertexBegin(vertex_label)</br>VertexCBegin()</br>VertexCBegin(vertex_label)|得到Vertex/Label为vertex_label的Vertex的迭代器/常量迭代器|
+|VertexBegin/VertexCBegin|VertexBegin()  VertexBegin(vertex_label)  VertexCBegin()  VertexCBegin(vertex_label)|得到Vertex/Label为vertex_label的Vertex的迭代器/常量迭代器|
 |vertex_id_type|string vertex_id_type()|返回VertexIDType的字符串，若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string"，其他类型返回"unknown type"|
 |vertex_label_type|string vertex_label_type()|返回VertexLabelType的字符串，若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string",其他类型返回"unknown type"|
 |edge_id_type|string edge_id_type()|返回EdgeIDType的字符串，若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string",其他类型返回"unknown type"|
