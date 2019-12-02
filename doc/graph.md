@@ -28,6 +28,8 @@ Graph<configures...> g;
 ```
 其中，configures...表示对于图中一些类型的配置项。按需配置即可，不想配置的项可以不写，会有默认类型。配置项书写的前后顺序没有要求，可以随意调换位置。<br>
 configures...中可配置项如下表所示：<br>
+
+
 |configure|说明|type配置类型|type默认类型/值|
 |:--|:--|:--|:--|
 |SetVertexIDType\<type\>|设置节点的ID类型|基础数据类型/std::string|unsigned int|
