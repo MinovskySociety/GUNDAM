@@ -58,21 +58,20 @@ SetEdgeAttributeKeyType<uint32_t>> g;
 ### 1.3 接口
 
         Graph的可调用接口表如下所示:
-|接口|接口格式|接口说明|返回值|
-|:--|:--|:--|:--|
-|AddVertex|pair<VertexPtr,bool> AddVertex(vertex_id,vertex_label)|往Graph中新加入一个ID为vertex_id,Label为vertex_label的节点，返回
-pair\<VertexPtr,bool\>的二元组，first表示该节点的指针，second表示加入前Graph中是否存在VertexID为vertex_id的点||
-|AddEdge|(src_id,dst_id,edge_label,edge_id)|往Graph中加入一条从src_id到dst_id,EdgeLabel为edge_label,EdgeID为edge_id的有向边|pair\<EdgePtr,bool\>的二元组，first表示该边的指针，second表示加入前Graph中是否存在EdgeID为edge_id的点|
-|CountVertex|无/vertex_label|计算这个图的节点数量/满足VertexLabel为vertex_label的节点数量|size_t类型的值，代表满足要求的点的数量|
-|FindVertex|vertex_id|找到Graph中VertexID为vertex_id的节点的指针|若图中存在vertex_id对应的节点，则返回其指针，否则返回Null指针|
-|FindConstVertex|vertex_id|找到Graph中VertexID为vertex_id的节点的Const指针|若图中存在vertex_id对应的节点，则返回其Const指针，否则返回Null指针|
-|FindEdge|edge_id|找到Graph中EdgeID为edge_id的边的指针|若图中存在edge_id对应的边，则返回其指针，否则返回Null指针|
-|EraseEdge|edge_id|删除Graph中EdgeID为edge_id的边的指针|若成功删除返回true,否则返回false|
-|VertexBegin/VertexCBegin|无/vertex_label|得到Vertex/Label为vertex_label的Vertex的迭代器/常量迭代器|Vertex/Label为vertex_label的Vertex的迭代器/常量迭代器|
-|vertex_id_type|无|返回VertexIDType的字符串|若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string"，其他类型返回"unknown type"|
-|vertex_label_type|无|返回VertexLabelType的字符串|若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string",其他类型返回"unknown type"|
-|edge_id_type|无|返回EdgeIDType的字符串|若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string",其他类型返回"unknown type"|
-|edge_label_type|无|返回EdgeLabelType的字符串|若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string",其他类型返回"unknown type"|
+|接口|接口格式|接口说明|
+|:--|:--|:--|
+|AddVertex|pair<VertexPtr,bool> AddVertex(vertex_id,vertex_label)|往Graph中新加入一个ID为vertex_id,Label为vertex_label的节点，返回pair\<VertexPtr,bool\>的二元组，first表示该节点的指针，second表示加入前Graph中是否存在VertexID为vertex_id的点|
+|AddEdge|(src_id,dst_id,edge_label,edge_id)|往Graph中加入一条从src_id到dst_id,EdgeLabel为edge_label,EdgeID为edge_id的有向边，返回pair\<EdgePtr,bool\>的二元组，first表示该边的指针，second表示加入前Graph中是否存在EdgeID为edge_id的点|
+|CountVertex|无/vertex_label|计算这个图的节点数量/满足VertexLabel为vertex_label的节点数量吗，返回size_t类型的值，代表满足要求的点的数量|
+|FindVertex|vertex_id|找到Graph中VertexID为vertex_id的节点的指针，若图中存在vertex_id对应的节点，则返回其指针，否则返回Null指针|
+|FindConstVertex|vertex_id|找到Graph中VertexID为vertex_id的节点的Const指针，若图中存在vertex_id对应的节点，则返回其Const指针，否则返回Null指针|
+|FindEdge|edge_id|找到Graph中EdgeID为edge_id的边的指针，若图中存在edge_id对应的边，则返回其指针，否则返回Null指针|
+|EraseEdge|edge_id|删除Graph中EdgeID为edge_id的边的指针，若成功删除返回true,否则返回false|
+|VertexBegin/VertexCBegin|无/vertex_label|得到Vertex/Label为vertex_label的Vertex的迭代器/常量迭代器|
+|vertex_id_type|无|返回VertexIDType的字符串，若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string"，其他类型返回"unknown type"|
+|vertex_label_type|无|返回VertexLabelType的字符串，若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string",其他类型返回"unknown type"|
+|edge_id_type|无|返回EdgeIDType的字符串，若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string",其他类型返回"unknown type"|
+|edge_label_type|无|返回EdgeLabelType的字符串，若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string",其他类型返回"unknown type"|
 
 ### 1.4 示例程序
 
