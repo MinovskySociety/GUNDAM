@@ -62,7 +62,7 @@ SetEdgeAttributeKeyType<uint32_t>> g;
 |:--|:--|:--|
 |AddVertex|pair\<VertexPtr,bool\> AddVertex(vertex_id,vertex_label)|往Graph中新加入一个ID为vertex_id,Label为vertex_label的节点，返回pair\<VertexPtr,bool\>的二元组，first表示该节点的指针，second表示加入前Graph中是否存在VertexID为vertex_id的点|
 |AddEdge|pair\<EdgePtr, bool\> AddEdge(src_id,dst_id,edge_label,edge_id)|往Graph中加入一条从src_id到dst_id,EdgeLabel为edge_label,EdgeID为edge_id的有向边，返回pair\<EdgePtr,bool\>的二元组，first表示该边的指针，second表示加入前Graph中是否存在EdgeID为edge_id的点|
-|CountVertex|size_t CountVertex()</br> size_t CountVertex(vertex_label)|计算这个图的节点数量/满足VertexLabel为vertex_label的节点数量吗，返回size_t类型的值，代表满足要求的点的数量|
+|CountVertex|size_t CountVertex()  size_t CountVertex(vertex_label)|计算这个图的节点数量/满足VertexLabel为vertex_label的节点数量吗，返回size_t类型的值，代表满足要求的点的数量|
 |FindVertex|VertexPtr FindVertex(vertex_id)|找到Graph中VertexID为vertex_id的节点的指针，若图中存在vertex_id对应的节点，则返回其指针，否则返回Null指针|
 |FindConstVertex|VertexConstPtr FindConstVedrtex(vertex_id)|找到Graph中VertexID为vertex_id的节点的Const指针，若图中存在vertex_id对应的节点，则返回其Const指针，否则返回Null指针|
 |FindEdge|EdgePtr FindEdge(edge_id)|找到Graph中EdgeID为edge_id的边的指针，若图中存在edge_id对应的边，则返回其指针，否则返回Null指针|
