@@ -1,22 +1,23 @@
-# * [1.GUNDAM::Graph使用说明](#1-gundamgraph-%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E)
-##   * [1.1相关规定](#11-%E7%9B%B8%E5%85%B3%E8%A7%84%E5%AE%9A)
-##   * [1.2定义](#12-%E5%AE%9A%E4%B9%89)
-##   * [1.3接口](#13-%E6%8E%A5%E5%8F%A3)
-##   * [1.4示例程序](#14-%E7%A4%BA%E4%BE%8B%E7%A8%8B%E5%BA%8F)
-##   * [1.5相关类型定义](#15-%E7%9B%B8%E5%85%B3%E7%B1%BB%E5%9E%8B%E5%AE%9A%E4%B9%89)
+# Comment 
+- [1.GUNDAM::Graph使用说明](#1-gundamgraph-%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E)
+   - [1.1相关规定](#11-%E7%9B%B8%E5%85%B3%E8%A7%84%E5%AE%9A)
+   - [1.2定义](#12-%E5%AE%9A%E4%B9%89)
+   - [1.3接口](#13-%E6%8E%A5%E5%8F%A3)
+   - [1.4示例程序](#14-%E7%A4%BA%E4%BE%8B%E7%A8%8B%E5%BA%8F)
+   - [1.5相关类型定义](#15-%E7%9B%B8%E5%85%B3%E7%B1%BB%E5%9E%8B%E5%AE%9A%E4%B9%89)
 
 
-## <span id="1">1. GUNDAM::Graph 使用说明</span>
+## 1. GUNDAM::Graph 使用说明
 
         本篇文档的目的主要是针对GUNDAM::Graph进行一些接口和使用上的说明，并提供相应的示例程序。
-### <span id="2">1.1 相关规定</span>
+### 1.1 相关规定
 
         1.图的节点与边均有ID以及Label，且节点的ID需要两两不同，边的ID需要两两不同
         2.图的节点和边可以选择是否存在Attribute
         3.属性由(key,value)二元组构成。以联通数据为例，phone节点的phonenumber:123456789 属性中，key是phonenumber,value是13456789
 
 
-### <span id="3">1.2 定义</span>
+### 1.2 定义
 
         Graph的一般性定义如下所示:
 
@@ -56,7 +57,7 @@ SetVertexAttributeKeyType<std::string>,
 SetEdgeAttributeKeyType<uint32_t>> g;
 ```
 
-### <span id="4">1.3 接口</span>
+### 1.3 接口
 
         Graph的可调用接口表如下所示:
 |接口|参数|接口说明|返回值|
@@ -74,7 +75,7 @@ SetEdgeAttributeKeyType<uint32_t>> g;
 |edge_id_type|无|返回EdgeIDType的字符串|若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string",其他类型返回"unknown type"|
 |edge_label_type|无|返回EdgeLabelType的字符串|若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string",其他类型返回"unknown type"|
 
-### <span id="5">1.4 示例程序</span>
+### 1.4 示例程序
 
         Graph的相关实例程序如下所示：
 
@@ -121,7 +122,7 @@ std::cout<<"edge label type = "<<g.edge_label_type()<<std::endl;
 
 ```
 
-### <span id="6">1.5 相关类型定义</span>
+### 1.5 相关类型定义
 
         GUNDAM中常见的类型定义如下所示：
 ```c++
