@@ -15,6 +15,8 @@
 
 ### 1.2 接口
 VertexPtr及Vertex迭代器可调用接口表如下所示:
+
+
 |接口|接口格式|接口说明|
 |:--|:--|:--|
 |AddAttribute|pair\<AtributePtr,bool\> AddAttribute(key,value)<br>key:属性的键值<br>value:属性的值<br>返回值:first表示相关属性的指针，second表示该属性插入前是否已经存在于该节点中|往节点中加入属性key值为key,value值为value的属性|
