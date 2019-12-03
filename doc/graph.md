@@ -35,7 +35,7 @@ GUNDAM::Graph<configure...> g;
 using namespace GUNDAM;
 Graph<configures...> g;
 ```
-其中，configures...表示对于图中一些类型的配置项。按需配置即可，不想配置的项可以不写，会有默认类型。配置项书写的前后顺序没有要求，可以随意调换位置。<br>
+其中，configures...表示对于图中一些类型的配置项。配置项均有默认类型。配置项先后次序没有要求。<br>
 configures...中可配置项如下表所示：<br>
 
 
