@@ -36,19 +36,20 @@ using namespace GUNDAM;
 Graph<configures...> g;
 ```
 其中，configures...表示对于图中一些类型的配置项。配置项均有默认类型。配置项先后次序没有要求。<br>
+配置类型可以是任意类型。若需要将图写入到csv中，则数据类型只支持基础数据类型。<br>
 configures...中可配置项如下表所示：<br>
 
 
 |configure|说明|type配置类型|type默认类型/值|
 |:--|:--|:--|:--|
-|SetVertexIDType\<type\>|设置节点的ID类型|基础数据类型/std::string|unsigned int|
-|SetVertexLabelType\<type\>|设置节点的Label类型|基础数据类型/std::string|unsigned int|
+|SetVertexIDType\<type\>|设置节点的ID类型|任意数据类型|unsigned int|
+|SetVertexLabelType\<type\>|设置节点的Label类型|任意数据类型|unsigned int|
 |SetVertexHasAttribute\<type\>|设置节点是否拥有属性|true/false|true|
-|SetVertexAttributeKeyType\<type\>|设置节点的属性的key的类型|基础数据类型/std::string|unsigned int|
-|SetEdgeIDType\<type\>|设置边的ID的类型|基础数据类型/std::string|unsigned int|
-|SetEdgeLabelType\<type\>|设置边的Label类型|基础数据类型/std::string|unsigned int|
+|SetVertexAttributeKeyType\<type\>|设置节点的属性的key的类型|任意数据类型|unsigned int|
+|SetEdgeIDType\<type\>|设置边的ID的类型|任意数据类型|unsigned int|
+|SetEdgeLabelType\<type\>|设置边的Label类型|任意数据类型|unsigned int|
 |SetEdgeHasAttribute\<type\>|设置边是否拥有属性|true/false|true|
-|SetEdgeAttributeKeyType\<type\>|设置边的属性的key的类型|基础数据类型/std::string|unsigned int|
+|SetEdgeAttributeKeyType\<type\>|设置边的属性的key的类型|任意数据类型|unsigned int|
 |SetAllowMultipleEdge\<type\>|设置图是否有重边|true/false|false|
 
 一些图的配置样例如下所示:
@@ -74,14 +75,14 @@ Graph的可调用接口表如下所示:<br>
 
 |接口|接口格式|接口说明|
 |:--|:--|:--|
-|AddVertex|pair\<VertexPtr,bool\> AddVertex(vertex_id,vertex_label)<br>vertex_id:点的id<br>vertex_label:点的label<br>返回值:first表示该节点的指针，second表示加入前Graph中是否存在VertexID为vertex_id的点|往Graph中新加入一个ID为vertex_id,Label为vertex_label的节点|
-|AddEdge|pair\<EdgePtr, bool\> AddEdge(src_id,dst_id,edge_label,edge_id)<br>src_id:起点的id<br>dst_id:终点的id<br>edge_label:边的label<br>edge_id:边的id<br>返回值：first表示该边的指针，second表示加入前Graph中是否存在EdgeID为edge_id的点|往Graph中加入一条从src_id到dst_id,EdgeLabel为edge_label,EdgeID为edge_id的有向边|
+|AddVertex|pair\<VertexPtr,bool\> AddVertex(vertex_id,vertex_label)<br>vertex_id:点的id<br>vertex_label:点的label<br>返回值:若当前Graph中已有ID为vertex_id的vertex，则返回的pair为：<指向已有节点的指针, false>；否则加入新的节点，并返回<指向新加入节点的指针, true>。|往Graph中新加入一个ID为vertex_id,Label为vertex_label的节点|
+|AddEdge|pair\<EdgePtr, bool\> AddEdge(src_id,dst_id,edge_label,edge_id)<br>src_id:起点的id<br>dst_id:终点的id<br>edge_label:边的label<br>edge_id:边的id<br>返回值：若当前Graph中已有相同ID的edge，则返回的pair为：<指向已有边的指针, false>；否则加入新的边，并返回<指向新加入边的指针, true>；若Graph中不存在ID为src_id的vertex、或Graph中不存在ID为dst_id的vertex，则返回<Null指针, false>。|往Graph中加入一条从src_id到dst_id,EdgeLabel为edge_label,EdgeID为edge_id的有向边|
 |CountVertex|size_t CountVertex()<br>size_t CountVertex(vertex_label)<br>vertex_label:点的label|计算这个图的节点数量/满足VertexLabel为vertex_label的节点数量|
 |FindVertex|VertexPtr FindVertex(vertex_id)<br>vertex_id:点的id<br>返回值：若图中存在vertex_id对应的节点，则返回其指针，否则返回Null指针|找到Graph中VertexID为vertex_id的节点的指针|
 |FindConstVertex|VertexConstPtr FindConstVedrtex(vertex_id)<br>vertex_id:点的id<br>返回值：若图中存在vertex_id对应的节点，则返回其Const指针，否则返回Null指针|找到Graph中VertexID为vertex_id的节点的Const指针|
 |FindEdge|EdgePtr FindEdge(edge_id)<br>edge_id:边的id<br>返回值：若图中存在edge_id对应的边，则返回其指针，否则返回Null指针|找到Graph中EdgeID为edge_id的边的指针|
 |EraseEdge|bool EraseEdge(edge_id)<br>edge_id:边的id<br>返回值：若成功删除返回true,否则返回false|删除Graph中EdgeID为edge_id的边的指针|
-|VertexBegin/VertexCBegin|VertexBegin()<br>VertexBegin(vertex_label)<br>VertexCBegin()<br>VertexCBegin(vertex_label)|得到Vertex/Label为vertex_label的Vertex的迭代器/常量迭代器|
+|VertexBegin/VertexCBegin|VertexIterator VertexBegin()<br>VertexIteratorSpecifiedLabel VertexBegin(vertex_label)<br>VertexConstIterator VertexCBegin()<br>VertexConstIteratorSpecifiedLabel VertexCBegin(vertex_label)<br><br>vertex_label:点的label|得到Vertex/Label为vertex_label的Vertex的迭代器/常量迭代器|
 |vertex_id_type|string vertex_id_type()<br>返回值:若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string"，其他类型返回"unknown type"|返回VertexIDType的字符串|
 |vertex_label_type|string vertex_label_type()<br>返回值:若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string"，其他类型返回"unknown type"|返回VertexLabelType的字符串|
 |edge_id_type|string edge_id_type()<br>返回值:若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string"，其他类型返回"unknown type"|返回EdgeIDType的字符串|

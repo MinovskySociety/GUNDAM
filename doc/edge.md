@@ -10,7 +10,7 @@
 ### 1.1 相关规定
 
 1.本库无法访问具体的Edge对象，只能通过EdgePtr/迭代器来得到相关内容，因此调用接口时应该写->而不是.<br>
-2.EdgePtr与Edge的迭代器两者的接口一样，不再赘述。<br>
+2.EdgePtr与EdgeIterator两者的接口除了IsNull(判断EdgePtr是否为空)和IsDone(判断EdgeIterator是否到end)不同，其余接口均相同。<br>
 3.其他规定请参考 [点击此处](./graph.md)。
 
 ### 1.2 接口
@@ -19,13 +19,13 @@ EdgePtr及Edge迭代器可调用接口表如下所示:
 
 |接口|接口格式|接口说明|
 |:--|:--|:--|
-|AddAttribute|pair\<AtributePtr,bool\> AddAttribute(key,value)<br>key:属性的键值<br>value:属性的值<br>返回值:first表示相关属性的指针，second表示该属性插入前是否已经存在于该节点中|往节点中加入属性key值为key,value值为value的属性|
+|AddAttribute|pair\<AtributePtr,bool\> AddAttribute(key,value)<br>key:属性的键值<br>value:属性的值<br>返回值:若该节点中已存在键为key的属性则返回<指向已有属性的指针, false>；否则，加入新的属性并返回<指向新属性的指针, true>|往节点中加入属性key值为key,value值为value的属性|
 |attribute<br>const_attribute|template\<ValueType\>attribute(key)<br>key:属性的键值<br>ValueType:value值的数据类型<br>返回值:返回key对应的value|得到该节点键值为key的value/常量value|
 |attribute_value_type_id|BasicDataType attribute_value_type_id(key)<br>key:属性的键值|得到该节点键值为key的value的类型的id|
 |attribute_value_type_name|string attribute_value_type_id(key)<br>key:属性的键值<br>返回值:若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string"，其他类型返回"unknown type"|得到该节点键值为key的value的类型的名字|
-|AttributeBegin<br>AttributeBegin||得到这个节点属性的迭代器/常量迭代器|
-|EraseAttribute|bool EraseAttribute(key)<br><br>AttributeIterator EraseAttribute(attribute_iterator)<br><br>key:属性的键值<br>attribute_iterator:属性的迭代器<br>返回值：若传入的参数为key,则返回是否成功删除，若传入的参数为迭代器，则返回删除的迭代器的下一个迭代器|删除该节点键值为key的属性或删除属性迭代器为attribute_iterator的属性|
-|FindAttributePtr<br><br>FindConstAttributePtr|AttributePtr FindAttributePtr(key)<br><br>AttributeConstPtr FindConstAttributePtr(key)<br><br>key:属性的键值|找到该节点键值为key对应的Attribute指针/常量指针|
+|AttributeBegin<br>AttributeCBegin|AttributeIterator AttributeBegin()<br>AttributeConstIterator AttributeCBegin()|得到这个节点属性的迭代器/常量迭代器|
+|EraseAttribute|bool EraseAttribute(key)<br>key:属性的键值<br>返回值：是否成功删除<br><br>AttributeIterator EraseAttribute(attribute_iterator)<br>attribute_iterator:属性的迭代器<br>返回值：返回删除的迭代器的下一个迭代器|删除该节点键值为key的属性或删除属性迭代器为attribute_iterator的属性|
+|FindAttributePtr<br><br>FindConstAttributePtr|AttributePtr FindAttributePtr(key)<br><br>AttributeConstPtr FindConstAttributePtr(key)<br><br>key:属性的键值<br>返回值:若找到了该属性则返回该属性的指针/常量指针，否则返回Null指针|找到该节点键值为key对应的Attribute指针/常量指针|
 |id|VertexIDType id()|得到该节点的id|
 |label|VertexLabelType label()|得到该节点的label|
 |SetAttribute|pair<AttributePtr, bool> SetAttribute(key,value)<br><br>key:属性的key<br>value:属性的value<br>返回值:若该节点中存在键为key的属性则返回<指向修改后属性的指针, true>；否则，返回<NULL指针, false>|将该节点中键为key的属性的值设为value|
