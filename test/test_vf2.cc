@@ -1,5 +1,3 @@
-#include "gundam/vf2.h"
-
 #include <functional>
 #include <iostream>
 #include <list>
@@ -7,15 +5,16 @@
 #include <vector>
 
 #include "gtest/gtest.h"
+#include "gundam/vf2.h"
 
 //#ifdef WIN32
 //#include <windows.h>
-//inline uint64_t GetTime() {
-//  return GetTickCount64(); 
+// inline uint64_t GetTime() {
+//  return GetTickCount64();
 //}
 //#else
 //#include <sys/time.h>
-//inline uint64_t GetTime() {
+// inline uint64_t GetTime() {
 //  timeval t;
 //  gettimeofday(&t, NULL);
 //  return t.tv_sec * 1000 + t.tv_usec / 1000;
@@ -257,7 +256,7 @@ TEST(TestGUNDAM, VF2_Speed_1) {
       std::pair<QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr>>>
       match_result2;
 
-  const int TIMES_OUTER = 10;
+  const int TIMES_OUTER = 5;
   const int TIMES_INNER = 10000;
   uint64_t start, end;
 
@@ -279,6 +278,10 @@ TEST(TestGUNDAM, VF2_Speed_1) {
 
       int count = _vf2::VF2_Recursive<MatchSemantics::kIsomorphism>(
           query, target,
+          _vf2::LabelEqual<QueryGraph::VertexConstPtr,
+                           TargetGraph::VertexConstPtr>(),
+          _vf2::LabelEqual<QueryGraph::EdgeConstPtr,
+                           TargetGraph::EdgeConstPtr>(),
           std::bind(_vf2::MatchCallbackSaveResult<
                         QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr,
                         std::vector<std::map<QueryGraph::VertexConstPtr,
@@ -297,6 +300,10 @@ TEST(TestGUNDAM, VF2_Speed_1) {
 
       int count = _vf2::VF2_NonRecursive<MatchSemantics::kIsomorphism>(
           query, target,
+          _vf2::LabelEqual<QueryGraph::VertexConstPtr,
+                           TargetGraph::VertexConstPtr>(),
+          _vf2::LabelEqual<QueryGraph::EdgeConstPtr,
+                           TargetGraph::EdgeConstPtr>(),
           std::bind(_vf2::MatchCallbackSaveResult<
                         QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr,
                         std::vector<std::map<QueryGraph::VertexConstPtr,

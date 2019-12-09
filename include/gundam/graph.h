@@ -375,7 +375,7 @@ class Graph {
   };
 
   class InnerVertex_;
-
+  
   using VertexAttributeType =
       WithAttribute_<VertexStaticAttributeType, vertex_attribute_is_const,
                      vertex_has_dynamic_attribute, VertexAttributeKeyType,
@@ -1143,6 +1143,8 @@ class Graph {
       }
 
      public:
+      using GraphType = Graph;
+
       VertexPtr_() : ptr_(nullptr) { return; }
 
       VertexPtr_(VertexPtrType const ptr) : ptr_(ptr) { return; }
@@ -1527,8 +1529,8 @@ class Graph {
       EdgePtr_(const FriendEdgeIterator<ContainerType_, depth_, begin_depth_,
                                         edge_label_idx_, dst_ptr_idx_,
                                         edge_id_idx_, edge_attribute_ptr_idx_>&
-                   vertex_ptr_iterator) {
-        this->Construct(vertex_ptr_iterator);
+                   edge_iterator) {
+        this->Construct(edge_iterator);
         return;
       }
       template <typename ContainerType_, IteratorDepthType depth_,
@@ -1539,8 +1541,8 @@ class Graph {
           const FriendEdgeIterator<ContainerType_, depth_, begin_depth_,
                                    edge_label_idx_, dst_ptr_idx_, edge_id_idx_,
                                    edge_attribute_ptr_idx_>&
-              vertex_ptr_iterator) {
-        this->Construct(vertex_ptr_iterator);
+              edge_iterator) {
+        this->Construct(edge_iterator);
         return *this;
       }
 
