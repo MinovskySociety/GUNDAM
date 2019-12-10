@@ -13,6 +13,6 @@ ToDo:
 6.	如NAS上Attribute方案所示、完善Attribute
 
 7.	集合拷贝的方法，例如：
-	VertexSetType vertex_set;
-	vertex_ptr->CopyVertexSetTo(vertex_set); 
+	VertexSetType vertex_set;   
+	vertex_ptr->CopyVertexSetTo(vertex_set);   
 	vertex_ptr->CopyVertexSetTo(edge_label, vertex_set); 
