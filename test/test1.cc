@@ -1,129 +1,144 @@
-#include "gundam/graph.h"
-
 #include <iostream>
 #include <string>
+#include <type_traits>
 
 #include "gtest/gtest.h"
+#include "gundam/graph.h"
 
 TEST(TestGUNDAM, GoogleTest) { ASSERT_TRUE(true); }
 
 TEST(TestGUNDAM, GraphClass) {
   using namespace GUNDAM;
 
-  Graph<> g;
-  Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<Label<std::string>>,
-        SetEdgeIDType<uint64_t>, SetEdgeLabelType<Label<std::string>>,
-        SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-        SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>
-      g1;
+  using G0 = Graph<>;
+
+  using G1 = Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<std::string>,
+                   SetEdgeIDType<uint64_t>, SetEdgeLabelType<std::string>,
+                   SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
+                   SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>;
+
+  using G1A = Graph<SetVertexLabelType<std::string>, SetVertexIDType<uint32_t>,
+                    SetEdgeIDType<uint64_t>, SetEdgeLabelType<std::string>,
+                    SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
+                    SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>;
+
+  using G2 = Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<std::string>,
+                   SetEdgeIDType<uint64_t>, SetEdgeLabelType<std::string>,
+                   SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
+                   SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>;
+
+  std::cout << std::is_same<G1, G1A>::value << std::endl;
+  std::cout << std::is_constructible<G1, G1A>::value << std::endl;
+  
+  G1 g1;
 
   // AddVertex
-  auto res1 = g1.AddVertex(1, Label<std::string>("AAA"));
+  auto res1 = g1.AddVertex(1, "AAA");
   ASSERT_TRUE(res1.second);
   ASSERT_FALSE(res1.first.IsNull());
-  ASSERT_EQ(res1.first->id(), 1);
-  ASSERT_EQ(res1.first->label(), Label<std::string>("AAA"));
+  ASSERT_EQ(1, res1.first->id());
+  ASSERT_EQ("AAA", res1.first->label());
 
-  res1 = g1.AddVertex(2, Label<std::string>("AAA"));
+  res1 = g1.AddVertex(2, std::string{"AAA"});
   ASSERT_TRUE(res1.second);
   ASSERT_FALSE(res1.first.IsNull());
-  ASSERT_EQ(res1.first->id(), 2);
-  ASSERT_EQ(res1.first->label(), Label<std::string>("AAA"));
+  ASSERT_EQ(2, res1.first->id());
+  ASSERT_EQ("AAA", res1.first->label());
 
-  res1 = g1.AddVertex(3, Label<std::string>("BBB"));
+  res1 = g1.AddVertex(3, std::string("BBB"));
   ASSERT_TRUE(res1.second);
   ASSERT_FALSE(res1.first.IsNull());
-  ASSERT_EQ(res1.first->id(), 3);
-  ASSERT_EQ(res1.first->label(), Label<std::string>("BBB"));
+  ASSERT_EQ(3, res1.first->id());
+  ASSERT_EQ("BBB", res1.first->label());
 
-  res1 = g1.AddVertex(4, Label<std::string>("BBB"));
+  res1 = g1.AddVertex(4, "BBB");
   ASSERT_TRUE(res1.second);
   ASSERT_FALSE(res1.first.IsNull());
-  ASSERT_EQ(res1.first->id(), 4);
-  ASSERT_EQ(res1.first->label(), Label<std::string>("BBB"));
+  ASSERT_EQ(4, res1.first->id());
+  ASSERT_EQ("BBB", res1.first->label());
 
-  res1 = g1.AddVertex(1, Label<std::string>("AAA"));
+  res1 = g1.AddVertex(1, "AAA");
   ASSERT_FALSE(res1.second);
-  ASSERT_EQ(res1.first->id(), 1);
-  ASSERT_TRUE(res1.first->label().CanMatchTo(Label<std::string>("AAA")));
+  ASSERT_EQ(1, res1.first->id());
+  ASSERT_EQ("AAA", res1.first->label());
 
-  res1 = g1.AddVertex(3, Label<std::string>("AAA"));
+  res1 = g1.AddVertex(3, "AAA");
   ASSERT_FALSE(res1.second);
-  ASSERT_EQ(res1.first->id(), 3);
-  ASSERT_TRUE(res1.first->label() == Label<std::string>("BBB"));
+  ASSERT_EQ(3, res1.first->id());
+  ASSERT_TRUE(res1.first->label() == "BBB");
 
   // AddEdge
-  auto res2 = g1.AddEdge(1, 2, Label<std::string>("aaa"), 1);
+  auto res2 = g1.AddEdge(1, 2, "aaa", 1);
   ASSERT_TRUE(res2.second);
   ASSERT_FALSE(res2.first.IsNull());
   ASSERT_EQ(res2.first->id(), 1);
-  ASSERT_EQ(res2.first->label(), Label<std::string>("aaa"));
+  ASSERT_EQ(res2.first->label(), "aaa");
 
-  res2 = g1.AddEdge(2, 3, Label<std::string>("aaa"), 2);
+  res2 = g1.AddEdge(2, 3, "aaa", 2);
   ASSERT_TRUE(res2.second);
   ASSERT_FALSE(res2.first.IsNull());
   ASSERT_EQ(res2.first->id(), 2);
-  ASSERT_EQ(res2.first->label(), Label<std::string>("aaa"));
+  ASSERT_EQ(res2.first->label(), "aaa");
 
-  res2 = g1.AddEdge(3, 4, Label<std::string>("aaa"), 3);
+  res2 = g1.AddEdge(3, 4, "aaa", 3);
   ASSERT_TRUE(res2.second);
   ASSERT_FALSE(res2.first.IsNull());
   ASSERT_EQ(res2.first->id(), 3);
-  ASSERT_EQ(res2.first->label(), Label<std::string>("aaa"));
+  ASSERT_EQ(res2.first->label(), "aaa");
 
-  res2 = g1.AddEdge(4, 1, Label<std::string>("aaa"), 4);
+  res2 = g1.AddEdge(4, 1, "aaa", 4);
   ASSERT_TRUE(res2.second);
   ASSERT_FALSE(res2.first.IsNull());
   ASSERT_EQ(res2.first->id(), 4);
-  ASSERT_EQ(res2.first->label(), Label<std::string>("aaa"));
+  ASSERT_EQ(res2.first->label(), "aaa");
 
-  res2 = g1.AddEdge(2, 1, Label<std::string>("bbb"), 5);
+  res2 = g1.AddEdge(2, 1, "bbb", 5);
   ASSERT_TRUE(res2.second);
   ASSERT_FALSE(res2.first.IsNull());
   ASSERT_EQ(res2.first->id(), 5);
-  ASSERT_EQ(res2.first->label(), Label<std::string>("bbb"));
+  ASSERT_EQ(res2.first->label(), "bbb");
 
-  res2 = g1.AddEdge(3, 2, Label<std::string>("bbb"), 6);
+  res2 = g1.AddEdge(3, 2, "bbb", 6);
   ASSERT_TRUE(res2.second);
   ASSERT_FALSE(res2.first.IsNull());
   ASSERT_EQ(res2.first->id(), 6);
-  ASSERT_EQ(res2.first->label(), Label<std::string>("bbb"));
+  ASSERT_EQ(res2.first->label(), "bbb");
 
-  res2 = g1.AddEdge(4, 3, Label<std::string>("bbb"), 7);
+  res2 = g1.AddEdge(4, 3, "bbb", 7);
   ASSERT_TRUE(res2.second);
   ASSERT_FALSE(res2.first.IsNull());
   ASSERT_EQ(res2.first->id(), 7);
-  ASSERT_EQ(res2.first->label(), Label<std::string>("bbb"));
+  ASSERT_EQ(res2.first->label(), "bbb");
 
-  res2 = g1.AddEdge(1, 4, Label<std::string>("bbb"), 8);
+  res2 = g1.AddEdge(1, 4, "bbb", 8);
   ASSERT_TRUE(res2.second);
   ASSERT_FALSE(res2.first.IsNull());
   ASSERT_EQ(res2.first->id(), 8);
-  ASSERT_EQ(res2.first->label(), Label<std::string>("bbb"));
+  ASSERT_EQ(res2.first->label(), "bbb");
 
-  res2 = g1.AddEdge(1, 2, Label<std::string>("ccc"), 9);
+  res2 = g1.AddEdge(1, 2, "ccc", 9);
   ASSERT_TRUE(res2.second);
   ASSERT_FALSE(res2.first.IsNull());
   ASSERT_EQ(res2.first->id(), 9);
-  ASSERT_EQ(res2.first->label(), Label<std::string>("ccc"));
+  ASSERT_EQ(res2.first->label(), "ccc");
 
-  res2 = g1.AddEdge(3, 4, Label<std::string>("ccc"), 10);
+  res2 = g1.AddEdge(3, 4, "ccc", 10);
   ASSERT_TRUE(res2.second);
   ASSERT_FALSE(res2.first.IsNull());
   ASSERT_EQ(res2.first->id(), 10);
-  ASSERT_EQ(res2.first->label(), Label<std::string>("ccc"));
+  ASSERT_EQ(res2.first->label(), "ccc");
 
-  res2 = g1.AddEdge(3, 2, Label<std::string>("ccc"), 11);
+  res2 = g1.AddEdge(3, 2, "ccc", 11);
   ASSERT_TRUE(res2.second);
   ASSERT_FALSE(res2.first.IsNull());
   ASSERT_EQ(res2.first->id(), 11);
-  ASSERT_EQ(res2.first->label(), Label<std::string>("ccc"));
+  ASSERT_EQ(res2.first->label(), "ccc");
 
-  res2 = g1.AddEdge(4, 1, Label<std::string>("ccc"), 12);
+  res2 = g1.AddEdge(4, 1, "ccc", 12);
   ASSERT_TRUE(res2.second);
   ASSERT_FALSE(res2.first.IsNull());
   ASSERT_EQ(res2.first->id(), 12);
-  ASSERT_EQ(res2.first->label(), Label<std::string>("ccc"));
+  ASSERT_EQ(res2.first->label(), "ccc");
 
   auto v = g1.FindVertex(0);
   ASSERT_TRUE(v.IsNull());
@@ -136,15 +151,15 @@ TEST(TestGUNDAM, GraphClass) {
   ASSERT_FALSE(v2.IsNull());
   ASSERT_EQ(v2->id(), 2);
 
-  auto e1 = v1->FindOutEdge(Label<std::string>("aaa"), v2, 1);
+  auto e1 = v1->FindOutEdge("aaa", v2, 1);
   ASSERT_FALSE(e1.IsNull());
   ASSERT_EQ(e1->id(), 1);
-  ASSERT_EQ(e1->label(), Label<std::string>("aaa"));
+  ASSERT_EQ(e1->label(), "aaa");
 
   auto e1b = v2->FindInEdge(1);
   ASSERT_FALSE(e1b.IsNull());
   ASSERT_EQ(e1b->id(), 1);
-  ASSERT_EQ(e1b->label(), Label<std::string>("aaa"));
+  ASSERT_EQ(e1b->label(), "aaa");
 
   ASSERT_EQ(e1, e1b);
 
@@ -185,7 +200,7 @@ TEST(TestGUNDAM, GraphClass) {
 
   ASSERT_TRUE(e1->AddAttribute<std::string>(5, "abc").second);
 
-   auto e_attr = e1->FindAttributePtr(5);
+  auto e_attr = e1->FindAttributePtr(5);
   ASSERT_FALSE(e_attr.IsNull());
   ASSERT_EQ(e_attr->template value<std::string>(), "abc");
 
@@ -199,7 +214,5 @@ TEST(TestGUNDAM, GraphClass) {
 
   ASSERT_FALSE(e1->SetAttribute<std::string>(6, "abcde").second);
 
-  auto g2{g1};
-
-  ASSERT_TRUE(true);
+  G1 g1a{g1};
 }

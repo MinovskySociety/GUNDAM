@@ -1,3 +1,5 @@
+#include "gundam/vf2.h"
+
 #include <functional>
 #include <iostream>
 #include <list>
@@ -5,27 +7,12 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "gundam/vf2.h"
-
-//#ifdef WIN32
-//#include <windows.h>
-// inline uint64_t GetTime() {
-//  return GetTickCount64();
-//}
-//#else
-//#include <sys/time.h>
-// inline uint64_t GetTime() {
-//  timeval t;
-//  gettimeofday(&t, NULL);
-//  return t.tv_sec * 1000 + t.tv_usec / 1000;
-//}
-//#endif
 
 #include <ctime>
 inline uint64_t GetTime() { return clock() * 1000 / CLOCKS_PER_SEC; }
 
 template <typename Ptr1, typename Ptr2>
-bool LabelEqual(const Ptr1& a, const Ptr2& b) {
+bool LabelEqual2(const Ptr1& a, const Ptr2& b) {
   return a->label() == b->label();
 }
 
@@ -74,8 +61,8 @@ TEST(TestGUNDAM, VF2_1) {
   ASSERT_EQ(count, 2);
 
   count = VF2<MatchSemantics::kIsomorphism>(
-      query, target, LabelEqual<VertexConstPtr, VertexConstPtr>,
-      LabelEqual<EdgeConstPtr, EdgeConstPtr>, -1, match_result);
+      query, target, LabelEqual2<VertexConstPtr, VertexConstPtr>,
+      LabelEqual2<EdgeConstPtr, EdgeConstPtr>, -1, match_result);
 
   for (size_t i = 0; i < match_result.size(); i++) {
     std::cout << "match " << i << std::endl;
@@ -261,16 +248,19 @@ TEST(TestGUNDAM, VF2_Speed_1) {
   uint64_t start, end;
 
   for (int j = 0; j < TIMES_OUTER; j++) {
+
+    std::cout << "         Default: ";
     start = GetTime();
     for (int i = 0; i < TIMES_INNER; i++) {
       int count =
-          VF2<MatchSemantics::kIsomorphism>(query, target, -1, match_result1);
+          VF2(query, target, -1, match_result1);
 
       ASSERT_EQ(40, count);
     }
     end = GetTime();
-    std::cout << "         Default: " << end - start << " ms" << std::endl;
+    std::cout << end - start << " ms" << std::endl;
 
+    std::cout << "       Recursive: ";
     start = GetTime();
     for (int i = 0; i < TIMES_INNER; i++) {
       int max_result = -1;
@@ -291,15 +281,16 @@ TEST(TestGUNDAM, VF2_Speed_1) {
       ASSERT_EQ(40, count);
     }
     end = GetTime();
-    std::cout << "       Recursive: " << end - start << " ms" << std::endl;
+    std::cout << end - start << " ms" << std::endl;
 
+    std::cout << "    NonRecursive: ";
     start = GetTime();
     for (int i = 0; i < TIMES_INNER; i++) {
       int max_result = -1;
       match_result1.clear();
 
       int count = _vf2::VF2_NonRecursive<MatchSemantics::kIsomorphism>(
-          query, target,
+          query, target, 
           _vf2::LabelEqual<QueryGraph::VertexConstPtr,
                            TargetGraph::VertexConstPtr>(),
           _vf2::LabelEqual<QueryGraph::EdgeConstPtr,
@@ -313,8 +304,9 @@ TEST(TestGUNDAM, VF2_Speed_1) {
       ASSERT_EQ(40, count);
     }
     end = GetTime();
-    std::cout << "    NonRecursive: " << end - start << " ms" << std::endl;
+    std::cout << end - start << " ms" << std::endl;
 
+    
     start = GetTime();
     for (int i = 0; i < TIMES_INNER; i++) {
       int count = VF2<MatchSemantics::kIsomorphism>(query, target, 20);
@@ -376,15 +368,15 @@ TEST(TestGUNDAM, VF2_Speed_1) {
     for (int i = 0; i < TIMES_INNER; i++) {
       int count = VF2<MatchSemantics::kIsomorphism>(
           query, target,
-          LabelEqual<QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr>,
-          LabelEqual<QueryGraph::EdgeConstPtr, TargetGraph::EdgeConstPtr>, -1,
+          LabelEqual2<QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr>,
+          LabelEqual2<QueryGraph::EdgeConstPtr, TargetGraph::EdgeConstPtr>, -1,
           match_result1);
 
       ASSERT_EQ(40, count);
     }
     end = GetTime();
     std::cout << "  Custom Compare: " << end - start << " ms" << std::endl;
-
+ 
     std::cout << std::endl;
   }
 }
