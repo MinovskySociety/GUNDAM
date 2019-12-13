@@ -267,10 +267,11 @@ class Graph {
 
   static constexpr TupleIdxType kAttributeKeyIdx = 0;
   static constexpr TupleIdxType kAttributeValuePtrIdx = 1;
+  static constexpr TupleIdxType kAttributeValueTypeIdx = 2;
   template <typename KeyType_, enum ContainerType container_type_,
             enum SortType sort_type_>
-  using AttributeContainer =
-      Container<container_type_, sort_type_, KeyType_, AbstractValue*>;
+  using AttributeContainer = Container<container_type_, sort_type_, KeyType_,
+                                       AbstractValue*, enum BasicDataType>;
 
   template <typename AttributeType_, bool is_const_, bool is_dynamic_,
             typename KeyType_, enum ContainerType container_type_,
@@ -313,6 +314,10 @@ class Graph {
       return static_cast<ConcreteValue<ConcreteDataType>*>(
                  std::get<kAttributeValuePtrIdx>(*(this->iterator_)))
           ->value();
+    }
+    inline enum BasicDataType value_type_id() {
+      assert(!this->is_null_);
+      return std::get<kAttributeValueTypeIdx>(*(this->iterator_));
     }
   };
 
@@ -375,7 +380,7 @@ class Graph {
   };
 
   class InnerVertex_;
-  
+
   using VertexAttributeType =
       WithAttribute_<VertexStaticAttributeType, vertex_attribute_is_const,
                      vertex_has_dynamic_attribute, VertexAttributeKeyType,
@@ -391,7 +396,8 @@ class Graph {
   /// these ContentIterator classes are transparent to programmers
   template <typename KeyType_, typename ContainerType_, bool is_const_,
             IteratorDepthType depth_, IteratorDepthType begin_depth_,
-            TupleIdxType key_idx_, TupleIdxType value_ptr_idx_>
+            TupleIdxType key_idx_, TupleIdxType value_ptr_idx_,
+            TupleIdxType value_type_idx_>
   class AttributeContentIterator_
       : protected InnerIterator_<ContainerType_, is_const_, depth_> {
    private:
@@ -457,6 +463,11 @@ class Graph {
                                                  begin_depth_>())
           ->value();
     }
+    enum BasicDataType value_type_id() const {
+      assert(!this->IsDone());
+      return InnerIteratorType::template get_const<
+          enum BasicDataType, value_type_idx_, begin_depth_>();
+    }
   };
 
   /// non-dynamic attribute
@@ -520,7 +531,8 @@ class Graph {
 
     using AttributeContentIterator =
         AttributeContentIterator_<KeyType_, AttributeContainerType, false, 1, 0,
-                                  kAttributeKeyIdx, kAttributeValuePtrIdx>;
+                                  kAttributeKeyIdx, kAttributeValuePtrIdx,
+                                  kAttributeValueTypeIdx>;
 
     std::map<KeyType_, enum BasicDataType> key_to_value_type_map;
     inline bool SetValueType(const KeyType_& key,
@@ -537,9 +549,10 @@ class Graph {
     using AttributeConstPtr = AttributePtr_<AttributeContainerType, true>;
 
     using AttributeIterator = Iterator_<AttributeContentIterator>;
-    using AttributeConstIterator = Iterator_<
-        AttributeContentIterator_<KeyType_, AttributeContainerType, true, 1, 0,
-                                  kAttributeKeyIdx, kAttributeValuePtrIdx>>;
+
+    using AttributeConstIterator = Iterator_<AttributeContentIterator_<
+        KeyType_, AttributeContainerType, true, 1, 0, kAttributeKeyIdx,
+        kAttributeValuePtrIdx, kAttributeValueTypeIdx>>;
 
     WithAttribute_() : attributes_() {
       key_to_value_type_map.clear();
@@ -560,7 +573,7 @@ class Graph {
     inline const std::string attribute_value_type_name(
         const KeyType_& key) const {
       assert(key_to_value_type_map.find(key) != key_to_value_type_map.end());
-      //return "";
+      // return "";
       return EnumToString(key_to_value_type_map.find(key)->second);
     }
     inline AttributeIterator AttributeBegin() {
@@ -621,6 +634,7 @@ class Graph {
       this->SetValueType(key, value_type_id);
       std::get<kAttributeValuePtrIdx>(*(ret.first)) =
           new ConcreteValue<ConcreteDataType>(value);
+      std::get<kAttributeValueTypeIdx>(*ret.first) = value_type_id;
       return std::pair<AttributePtr, bool>(AttributePtr(ret.first), true);
     }
 
@@ -998,7 +1012,6 @@ class Graph {
     }
 
    protected:
-    using InnerIteratorType::InnerIteratorType;
     using InnerIteratorType::IsDone;
     using InnerIteratorType::ToNext;
     using ContentPtr = VertexPtrType;
@@ -1017,6 +1030,9 @@ class Graph {
       assert(!this->IsDone());
       return this->vertex_ptr();
     }
+
+   public:
+    using InnerIteratorType::InnerIteratorType;
   };
 
  public:
@@ -1526,10 +1542,10 @@ class Graph {
                 IteratorDepthType begin_depth_, TupleIdxType edge_label_idx_,
                 TupleIdxType dst_ptr_idx_, TupleIdxType edge_id_idx_,
                 TupleIdxType edge_attribute_ptr_idx_>
-      EdgePtr_(const FriendEdgeIterator<ContainerType_, depth_, begin_depth_,
-                                        edge_label_idx_, dst_ptr_idx_,
-                                        edge_id_idx_, edge_attribute_ptr_idx_>&
-                   edge_iterator) {
+      EdgePtr_(
+          const FriendEdgeIterator<ContainerType_, depth_, begin_depth_,
+                                   edge_label_idx_, dst_ptr_idx_, edge_id_idx_,
+                                   edge_attribute_ptr_idx_>& edge_iterator) {
         this->Construct(edge_iterator);
         return;
       }
@@ -1540,8 +1556,7 @@ class Graph {
       inline EdgePtr_& operator=(
           const FriendEdgeIterator<ContainerType_, depth_, begin_depth_,
                                    edge_label_idx_, dst_ptr_idx_, edge_id_idx_,
-                                   edge_attribute_ptr_idx_>&
-              edge_iterator) {
+                                   edge_attribute_ptr_idx_>& edge_iterator) {
         this->Construct(edge_iterator);
         return *this;
       }

@@ -1,7 +1,7 @@
 
 #ifndef _CSVGRAPH_H
 #define _CSVGRAPH_H
-
+#pragma once
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -15,9 +15,10 @@ using ReturnType = int;
 // Parse col
 // before: node_id:int
 // after:  col_name: node_id  value_type:int
-void ParseCol(std::vector<std::string>& before_parse_col_name,
-              std::vector<std::string>& after_parse_col_name,
-              std::vector<std::string>& after_parse_value_type) {
+template <typename Data>
+void ParseCol(std::vector<Data>& before_parse_col_name,
+              std::vector<Data>& after_parse_col_name,
+              std::vector<Data>& after_parse_value_type) {
   for (auto const& str : before_parse_col_name) {
     std::string col_name, value_type;
     int nameflag = 0;
@@ -331,7 +332,8 @@ std::string ToString(ElementType element) {
   return ret;
 }
 // Write CSV col
-void WriteCSVCol(std::ofstream& file_stream, std::vector<std::string>& col_name,
+template <typename StreamType>
+void WriteCSVCol(StreamType& file_stream, std::vector<std::string>& col_name,
                  std::vector<std::string>& value_type) {
   for (int i = 0; i < col_name.size(); i++) {
     if (i) {
@@ -342,9 +344,8 @@ void WriteCSVCol(std::ofstream& file_stream, std::vector<std::string>& col_name,
   }
   file_stream << std::endl;
 }
-
-void WriteLine(std::ofstream& file_stream,
-               std::vector<std::string>& line_info) {
+template <typename StreamType>
+void WriteLine(StreamType& file_stream, std::vector<std::string>& line_info) {
   for (int j = 0; j < line_info.size(); j++) {
     if (j) {
       file_stream << "," << line_info[j];

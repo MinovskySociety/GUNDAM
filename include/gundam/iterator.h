@@ -138,6 +138,93 @@ class InnerIterator_<
   }
 };
 
+/// the iterator of the container that only has one layer and more valuetype
+template <enum ContainerType container_type_, enum SortType sort_type_,
+          typename KeyType_, typename ValueType1_, typename... ValueType2_,
+          bool is_const_>
+class InnerIterator_<Container<container_type_, sort_type_, KeyType_,
+                               ValueType1_, ValueType2_...>,
+                     is_const_, 1> {
+ private:
+  using ContainerType = Container<container_type_, sort_type_, KeyType_,
+                                  ValueType1_, ValueType2_...>;
+  using ElementType = typename ContainerType::ElementType;
+
+ protected:
+  using IteratorType =
+      typename std::conditional<is_const_,
+                                typename ContainerType::const_iterator,
+                                typename ContainerType::iterator>::type;
+
+ private:
+  IteratorType iterator_;
+  IteratorType kIteratorEnd_;
+
+ protected:
+  inline const IteratorType& ConstInnerIterator() const {
+    return this->iterator_;
+  }
+
+ public:
+  InnerIterator_() : iterator_(), kIteratorEnd_(iterator_) {
+    /// default iterator, return an empty iterator
+    assert(this->IsDone());
+    return;
+  }
+  InnerIterator_(const IteratorType& iterator_begin,
+                 const IteratorType& iterator_end)
+      : iterator_(iterator_begin), kIteratorEnd_(iterator_end) {
+    return;
+  }
+
+ protected:
+  inline bool IsDone() const { return this->iterator_ == this->kIteratorEnd_; }
+
+  inline void ToNext() {
+    assert(!this->IsDone());
+    this->iterator_++;
+    return;
+  }
+
+  template <typename ReturnIteratorType, IteratorDepthType depth,
+            typename std::enable_if<depth == 0, bool>::type = false>
+  inline ReturnIteratorType& get_iterator() {
+    /// static_assert check Type
+    return this->iterator_;
+  }
+  template <typename ReturnIteratorType, IteratorDepthType depth,
+            typename std::enable_if<depth == 0, bool>::type = false>
+  inline const ReturnIteratorType& get_const_iterator() const {
+    /// static_assert check Type
+    return this->iterator_;
+  }
+  template <typename ReturnType, TupleIdxType return_idx,
+            IteratorDepthType depth,
+            typename std::enable_if<depth == 0, bool>::type = false>
+  inline ReturnType& get() {
+    static_assert(
+        std::is_same<ReturnType&,
+                     decltype(std::get<return_idx>(*(this->iterator_)))>::value,
+        "Type mismatch");
+    return std::get<return_idx>(*(this->iterator_));
+  }
+
+  template <typename ReturnType, TupleIdxType return_idx,
+            IteratorDepthType depth,
+            typename std::enable_if<depth == 0, bool>::type = false>
+  inline const ReturnType& get_const() const {
+    static_assert(
+        (!is_const_ &&
+         std::is_same<ReturnType&, decltype(std::get<return_idx>(
+                                       *(this->iterator_)))>::value) ||
+            (is_const_ &&
+             std::is_same<const ReturnType&, decltype(std::get<return_idx>(
+                                                 *(this->iterator_)))>::value),
+        "Type mismatch");
+    return std::get<return_idx>(*(this->iterator_));
+  }
+};
+
 /// iterator of the container that has more than one layer
 template <enum ContainerType container_type_, enum SortType sort_type_,
           typename KeyType_, typename InnerContainerType_, bool is_const_,
