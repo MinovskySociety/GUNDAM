@@ -24,3 +24,8 @@ add_test(AllTests test_csvgraph)
 add_executable (test_vf2 "test_vf2.cc")
 target_link_libraries(test_vf2 GTest::GTest GTest::Main)
 add_test(AllTests test_vf2)
+
+
+add_executable (test_attribute "test_attribute.cc")
+target_link_libraries(test_attribute GTest::GTest GTest::Main)
+add_test(AllTests test_attribute)
