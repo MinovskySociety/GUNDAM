@@ -286,9 +286,9 @@ class Graph {
         typename AttributeContainerType::iterator>::type;
 
     bool is_null_;
-    IteratorType iterator_;
 
    protected:
+    IteratorType iterator_;
     inline bool IsNull() const { return this->is_null_; }
 
    public:
@@ -338,25 +338,25 @@ class Graph {
     using AttributeContentPtrType::AttributeContentPtrType;
 
     inline bool operator==(const AttributePtr_& attribute_ptr) const {
-      return this->ptr_ == attribute_ptr.ptr_;
+      return this->iterator_ == attribute_ptr.iterator_;
     }
     inline bool operator!=(const AttributePtr_& attribute_ptr) const {
-      return this->ptr_ != attribute_ptr.ptr_;
+      return this->iterator_ != attribute_ptr.iterator_;
     }
     inline bool operator<(const AttributePtr_& attribute_ptr) const {
-      return this->ptr_ < attribute_ptr.ptr_;
+      return this->iterator_ < attribute_ptr.iterator_;
     }
     inline bool operator>(const AttributePtr_& attribute_ptr) const {
-      return this->ptr_ > attribute_ptr.ptr_;
+      return this->iterator_ > attribute_ptr.iterator_;
     }
     inline bool operator<=(const AttributePtr_& attribute_ptr) const {
-      return this->ptr_ <= attribute_ptr.ptr_;
+      return this->iterator_ <= attribute_ptr.iterator_;
     }
     inline bool operator>=(const AttributePtr_& attribute_ptr) const {
-      return this->ptr_ >= attribute_ptr.ptr_;
+      return this->iterator_ >= attribute_ptr.iterator_;
     }
     inline AttributePtr_& operator=(const AttributePtr_& attribute_ptr) {
-      this->ptr_ = attribute_ptr.ptr_;
+      this->iterator_ = attribute_ptr.iterator_;
       return *this;
     }
 
