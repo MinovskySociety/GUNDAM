@@ -131,11 +131,12 @@ const BasicDataType TypeToEnum(DataType data) {
   return BasicDataType::string_;
 }
 
-template <typename DataType,
-          typename std::enable_if<std::is_fundamental<DataType>::value,
-                                  bool>::type = true,
-          typename std::enable_if<std::is_same<DataType, std::string>::value,
-                                  bool>::type = true>
+template <
+    typename DataType,
+    typename std::enable_if<!std::is_integral<DataType>::value &&
+                                !std::is_floating_point<DataType>::value &&
+                                !std::is_same<DataType, std::string>::value,
+                            bool>::type = false>
 const BasicDataType TypeToEnum(DataType data) {
   return BasicDataType::unknown_type_;
 }
