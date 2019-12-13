@@ -315,7 +315,7 @@ class Graph {
                  std::get<kAttributeValuePtrIdx>(*(this->iterator_)))
           ->value();
     }
-    inline enum BasicDataType value_type_id() {
+    inline enum BasicDataType value_type_id() const {
       assert(!this->is_null_);
       return std::get<kAttributeValueTypeIdx>(*(this->iterator_));
     }
@@ -463,7 +463,7 @@ class Graph {
                                                  begin_depth_>())
           ->value();
     }
-    enum BasicDataType value_type_id() const {
+    inline enum BasicDataType value_type_id() const {
       assert(!this->IsDone());
       return InnerIteratorType::template get_const<
           enum BasicDataType, value_type_idx_, begin_depth_>();
@@ -960,16 +960,7 @@ class Graph {
             TupleIdxType vertex_ptr_idx_>
   class VertexContentIterator_
       : protected InnerIterator_<ContainerType_, is_const_, depth_> {
-   private: /*
-     template<typename        _ContainerType_,
-            IteratorDepthType         _depth_,
-            TupleIdxType     _vertex_ptr_idx_>
-     friend void InnerVertex_::template VertexPtr_<is_const_>::Construct(
-       const Iterator_<VertexContentIterator_<_ContainerType_,
-                                                    is_const_,
-                                                      _depth_,
-                                             _vertex_ptr_idx_>>&
-     vertex_ptr_iterator);*/
+   private:
     friend typename InnerVertex_::template VertexPtr_<is_const_>;
 
     using VertexPtr = typename InnerVertex_::VertexPtr;
@@ -1438,12 +1429,6 @@ class Graph {
           const EdgeAttributeKeyType& key) {
         return this->_attribute().FindAttributePtr(key);
       }
-      /*
-      inline bool SetValueType(const EdgeAttributeKeyType& key,
-                               const std::string value_type) {
-        return this->_attribute().SetValueType(key, value_type);
-      }
-      */
       template <typename ConcreteDataType>
       inline std::pair<EdgeAttributePtr, bool> AddAttribute(
           const EdgeAttributeKeyType& key, const ConcreteDataType& value) {

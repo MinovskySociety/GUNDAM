@@ -54,13 +54,11 @@ class Iterator_ : protected ContentIterator_ {
 
 /// the iterator of the container that only has one layer
 template <enum ContainerType container_type_, enum SortType sort_type_,
-          typename KeyType_, typename ValueType_, bool is_const_>
-class InnerIterator_<
-    Container<container_type_, sort_type_, KeyType_, ValueType_>, is_const_,
-    1> {
+          typename KeyType_, bool is_const_>
+class InnerIterator_<Container<container_type_, sort_type_, KeyType_>,
+                     is_const_, 1> {
  private:
-  using ContainerType =
-      Container<container_type_, sort_type_, KeyType_, ValueType_>;
+  using ContainerType = Container<container_type_, sort_type_, KeyType_>;
   using ElementType = typename ContainerType::ElementType;
 
  protected:
@@ -227,17 +225,17 @@ class InnerIterator_<Container<container_type_, sort_type_, KeyType_,
 
 /// iterator of the container that has more than one layer
 template <enum ContainerType container_type_, enum SortType sort_type_,
-          typename KeyType_, typename InnerContainerType_, bool is_const_,
-          IteratorDepthType depth_>
-class InnerIterator_<
-    Container<container_type_, sort_type_, KeyType_, InnerContainerType_>,
-    is_const_, depth_>
+          typename KeyType_, typename InnerContainerType_,
+          typename... ValueTypes_, bool is_const_, IteratorDepthType depth_>
+class InnerIterator_<Container<container_type_, sort_type_, KeyType_,
+                               InnerContainerType_, ValueTypes_...>,
+                     is_const_, depth_>
     : protected _InnerIterator_<InnerContainerType_, is_const_, depth_, 2> {
   static_assert(depth_ >= 2, "Illegal depth");
 
  private:
-  using ContainerType =
-      Container<container_type_, sort_type_, KeyType_, InnerContainerType_>;
+  using ContainerType = Container<container_type_, sort_type_, KeyType_,
+                                  InnerContainerType_, ValueTypes_...>;
   using ElementType = typename ContainerType::ElementType;
 
  protected:
@@ -396,18 +394,19 @@ class InnerIterator_<
 };
 
 template <enum ContainerType container_type_, enum SortType sort_type_,
-          typename KeyType_, typename InnerContainerType_, bool is_const_,
-          IteratorDepthType depth_, IteratorDepthType now_depth_>
-class _InnerIterator_<
-    Container<container_type_, sort_type_, KeyType_, InnerContainerType_>,
-    is_const_, depth_, now_depth_>
+          typename KeyType_, typename InnerContainerType_,
+          typename... ValueTypes_, bool is_const_, IteratorDepthType depth_,
+          IteratorDepthType now_depth_>
+class _InnerIterator_<Container<container_type_, sort_type_, KeyType_,
+                                InnerContainerType_, ValueTypes_...>,
+                      is_const_, depth_, now_depth_>
     : protected _InnerIterator_<InnerContainerType_, is_const_, depth_,
                                 now_depth_ + 1> {
   static_assert((now_depth_ > 1) && (now_depth_ < depth_), "Illegal depth");
 
  private:
-  using ContainerType =
-      Container<container_type_, sort_type_, KeyType_, InnerContainerType_>;
+  using ContainerType = Container<container_type_, sort_type_, KeyType_,
+                                  InnerContainerType_, ValueTypes_...>;
   using ElementType = typename ContainerType::ElementType;
   using IteratorType =
       typename std::conditional<is_const_,
@@ -553,16 +552,86 @@ class _InnerIterator_<
 };
 
 template <enum ContainerType container_type_, enum SortType sort_type_,
-          typename KeyType_, typename ValueType_, bool is_const_,
-          IteratorDepthType depth_>
-class _InnerIterator_<
-    Container<container_type_, sort_type_, KeyType_, ValueType_>, is_const_,
-    depth_, depth_> {
+          typename KeyType_, bool is_const_, IteratorDepthType depth_>
+class _InnerIterator_<Container<container_type_, sort_type_, KeyType_>,
+                      is_const_, depth_, depth_> {
   static_assert(depth_ > 1, "Illegal depth");
 
  private:
-  using ContainerType =
-      Container<container_type_, sort_type_, KeyType_, ValueType_>;
+  using ContainerType = Container<container_type_, sort_type_, KeyType_>;
+  using ElementType = typename ContainerType::ElementType;
+  using IteratorType =
+      typename std::conditional<is_const_,
+                                typename ContainerType::const_iterator,
+                                typename ContainerType::iterator>::type;
+
+  IteratorType iterator_;
+
+ protected:
+  _InnerIterator_() = default;
+
+  inline const IteratorType& const_iterator() const { return this->iterator_; }
+
+  inline void set_iterator(const IteratorType& new_iterator) {
+    this->iterator_ = new_iterator;
+    return;
+  }
+
+  inline void set_lower_iterator() const { return; }
+
+  /// return whether iterator_ has moved
+  inline bool _ToNext() {
+    this->iterator_++;
+    return true;
+  }
+
+  template <typename ReturnType, IteratorDepthType depth,
+            typename std::enable_if<depth == depth_ - 1, bool>::type = false>
+  inline ReturnType& get_iterator() {
+    return this->iterator_;
+  }
+  template <typename ReturnType, IteratorDepthType depth,
+            typename std::enable_if<depth == depth_ - 1, bool>::type = false>
+  inline const ReturnType& get_const_iterator() const {
+    return this->iterator_;
+  }
+  template <typename ReturnType, TupleIdxType return_idx,
+            IteratorDepthType depth,
+            typename std::enable_if<depth == depth_ - 1, bool>::type = false>
+  inline ReturnType& get() {
+    static_assert(
+        std::is_same<ReturnType&,
+                     decltype(std::get<return_idx>(*(this->iterator_)))>::value,
+        "Type mismatch");
+    return std::get<return_idx>(*(this->iterator_));
+  }
+
+  template <typename ReturnType, TupleIdxType return_idx,
+            IteratorDepthType depth,
+            typename std::enable_if<depth == depth_ - 1, bool>::type = false>
+  inline const ReturnType& get_const() const {
+    static_assert(
+        (!is_const_ &&
+         std::is_same<ReturnType&, decltype(std::get<return_idx>(
+                                       *(this->iterator_)))>::value) ||
+            (is_const_ &&
+             std::is_same<const ReturnType&, decltype(std::get<return_idx>(
+                                                 *(this->iterator_)))>::value),
+        "Type mismatch");
+    return std::get<return_idx>(*(this->iterator_));
+  }
+};
+template <enum ContainerType container_type_, enum SortType sort_type_,
+          typename KeyType_, typename ValueType_, typename... ValueTypes_,
+          bool is_const_, IteratorDepthType depth_>
+class _InnerIterator_<Container<container_type_, sort_type_, KeyType_,
+                                ValueType_, ValueTypes_...>,
+                      is_const_, depth_, depth_> {
+  static_assert(depth_ > 1, "Illegal depth");
+
+ private:
+  using ContainerType = Container<container_type_, sort_type_, KeyType_,
+                                  ValueType_, ValueTypes_...>;
   using ElementType = typename ContainerType::ElementType;
   using IteratorType =
       typename std::conditional<is_const_,
