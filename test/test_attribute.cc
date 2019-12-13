@@ -1,26 +1,50 @@
 #include <iostream>
+
 #include "gtest/gtest.h"
 #include "gundam/graph.h"
-TEST(TestGUNDAM, GoogleTest) { ASSERT_TRUE(true); }
+
 TEST(TestGUNDAM, TestAttribute) {
   using namespace GUNDAM;
-  Graph<> g;
-  g.AddVertex(1, 1);
-  g.FindVertex(1)->AddAttribute(1, 1);
-  g.FindVertex(1)->AddAttribute(2, 2.1);
-  g.FindVertex(1)->AddAttribute(3, (std::string) "33");
-  std::cout << "iterator!" << std::endl;
-  for (auto it = g.FindVertex(1)->AttributeBegin(); !it.IsDone(); it++) {
-    std::cout << "key = " << it->key() << std::endl;
-    std::cout << "value type =" << EnumToString(it->value_type_id())
+
+  using G = Graph<>;
+
+  G g;
+  bool res;
+
+  G::VertexPtr v1;
+  std::tie(v1, res) = g.AddVertex(1, 1);
+  ASSERT_TRUE(res);
+  ASSERT_FALSE(v1.IsNull());
+
+  G::VertexAttributePtr va1;
+  std::tie(va1, res) = v1->AddAttribute(1, 1);
+  ASSERT_TRUE(res);
+  ASSERT_FALSE(va1.IsNull());
+
+  G::VertexAttributePtr va2;
+  std::tie(va2, res) = g.FindVertex(1)->AddAttribute(2, 2.1);
+  ASSERT_TRUE(res);
+  ASSERT_FALSE(va2.IsNull());
+
+  G::VertexAttributePtr va3;
+  std::tie(va3, res) = v1->AddAttribute(3, std::string{"33"});
+  ASSERT_TRUE(res);
+  ASSERT_FALSE(va3.IsNull());
+    
+  int count = 0;
+  for (G::EdgeAttributeIterator it = v1->AttributeBegin(); !it.IsDone(); it++) {
+    std::cout << "key = " << it->key() << std::endl
+              << "value type =" << EnumToString(it->value_type_id())
               << std::endl;
+    ++count;
   }
-  std::cout << "ptr!" << std::endl;
-  for (int i = 1; i <= 3; i++) {
-    std::cout << "key = " << i << std::endl;
-    std::cout << "value type = "
-              << EnumToString(
-                     g.FindVertex(1)->FindAttributePtr(i)->value_type_id())
+  ASSERT_EQ(3, count);
+
+  for (const auto &key : {1, 2, 3}) {
+    G::VertexAttributePtr va = v1->FindAttributePtr(key);
+
+    std::cout << "key = " << va->key() << std::endl
+              << "value type = " << EnumToString(va->value_type_id())
               << std::endl;
   }
 }
