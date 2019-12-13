@@ -30,7 +30,7 @@ TEST(TestGUNDAM, TestAttribute) {
   std::tie(va3, res) = v1->AddAttribute(3, std::string{"33"});
   ASSERT_TRUE(res);
   ASSERT_FALSE(va3.IsNull());
-    
+
   int count = 0;
   for (G::EdgeAttributeIterator it = v1->AttributeBegin(); !it.IsDone(); it++) {
     std::cout << "key = " << it->key() << std::endl

@@ -285,9 +285,8 @@ class Graph {
         is_const_, typename AttributeContainerType::const_iterator,
         typename AttributeContainerType::iterator>::type;
 
-    bool is_null_;
-
    protected:
+    bool is_null_;
     IteratorType iterator_;
     inline bool IsNull() const { return this->is_null_; }
 
@@ -357,6 +356,7 @@ class Graph {
     }
     inline AttributePtr_& operator=(const AttributePtr_& attribute_ptr) {
       this->iterator_ = attribute_ptr.iterator_;
+      this->is_null_ = attribute_ptr.is_null_;
       return *this;
     }
 
@@ -3130,5 +3130,4 @@ class Graph {
   std::string edge_label_type() const { return TypeToString<EdgeLabelType>(); }
 };  // namespace GUNDAM
 }  // namespace GUNDAM
-   // es _GRAPH_G# // es _GRAPH_G#
 #endif  // _GRAPH_H
