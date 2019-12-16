@@ -1472,6 +1472,7 @@ class Graph {
           EdgeContentIterator_<ContainerType_, is_const_, depth_, begin_depth_,
                                edge_label_idx_, dst_ptr_idx_, edge_id_idx_,
                                edge_attribute_ptr_idx_>;
+
       template <typename ContainerType_, IteratorDepthType depth_,
                 IteratorDepthType begin_depth_, TupleIdxType edge_label_idx_,
                 TupleIdxType dst_ptr_idx_, TupleIdxType edge_id_idx_,
@@ -1479,6 +1480,7 @@ class Graph {
       using FriendEdgeIterator = Iterator_<FriendEdgeContentIterator<
           ContainerType_, depth_, begin_depth_, edge_label_idx_, dst_ptr_idx_,
           edge_id_idx_, edge_attribute_ptr_idx_>>;
+
       template <typename ContainerType_, IteratorDepthType depth_,
                 IteratorDepthType begin_depth_, TupleIdxType edge_label_idx_,
                 TupleIdxType dst_ptr_idx_, TupleIdxType edge_id_idx_,
@@ -1486,34 +1488,29 @@ class Graph {
       inline void Construct(
           const FriendEdgeIterator<ContainerType_, depth_, begin_depth_,
                                    edge_label_idx_, dst_ptr_idx_, edge_id_idx_,
-                                   edge_attribute_ptr_idx_>&
-              vertex_ptr_iterator) {
-        using FriendEdgeConstPtrType = const FriendEdgeContentIterator<
-            ContainerType_, depth_, begin_depth_, edge_label_idx_, dst_ptr_idx_,
-            edge_id_idx_, edge_attribute_ptr_idx_>*;
+                                   edge_attribute_ptr_idx_>& edge_iter) {
+        using FriendEdgeContentIteratorType =
+            FriendEdgeContentIterator<ContainerType_, depth_, begin_depth_,
+                                      edge_label_idx_, dst_ptr_idx_,
+                                      edge_id_idx_, edge_attribute_ptr_idx_>;
 
-        const void* const ptr = &vertex_ptr_iterator;
-        this->direction_ =
-            (static_cast<FriendEdgeConstPtrType>(ptr))->const_direction();
-        this->vertex_ptr_ =
-            (static_cast<FriendEdgeConstPtrType>(ptr))->const_vertex_ptr();
+        const FriendEdgeContentIteratorType& edge_content_iter =
+            *static_cast<const FriendEdgeContentIteratorType*>(
+                static_cast<const void*>(&edge_iter));
 
-        this->edge_label_iterator_ =
-            (static_cast<FriendEdgeConstPtrType>(ptr))
-                ->template get_const_iterator<
-                    typename EdgePtrContentType ::EdgeLabelIteratorType, 0>();
+        this->direction_ = edge_content_iter.const_direction();
 
-        this->vertex_ptr_iterator_ =
-            (static_cast<FriendEdgeConstPtrType>(ptr))
-                ->template get_const_iterator<
-                    typename EdgePtrContentType ::VertexPtrIteratorType, 1>();
+        this->vertex_ptr_ = edge_content_iter.const_vertex_ptr();
+
+        this->edge_label_iterator_ = edge_content_iter.get_const_iterator<
+            typename EdgePtrContentType ::EdgeLabelIteratorType, 0>();
+
+        this->vertex_ptr_iterator_ = edge_content_iter.get_const_iterator<
+            typename EdgePtrContentType ::VertexPtrIteratorType, 1>();
+
         this->decomposed_edge_iterator_ =
-            (static_cast<FriendEdgeConstPtrType>(ptr))
-                ->template get_const_iterator<
-                    typename EdgePtrContentType ::DecomposedEdgeIteratorType,
-                    2>();
-
-        return;
+            edge_content_iter.template get_const_iterator<
+                typename EdgePtrContentType ::DecomposedEdgeIteratorType, 2>();
       }
 
      public:

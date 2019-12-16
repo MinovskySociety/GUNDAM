@@ -4,7 +4,6 @@
 #include "gundam/graph.h"
 
 TEST(TestGUNDAM, TestAttribute) {
-  TestAddAttribute("3334");
   using namespace GUNDAM;
 
   using G = Graph<>;
@@ -33,13 +32,23 @@ TEST(TestGUNDAM, TestAttribute) {
   ASSERT_TRUE(res);
   ASSERT_FALSE(va3.IsNull());
   int count = 0;
+
+  auto res_pair = v1->AddAttribute(4, std::string{"44"});
+  ASSERT_TRUE(res_pair.second);
+  ASSERT_FALSE(res_pair.first.IsNull());
+  
+  res_pair = v1->AddAttribute(1, 5);
+  ASSERT_FALSE(res_pair.second);
+  ASSERT_FALSE(res_pair.first.IsNull());
+  ASSERT_EQ(1, res_pair.first->const_value<int>());
+
   for (G::EdgeAttributeIterator it = v1->AttributeBegin(); !it.IsDone(); it++) {
     std::cout << "key = " << it->key() << std::endl
               << "value type =" << EnumToString(it->value_type_id())
               << std::endl;
     ++count;
   }
-  ASSERT_EQ(3, count);
+  ASSERT_EQ(4, count);
 
   for (const auto& key : {1, 2, 3}) {
     G::VertexAttributePtr va = v1->FindAttributePtr(key);
