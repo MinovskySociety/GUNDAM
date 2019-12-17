@@ -652,6 +652,8 @@ class Graph {
       static_cast<ConcreteValue<ConcreteDataType>*>(
           std::get<kAttributeValuePtrIdx>(*(ret.first)))
           ->set_value(value);
+      enum BasicDataType value_type_id = TypeToEnum(value);
+      std::get<kAttributeValueTypeIdx>(*ret.first) = value_type_id;
       return std::pair<AttributePtr, bool>(AttributePtr(ret.first), true);
     }
 
