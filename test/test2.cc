@@ -80,14 +80,20 @@ TEST(TestGUNDAM, Graph_Edge) {
   ASSERT_TRUE(g1.AddEdge(1, 3, "b", 3).second);
 
   auto e_it1 = v1->OutEdgeCBegin();
-  GraphType1::EdgeConstPtr e1_const = e_it1;  
-  ASSERT_EQ(e1->id(), e1_const->id());
-  ASSERT_EQ(e1->const_src_ptr(), e1_const->const_src_ptr());
-  ASSERT_EQ(e1->const_dst_ptr(), e1_const->const_dst_ptr());  
+  GraphType1::EdgeConstPtr e1_const1 = e_it1;  
+  ASSERT_EQ(e1->id(), e1_const1->id());
+  ASSERT_EQ(e1->const_src_ptr(), e1_const1->const_src_ptr());
+  ASSERT_EQ(e1->const_dst_ptr(), e1_const1->const_dst_ptr());  
 
-  e1->label();   
-  e1 == e1;
-  e1 == e1_const;
+  //e1->label();   
+  //e1 == e1;
+  //e1 == e1_const;
+
+  auto e_it2 = v1->OutEdgeCBegin("a");
+  GraphType1::EdgeConstPtr e1_const2{e_it2};
+  ASSERT_EQ(e1->id(), e1_const2->id());
+  ASSERT_EQ(e1->const_src_ptr(), e1_const2->const_src_ptr());
+  ASSERT_EQ(e1->const_dst_ptr(), e1_const2->const_dst_ptr());  
 
   res2 = g1.AddEdge(1, 1, "sss", 4);
   ASSERT_TRUE(res2.second);
