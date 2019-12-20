@@ -1,0 +1,31 @@
+#pragma once
+#include <cstdio>
+#include <cstring>
+#include <ctime>
+#include <string>
+class DateTime {
+ private:
+  time_t t_;
+
+ public:
+  DateTime() {}
+  DateTime(const char* str) {
+    int year, month, day, hour, minute, second;
+    sscanf(str, "%d-%d-%d %d:%d:%d", &year, &month, &day, &hour, &minute,
+           &second);
+    tm tm_;
+    tm_.tm_year = year - 1900;
+    tm_.tm_mon = month - 1;
+    tm_.tm_mday = day;
+    tm_.tm_hour = hour;
+    tm_.tm_min = minute;
+    tm_.tm_sec = second;
+    tm_.tm_isdst = 0;
+    this->t_ = mktime(&tm_);
+  }
+  std::string to_string() const {
+    char str[200];
+    strftime(str, 64, "%Y-%m-%d %H:%M:%S", localtime(&this->t_));
+    return std::string{str};
+  }
+};

@@ -5,6 +5,7 @@
 #include <set>
 
 #include "gundam/container.h"
+#include "gundam/datetime.h"
 #include "gundam/graph_configure.h"
 #include "gundam/iterator.h"
 #include "gundam/label.h"
@@ -15,9 +16,25 @@ enum class BasicDataType {
   long_,
   short_,
   string_,
+  datetime_,
   unknown_type_
 };
-
+template <typename Str>
+BasicDataType StringToEnum(Str str) {
+  if (str == "int")
+    return BasicDataType::int_;
+  else if (str == "long")
+    return BasicDataType::long_;
+  else if (str == "double")
+    return BasicDataType::double_;
+  else if (str == "short")
+    return BasicDataType::short_;
+  else if (str == "string")
+    return BasicDataType::string_;
+  else if (str == "datetime")
+    return BasicDataType::datetime_;
+  return BasicDataType::unknown_type_;
+}
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, BasicDataType>::value,
                                   bool>::type = false>
@@ -43,6 +60,10 @@ std::string EnumToString(DataType data) {
     }
     case BasicDataType::string_: {
       ret = "string";
+      break;
+    }
+    case BasicDataType::datetime_: {
+      ret = "datetime";
       break;
     }
     case BasicDataType::unknown_type_: {
@@ -91,11 +112,25 @@ inline constexpr std::string TypeToString() {
   return "string";
 }
 
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, DateTime>::value,
+                                  bool>::type = false>
+inline constexpr std::string TypeToString(const DataType& data) {
+  return "datetime";
+}
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, DateTime>::value,
+                                  bool>::type = false>
+inline constexpr std::string TypeToString() {
+  return "datetime";
+}
+
 template <
     typename DataType,
     typename std::enable_if<!std::is_integral<DataType>::value &&
                                 !std::is_floating_point<DataType>::value &&
-                                !std::is_same<DataType, std::string>::value,
+                                !std::is_same<DataType, std::string>::value &&
+                                !std::is_same<DataType, DateTime>::value,
                             bool>::type = false>
 inline constexpr std::string TypeToString(const DataType& data) {
   return "unknown type";
@@ -105,7 +140,8 @@ template <
     typename DataType,
     typename std::enable_if<!std::is_integral<DataType>::value &&
                                 !std::is_floating_point<DataType>::value &&
-                                !std::is_same<DataType, std::string>::value,
+                                !std::is_same<DataType, std::string>::value &&
+                                !std::is_same<DataType, DateTime>::value,
                             bool>::type = false>
 inline constexpr std::string TypeToString() {
   return "unknown type";
@@ -130,12 +166,18 @@ template <typename DataType,
 const BasicDataType TypeToEnum(DataType data) {
   return BasicDataType::string_;
 }
-
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, DateTime>::value,
+                                  bool>::type = false>
+const BasicDataType TypeToEnum(DataType data) {
+  return BasicDataType::datetime_;
+}
 template <
     typename DataType,
     typename std::enable_if<!std::is_integral<DataType>::value &&
                                 !std::is_floating_point<DataType>::value &&
-                                !std::is_same<DataType, std::string>::value,
+                                !std::is_same<DataType, std::string>::value &&
+                                !std::is_same<DataType, DateTime>::value,
                             bool>::type = false>
 const BasicDataType TypeToEnum(DataType data) {
   return BasicDataType::unknown_type_;
@@ -941,7 +983,9 @@ class Graph {
       return temp_this_ptr;
     }
 
-    EdgeLabelIterator get_iterator() const { return this->edge_label_iterator_; }
+    EdgeLabelIterator get_iterator() const {
+      return this->edge_label_iterator_;
+    }
 
    public:
     EdgeContentIteratorSpecifiedEdgeLabel_()
@@ -1501,7 +1545,7 @@ class Graph {
                                       edge_label_idx_, dst_ptr_idx_,
                                       edge_id_idx_, edge_attribute_ptr_idx_>;
 
-        const FriendEdgeContentIteratorType& edge_content_iter = 
+        const FriendEdgeContentIteratorType& edge_content_iter =
             *static_cast<const FriendEdgeContentIteratorType*>(
                 static_cast<const void*>(&edge_iter));
 
@@ -1539,21 +1583,20 @@ class Graph {
       using FriendEdgeIteratorSpecifiedEdgeLabel =
           Iterator_<FriendEdgeContentIteratorSpecifiedEdgeLabel<
               ContainerType_, depth_, begin_depth_, edge_label_idx_,
-              dst_ptr_idx_, edge_id_idx_, edge_attribute_ptr_idx_>>;     
+              dst_ptr_idx_, edge_id_idx_, edge_attribute_ptr_idx_>>;
 
       template <typename ContainerType_, IteratorDepthType depth_,
                 IteratorDepthType begin_depth_, TupleIdxType edge_label_idx_,
                 TupleIdxType dst_ptr_idx_, TupleIdxType edge_id_idx_,
                 TupleIdxType edge_attribute_ptr_idx_>
       inline void Construct(
-          const FriendEdgeIteratorSpecifiedEdgeLabel<ContainerType_, depth_, begin_depth_,
-                                   edge_label_idx_, dst_ptr_idx_, edge_id_idx_,
-                                   edge_attribute_ptr_idx_>& edge_iter) {
-       using FriendEdgeContentIteratorSpecifiedEdgeLabelType =
+          const FriendEdgeIteratorSpecifiedEdgeLabel<
+              ContainerType_, depth_, begin_depth_, edge_label_idx_,
+              dst_ptr_idx_, edge_id_idx_, edge_attribute_ptr_idx_>& edge_iter) {
+        using FriendEdgeContentIteratorSpecifiedEdgeLabelType =
             FriendEdgeContentIteratorSpecifiedEdgeLabel<
-                ContainerType_, depth_, begin_depth_,
-                                      edge_label_idx_, dst_ptr_idx_,
-                                      edge_id_idx_, edge_attribute_ptr_idx_>;
+                ContainerType_, depth_, begin_depth_, edge_label_idx_,
+                dst_ptr_idx_, edge_id_idx_, edge_attribute_ptr_idx_>;
 
         const FriendEdgeContentIteratorSpecifiedEdgeLabelType&
             edge_content_iter = *static_cast<
@@ -1564,9 +1607,9 @@ class Graph {
 
         this->vertex_ptr_ = edge_content_iter.const_vertex_ptr();
 
-        auto iter = edge_content_iter.get_iterator();            
+        auto iter = edge_content_iter.get_iterator();
 
-        //this->edge_label_iterator_ = edge_content_iter.get_iterator();            
+        // this->edge_label_iterator_ = edge_content_iter.get_iterator();
 
         this->vertex_ptr_iterator_ =
             edge_content_iter.template get_const_iterator<
@@ -1582,10 +1625,9 @@ class Graph {
 
       template <typename... ParameterTypes>
       EdgePtr_(const ParameterTypes&... parameters)
-          : EdgePtrContentType(parameters...) {
-      }      
-      
-      //EdgePtr_() = default;  
+          : EdgePtrContentType(parameters...) {}
+
+      // EdgePtr_() = default;
 
       template <typename ContainerType_, IteratorDepthType depth_,
                 IteratorDepthType begin_depth_, TupleIdxType edge_label_idx_,
@@ -1626,9 +1668,9 @@ class Graph {
                 TupleIdxType dst_ptr_idx_, TupleIdxType edge_id_idx_,
                 TupleIdxType edge_attribute_ptr_idx_>
       EdgePtr_& operator=(const FriendEdgeIteratorSpecifiedEdgeLabel<
-                                 ContainerType_, depth_, begin_depth_,
-                                 edge_label_idx_, dst_ptr_idx_, edge_id_idx_,
-                                 edge_attribute_ptr_idx_>& edge_iterator) {
+                          ContainerType_, depth_, begin_depth_, edge_label_idx_,
+                          dst_ptr_idx_, edge_id_idx_, edge_attribute_ptr_idx_>&
+                              edge_iterator) {
         this->Construct(edge_iterator);
         return *this;
       }
@@ -2435,7 +2477,7 @@ class Graph {
                                          kVertexPtrIdx>>;
     using VertexConstIteratorSpecifiedEdgeLabel = Iterator_<
         VertexContentIterator_<VertexPtrContainerType, true, 1, kVertexPtrIdx>>;
-    
+
     using EdgeContentIterator =
         EdgeContentIterator_<EdgeLabelContainerType, false, 3, 0, kEdgeLabelIdx,
                              kVertexPtrIdx, kEdgeIDIdx, kEdgeAttributePtrIdx>;
@@ -2445,7 +2487,7 @@ class Graph {
     using EdgeConstIterator = Iterator_<
         EdgeContentIterator_<EdgeLabelContainerType, true, 3, 0, kEdgeLabelIdx,
                              kVertexPtrIdx, kEdgeIDIdx, kEdgeAttributePtrIdx>>;
-    
+
     using EdgeContentIteratorSpecifiedEdgeLabel =
         EdgeContentIteratorSpecifiedEdgeLabel_<
             VertexPtrContainerType, false, 2, 0, kEdgeLabelIdx, kVertexPtrIdx,

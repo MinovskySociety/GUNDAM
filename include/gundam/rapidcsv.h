@@ -138,7 +138,7 @@ class Converter {
    * @param   pVal                  numerical value
    * @param   pStr                  output string
    */
-  void ToVal(const std::string& pStr, T& pVal) const {
+  void ToVal(const std::string& pStr, T& pVal, bool& empty_flag) const {
     try {
       if (typeid(T) == typeid(int)) {
         pVal = static_cast<T>(std::stoi(pStr));
@@ -158,18 +158,20 @@ class Converter {
       } else if (typeid(T) == typeid(unsigned long long)) {
         pVal = static_cast<T>(std::stoull(pStr));
         return;
-      }
-      else if (typeid(T) == typeid(uint16_t)){
-        //add by wangyj!
+      } else if (typeid(T) == typeid(uint16_t)) {
+        // add by wangyj!
         pVal = static_cast<T>(std::stoi(pStr));
-        return ;
-      }
-      else if (typeid(T) == typeid(uint8_t)){
-        //add by wangyj!
+        return;
+      } else if (typeid(T) == typeid(uint8_t)) {
+        // add by wangyj!
         pVal = static_cast<T>(std::stoi(pStr));
-        return ;
+        return;
       }
     } catch (...) {
+      if (pStr.empty()) {
+        empty_flag = true;
+        return;
+      }
       if (!mConverterParams.mHasDefaultConverter) {
         throw;
       } else {
@@ -190,6 +192,10 @@ class Converter {
         return;
       }
     } catch (...) {
+      if (pStr.empty()) {
+        empty_flag = true;
+        return;
+      }
       if (!mConverterParams.mHasDefaultConverter) {
         throw;
       } else {
@@ -228,7 +234,8 @@ inline void Converter<std::string>::ToStr(const std::string& pVal,
  */
 template <>
 inline void Converter<std::string>::ToVal(const std::string& pStr,
-                                          std::string& pVal) const {
+                                          std::string& pVal,
+                                          bool& empty_flag) const {
   pVal = pStr;
 }
 
@@ -405,8 +412,24 @@ class Document {
     for (auto itRow = mData.begin(); itRow != mData.end(); ++itRow) {
       if (std::distance(mData.begin(), itRow) > mLabelParams.mColumnNameIdx) {
         T val;
-        converter.ToVal(itRow->at(columnIdx), val);
+        bool empty_flag = false;
+        converter.ToVal(itRow->at(columnIdx), val, empty_flag);
         column.push_back(val);
+      }
+    }
+    return column;
+  }
+  template <typename T>
+  std::vector<std::pair<T, bool>> GetColumnNew(const size_t pColumnIdx) const {
+    const ssize_t columnIdx = pColumnIdx + (mLabelParams.mRowNameIdx + 1);
+    std::vector<T> column;
+    Converter<T> converter(mConverterParams);
+    for (auto itRow = mData.begin(); itRow != mData.end(); ++itRow) {
+      if (std::distance(mData.begin(), itRow) > mLabelParams.mColumnNameIdx) {
+        T val;
+        bool empty_flag = false;
+        converter.ToVal(itRow->at(columnIdx), val, empty_flag);
+        column.push_back(std::make_pair(val, empty_flag));
       }
     }
     return column;
@@ -523,7 +546,8 @@ class Document {
       if (std::distance(mData.at(rowIdx).begin(), itCol) >
           mLabelParams.mRowNameIdx) {
         T val;
-        converter.ToVal(*itCol, val);
+        bool empty_flag = false;
+        converter.ToVal(*itCol, val, empty_flag);
         row.push_back(val);
       }
     }
@@ -631,10 +655,23 @@ class Document {
 
     T val;
     Converter<T> converter(mConverterParams);
-    converter.ToVal(mData.at(rowIdx).at(columnIdx), val);
+    bool empty_flag = false;
+    converter.ToVal(mData.at(rowIdx).at(columnIdx), val, empty_flag);
     return val;
   }
 
+  template <typename T>
+  std::pair<T, bool> GetCellNew(const size_t pColumnIdx,
+                                const size_t pRowIdx) const {
+    const ssize_t columnIdx = pColumnIdx + (mLabelParams.mRowNameIdx + 1);
+    const ssize_t rowIdx = pRowIdx + (mLabelParams.mColumnNameIdx + 1);
+
+    T val;
+    Converter<T> converter(mConverterParams);
+    bool empty_flag = false;
+    converter.ToVal(mData.at(rowIdx).at(columnIdx), val, empty_flag);
+    return std::make_pair(val, empty_flag);
+  }
   /**
    * @brief   Get cell by name.
    * @param   pColumnName           column label name.
@@ -1082,7 +1119,7 @@ class Document {
   LabelParams mLabelParams;
   SeparatorParams mSeparatorParams;
   ConverterParams mConverterParams;
-  std::vector<std::vector<std::string> > mData;
+  std::vector<std::vector<std::string>> mData;
   std::map<std::string, size_t> mColumnNames;
   std::map<std::string, size_t> mRowNames;
 #ifdef HAS_CODECVT

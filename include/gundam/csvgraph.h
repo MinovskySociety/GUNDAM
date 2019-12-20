@@ -92,24 +92,39 @@ void LoadVertexAttribue(GraphType<configures...>& graph,
   int col_num = static_cast<int>(after_parse_col_name.size());
   for (int col_iter = 2; col_iter < col_num; col_iter++) {
     // key is col_iter
+    std::cout << "attribute" << std::endl;
     std::stringstream ss(after_parse_col_name[col_iter]);
     AttributeType attr_key;
     ss >> attr_key;
     if (after_parse_value_type[col_iter] == "string") {
-      auto cell_attr = node_file.GetCell<std::string>(col_iter, row_pos);
-      node_ptr->AddAttribute(attr_key, cell_attr);
+      std::pair<std::string, bool> cell_attr =
+          node_file.GetCellNew<std::string>(col_iter, row_pos);
+      if (cell_attr.second) continue;
+      node_ptr->AddAttribute(attr_key, cell_attr.first);
     } else if (after_parse_value_type[col_iter] == "int") {
-      auto cell_attr = node_file.GetCell<int>(col_iter, row_pos);
-      node_ptr->AddAttribute(attr_key, cell_attr);
+      std::pair<int, bool> cell_attr =
+          node_file.GetCellNew<int>(col_iter, row_pos);
+      if (cell_attr.second) continue;
+      node_ptr->AddAttribute(attr_key, cell_attr.first);
     } else if (after_parse_value_type[col_iter] == "double") {
-      auto cell_attr = node_file.GetCell<double>(col_iter, row_pos);
-      node_ptr->AddAttribute(attr_key, cell_attr);
+      std::pair<double, bool> cell_attr =
+          node_file.GetCellNew<double>(col_iter, row_pos);
+      if (cell_attr.second) continue;
+      node_ptr->AddAttribute(attr_key, cell_attr.first);
     } else if (after_parse_value_type[col_iter] == "short") {
-      auto cell_attr = node_file.GetCell<short>(col_iter, row_pos);
-      node_ptr->AddAttribute(attr_key, cell_attr);
+      auto cell_attr = node_file.GetCellNew<short>(col_iter, row_pos);
+      if (cell_attr.second) continue;
+      node_ptr->AddAttribute(attr_key, cell_attr.first);
     } else if (after_parse_value_type[col_iter] == "long") {
-      auto cell_attr = node_file.GetCell<long long>(col_iter, row_pos);
-      node_ptr->AddAttribute(attr_key, cell_attr);
+      auto cell_attr = node_file.GetCellNew<long long>(col_iter, row_pos);
+      if (cell_attr.second) continue;
+      node_ptr->AddAttribute(attr_key, cell_attr.first);
+    } else if (after_parse_value_type[col_iter] == "datetime") {
+      std::pair<std::string, bool> cell_attr =
+          node_file.GetCellNew<std::string>(col_iter, row_pos);
+      if (cell_attr.second) continue;
+      DateTime date_time(cell_attr.first.c_str());
+      node_ptr->AddAttribute(attr_key, date_time);
     }
   }
   return;
@@ -147,9 +162,6 @@ int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
   }
   // parse col
   std::vector<std::string> before_parse_col_name = node_file.GetColumnNames();
-  for (auto& it : before_parse_col_name) {
-    std::cout << it << std::endl;
-  }
   std::vector<std::string> after_parse_col_name, after_parse_value_type;
   ParseCol(before_parse_col_name, after_parse_col_name, after_parse_value_type);
   // check attribute key type is correct
@@ -162,7 +174,6 @@ int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
   std::vector<VertexLabelType> node_label =
       node_file.GetColumn<VertexLabelType>(1);
   size_t sz = node_id.size();
-  std::cout << col_num << " " << sz << std::endl;
   for (int i = 0; i < sz; i++) {
     // add node_id and node_label;
     // std::cout << "i=" << i << std::endl;
@@ -212,20 +223,26 @@ void LoadEdgeAttribue(GraphType<configures...>& graph,
     AttributeType attr_key;
     ss >> attr_key;
     if (after_parse_value_type[col_iter] == "string") {
-      auto cell_attr = edge_file.GetCell<std::string>(col_iter, row_pos);
-      edge_ptr->AddAttribute(attr_key, cell_attr);
+      auto cell_attr = edge_file.GetCellNew<std::string>(col_iter, row_pos);
+      if (!cell_attr.second) edge_ptr->AddAttribute(attr_key, cell_attr.first);
     } else if (after_parse_value_type[col_iter] == "int") {
-      auto cell_attr = edge_file.GetCell<int>(col_iter, row_pos);
-      edge_ptr->AddAttribute(attr_key, cell_attr);
+      auto cell_attr = edge_file.GetCellNew<int>(col_iter, row_pos);
+      if (!cell_attr.second) edge_ptr->AddAttribute(attr_key, cell_attr.first);
     } else if (after_parse_value_type[col_iter] == "double") {
-      auto cell_attr = edge_file.GetCell<double>(col_iter, row_pos);
-      edge_ptr->AddAttribute(attr_key, cell_attr);
+      auto cell_attr = edge_file.GetCellNew<double>(col_iter, row_pos);
+      if (!cell_attr.second) edge_ptr->AddAttribute(attr_key, cell_attr.first);
     } else if (after_parse_value_type[col_iter] == "short") {
-      auto cell_attr = edge_file.GetCell<short>(col_iter, row_pos);
-      edge_ptr->AddAttribute(attr_key, cell_attr);
+      auto cell_attr = edge_file.GetCellNew<short>(col_iter, row_pos);
+      if (!cell_attr.second) edge_ptr->AddAttribute(attr_key, cell_attr.first);
     } else if (after_parse_value_type[col_iter] == "long") {
-      auto cell_attr = edge_file.GetCell<long long>(col_iter, row_pos);
-      edge_ptr->AddAttribute(attr_key, cell_attr);
+      auto cell_attr = edge_file.GetCellNew<long long>(col_iter, row_pos);
+      if (!cell_attr.second) edge_ptr->AddAttribute(attr_key, cell_attr.first);
+    } else if (after_parse_value_type[col_iter] == "datetime") {
+      auto cell_attr = edge_file.GetCellNew<std::string>(col_iter, row_pos);
+      if (!cell_attr.second) {
+        DateTime date_time(cell_attr.first.c_str());
+        edge_ptr->AddAttribute(attr_key, date_time);
+      }
     }
   }
   return;
@@ -542,6 +559,10 @@ void WriteVertexAttribute(
         line_node_info[attr_key_pos] =
             attr_it->template const_value<std::string>();
         break;
+      case BasicDataType::datetime_:
+        line_node_info[attr_key_pos] =
+            (attr_it->template const_value<DateTime>()).to_string();
+        break;
       default:
         break;
     }
@@ -614,6 +635,10 @@ void WriteEdgeAttribute(
       case BasicDataType::string_:
         line_edge_info[attr_key_pos] =
             attr_it->template const_value<std::string>();
+        break;
+      case BasicDataType::datetime_:
+        line_edge_info[attr_key_pos] =
+            (attr_it->template const_value<DateTime>()).to_string();
         break;
       default:
         break;
