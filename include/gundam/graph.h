@@ -1607,9 +1607,7 @@ class Graph {
 
         this->vertex_ptr_ = edge_content_iter.const_vertex_ptr();
 
-        auto iter = edge_content_iter.get_iterator();
-
-        // this->edge_label_iterator_ = edge_content_iter.get_iterator();
+        this->edge_label_iterator_ = edge_content_iter.get_iterator();
 
         this->vertex_ptr_iterator_ =
             edge_content_iter.template get_const_iterator<
@@ -1623,11 +1621,14 @@ class Graph {
      public:
       using EdgePtrContentType::IsNull;
 
-      template <typename... ParameterTypes>
-      EdgePtr_(const ParameterTypes&... parameters)
-          : EdgePtrContentType(parameters...) {}
+      // by HBN
+      // template <typename... ParameterTypes>
+      // EdgePtr_(const ParameterTypes&... parameters)
+      //    : EdgePtrContentType(parameters...) {}
 
-      // EdgePtr_() = default;
+      EdgePtr_() = default;
+
+      using EdgePtrContentType::EdgePtrContentType;
 
       template <typename ContainerType_, IteratorDepthType depth_,
                 IteratorDepthType begin_depth_, TupleIdxType edge_label_idx_,
@@ -1638,7 +1639,6 @@ class Graph {
                                    edge_label_idx_, dst_ptr_idx_, edge_id_idx_,
                                    edge_attribute_ptr_idx_>& edge_iterator) {
         this->Construct(edge_iterator);
-        return;
       }
       template <typename ContainerType_, IteratorDepthType depth_,
                 IteratorDepthType begin_depth_, TupleIdxType edge_label_idx_,
@@ -1661,7 +1661,6 @@ class Graph {
                dst_ptr_idx_, edge_id_idx_, edge_attribute_ptr_idx_>&
                    edge_iterator) {
         this->Construct(edge_iterator);
-        return;
       }
       template <typename ContainerType_, IteratorDepthType depth_,
                 IteratorDepthType begin_depth_, TupleIdxType edge_label_idx_,

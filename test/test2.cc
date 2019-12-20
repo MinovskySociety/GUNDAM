@@ -68,8 +68,7 @@ TEST(TestGUNDAM, Graph_Edge) {
   ASSERT_EQ(1, res2.first->id());
   ASSERT_EQ(1, res2.first->const_src_ptr()->id());
   ASSERT_EQ(2, res2.first->const_dst_ptr()->id());
-  e1 = res2.first;
-  
+
   std::tie(e2, res_bool) = g1.AddEdge(2, 3, "b", 2);
   ASSERT_TRUE(res_bool);
   ASSERT_FALSE(e2.IsNull());
@@ -79,21 +78,28 @@ TEST(TestGUNDAM, Graph_Edge) {
 
   ASSERT_TRUE(g1.AddEdge(1, 3, "b", 3).second);
 
+  e1 = g1.FindEdge(1);
+
   auto e_it1 = v1->OutEdgeCBegin();
-  GraphType1::EdgeConstPtr e1_const1 = e_it1;  
+  GraphType1::EdgeConstPtr e1_const1 = e_it1;
   ASSERT_EQ(e1->id(), e1_const1->id());
   ASSERT_EQ(e1->const_src_ptr(), e1_const1->const_src_ptr());
-  ASSERT_EQ(e1->const_dst_ptr(), e1_const1->const_dst_ptr());  
-
-  //e1->label();   
-  //e1 == e1;
-  //e1 == e1_const;
+  ASSERT_EQ(e1->const_dst_ptr(), e1_const1->const_dst_ptr());
+  ASSERT_EQ(e1->label(), e1_const1->label());
+  ASSERT_EQ(e1, e1_const1);
 
   auto e_it2 = v1->OutEdgeCBegin("a");
   GraphType1::EdgeConstPtr e1_const2{e_it2};
   ASSERT_EQ(e1->id(), e1_const2->id());
   ASSERT_EQ(e1->const_src_ptr(), e1_const2->const_src_ptr());
-  ASSERT_EQ(e1->const_dst_ptr(), e1_const2->const_dst_ptr());  
+  ASSERT_EQ(e1->const_dst_ptr(), e1_const2->const_dst_ptr());
+  ASSERT_EQ("a", e1_const2->label());
+  ASSERT_EQ(e1, e1_const2);
+
+  GraphType1::EdgePtr e1a = e1;  
+  e1a = e1;
+  GraphType1::EdgeConstPtr e1b = e1_const1;  
+  e1b = e1_const2;
 
   res2 = g1.AddEdge(1, 1, "sss", 4);
   ASSERT_TRUE(res2.second);
