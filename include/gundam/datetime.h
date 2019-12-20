@@ -3,6 +3,8 @@
 #include <cstring>
 #include <ctime>
 #include <string>
+//类型说明：绝对时间
+//格式:年-月-日 时:分:秒
 class DateTime {
  private:
   time_t t_;
