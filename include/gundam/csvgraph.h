@@ -7,6 +7,7 @@
 #include <string>
 #include "graph.h"
 #include "graph_configure.h"
+#include "gundam/datatype.h"
 
 #include "rapidcsv.h"
 

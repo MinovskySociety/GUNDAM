@@ -1,7 +1,9 @@
-#pragma once
+#ifndef _DATETIME_H
+#define _DATETIME_H
 #include <cstdio>
 #include <cstring>
 #include <ctime>
+#include <iostream>
 #include <string>
 //类型说明：绝对时间
 //格式:年-月-日 时:分:秒
@@ -30,4 +32,11 @@ class DateTime {
     strftime(str, 64, "%Y-%m-%d %H:%M:%S", localtime(&this->t_));
     return std::string{str};
   }
+  friend std::ostream& operator<<(std::ostream& out, const DateTime b) {
+    out << b.to_string();
+    return out;
+  }
+  bool operator==(const DateTime b) const { return this->t_ == b.t_; }
+  bool operator!=(const DateTime b) const { return this->t_ != b.t_; }
 };
+#endif
