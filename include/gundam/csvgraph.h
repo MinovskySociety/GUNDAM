@@ -7,6 +7,7 @@
 #include "graph.h"
 #include "graph_configure.h"
 #include "gundam/datatype.h"
+#include "gundam/geneator.h"
 
 #include "rapidcsv.h"
 
@@ -321,7 +322,6 @@ int ReadCSVGraph(GraphType<configures...>& graph, const char* v_file,
   count += res;
   return count;
 }
-
 template <template <typename...> class GraphType, typename... configures,
           typename VertexFileList, typename EdgeFileList>
 int ReadCSVGraph(GraphType<configures...>& graph, const VertexFileList& v_list,
