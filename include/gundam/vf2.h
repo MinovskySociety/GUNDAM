@@ -57,8 +57,8 @@ inline bool ForEachVertexIf(const GraphType &graph, Fn f,
   return true;
 }
 
- template <enum EdgeState edge_state, class VertexPtr, class Fn, class
- EdgePtr1> inline bool ForEachEdgeIf(
+template <enum EdgeState edge_state, class VertexPtr, class Fn, class EdgePtr1>
+inline bool ForEachEdgeIf(
     const VertexPtr &vertex_ptr, Fn f,
     LabelEqual<EdgePtr1,
                typename VertexPtr::GraphType::EdgeConstPtr> /* edge_comp */,
@@ -67,7 +67,7 @@ inline bool ForEachVertexIf(const GraphType &graph, Fn f,
                             ? vertex_ptr->InEdgeCBegin(edge_a_ptr->label())
                             : vertex_ptr->OutEdgeCBegin(edge_a_ptr->label());
        !edge_iter.IsDone(); edge_iter++) {
-      typename VertexPtr::GraphType::EdgeConstPtr edge_ptr = edge_iter;
+    typename VertexPtr::GraphType::EdgeConstPtr edge_ptr = edge_iter;
     if (!f(edge_ptr)) return false;
   }
   return true;

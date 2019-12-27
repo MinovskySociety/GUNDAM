@@ -1,7 +1,6 @@
 
 #ifndef _CSVGRAPH_H
 #define _CSVGRAPH_H
-#pragma once
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -45,6 +44,7 @@ bool CheckAttributeKeyIsCorrect(std::vector<std::string>& after_parse_col_name,
                                 int begin_pos) {
   // check col name can change to attrkeytype
   for (int j = begin_pos; j < after_parse_col_name.size(); j++) {
+    std::cout << after_parse_col_name[j] << std::endl;
     std::string str = after_parse_col_name[j];
     std::stringstream ss(str);
     AttributeKeyType check_flag;

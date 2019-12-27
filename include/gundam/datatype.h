@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _DATATYPE_H
+#define _DATATYPE_H
 #include <iostream>
 #include <set>
 #include "gundam/datetime.h"
@@ -175,3 +176,5 @@ template <
 const BasicDataType TypeToEnum(DataType data) {
   return BasicDataType::unknown_type_;
 }
+
+#endif

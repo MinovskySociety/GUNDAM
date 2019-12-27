@@ -8,12 +8,17 @@
 //类型说明：绝对时间
 //格式:年-月-日 时:分:秒
 class DateTime {
- private:
-  time_t t_;
-
  public:
-  DateTime() {}
+  time_t t_=time(NULL);
+ public:
+  DateTime(time_t t) {
+	  this->t_ = t;
+  }
+  DateTime() {
+	  this->t_ = time(NULL);
+  }
   DateTime(const char* str) {
+	this->t_ = time(NULL);
     int year, month, day, hour, minute, second;
     sscanf(str, "%d-%d-%d %d:%d:%d", &year, &month, &day, &hour, &minute,
            &second);
