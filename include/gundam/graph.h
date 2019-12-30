@@ -2831,7 +2831,6 @@ class Graph {
   inline std::pair<VertexPtr, bool> AddVertex(
       const typename VertexType::IDType& id,
       const typename VertexType::LabelType& label) {
-    vertex_id_gen.UseID(id);
     const VertexPtr ret = this->FindVertex(id);
     if (!ret.IsNull()) {
       /// already exist
@@ -2886,7 +2885,6 @@ class Graph {
       const typename VertexType::IDType& dst_id,
       const typename EdgeType::LabelType& edge_label,
       const typename EdgeType::IDType& edge_id) {
-    edge_id_gen.UseID(edge_id);
     VertexPtr src_ptr = this->FindVertex(src_id);
     VertexPtr dst_ptr = this->FindVertex(dst_id);
     if (src_ptr.IsNull() || dst_ptr.IsNull()) {
@@ -3089,8 +3087,6 @@ class Graph {
   }
   std::string edge_id_type() const { return TypeToString<EdgeIDType>(); }
   std::string edge_label_type() const { return TypeToString<EdgeLabelType>(); }
-  SimpleArithmeticIDGenerator<VertexIDType> vertex_id_gen;
-  SimpleArithmeticIDGenerator<EdgeIDType> edge_id_gen;
 
 };  // namespace GUNDAM
 }  // namespace GUNDAM

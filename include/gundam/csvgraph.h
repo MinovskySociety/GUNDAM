@@ -131,8 +131,10 @@ void LoadVertexAttribue(GraphType<configures...>& graph,
   }
   return;
 }
-template <template <typename...> class GraphType, typename... configures>
-int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
+template <template <typename...> class GraphType, typename... configures,
+          class VertexIDGen>
+int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file,
+                      VertexIDGen& vertex_id_gen) {
   // read .v file(csv)
   //.v file format: (id,label,......)
   using VertexType = typename GraphType<configures...>::VertexType;
@@ -181,6 +183,7 @@ int ReadCSVVertexFile(GraphType<configures...>& graph, const char* v_file) {
     // std::cout << "i=" << i << std::endl;
     VertexPtr node_ptr =
         graph.AddVertex(node_id[i], VertexLabelType(node_label[i])).first;
+    vertex_id_gen.UseID(node_id[i]);
     // add other attribute
     if (graph.vertex_has_attribute) {
       LoadVertexAttribue(graph, node_ptr, node_file, after_parse_col_name,
@@ -249,8 +252,10 @@ void LoadEdgeAttribue(GraphType<configures...>& graph,
   }
   return;
 }
-template <template <typename...> class GraphType, typename... configures>
-int ReadCSVEdgeFile(GraphType<configures...>& graph, const char* e_file) {
+template <template <typename...> class GraphType, typename... configures,
+          class EdgeIDGen>
+int ReadCSVEdgeFile(GraphType<configures...>& graph, const char* e_file,
+                    EdgeIDGen& edge_id_gen) {
   // read .e file(csv)
   //.e file format: (edge_id,from_id,to_id,edge_label,......)
   using VertexType = typename GraphType<configures...>::VertexType;
@@ -295,6 +300,9 @@ int ReadCSVEdgeFile(GraphType<configures...>& graph, const char* e_file) {
   from_id = edge_file.GetColumn<VertexIDType>(1);
   to_id = edge_file.GetColumn<VertexIDType>(2);
   edge_label = edge_file.GetColumn<EdgeLabelType>(3);
+  for (const auto& it : edge_id) {
+    edge_id_gen.UseID(it);
+  }
   size_t sz = from_id.size();
   for (int i = 0; i < sz; i++) {
     // std::cout << "j=" << i << std::endl;
@@ -313,11 +321,25 @@ int ReadCSVEdgeFile(GraphType<configures...>& graph, const char* e_file) {
 template <template <typename...> class GraphType, typename... configures>
 int ReadCSVGraph(GraphType<configures...>& graph, const char* v_file,
                  const char* e_file) {
+  SimpleArithmeticIDEmptyGenerator<
+      typename GraphType<configures...>::VertexType::IDType>
+      empty_vertex_id_type;
+  SimpleArithmeticIDEmptyGenerator<
+      typename GraphType<configures...>::EdgeType::IDType>
+      empty_edge_id_type;
+  return ReadCSVGraph(graph, v_file, e_file, empty_vertex_id_type,
+                      empty_edge_id_type);
+}
+template <template <typename...> class GraphType, typename... configures,
+          class VertexIDGen, class EdgeIDGen>
+int ReadCSVGraph(GraphType<configures...>& graph, const char* v_file,
+                 const char* e_file, VertexIDGen& vertex_id_gen,
+                 EdgeIDGen& edge_id_gen) {
   int count = 0;
-  int res = ReadCSVVertexFile(graph, v_file);
+  int res = ReadCSVVertexFile(graph, v_file, vertex_id_gen);
   if (res < 0) return res;
   count += res;
-  res = ReadCSVEdgeFile(graph, e_file);
+  res = ReadCSVEdgeFile(graph, e_file, edge_id_gen);
   if (res < 0) return res;
   count += res;
   return count;
@@ -328,12 +350,18 @@ int ReadCSVGraph(GraphType<configures...>& graph, const VertexFileList& v_list,
                  const EdgeFileList& e_list) {
   int count = 0;
   for (const auto& v_file : v_list) {
-    int res = ReadCSVVertexFile(graph, v_file);
+    SimpleArithmeticIDEmptyGenerator<
+        typename GraphType<configures...>::VertexType::IDType>
+        empty_vertex_id_type;
+    int res = ReadCSVVertexFile(graph, v_file, empty_vertex_id_type);
     if (res < 0) return res;
     count += res;
   }
   for (const auto& e_file : e_list) {
-    int res = ReadCSVEdgeFile(graph, e_file);
+    SimpleArithmeticIDEmptyGenerator<
+        typename GraphType<configures...>::EdgeType::IDType>
+        empty_edge_id_type;
+    int res = ReadCSVEdgeFile(graph, e_file, empty_edge_id_type);
     if (res < 0) return res;
     count += res;
   }

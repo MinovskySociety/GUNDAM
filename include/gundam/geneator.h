@@ -1,6 +1,19 @@
 #ifndef _GENEATOR_H
 #define _GENEATOR_H
 #include <type_traits>
+template <typename IDType,
+          typename std::enable_if<std::is_arithmetic<IDType>::value,
+                                  bool>::type = false>
+class SimpleArithmeticIDEmptyGenerator {
+ private:
+ public:
+  IDType GetID() {}
+
+  void UseID(const IDType& id) {
+    IDType id_temp = id + 1;
+    return;
+  }
+};
 
 template <typename IDType,
           typename std::enable_if<std::is_arithmetic<IDType>::value,
