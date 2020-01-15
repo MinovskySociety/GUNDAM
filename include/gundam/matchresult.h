@@ -20,8 +20,13 @@ void MatchResultToFile(const MatchResultContainer &r, std::ostream &out) {
     break;
   }
   out << "match_id";
+  /*
   for (int i = 0; i < index_to_vertex_id.size(); i++) {
     out << "," << index_to_vertex_id[i];
+  }
+  */
+  for (const auto &it : index_to_vertex_id) {
+    out << "," << it;
   }
   out << std::endl;
   int now_match_id = 0;
@@ -29,16 +34,17 @@ void MatchResultToFile(const MatchResultContainer &r, std::ostream &out) {
     std::vector<TargetVertexIDType> match_target_result(
         index_to_vertex_id.size());
     for (const auto &single_pair : single_match_result) {
-      std::cout << vertex_id_to_index[single_pair.first->id()] << " "
-                << single_pair.first->id() << " " << single_pair.second->id()
-                << std::endl;
       int now_index = vertex_id_to_index[single_pair.first->id()];
       match_target_result[now_index] = single_pair.second->id();
     }
-    std::cout << std::endl;
     out << (++now_match_id);
+    /*
     for (int i = 0; i < match_target_result.size(); i++) {
       out << "," << match_target_result[i];
+    }
+    */
+    for (const auto &it : match_target_result) {
+      out << "," << it;
     }
     out << std::endl;
   }
