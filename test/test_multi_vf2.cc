@@ -34,10 +34,12 @@ TEST(TestGUNDAM, MULTI_VF2) {
   target.AddVertex(1, VertexLabelType(0));
   target.AddVertex(2, VertexLabelType(1));
   target.AddEdge(1, 2, EdgeLabelType(1), 1);
+  target.AddEdge(1, 2, EdgeLabelType(1), 2);
 
   std::vector<std::map<VertexConstPtr, VertexConstPtr>> match_result;
-  int count =
-      VF2<MatchSemantics::kIsomorphism>(query, target, -1, match_result);
+  int count = VF2<MatchSemantics::kIsomorphism>(
+      query, target, 1, 1, _vf2::LabelEqual<VertexConstPtr, VertexConstPtr>(),
+      _vf2::LabelEqual<EdgeConstPtr, EdgeConstPtr>(), -1, match_result);
 
   for (size_t i = 0; i < match_result.size(); i++) {
     std::cout << "match " << i << std::endl;
@@ -47,5 +49,5 @@ TEST(TestGUNDAM, MULTI_VF2) {
     }
   }
   std::cout << "count: " << match_result.size() << std::endl;
-  ASSERT_EQ(count, 0);
+  ASSERT_EQ(count, 1);
 }

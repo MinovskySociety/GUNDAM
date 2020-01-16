@@ -1102,6 +1102,58 @@ inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
                 std::placeholders::_1, &max_result, &match_result));
 }
 
+template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+          class QueryGraph, class TargetGraph, class ResultContainer,
+          class VertexCompare, class EdgeCompare>
+inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
+               const typename QueryGraph::VertexType::IDType query_id,
+               const typename TargetGraph::VertexType::IDType target_id,
+               VertexCompare vertex_comp, EdgeCompare edge_comp, int max_result,
+               ResultContainer &match_result) {
+  using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
+  using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
+
+  match_result.clear();
+  std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> candidate_set;
+  _vf2::InitCandidateSet<match_semantics>(query_graph, target_graph,
+                                          vertex_comp, candidate_set);
+  QueryVertexPtr query_ptr = query_graph.FindConstVertex(query_id);
+  int find_target_flag = 0;
+  for (const auto &target_ptr : candidate_set[query_ptr]) {
+    if (target_ptr->id() == target_id) {
+      find_target_flag = 1;
+      break;
+    }
+  }
+  if (!find_target_flag) return 0;
+  std::map<QueryVertexPtr, TargetVertexPtr> match_state;
+  std::set<TargetVertexPtr> target_matched;
+  TargetVertexPtr target_ptr = target_graph.FindConstVertex(target_id);
+  _vf2::UpdateState(query_ptr, target_ptr, match_state, target_matched);
+  return _vf2::VF2_Recursive<match_semantics>(
+      query_graph, target_graph, vertex_comp, edge_comp,
+      std::bind(_vf2::MatchCallbackSaveResult<QueryVertexPtr, TargetVertexPtr,
+                                              ResultContainer>,
+                std::placeholders::_1, &max_result, &match_result));
+}
+/*
+template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+          class QueryGraph, class TargetGraph, class ResultContainer>
+inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
+               const typename QueryGraph::VertexType::IDType query_id,
+               const typename TargetGraph::VertexType::IDType target_id,
+               int max_result, ResultContainer &match_result) {
+  using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
+  using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
+  using QueryEdgePtr = typename QueryGraph::EdgeConstPtr;
+  using TargetEdgePtr = typename TargetGraph::EdgeConstPtr;
+  return VF2<match_semantics>(
+      query_graph, target_graph, query_id, target_id,
+      _vf2::LabelEqual<QueryVertexPtr, TargetVertexPtr>(),
+      _vf2::LabelEqual<QueryEdgePtr, TargetEdgePtr>(), max_result,
+      match_result);
+}
+*/
 }  // namespace GUNDAM
 
 #endif
