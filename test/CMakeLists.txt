@@ -33,3 +33,11 @@ add_test(AllTests test_attribute)
 add_executable (test_multi_vf2 "test_multi_vf2.cc")
 target_link_libraries(test_multi_vf2 GTest::GTest GTest::Main)
 add_test(AllTests test_multi_vf2)
+
+add_executable (test_idgen "test_idgen.cc")
+target_link_libraries(test_idgen GTest::GTest GTest::Main)
+add_test(AllTests test_idgen)
+
+add_executable (test_matchresult "test_writematchresult.cc")
+target_link_libraries(test_matchresult GTest::GTest GTest::Main)
+add_test(AllTests test_matchresult)

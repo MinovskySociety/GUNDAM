@@ -14,8 +14,8 @@ void MatchResultToFile(const MatchResultContainer &r, std::ostream &out) {
       vertex_id_to_index.insert(
           std::make_pair(single_pair.first->id(),
                          static_cast<int>(index_to_vertex_id.size() - 1)));
-      std::cout << static_cast<int>(index_to_vertex_id.size() - 1) << " "
-                << single_pair.first->id() << std::endl;
+      // std::cout << static_cast<int>(index_to_vertex_id.size() - 1) << " "
+      //           << single_pair.first->id() << std::endl;
     }
     break;
   }
