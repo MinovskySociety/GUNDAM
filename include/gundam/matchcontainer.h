@@ -32,10 +32,10 @@ class SingleMatch {
   }
 };
 
-template <class SingleMatch>
+template <class MatchMap>
 class MatchContainer {
  private:
-  using MatchContainerType = std::vector<SingleMatch>;
+  using MatchContainerType = std::vector<MatchMap>;
   using MatchContainerIterator = typename MatchContainerType::iterator;
   using MatchContainerConstIterator =
       typename MatchContainerType::const_iterator;
@@ -55,9 +55,7 @@ class MatchContainer {
   MatchContainerConstIterator end() const {
     return this->match_container_.cend();
   }
-  void Add(SingleMatch &single_match) {
-    this->match_container_.push_back(single_match);
-  }
+  void Add(MatchMap &match_map) { this->match_container_.push_back(match_map); }
 };
 }  // namespace GUNDAM
 
