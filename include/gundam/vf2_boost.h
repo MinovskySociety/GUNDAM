@@ -38,7 +38,6 @@ inline bool InitCandidateSet(
         &candidate_set) {
   using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
-
   for (auto query_vertex_iter = query_graph.VertexCBegin();
        !query_vertex_iter.IsDone(); query_vertex_iter++) {
     QueryVertexPtr query_vertex_ptr = query_vertex_iter;
@@ -321,10 +320,15 @@ bool _VF2(
     std::map<TargetVertexPtr, int> &target_matched,
     const UsedtimeMap &vertex_used_time, const IsCliqueMap &is_clique,
     size_t &result_count, MatchCallback user_callback) {
+  // for (auto &it : match_state) {
+  // std::cout << it.first->id() << " " << it.second->id() << std::endl;
+  //}
+  // std::cout << std::endl;
   if (match_state.size() == candidate_set.size()) {
     result_count++;
     return user_callback(match_state);
   }
+
   QueryVertexPtr next_query_vertex_ptr =
       DetermineMatchOrder(candidate_set, match_state);
   for (const TargetVertexPtr &next_target_vertex_ptr :
@@ -440,9 +444,9 @@ inline int VF2_Boost(const QueryGraph &query_graph,
   if (!_vf2_boost::InitCandidateSet<match_semantics>(query_graph, target_graph,
                                                      candidate_set))
     return 0;
-  for (auto &it : candidate_set) {
-    // std::cout << it.first->id() << " " << it.second.size() << std::endl;
-  }
+  // for (auto &it : candidate_set) {
+  // std::cout << it.first->id() << " " << it.second.size() << std::endl;
+  //}
   QueryVertexPtr query_ptr = query_graph.FindConstVertex(query_id);
   TargetVertexPtr target_ptr = target_graph.FindConstVertex(target_id);
   if (!_vf2_boost::CheckIsInCandidateSet(query_ptr, candidate_set, target_id)) {
