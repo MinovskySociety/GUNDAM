@@ -2053,9 +2053,25 @@ class Graph {
       }
       return out_edge_num;
     }
+    inline typename VertexPtrContainerType::size_type CountOutEdge(
+        const EdgeLabelType edge_label) const {
+      typename VertexPtrContainerType::size_type out_edge_num = 0;
+      for (auto it = this->OutEdgeCBegin(edge_label); !it.IsDone(); it++) {
+        out_edge_num++;
+      }
+      return out_edge_num;
+    }
     inline typename VertexPtrContainerType::size_type CountInEdge() const {
       typename VertexPtrContainerType::size_type in_edge_num = 0;
       for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
+        in_edge_num++;
+      }
+      return in_edge_num;
+    }
+    inline typename VertexPtrContainerType::size_type CountInEdge(
+        const EdgeLabelType edge_label) const {
+      typename VertexPtrContainerType::size_type in_edge_num = 0;
+      for (auto it = this->InEdgeCBegin(edge_label); !it.IsDone(); it++) {
         in_edge_num++;
       }
       return in_edge_num;

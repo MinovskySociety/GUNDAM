@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <vector>
 
-#include "gundam/graph.h"
+#include "graph.h"
 
 namespace GUNDAM {
 
@@ -269,6 +269,7 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
   using TargetGraph = typename TargetVertexPtr::GraphType;
   using QueryEdgePtr = typename QueryGraph::EdgeConstPtr;
   using TargetEdgePtr = typename TargetGraph::EdgeConstPtr;
+  /*
   std::set<typename TargetGraph::EdgeType::IDType> used_edge;
   for (auto query_edge_iter =
            ((edge_state == EdgeState::kIn) ? query_vertex_ptr->InEdgeCBegin()
@@ -303,11 +304,12 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
     if (!find_target_flag) return false;
   }
   return true;
-  /*
-  for (auto query_edge_iter = ((edge_state == EdgeState::kIn)
-                                     ? query_vertex_ptr->InEdgeCBegin()
-                                     : query_vertex_ptr->OutEdgeCBegin());
-         !query_edge_iter.IsDone(); query_edge_iter++) {
+  */
+
+  for (auto query_edge_iter =
+           ((edge_state == EdgeState::kIn) ? query_vertex_ptr->InEdgeCBegin()
+                                           : query_vertex_ptr->OutEdgeCBegin());
+       !query_edge_iter.IsDone(); query_edge_iter++) {
     QueryEdgePtr query_edge_ptr = query_edge_iter;
     QueryVertexPtr query_opp_vertex_ptr = (edge_state == EdgeState::kIn)
                                               ? query_edge_ptr->const_src_ptr()
@@ -369,7 +371,6 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
     if (!find_target_flag) return false;
   }
   return true;
-  */
 }
 
 // template <class Key1, class Key2, class Value>
@@ -1115,8 +1116,9 @@ inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
 
   match_result.clear();
   std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> candidate_set;
-  _vf2::InitCandidateSet<match_semantics>(query_graph, target_graph,
-                                          vertex_comp, candidate_set);
+  if (!_vf2::InitCandidateSet<match_semantics>(query_graph, target_graph,
+                                               vertex_comp, candidate_set))
+    return 0;
   QueryVertexPtr query_ptr = query_graph.FindConstVertex(query_id);
   int find_target_flag = 0;
   for (const auto &target_ptr : candidate_set[query_ptr]) {
@@ -1130,30 +1132,13 @@ inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
   std::set<TargetVertexPtr> target_matched;
   TargetVertexPtr target_ptr = target_graph.FindConstVertex(target_id);
   _vf2::UpdateState(query_ptr, target_ptr, match_state, target_matched);
-  return _vf2::VF2_Recursive<match_semantics>(
-      query_graph, target_graph, vertex_comp, edge_comp,
+  size_t result_count = 0;
+  return _vf2::_VF2<match_semantics>(
+      candidate_set, match_state, target_matched, edge_comp, result_count,
       std::bind(_vf2::MatchCallbackSaveResult<QueryVertexPtr, TargetVertexPtr,
                                               ResultContainer>,
                 std::placeholders::_1, &max_result, &match_result));
 }
-/*
-template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
-          class QueryGraph, class TargetGraph, class ResultContainer>
-inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
-               const typename QueryGraph::VertexType::IDType query_id,
-               const typename TargetGraph::VertexType::IDType target_id,
-               int max_result, ResultContainer &match_result) {
-  using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
-  using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
-  using QueryEdgePtr = typename QueryGraph::EdgeConstPtr;
-  using TargetEdgePtr = typename TargetGraph::EdgeConstPtr;
-  return VF2<match_semantics>(
-      query_graph, target_graph, query_id, target_id,
-      _vf2::LabelEqual<QueryVertexPtr, TargetVertexPtr>(),
-      _vf2::LabelEqual<QueryEdgePtr, TargetEdgePtr>(), max_result,
-      match_result);
-}
-*/
 }  // namespace GUNDAM
 
 #endif
