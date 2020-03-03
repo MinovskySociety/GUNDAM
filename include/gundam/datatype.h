@@ -1,121 +1,113 @@
 #ifndef _DATATYPE_H
 #define _DATATYPE_H
-#include <iostream>
-#include <set>
+
 #include "gundam/datetime.h"
 
-enum class BasicDataType {
-  int_,
-  double_,
-  long_,
-  short_,
-  string_,
-  datetime_,
-  unknown_type_
-};
-template <typename Str>
-BasicDataType StringToEnum(Str str) {
-  if (str == "int")
-    return BasicDataType::int_;
-  else if (str == "long")
-    return BasicDataType::long_;
-  else if (str == "double")
-    return BasicDataType::double_;
-  else if (str == "short")
-    return BasicDataType::short_;
-  else if (str == "string")
-    return BasicDataType::string_;
-  else if (str == "datetime")
-    return BasicDataType::datetime_;
-  return BasicDataType::unknown_type_;
+#include <string>
+#include <type_traits>
+
+namespace GUNDAM {
+
+namespace _datatype {
+inline constexpr bool StringCompare(const char* a, const char* b) {
+  while (*a != '\0' || *b != '\0') {
+    if (*a != *b) return false;
+    a++;
+    b++;
+  }
+  return true;
 }
+}  // namespace _datatype
+
+enum class BasicDataType : int {
+  kTypeUnknown = -1,
+  kTypeInt = 1,
+  kTypeDouble = 2,
+  kTypeString = 3,
+  kTypeDateTime = 4,
+};
+
+inline constexpr BasicDataType StringToEnum(const char* type_str) {
+  if (_datatype::StringCompare(type_str, "int"))
+    return BasicDataType::kTypeInt;
+  else if (_datatype::StringCompare(type_str, "double"))
+    return BasicDataType::kTypeDouble;
+  else if (_datatype::StringCompare(type_str, "string"))
+    return BasicDataType::kTypeString;
+  else if (_datatype::StringCompare(type_str, "datetime"))
+    return BasicDataType::kTypeDateTime;
+
+  return BasicDataType::kTypeUnknown;
+}
+
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, BasicDataType>::value,
                                   bool>::type = false>
-std::string EnumToString(DataType data) {
-  std::string ret;
-
+inline constexpr const char* EnumToString(DataType data) {
   switch (data) {
-    case BasicDataType::int_: {
-      ret = "int";
-      break;
-    }
-    case BasicDataType::double_: {
-      ret = "double";
-      break;
-    }
-    case BasicDataType::long_: {
-      ret = "long";
-      break;
-    }
-    case BasicDataType::short_: {
-      ret = "short";
-      break;
-    }
-    case BasicDataType::string_: {
-      ret = "string";
-      break;
-    }
-    case BasicDataType::datetime_: {
-      ret = "datetime";
-      break;
-    }
-    case BasicDataType::unknown_type_: {
-      ret = "unknown type";
-      break;
-    }
+    case BasicDataType::kTypeInt:
+      return "int";
+    case BasicDataType::kTypeDouble:
+      return "double";
+    case BasicDataType::kTypeString:
+      return "string";
+    case BasicDataType::kTypeDateTime:
+      return "datetime";
+    case BasicDataType::kTypeUnknown:
     default:
-      ret = "";
+      return "unknown";      
   }
-  return ret;
 }
+
 template <typename DataType,
           typename std::enable_if<std::is_integral<DataType>::value,
                                   bool>::type = false>
-inline constexpr std::string TypeToString(const DataType& data) {
+inline constexpr const char* TypeToString(const DataType& data) {
   return "int";
 }
+
 template <typename DataType,
           typename std::enable_if<std::is_integral<DataType>::value,
                                   bool>::type = false>
-inline constexpr std::string TypeToString() {
+inline constexpr const char* TypeToString() {
   return "int";
 }
+
 template <typename DataType,
           typename std::enable_if<std::is_floating_point<DataType>::value,
                                   bool>::type = false>
-inline constexpr std::string TypeToString(const DataType& data) {
+inline constexpr const char* TypeToString(const DataType& data) {
   return "double";
 }
 template <typename DataType,
           typename std::enable_if<std::is_floating_point<DataType>::value,
                                   bool>::type = false>
-inline constexpr std::string TypeToString() {
+inline constexpr const char* TypeToString() {
   return "double";
 }
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, std::string>::value,
                                   bool>::type = false>
-inline constexpr std::string TypeToString(const DataType& data) {
+inline constexpr const char* TypeToString(const DataType& data) {
   return "string";
 }
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, std::string>::value,
                                   bool>::type = false>
-inline constexpr std::string TypeToString() {
+inline constexpr const char * TypeToString() {
   return "string";
 }
 
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, DateTime>::value,
                                   bool>::type = false>
-inline constexpr std::string TypeToString(const DataType& data) {
+inline constexpr const char * TypeToString(const DataType& data) {
   return "datetime";
 }
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, DateTime>::value,
                                   bool>::type = false>
-inline constexpr std::string TypeToString() {
+inline constexpr const char * TypeToString() {
   return "datetime";
 }
 
@@ -126,8 +118,8 @@ template <
                                 !std::is_same<DataType, std::string>::value &&
                                 !std::is_same<DataType, DateTime>::value,
                             bool>::type = false>
-inline constexpr std::string TypeToString(const DataType& data) {
-  return "unknown type";
+inline constexpr const char * TypeToString(const DataType& data) {
+  return "unknown";
 }
 
 template <
@@ -137,35 +129,66 @@ template <
                                 !std::is_same<DataType, std::string>::value &&
                                 !std::is_same<DataType, DateTime>::value,
                             bool>::type = false>
-inline constexpr std::string TypeToString() {
-  return "unknown type";
+inline constexpr const char *TypeToString() {
+  return "unknown";
 }
 
 template <
     typename DataT,
     typename std::enable_if<std::is_integral<DataT>::value, bool>::type = false>
-const BasicDataType TypeToEnum(DataT data) {
-  return BasicDataType::int_;
+constexpr BasicDataType TypeToEnum(DataT data) {
+  return BasicDataType::kTypeInt;
 }
+
+template <
+    typename DataT,
+    typename std::enable_if<std::is_integral<DataT>::value, bool>::type = false>
+constexpr BasicDataType TypeToEnum() {
+  return BasicDataType::kTypeInt;
+}
+
 template <typename DataType,
           typename std::enable_if<std::is_floating_point<DataType>::value,
                                   bool>::type = false>
-const BasicDataType TypeToEnum(DataType data) {
-  return BasicDataType::double_;
+constexpr BasicDataType TypeToEnum(DataType data) {
+  return BasicDataType::kTypeDouble;
+}
+
+template <typename DataType,
+          typename std::enable_if<std::is_floating_point<DataType>::value,
+                                  bool>::type = false>
+constexpr BasicDataType TypeToEnum() {
+  return BasicDataType::kTypeDouble;
 }
 
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, std::string>::value,
                                   bool>::type = false>
-const BasicDataType TypeToEnum(DataType data) {
-  return BasicDataType::string_;
+constexpr BasicDataType TypeToEnum(DataType data) {
+  return BasicDataType::kTypeString;
 }
+
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, std::string>::value,
+                                  bool>::type = false>
+constexpr BasicDataType TypeToEnum() {
+  return BasicDataType::kTypeString;
+}
+
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, DateTime>::value,
                                   bool>::type = false>
-const BasicDataType TypeToEnum(DataType data) {
-  return BasicDataType::datetime_;
+constexpr BasicDataType TypeToEnum(DataType data) {
+  return BasicDataType::kTypeDateTime;
 }
+
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, DateTime>::value,
+                                  bool>::type = false>
+constexpr BasicDataType TypeToEnum() {
+  return BasicDataType::kTypeDateTime;
+}
+
 template <
     typename DataType,
     typename std::enable_if<!std::is_integral<DataType>::value &&
@@ -173,8 +196,21 @@ template <
                                 !std::is_same<DataType, std::string>::value &&
                                 !std::is_same<DataType, DateTime>::value,
                             bool>::type = false>
-const BasicDataType TypeToEnum(DataType data) {
-  return BasicDataType::unknown_type_;
+constexpr BasicDataType TypeToEnum(DataType data) {
+  return BasicDataType::kTypeUnknown;
+}
+
+template <
+    typename DataType,
+    typename std::enable_if<!std::is_integral<DataType>::value &&
+                                !std::is_floating_point<DataType>::value &&
+                                !std::is_same<DataType, std::string>::value &&
+                                !std::is_same<DataType, DateTime>::value,
+                            bool>::type = false>
+constexpr BasicDataType TypeToEnum() {
+  return BasicDataType::kTypeUnknown;
+}
+
 }
 
 #endif

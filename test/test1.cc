@@ -1,218 +1,168 @@
+#include <cstdint>
 #include <iostream>
 #include <string>
-#include <type_traits>
 
 #include "gtest/gtest.h"
+
 #include "gundam/graph.h"
+#include "gundam/large_graph.h"
 
 TEST(TestGUNDAM, GoogleTest) { ASSERT_TRUE(true); }
 
-TEST(TestGUNDAM, GraphClass) {
+TEST(TestGUNDAM, LargeGraph) {
   using namespace GUNDAM;
 
-  using G0 = Graph<>;
+  /*  using G0 =
+        Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<uint32_t>,
+              SetVertexAttributeKeyType<std::string>, SetEdgeIDType<uint64_t>,
+              SetEdgeLabelType<uint32_t>, SetEdgeAttributeKeyType<std::string>>;
+   */
 
-  using G1 = Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<std::string>,
-                   SetEdgeIDType<uint64_t>, SetEdgeLabelType<std::string>,
-                   SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-                   SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>;
+  using G1 = LargeGraph<uint64_t, uint32_t, std::string, uint64_t, uint32_t,
+                        std::string>;
 
-  using G1A = Graph<SetVertexLabelType<std::string>, SetVertexIDType<uint32_t>,
-                    SetEdgeIDType<uint64_t>, SetEdgeLabelType<std::string>,
-                    SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-                    SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>;
+  G1 g;
+  bool res;
 
-  using G2 = Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<std::string>,
-                   SetEdgeIDType<uint64_t>, SetEdgeLabelType<std::string>,
-                   SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-                   SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>;
+  G1::VertexPtr v1;
+  std::tie(v1, res) = g.AddVertex(1, 1);
+  ASSERT_TRUE(res);
+  ASSERT_TRUE(v1);
 
-  std::cout << std::is_same<G1, G1A>::value << std::endl;
-  std::cout << std::is_constructible<G1, G1A>::value << std::endl;
-  
-  G1 g1;
+  ASSERT_TRUE(g.AddVertex(2, 2).second);
+  ASSERT_TRUE(g.AddVertex(3, 3).second);
+  ASSERT_TRUE(g.AddVertex(4, 4).second);
+  ASSERT_TRUE(g.AddVertex(5, 5).second);
 
-  // AddVertex
-  auto res1 = g1.AddVertex(1, "AAA");
-  ASSERT_TRUE(res1.second);
-  ASSERT_FALSE(res1.first.IsNull());
-  ASSERT_EQ(1, res1.first->id());
-  ASSERT_EQ("AAA", res1.first->label());
+  G1::VertexPtr v5;
+  std::tie(v5, res) = g.AddVertex(5, 100);
+  ASSERT_FALSE(res);
+  ASSERT_TRUE(v5);
+  ASSERT_EQ(5, v5->label());
 
-  res1 = g1.AddVertex(2, std::string{"AAA"});
-  ASSERT_TRUE(res1.second);
-  ASSERT_FALSE(res1.first.IsNull());
-  ASSERT_EQ(2, res1.first->id());
-  ASSERT_EQ("AAA", res1.first->label());
+  ASSERT_TRUE(g.AddVertex(41, 1).second);
+  ASSERT_TRUE(g.AddVertex(31, 1).second);
+  ASSERT_TRUE(g.AddVertex(32, 2).second);
+  ASSERT_TRUE(g.AddVertex(21, 1).second);
+  ASSERT_TRUE(g.AddVertex(22, 2).second);
+  ASSERT_TRUE(g.AddVertex(23, 3).second);
+  ASSERT_TRUE(g.AddVertex(11, 1).second);
+  ASSERT_TRUE(g.AddVertex(12, 2).second);
+  ASSERT_TRUE(g.AddVertex(13, 3).second);
+  ASSERT_TRUE(g.AddVertex(14, 4).second);
 
-  res1 = g1.AddVertex(3, std::string("BBB"));
-  ASSERT_TRUE(res1.second);
-  ASSERT_FALSE(res1.first.IsNull());
-  ASSERT_EQ(3, res1.first->id());
-  ASSERT_EQ("BBB", res1.first->label());
+  ASSERT_EQ(15, g.CountVertex());
 
-  res1 = g1.AddVertex(4, "BBB");
-  ASSERT_TRUE(res1.second);
-  ASSERT_FALSE(res1.first.IsNull());
-  ASSERT_EQ(4, res1.first->id());
-  ASSERT_EQ("BBB", res1.first->label());
+  auto v1a = g.FindVertex(1);
+  ASSERT_EQ(v1, v1a);
 
-  res1 = g1.AddVertex(1, "AAA");
-  ASSERT_FALSE(res1.second);
-  ASSERT_EQ(1, res1.first->id());
-  ASSERT_EQ("AAA", res1.first->label());
+  G1::VertexPtr v2 = g.FindVertex(2);
+  ASSERT_TRUE(v2);
+  ASSERT_EQ(2, v2->label());
+  G1::VertexConstPtr v2c = g.FindConstVertex(2);
+  ASSERT_TRUE(v2c);
+  ASSERT_EQ(v2, v2c);
 
-  res1 = g1.AddVertex(3, "AAA");
-  ASSERT_FALSE(res1.second);
-  ASSERT_EQ(3, res1.first->id());
-  ASSERT_TRUE(res1.first->label() == "BBB");
+  {
+    G1::VertexIterator it;
+    ASSERT_TRUE(it.IsDone());
 
-  // AddEdge
-  auto res2 = g1.AddEdge(1, 2, "aaa", 1);
-  ASSERT_TRUE(res2.second);
-  ASSERT_FALSE(res2.first.IsNull());
-  ASSERT_EQ(res2.first->id(), 1);
-  ASSERT_EQ(res2.first->label(), "aaa");
-
-  res2 = g1.AddEdge(2, 3, "aaa", 2);
-  ASSERT_TRUE(res2.second);
-  ASSERT_FALSE(res2.first.IsNull());
-  ASSERT_EQ(res2.first->id(), 2);
-  ASSERT_EQ(res2.first->label(), "aaa");
-
-  res2 = g1.AddEdge(3, 4, "aaa", 3);
-  ASSERT_TRUE(res2.second);
-  ASSERT_FALSE(res2.first.IsNull());
-  ASSERT_EQ(res2.first->id(), 3);
-  ASSERT_EQ(res2.first->label(), "aaa");
-
-  res2 = g1.AddEdge(4, 1, "aaa", 4);
-  ASSERT_TRUE(res2.second);
-  ASSERT_FALSE(res2.first.IsNull());
-  ASSERT_EQ(res2.first->id(), 4);
-  ASSERT_EQ(res2.first->label(), "aaa");
-
-  res2 = g1.AddEdge(2, 1, "bbb", 5);
-  ASSERT_TRUE(res2.second);
-  ASSERT_FALSE(res2.first.IsNull());
-  ASSERT_EQ(res2.first->id(), 5);
-  ASSERT_EQ(res2.first->label(), "bbb");
-
-  res2 = g1.AddEdge(3, 2, "bbb", 6);
-  ASSERT_TRUE(res2.second);
-  ASSERT_FALSE(res2.first.IsNull());
-  ASSERT_EQ(res2.first->id(), 6);
-  ASSERT_EQ(res2.first->label(), "bbb");
-
-  res2 = g1.AddEdge(4, 3, "bbb", 7);
-  ASSERT_TRUE(res2.second);
-  ASSERT_FALSE(res2.first.IsNull());
-  ASSERT_EQ(res2.first->id(), 7);
-  ASSERT_EQ(res2.first->label(), "bbb");
-
-  res2 = g1.AddEdge(1, 4, "bbb", 8);
-  ASSERT_TRUE(res2.second);
-  ASSERT_FALSE(res2.first.IsNull());
-  ASSERT_EQ(res2.first->id(), 8);
-  ASSERT_EQ(res2.first->label(), "bbb");
-
-  res2 = g1.AddEdge(1, 2, "ccc", 9);
-  ASSERT_TRUE(res2.second);
-  ASSERT_FALSE(res2.first.IsNull());
-  ASSERT_EQ(res2.first->id(), 9);
-  ASSERT_EQ(res2.first->label(), "ccc");
-
-  res2 = g1.AddEdge(3, 4, "ccc", 10);
-  ASSERT_TRUE(res2.second);
-  ASSERT_FALSE(res2.first.IsNull());
-  ASSERT_EQ(res2.first->id(), 10);
-  ASSERT_EQ(res2.first->label(), "ccc");
-
-  res2 = g1.AddEdge(3, 2, "ccc", 11);
-  ASSERT_TRUE(res2.second);
-  ASSERT_FALSE(res2.first.IsNull());
-  ASSERT_EQ(res2.first->id(), 11);
-  ASSERT_EQ(res2.first->label(), "ccc");
-
-  res2 = g1.AddEdge(4, 1, "ccc", 12);
-  ASSERT_TRUE(res2.second);
-  ASSERT_FALSE(res2.first.IsNull());
-  ASSERT_EQ(res2.first->id(), 12);
-  ASSERT_EQ(res2.first->label(), "ccc");
-
-  auto v = g1.FindVertex(0);
-  ASSERT_TRUE(v.IsNull());
-
-  auto v1 = g1.FindVertex(1);
-  ASSERT_FALSE(v1.IsNull());
-  ASSERT_EQ(v1->id(), 1);
-
-  auto v2 = g1.FindVertex(2);
-  ASSERT_FALSE(v2.IsNull());
-  ASSERT_EQ(v2->id(), 2);
-
-  auto e1 = v1->FindOutEdge("aaa", v2, 1);
-  ASSERT_FALSE(e1.IsNull());
-  ASSERT_EQ(e1->id(), 1);
-  ASSERT_EQ(e1->label(), "aaa");
-
-  auto e1b = v2->FindInEdge(1);
-  ASSERT_FALSE(e1b.IsNull());
-  ASSERT_EQ(e1b->id(), 1);
-  ASSERT_EQ(e1b->label(), "aaa");
-
-  ASSERT_EQ(e1, e1b);
-
-  int count = 0;
-  for (auto v_it = g1.VertexCBegin(); !v_it.IsDone(); ++v_it) {
-    ++count;
+    int count = 0;
+    for (it = g.VertexBegin(); !it.IsDone(); ++it) {
+      std::cout << it->id() << " " << it->label() << std::endl;
+      ++count;
+    }
+    ASSERT_EQ(count, g.CountVertex());
   }
-  ASSERT_EQ(count, 4);
 
-  count = 0;
-  for (auto e_out_it = v1->OutEdgeCBegin(); !e_out_it.IsDone(); ++e_out_it) {
-    ++count;
+  {
+    G1::VertexConstIterator it;
+    ASSERT_TRUE(it.IsDone());
+
+    int count = 0;
+    for (it = g.VertexCBegin(); !it.IsDone(); it++) {
+      std::cout << it->id() << " " << it->label() << std::endl;
+      ++count;
+    }
+    ASSERT_EQ(count, g.CountVertex());
   }
-  ASSERT_EQ(count, 3);
 
-  count = 0;
-  for (auto e_in_it = v1->InEdgeCBegin(); !e_in_it.IsDone(); ++e_in_it) {
-    ++count;
+  {
+    G1::VertexConstIterator it;
+    ASSERT_TRUE(it.IsDone());
+
+    int count = 0;
+    for (it = g.VertexCBegin(1); !it.IsDone(); it++) {
+      std::cout << it->id() << " " << it->label() << std::endl;
+      ++count;
+    }
+    ASSERT_EQ(count, g.CountVertex(1));
   }
-  ASSERT_EQ(count, 3);
 
-  // Attributes
-  ASSERT_TRUE(v1->AddAttribute(5, std::string("abc")).second);
+  {
+    G1::VertexConstIterator it;
+    ASSERT_TRUE(it.IsDone());
 
-  auto v_attr = v1->FindAttributePtr(5);
-  ASSERT_FALSE(v_attr.IsNull());
-  ASSERT_EQ(v_attr->template value<std::string>(), "abc");
+    int count = 0;
+    for (it = g.VertexCBegin(2); !it.IsDone(); it++) {
+      std::cout << it->id() << " " << it->label() << std::endl;
+      ++count;
+    }
+    ASSERT_EQ(count, g.CountVertex(2));
+  }
 
-  ASSERT_FALSE(v1->AddAttribute<std::string>(5, "abcd").second);
+  ASSERT_TRUE(g.AddEdge(3, 13, 1, 1).second);
+  ASSERT_TRUE(g.AddEdge(3, 23, 1, 2).second);
+  ASSERT_TRUE(g.AddEdge(13, 3, 1, 3).second);
+  ASSERT_TRUE(g.AddEdge(13, 23, 1, 4).second);
+  ASSERT_TRUE(g.AddEdge(23, 3, 1, 5).second);
+  ASSERT_TRUE(g.AddEdge(23, 13, 1, 6).second);
 
-  ASSERT_TRUE(v1->SetAttribute<std::string>(5, "abcd").second);
+  ASSERT_TRUE(g.AddEdge(4, 14, 1, 7).second);
+  ASSERT_TRUE(g.AddEdge(14, 4, 1, 8).second);
 
-  auto v_cattr = v1->FindConstAttributePtr(5);
-  ASSERT_FALSE(v_cattr.IsNull());
-  ASSERT_EQ(v_cattr->template const_value<std::string>(), "abcd");
+  ASSERT_TRUE(g.AddEdge(5, 5, 1, 9).second);
 
-  ASSERT_FALSE(v1->SetAttribute<std::string>(6, "abcde").second);
+  ASSERT_TRUE(g.AddEdge(3, 4, 2, 10).second);
+  ASSERT_TRUE(g.AddEdge(3, 14, 2, 11).second);
+  ASSERT_TRUE(g.AddEdge(13, 4, 2, 12).second);
+  ASSERT_TRUE(g.AddEdge(13, 14, 2, 13).second);
+  ASSERT_TRUE(g.AddEdge(23, 4, 2, 14).second);
+  ASSERT_TRUE(g.AddEdge(23, 14, 2, 15).second);
 
-  ASSERT_TRUE(e1->AddAttribute<std::string>(5, "abc").second);
+  {
+    G1::EdgeIterator it;
+    ASSERT_TRUE(it.IsDone());
 
-  auto e_attr = e1->FindAttributePtr(5);
-  ASSERT_FALSE(e_attr.IsNull());
-  ASSERT_EQ(e_attr->template value<std::string>(), "abc");
+    int count = 0;
+    for (it = g.EdgeBegin(); !it.IsDone(); ++it) {
+      std::cout << it->id() << " " << it->label() << " " << it->src_ptr()->id()
+                << " " << it->dst_ptr()->id() << std::endl;
+      ++count;
+    }
+    ASSERT_EQ(count, g.CountEdge());
+  }
 
-  ASSERT_FALSE(e1->template AddAttribute<std::string>(5, "abcd").second);
+  {
+    G1::EdgeConstIterator it;
+    ASSERT_TRUE(it.IsDone());
 
-  ASSERT_TRUE(e1->SetAttribute<std::string>(5, "abcd").second);
+    int count = 0;
+    for (it = g.EdgeCBegin(); !it.IsDone(); ++it) {
+      std::cout << it->id() << " " << it->label() << " " << it->src_ptr()->id()
+                << " " << it->dst_ptr()->id() << std::endl;
+      ++count;
+    }
+    ASSERT_EQ(count, g.CountEdge());
+  }
 
-  auto e_cattr = e1->FindConstAttributePtr(5);
-  ASSERT_FALSE(e_cattr.IsNull());
-  ASSERT_EQ(e_cattr->template const_value<std::string>(), "abcd");
+  g.EraseEdge(5);
+  g.EraseEdge(9);
+  g.EraseEdge(7);
 
-  ASSERT_FALSE(e1->SetAttribute<std::string>(6, "abcde").second);
+  g.EraseVertex(3);
 
-  G1 g1a{g1};
+  G1 t(g);
+
+  g = t;
 }

@@ -1,9 +1,14 @@
+#include "gundam/large_graph.h"
+//#include "gundam/graph.h"
+#include "gundam/label.h"
 #include "gundam/vf2.h"
 
+#include <cstdint>
 #include <functional>
 #include <iostream>
 #include <list>
 #include <map>
+#include <cstring>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -16,19 +21,20 @@ bool LabelEqual2(const Ptr1& a, const Ptr2& b) {
   return a->label() == b->label();
 }
 
-TEST(TestGUNDAM, VF2_1) {
+template<class GraphType>
+void test_vf2_1() {
   using namespace GUNDAM;
-  using GraphType = GUNDAM::Graph<>;
+
   using VertexType = typename GraphType::VertexType;
   using EdgeType = typename GraphType::EdgeType;
-  using VertexIDType = typename VertexType::IDType;
+  // using VertexIDType = typename VertexType::IDType;
   using VertexLabelType = typename VertexType::LabelType;
   using EdgeLabelType = typename EdgeType::LabelType;
   using VertexConstPtr = typename GraphType::VertexConstPtr;
   using EdgeConstPtr = typename GraphType::EdgeConstPtr;
 
   GraphType query, target;
-  VertexIDType query_id = 1, target_id = 1;
+  // VertexIDType query_id = 1, target_id = 1;
 
   // query
   query.AddVertex(1, VertexLabelType(0));
@@ -75,24 +81,24 @@ TEST(TestGUNDAM, VF2_1) {
   ASSERT_EQ(count, 2);
 }
 
+TEST(TestGUNDAM, VF2_1) {
+  using namespace GUNDAM;
+  
+  //using G = Graph<>;
+  //test_vf2_1<G>();
+
+  using LG = LargeGraph<uint32_t, uint32_t, std::string, uint32_t, uint32_t, std::string>;
+  test_vf2_1<LG>();
+}
+
 template <typename Ptr1, typename Ptr2>
 bool LabelEqualCustom(const Ptr1& a, const Ptr2& b) {
   return *(uint32_t*)&a->label() == static_cast<uint32_t>(stoi(b->label()));
 }
 
-TEST(TestGUNDAM, VF2_2) {
+template <class QueryGraph, class TargetGraph>
+void test_vf2_2() {
   using namespace GUNDAM;
-  using QueryGraph =
-      Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<Label<uint32_t>>,
-            SetEdgeIDType<uint32_t>, SetEdgeLabelType<Label<uint32_t>>,
-            SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-            SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>;
-
-  using TargetGraph =
-      Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<std::string>,
-            SetEdgeIDType<uint64_t>, SetEdgeLabelType<std::string>,
-            SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-            SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
 
   QueryGraph query;
   TargetGraph target;
@@ -112,12 +118,16 @@ TEST(TestGUNDAM, VF2_2) {
   ASSERT_TRUE(target.AddEdge(3, 2, std::string("1"), 2).second);
   ASSERT_TRUE(target.AddEdge(3, 1, std::string("1"), 3).second);
 
-  std::vector<std::map<QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr>>
+  std::vector<std::map<typename QueryGraph::VertexConstPtr,
+                       typename TargetGraph::VertexConstPtr>>
       match_result;
   int count = VF2<MatchSemantics::kIsomorphism>(
       query, target,
-      LabelEqualCustom<QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr>,
-      LabelEqualCustom<QueryGraph::EdgeConstPtr, TargetGraph::EdgeConstPtr>, -1,
+      LabelEqualCustom<typename QueryGraph::VertexConstPtr,
+                       typename TargetGraph::VertexConstPtr>,
+      LabelEqualCustom<typename QueryGraph::EdgeConstPtr,
+                       typename TargetGraph::EdgeConstPtr>,
+      -1,
       match_result);
 
   ASSERT_EQ(count, 2);
@@ -131,19 +141,33 @@ TEST(TestGUNDAM, VF2_2) {
   std::cout << "count: " << match_result.size() << std::endl;
 }
 
-TEST(TestGUNDAM, VF2_3) {
+TEST(TestGUNDAM, VF2_2) {
   using namespace GUNDAM;
-  using QueryGraph =
-      Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<Label<uint32_t>>,
-            SetEdgeIDType<uint32_t>, SetEdgeLabelType<Label<uint32_t>>,
-            SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-            SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>;
 
-  using TargetGraph =
-      Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<std::string>,
-            SetEdgeIDType<uint64_t>, SetEdgeLabelType<std::string>,
-            SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-            SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
+  //using QueryGraph =
+  //    Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<Label<uint32_t>>,
+  //          SetEdgeIDType<uint32_t>, SetEdgeLabelType<Label<uint32_t>>,
+  //          SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
+  //          SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>;
+
+  //using TargetGraph =
+  //    Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<std::string>,
+  //          SetEdgeIDType<uint64_t>, SetEdgeLabelType<std::string>,
+  //          SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
+  //          SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
+
+  using QueryGraph = LargeGraph<uint32_t, Label<uint32_t>, std::string,
+                                uint32_t, Label<uint32_t>, std::string>;
+
+  using TargetGraph = LargeGraph<uint64_t, std::string, std::string, uint64_t,
+                                 std::string, std::string>;  
+
+  test_vf2_2<QueryGraph, TargetGraph>();
+}
+
+template <class QueryGraph, class TargetGraph>
+void test_vf2_3() {
+  using namespace GUNDAM;
 
   QueryGraph query;
   TargetGraph target;
@@ -163,12 +187,16 @@ TEST(TestGUNDAM, VF2_3) {
   ASSERT_TRUE(target.AddEdge(1, 3, std::string("1"), 2).second);
   // ASSERT_TRUE(target.AddEdge(1, 2, std::string("1"), 3).second);
 
-  std::vector<std::map<QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr>>
+  std::vector<std::map<typename QueryGraph::VertexConstPtr,
+                       typename TargetGraph::VertexConstPtr>>
       match_result;
   int count = VF2<MatchSemantics::kIsomorphism>(
       query, target,
-      LabelEqualCustom<QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr>,
-      LabelEqualCustom<QueryGraph::EdgeConstPtr, TargetGraph::EdgeConstPtr>, -1,
+      LabelEqualCustom<typename QueryGraph::VertexConstPtr,
+                       typename TargetGraph::VertexConstPtr>,
+      LabelEqualCustom<typename QueryGraph::EdgeConstPtr,
+                       typename TargetGraph::EdgeConstPtr>,
+      -1,
       match_result);
 
   ASSERT_EQ(count, 2);
@@ -183,19 +211,34 @@ TEST(TestGUNDAM, VF2_3) {
   std::cout << "count: " << match_result.size() << std::endl;
 }
 
-TEST(TestGUNDAM, VF2_Speed_1) {
+TEST(TestGUNDAM, VF2_3) {
   using namespace GUNDAM;
-  using QueryGraph =
-      Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<uint32_t>,
-            SetEdgeIDType<uint32_t>, SetEdgeLabelType<uint32_t>,
-            SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-            SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
 
-  using TargetGraph =
-      Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<uint32_t>,
-            SetEdgeIDType<uint64_t>, SetEdgeLabelType<uint32_t>,
-            SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-            SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
+  //using QueryGraph =
+  //    Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<Label<uint32_t>>,
+  //          SetEdgeIDType<uint32_t>, SetEdgeLabelType<Label<uint32_t>>,
+  //          SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
+  //          SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>;
+
+  //using TargetGraph =
+  //    Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<std::string>,
+  //          SetEdgeIDType<uint64_t>, SetEdgeLabelType<std::string>,
+  //          SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
+  //          SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
+
+  using QueryGraph = LargeGraph<uint32_t, Label<uint32_t>, std::string,
+                                uint32_t, Label<uint32_t>, std::string>;
+
+  using TargetGraph = LargeGraph<uint64_t, std::string, std::string, uint64_t,
+                                 std::string, std::string>;  
+
+  test_vf2_3<QueryGraph, TargetGraph>();
+}
+
+
+template <class QueryGraph, class TargetGraph>
+void test_vf2_speed_1(int times_outer, int times_inner) {
+  using namespace GUNDAM;
 
   QueryGraph query;
   TargetGraph target;
@@ -236,24 +279,20 @@ TEST(TestGUNDAM, VF2_Speed_1) {
   ASSERT_TRUE(target.AddEdge(8, 9, 2, ++eid).second);
   ASSERT_TRUE(target.AddEdge(10, 7, 2, ++eid).second);
 
-  std::vector<std::map<QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr>>
+  std::vector<std::map<typename QueryGraph::VertexConstPtr, typename TargetGraph::VertexConstPtr>>
       match_result1;
 
   std::vector<std::vector<
-      std::pair<QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr>>>
+      std::pair<typename QueryGraph::VertexConstPtr, typename TargetGraph::VertexConstPtr>>>
       match_result2;
-
-  const int TIMES_OUTER = 5;
-  const int TIMES_INNER = 10000;
+  
   uint64_t start, end;
 
-  for (int j = 0; j < TIMES_OUTER; j++) {
-
+  for (int j = 0; j < times_outer; j++) {
     std::cout << "         Default: ";
     start = GetTime();
-    for (int i = 0; i < TIMES_INNER; i++) {
-      int count =
-          VF2(query, target, -1, match_result1);
+    for (int i = 0; i < times_inner; i++) {
+      int count = VF2(query, target, -1, match_result1);
 
       ASSERT_EQ(40, count);
     }
@@ -262,20 +301,20 @@ TEST(TestGUNDAM, VF2_Speed_1) {
 
     std::cout << "       Recursive: ";
     start = GetTime();
-    for (int i = 0; i < TIMES_INNER; i++) {
+    for (int i = 0; i < times_inner; i++) {
       int max_result = -1;
       match_result1.clear();
 
       int count = _vf2::VF2_Recursive<MatchSemantics::kIsomorphism>(
           query, target,
-          _vf2::LabelEqual<QueryGraph::VertexConstPtr,
-                           TargetGraph::VertexConstPtr>(),
-          _vf2::LabelEqual<QueryGraph::EdgeConstPtr,
-                           TargetGraph::EdgeConstPtr>(),
+          _vf2::LabelEqual<typename QueryGraph::VertexConstPtr,
+                           typename TargetGraph::VertexConstPtr>(),
+          _vf2::LabelEqual<typename QueryGraph::EdgeConstPtr,
+                           typename TargetGraph::EdgeConstPtr>(),
           std::bind(_vf2::MatchCallbackSaveResult<
-                        QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr,
-                        std::vector<std::map<QueryGraph::VertexConstPtr,
-                                             TargetGraph::VertexConstPtr>>>,
+                        typename QueryGraph::VertexConstPtr, typename TargetGraph::VertexConstPtr,
+                        std::vector<std::map<typename QueryGraph::VertexConstPtr,
+                                             typename TargetGraph::VertexConstPtr>>>,
                     std::placeholders::_1, &max_result, &match_result1));
 
       ASSERT_EQ(40, count);
@@ -285,20 +324,20 @@ TEST(TestGUNDAM, VF2_Speed_1) {
 
     std::cout << "    NonRecursive: ";
     start = GetTime();
-    for (int i = 0; i < TIMES_INNER; i++) {
+    for (int i = 0; i < times_inner; i++) {
       int max_result = -1;
       match_result1.clear();
 
       int count = _vf2::VF2_NonRecursive<MatchSemantics::kIsomorphism>(
-          query, target, 
-          _vf2::LabelEqual<QueryGraph::VertexConstPtr,
-                           TargetGraph::VertexConstPtr>(),
-          _vf2::LabelEqual<QueryGraph::EdgeConstPtr,
-                           TargetGraph::EdgeConstPtr>(),
+          query, target,
+          _vf2::LabelEqual<typename QueryGraph::VertexConstPtr,
+                           typename TargetGraph::VertexConstPtr>(),
+          _vf2::LabelEqual<typename QueryGraph::EdgeConstPtr,
+                           typename TargetGraph::EdgeConstPtr>(),
           std::bind(_vf2::MatchCallbackSaveResult<
-                        QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr,
-                        std::vector<std::map<QueryGraph::VertexConstPtr,
-                                             TargetGraph::VertexConstPtr>>>,
+                        typename QueryGraph::VertexConstPtr, typename TargetGraph::VertexConstPtr,
+                        std::vector<std::map<typename QueryGraph::VertexConstPtr,
+                                             typename TargetGraph::VertexConstPtr>>>,
                     std::placeholders::_1, &max_result, &match_result1));
 
       ASSERT_EQ(40, count);
@@ -306,9 +345,8 @@ TEST(TestGUNDAM, VF2_Speed_1) {
     end = GetTime();
     std::cout << end - start << " ms" << std::endl;
 
-    
     start = GetTime();
-    for (int i = 0; i < TIMES_INNER; i++) {
+    for (int i = 0; i < times_inner; i++) {
       int count = VF2<MatchSemantics::kIsomorphism>(query, target, 20);
 
       ASSERT_EQ(20, count);
@@ -317,7 +355,7 @@ TEST(TestGUNDAM, VF2_Speed_1) {
     std::cout << "           Limit: " << end - start << " ms" << std::endl;
 
     start = GetTime();
-    for (int i = 0; i < TIMES_INNER; i++) {
+    for (int i = 0; i < times_inner; i++) {
       int count =
           VF2<MatchSemantics::kIsomorphism>(query, target, -1, match_result2);
 
@@ -327,16 +365,16 @@ TEST(TestGUNDAM, VF2_Speed_1) {
     std::cout << "   Vector Result: " << end - start << " ms" << std::endl;
 
     start = GetTime();
-    for (int i = 0; i < TIMES_INNER; i++) {
+    for (int i = 0; i < times_inner; i++) {
       int max_result = -1;
       match_result1.clear();
 
       int count = VF2<MatchSemantics::kIsomorphism>(
           query, target,
           std::bind(_vf2::MatchCallbackSaveResult1<
-                        QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr,
-                        std::vector<std::map<QueryGraph::VertexConstPtr,
-                                             TargetGraph::VertexConstPtr>>>,
+                        typename QueryGraph::VertexConstPtr, typename TargetGraph::VertexConstPtr,
+                        std::vector<std::map<typename QueryGraph::VertexConstPtr,
+                                             typename TargetGraph::VertexConstPtr>>>,
                     std::placeholders::_1, &max_result, &match_result1));
 
       ASSERT_EQ(40, count);
@@ -345,7 +383,7 @@ TEST(TestGUNDAM, VF2_Speed_1) {
     std::cout << "Custom Callback1: " << end - start << " ms" << std::endl;
 
     start = GetTime();
-    for (int i = 0; i < TIMES_INNER; i++) {
+    for (int i = 0; i < times_inner; i++) {
       int max_result = -1;
       match_result1.clear();
 
@@ -353,10 +391,10 @@ TEST(TestGUNDAM, VF2_Speed_1) {
           query, target,
           std::bind(
               _vf2::MatchCallbackSaveResult2<
-                  QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr,
+                  typename QueryGraph::VertexConstPtr, typename TargetGraph::VertexConstPtr,
                   std::vector<
-                      std::vector<std::pair<QueryGraph::VertexConstPtr,
-                                            TargetGraph::VertexConstPtr>>>>,
+                      std::vector<std::pair<typename QueryGraph::VertexConstPtr,
+                                            typename TargetGraph::VertexConstPtr>>>>,
               std::placeholders::_1, &max_result, &match_result2));
 
       ASSERT_EQ(40, count);
@@ -365,18 +403,45 @@ TEST(TestGUNDAM, VF2_Speed_1) {
     std::cout << "Custom Callback2: " << end - start << " ms" << std::endl;
 
     start = GetTime();
-    for (int i = 0; i < TIMES_INNER; i++) {
+    for (int i = 0; i < times_inner; i++) {
       int count = VF2<MatchSemantics::kIsomorphism>(
           query, target,
-          LabelEqual2<QueryGraph::VertexConstPtr, TargetGraph::VertexConstPtr>,
-          LabelEqual2<QueryGraph::EdgeConstPtr, TargetGraph::EdgeConstPtr>, -1,
+          LabelEqual2<typename QueryGraph::VertexConstPtr, typename TargetGraph::VertexConstPtr>,
+          LabelEqual2<typename QueryGraph::EdgeConstPtr, typename TargetGraph::EdgeConstPtr>, -1,
           match_result1);
 
       ASSERT_EQ(40, count);
     }
     end = GetTime();
     std::cout << "  Custom Compare: " << end - start << " ms" << std::endl;
- 
+
     std::cout << std::endl;
   }
+}
+
+TEST(TestGUNDAM, VF2_Speed_1) {
+  using namespace GUNDAM;
+
+  //using QueryGraph1 =
+  //    Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<uint32_t>,
+  //          SetEdgeIDType<uint32_t>, SetEdgeLabelType<uint32_t>,
+  //          SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
+  //          SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
+
+  //using TargetGraph1 =
+  //    Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<uint32_t>,
+  //          SetEdgeIDType<uint64_t>, SetEdgeLabelType<uint32_t>,
+  //          SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
+  //          SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
+
+  using QueryGraph2 = LargeGraph<uint32_t, uint32_t, std::string, uint32_t,
+                                uint32_t, std::string>; 
+
+  using TargetGraph2 = LargeGraph<uint64_t, uint32_t, std::string, uint64_t,
+                                uint32_t, std::string>;
+
+  //test_vf2_speed_1<QueryGraph1, TargetGraph1>(1, 10000);
+  test_vf2_speed_1<QueryGraph2, TargetGraph2>(1, 10000);
+  //test_vf2_speed_1<QueryGraph1, TargetGraph2>(1, 10000);
+  //test_vf2_speed_1<QueryGraph2, TargetGraph1>(1, 10000);
 }

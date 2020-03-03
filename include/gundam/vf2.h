@@ -10,8 +10,6 @@
 #include <type_traits>
 #include <vector>
 
-#include "graph.h"
-
 namespace GUNDAM {
 
 // enum   match tyep bool is_iso,1/// iso or homo
@@ -57,31 +55,32 @@ inline bool ForEachVertexIf(const GraphType &graph, Fn f,
   return true;
 }
 
-template <enum EdgeState edge_state, class VertexPtr, class Fn, class EdgePtr1>
+template <enum EdgeState edge_state, class GraphType, class VertexPtr, class Fn, class EdgePtr1>
 inline bool ForEachEdgeIf(
     const VertexPtr &vertex_ptr, Fn f,
     LabelEqual<EdgePtr1,
-               typename VertexPtr::GraphType::EdgeConstPtr> /* edge_comp */,
+               typename GraphType::EdgeConstPtr> /* edge_comp */,
     const EdgePtr1 &edge_a_ptr) {
   for (auto edge_iter = (edge_state == EdgeState::kIn)
                             ? vertex_ptr->InEdgeCBegin(edge_a_ptr->label())
                             : vertex_ptr->OutEdgeCBegin(edge_a_ptr->label());
        !edge_iter.IsDone(); edge_iter++) {
-    typename VertexPtr::GraphType::EdgeConstPtr edge_ptr = edge_iter;
+    typename GraphType::EdgeConstPtr edge_ptr = edge_iter;
     if (!f(edge_ptr)) return false;
   }
   return true;
 }
 
-template <enum EdgeState edge_state, class VertexPtr, class Fn,
+template <enum EdgeState edge_state, class GraphType, class VertexPtr, class Fn,
           class EdgeCompare, class EdgePtr1>
 inline bool ForEachEdgeIf(const VertexPtr &vertex_ptr, Fn f,
                           EdgeCompare edge_comp, const EdgePtr1 &edge_a_ptr) {
+  
   for (auto edge_iter = (edge_state == EdgeState::kIn)
                             ? vertex_ptr->InEdgeCBegin()
                             : vertex_ptr->OutEdgeCBegin();
        !edge_iter.IsDone(); edge_iter++) {
-    typename VertexPtr::GraphType::EdgeConstPtr edge_ptr = edge_iter;
+    typename GraphType::EdgeConstPtr edge_ptr = edge_iter;
     if (edge_comp(edge_a_ptr, edge_ptr)) {
       if (!f(edge_ptr)) return false;
     }
@@ -189,7 +188,7 @@ inline QueryVertexPtr DetermineMatchOrder(
       min = candidate_count;
     }
   }
-  assert(min > 0 && !res.IsNull());
+  assert(min != SIZE_MAX);
   return res;
 }
 
@@ -259,14 +258,13 @@ inline QueryVertexPtr DetermineMatchOrder(
 //  return true;
 //}
 
-template <enum EdgeState edge_state, class QueryVertexPtr,
-          class TargetVertexPtr, class MatchStateMap, class EdgeCompare>
+template <enum EdgeState edge_state, class QueryGraph, class TargetGraph,
+          class QueryVertexPtr, class TargetVertexPtr, class MatchStateMap,
+          class EdgeCompare>
 inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
                           const TargetVertexPtr &target_vertex_ptr,
                           const MatchStateMap &match_state,
                           EdgeCompare edge_comp) {
-  using QueryGraph = typename QueryVertexPtr::GraphType;
-  using TargetGraph = typename TargetVertexPtr::GraphType;
   using QueryEdgePtr = typename QueryGraph::EdgeConstPtr;
   using TargetEdgePtr = typename TargetGraph::EdgeConstPtr;
   /*
@@ -325,7 +323,7 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
     TargetVertexPtr query_opp_match_vertex_ptr = match_iter->second;
 
     bool find_target_flag = false;
-    ForEachEdgeIf<edge_state>(
+    ForEachEdgeIf<edge_state, TargetGraph>(
         target_vertex_ptr,
         [&query_opp_match_vertex_ptr,
          &find_target_flag](const TargetEdgePtr &target_edge_ptr) -> bool {
@@ -480,9 +478,9 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
 //  return true;
 //}
 
-template <enum MatchSemantics match_semantics, class QueryVertexPtr,
-          class TargetVertexPtr, class MatchStateMap, class TargetVertexSet,
-          class EdgeCompare>
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class QueryVertexPtr, class TargetVertexPtr,
+          class MatchStateMap, class TargetVertexSet, class EdgeCompare>
 inline bool IsJoinable(QueryVertexPtr query_vertex_ptr,
                        TargetVertexPtr target_vertex_ptr,
                        const MatchStateMap &match_state,
@@ -492,12 +490,12 @@ inline bool IsJoinable(QueryVertexPtr query_vertex_ptr,
       target_matched.count(target_vertex_ptr) > 0) {
     return false;
   }
-  if (!JoinableCheck<EdgeState::kIn>(query_vertex_ptr, target_vertex_ptr,
-                                     match_state, edge_comp)) {
+  if (!JoinableCheck<EdgeState::kIn, QueryGraph, TargetGraph>(
+          query_vertex_ptr, target_vertex_ptr, match_state, edge_comp)) {
     return false;
   }
-  if (!JoinableCheck<EdgeState::kOut>(query_vertex_ptr, target_vertex_ptr,
-                                      match_state, edge_comp)) {
+  if (!JoinableCheck<EdgeState::kOut, QueryGraph, TargetGraph>(
+          query_vertex_ptr, target_vertex_ptr, match_state, edge_comp)) {
     return false;
   }
   return true;
@@ -559,7 +557,8 @@ inline void RestoreState(QueryVertexPtr query_vertex_ptr,
 //  return true;
 //}
 
-template <enum MatchSemantics match_semantics, class QueryVertexPtr,
+template <enum MatchSemantics match_semantics, class QueryGraph, class TargetGraph,
+          class QueryVertexPtr,
           class TargetVertexPtr, class EdgeCompare, class MatchCallback>
 bool _VF2(
     const std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
@@ -576,13 +575,14 @@ bool _VF2(
 
   for (const TargetVertexPtr &next_target_vertex_ptr :
        candidate_set.find(next_query_vertex_ptr)->second) {
-    if (IsJoinable<match_semantics>(next_query_vertex_ptr,
+    if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(next_query_vertex_ptr,
                                     next_target_vertex_ptr, match_state,
                                     target_matched, edge_comp)) {
       UpdateState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
                   target_matched);
 
-      if (!_VF2<match_semantics>(candidate_set, match_state, target_matched,
+      if (!_VF2<match_semantics, QueryGraph, TargetGraph>(
+              candidate_set, match_state, target_matched,
                                  edge_comp, result_count, user_callback)) {
         return false;
       }
@@ -617,9 +617,10 @@ bool _VF2(
 //  return false;
 //}
 
-template <enum MatchSemantics match_semantics, class QueryVertexPtr,
-          class TargetVertexPtr, class MatchStateMap, class TargetVertexSet,
-          class EdgeCompare, class MatchStack>
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class QueryVertexPtr, class TargetVertexPtr,
+          class MatchStateMap, class TargetVertexSet, class EdgeCompare,
+          class MatchStack>
 inline bool InitMatch(
     const std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
     const MatchStateMap &match_state, const TargetVertexSet &target_matched,
@@ -629,8 +630,9 @@ inline bool InitMatch(
 
   auto target_vertex_iter = target_candidate.begin();
   while (target_vertex_iter != target_candidate.end()) {
-    if (IsJoinable<match_semantics>(query_vertex_ptr, *target_vertex_iter,
-                                    match_state, target_matched, edge_comp)) {
+    if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
+            query_vertex_ptr, *target_vertex_iter, match_state, target_matched,
+            edge_comp)) {
       match_stack.emplace(std::make_pair(query_vertex_ptr, target_vertex_iter));
       return true;
     }
@@ -662,9 +664,10 @@ inline bool InitMatch(
 //  return false;
 //}
 
-template <enum MatchSemantics match_semantics, class QueryVertexPtr,
-          class TargetVertexPtr, class MatchStateMap, class TargetVertexSet,
-          class EdgeCompare, class MatchStack>
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class QueryVertexPtr, class TargetVertexPtr,
+          class MatchStateMap, class TargetVertexSet, class EdgeCompare,
+          class MatchStack>
 inline bool NextMatch(
     const std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
     const MatchStateMap &match_state, const TargetVertexSet &target_matched,
@@ -675,8 +678,9 @@ inline bool NextMatch(
 
   target_vertex_iter++;
   while (target_vertex_iter != target_candidate.end()) {
-    if (IsJoinable<match_semantics>(query_vertex_ptr, *target_vertex_iter,
-                                    match_state, target_matched, edge_comp)) {
+    if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
+            query_vertex_ptr, *target_vertex_iter, match_state, target_matched,
+            edge_comp)) {
       return true;
     }
     target_vertex_iter++;
@@ -704,8 +708,9 @@ inline int VF2_Recursive(const QueryGraph &query_graph,
   std::map<QueryVertexPtr, TargetVertexPtr> match_state;
   std::set<TargetVertexPtr> target_matched;
   size_t result_count = 0;
-  _VF2<match_semantics>(candidate_set, match_state, target_matched, edge_comp,
-                        result_count, user_callback);
+  _VF2<match_semantics, QueryGraph, TargetGraph>(candidate_set, match_state,
+                                                 target_matched, edge_comp,
+                                                 result_count, user_callback);
 
   return static_cast<int>(result_count);
 }
@@ -726,7 +731,8 @@ inline int VF2_Recursive(const QueryGraph &query_graph,
 //      user_callback);
 //}
 
-template <enum MatchSemantics match_semantics, class QueryVertexPtr,
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class QueryVertexPtr,
           class TargetVertexPtr, class EdgeCompare, class MatchCallback>
 int VF2_NonRecursive(
     const std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
@@ -748,10 +754,10 @@ int VF2_NonRecursive(
       if (!user_callback(match_state)) break;
       match_flag = false;
     } else if (match_flag) {
-      match_flag = InitMatch<match_semantics>(
+      match_flag = InitMatch<match_semantics, QueryGraph, TargetGraph>(
           candidate_set, match_state, target_matched, edge_comp, match_stack);
     } else {
-      match_flag = NextMatch<match_semantics>(
+      match_flag = NextMatch<match_semantics, QueryGraph, TargetGraph>(
           candidate_set, match_state, target_matched, edge_comp, match_stack);
     }
 
@@ -793,9 +799,9 @@ inline int VF2_NonRecursive(const QueryGraph &query_graph,
                        typename std::vector<TargetVertexPtr>::const_iterator>>
       match_stack;
 
-  return VF2_NonRecursive<match_semantics>(candidate_set, match_state,
-                                           target_matched, match_stack,
-                                           edge_comp, user_callback);
+  return VF2_NonRecursive<match_semantics, QueryGraph, TargetGraph>(
+      candidate_set, match_state, target_matched, match_stack, edge_comp,
+      user_callback);
 }
 
 template <enum MatchSemantics match_semantics, class QueryVertexPtr,
@@ -1116,8 +1122,8 @@ inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
 
   match_result.clear();
   std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> candidate_set;
-  if (!_vf2::InitCandidateSet<match_semantics>(query_graph, target_graph,
-                                               vertex_comp, candidate_set))
+  if (!_vf2::InitCandidateSet<match_semantics, QueryGraph, TargetGraph>(
+          query_graph, target_graph, vertex_comp, candidate_set))
     return 0;
   QueryVertexPtr query_ptr = query_graph.FindConstVertex(query_id);
   int find_target_flag = 0;
@@ -1133,12 +1139,13 @@ inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
   TargetVertexPtr target_ptr = target_graph.FindConstVertex(target_id);
   _vf2::UpdateState(query_ptr, target_ptr, match_state, target_matched);
   size_t result_count = 0;
-  return _vf2::_VF2<match_semantics>(
+  return _vf2::_VF2<match_semantics, QueryGraph, TargetGraph>(
       candidate_set, match_state, target_matched, edge_comp, result_count,
       std::bind(_vf2::MatchCallbackSaveResult<QueryVertexPtr, TargetVertexPtr,
                                               ResultContainer>,
                 std::placeholders::_1, &max_result, &match_result));
 }
+
 }  // namespace GUNDAM
 
 #endif

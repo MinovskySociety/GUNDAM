@@ -1,60 +1,60 @@
 #include <iostream>
+#include <string>
 
 #include "gtest/gtest.h"
-#include "gundam/graph.h"
+
+#include "gundam/attribute.h"
 
 TEST(TestGUNDAM, TestAttribute) {
   using namespace GUNDAM;
 
-  using G = Graph<>;
+  AbstractValue *v1 = new ConcreteValue<int>(1);
+  AbstractValue *v2 = new ConcreteValue<double>(2.0);
 
-  G g;
-  bool res;
+  auto *v1c = dynamic_cast<ConcreteValue<int> *>(v1);
+  ASSERT_NE(nullptr, v1c);
+  ASSERT_EQ(1, v1c->const_value());
 
-  G::VertexPtr v1;
-  std::tie(v1, res) = g.AddVertex(1, 1);
-  ASSERT_TRUE(res);
-  ASSERT_FALSE(v1.IsNull());
+  auto *v2c = dynamic_cast<ConcreteValue<double> *>(v2);
+  ASSERT_NE(nullptr, v2c);
+  ASSERT_EQ(2.0, v2c->const_value());
 
-  G::VertexAttributePtr va1;
-  std::tie(va1, res) = v1->AddAttribute(1, 1);
-  ASSERT_TRUE(res);
-  ASSERT_FALSE(va1.IsNull());
+  delete v1;
+  delete v2;
 
-  G::VertexAttributePtr va2;
-  std::tie(va2, res) = g.FindVertex(1)->AddAttribute(2, 2.1);
-  ASSERT_TRUE(res);
-  ASSERT_FALSE(va2.IsNull());
+  using TestAttributeType =
+      WithAttribute_<std::string, false, true, std::string,
+                     ContainerType::Vector, SortType::None>;
 
-  G::VertexAttributePtr va3;
-  const char* str = "33";
-  std::tie(va3, res) = v1->AddAttribute(3, str);
-  ASSERT_TRUE(res);
-  ASSERT_FALSE(va3.IsNull());
-  int count = 0;
+  TestAttributeType attr;
+  auto ret = attr.AddAttribute<int>("a", 1);
+  ASSERT_TRUE(ret.second);
+  ASSERT_EQ(ret.first->const_value<int>(), 1);
+  ret.first->value<int>() = 2;
+  ASSERT_EQ(ret.first->const_value<int>(), 2);
+  ASSERT_EQ(ret.first->key(), "a");
+  ASSERT_EQ(ret.first->value_type_id(), BasicDataType::kTypeInt);
 
-  auto res_pair = v1->AddAttribute(4, std::string{"44"});
-  ASSERT_TRUE(res_pair.second);
-  ASSERT_FALSE(res_pair.first.IsNull());
+  ret = attr.AddAttribute<std::string>("b", "ABC");
+  ASSERT_TRUE(ret.second);
+  ASSERT_EQ(ret.first->value<std::string>(), "ABC");
+  ASSERT_EQ(ret.first->key(), "b");
+  ASSERT_EQ(ret.first->value_type_id(), BasicDataType::kTypeString);
   
-  res_pair = v1->AddAttribute(1, 5);
-  ASSERT_FALSE(res_pair.second);
-  ASSERT_FALSE(res_pair.first.IsNull());
-  ASSERT_EQ(1, res_pair.first->const_value<int>());
+  ret = attr.AddAttribute<std::string>("a", "ABC");
+  ASSERT_FALSE(ret.second);
+  ASSERT_EQ(ret.first->value<int>(), 2);
 
-  for (G::EdgeAttributeIterator it = v1->AttributeBegin(); !it.IsDone(); it++) {
-    std::cout << "key = " << it->key() << std::endl
-              << "value type =" << EnumToString(it->value_type_id())
-              << std::endl;
-    ++count;
+  int count = 0;
+  for (auto iter = attr.AttributeCBegin(); !iter.IsDone(); iter++) {
+    std::cout << iter->key() << std::endl;
+    count++;
   }
-  ASSERT_EQ(4, count);
+  ASSERT_EQ(2, count);
 
-  for (const auto& key : {1, 2, 3}) {
-    G::VertexAttributePtr va = v1->FindAttributePtr(key);
+  ASSERT_EQ(BasicDataType::kTypeInt, attr.attribute_value_type_id("a"));
+  ASSERT_EQ(BasicDataType::kTypeString, attr.attribute_value_type_id("b"));
 
-    std::cout << "key = " << va->key() << std::endl
-              << "value type = " << EnumToString(va->value_type_id())
-              << std::endl;
-  }
+  ASSERT_EQ(std::string("int"), attr.attribute_value_type_name("a"));
+  ASSERT_EQ(std::string("string"), attr.attribute_value_type_name("b"));
 }

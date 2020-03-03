@@ -25,11 +25,6 @@ add_executable (test_vf2 "test_vf2.cc")
 target_link_libraries(test_vf2 GTest::GTest GTest::Main)
 add_test(AllTests test_vf2)
 
-
-add_executable (test_attribute "test_attribute.cc")
-target_link_libraries(test_attribute GTest::GTest GTest::Main)
-add_test(AllTests test_attribute)
-
 add_executable (test_multi_vf2 "test_multi_vf2.cc")
 target_link_libraries(test_multi_vf2 GTest::GTest GTest::Main)
 add_test(AllTests test_multi_vf2)
@@ -41,3 +36,31 @@ add_test(AllTests test_idgen)
 add_executable (test_matchresult "test_writematchresult.cc")
 target_link_libraries(test_matchresult GTest::GTest GTest::Main)
 add_test(AllTests test_matchresult)
+
+add_executable (test_datatype "test_datatype.cc")
+target_link_libraries(test_datatype GTest::GTest GTest::Main)
+add_test(AllTests test_datatype)
+
+add_executable (test_container "test_container.cc")
+target_link_libraries(test_container GTest::GTest GTest::Main)
+add_test(AllTests test_container)
+
+add_executable (test_iterator "test_iterator.cc")
+target_link_libraries(test_iterator GTest::GTest GTest::Main)
+add_test(AllTests test_iterator)
+
+add_executable (test_attribute "test_attribute.cc")
+target_link_libraries(test_attribute GTest::GTest GTest::Main)
+add_test(AllTests test_attribute)
+
+add_executable (test_graph "test_graph.cc")
+target_link_libraries(test_graph GTest::GTest GTest::Main)
+add_test(AllTests test_graph)
+
+add_executable (test_iterator2 "test_iterator2.cc")
+target_link_libraries(test_iterator2 GTest::GTest GTest::Main)
+add_test(AllTests test_iterator2)
+
+add_executable (test_container2 "test_container2.cc")
+target_link_libraries(test_container2 GTest::GTest GTest::Main)
+add_test(AllTests test_container2)
