@@ -55,11 +55,11 @@ inline bool ForEachVertexIf(const GraphType &graph, Fn f,
   return true;
 }
 
-template <enum EdgeState edge_state, class GraphType, class VertexPtr, class Fn, class EdgePtr1>
+template <enum EdgeState edge_state, class GraphType, class VertexPtr, class Fn,
+          class EdgePtr1>
 inline bool ForEachEdgeIf(
     const VertexPtr &vertex_ptr, Fn f,
-    LabelEqual<EdgePtr1,
-               typename GraphType::EdgeConstPtr> /* edge_comp */,
+    LabelEqual<EdgePtr1, typename GraphType::EdgeConstPtr> /* edge_comp */,
     const EdgePtr1 &edge_a_ptr) {
   for (auto edge_iter = (edge_state == EdgeState::kIn)
                             ? vertex_ptr->InEdgeCBegin(edge_a_ptr->label())
@@ -75,7 +75,6 @@ template <enum EdgeState edge_state, class GraphType, class VertexPtr, class Fn,
           class EdgeCompare, class EdgePtr1>
 inline bool ForEachEdgeIf(const VertexPtr &vertex_ptr, Fn f,
                           EdgeCompare edge_comp, const EdgePtr1 &edge_a_ptr) {
-  
   for (auto edge_iter = (edge_state == EdgeState::kIn)
                             ? vertex_ptr->InEdgeCBegin()
                             : vertex_ptr->OutEdgeCBegin();
@@ -557,9 +556,9 @@ inline void RestoreState(QueryVertexPtr query_vertex_ptr,
 //  return true;
 //}
 
-template <enum MatchSemantics match_semantics, class QueryGraph, class TargetGraph,
-          class QueryVertexPtr,
-          class TargetVertexPtr, class EdgeCompare, class MatchCallback>
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class QueryVertexPtr, class TargetVertexPtr,
+          class EdgeCompare, class MatchCallback>
 bool _VF2(
     const std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
     std::map<QueryVertexPtr, TargetVertexPtr> &match_state,
@@ -575,15 +574,15 @@ bool _VF2(
 
   for (const TargetVertexPtr &next_target_vertex_ptr :
        candidate_set.find(next_query_vertex_ptr)->second) {
-    if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(next_query_vertex_ptr,
-                                    next_target_vertex_ptr, match_state,
-                                    target_matched, edge_comp)) {
+    if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
+            next_query_vertex_ptr, next_target_vertex_ptr, match_state,
+            target_matched, edge_comp)) {
       UpdateState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
                   target_matched);
 
       if (!_VF2<match_semantics, QueryGraph, TargetGraph>(
-              candidate_set, match_state, target_matched,
-                                 edge_comp, result_count, user_callback)) {
+              candidate_set, match_state, target_matched, edge_comp,
+              result_count, user_callback)) {
         return false;
       }
 
@@ -732,8 +731,8 @@ inline int VF2_Recursive(const QueryGraph &query_graph,
 //}
 
 template <enum MatchSemantics match_semantics, class QueryGraph,
-          class TargetGraph, class QueryVertexPtr,
-          class TargetVertexPtr, class EdgeCompare, class MatchCallback>
+          class TargetGraph, class QueryVertexPtr, class TargetVertexPtr,
+          class EdgeCompare, class MatchCallback>
 int VF2_NonRecursive(
     const std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
     std::map<QueryVertexPtr, TargetVertexPtr> &match_state,

@@ -51,7 +51,7 @@ class LargeGraph {
 
     using EdgeConstIterator = GIterator<
         typename EdgeContainer::const_iterator, EdgeData,
-        PointerCast<typename EdgeContainer::const_iterator, EdgeData>>;    
+        PointerCast<typename EdgeContainer::const_iterator, EdgeData>>;
 
     const IDType &id() const { return id_; }
 
@@ -59,11 +59,21 @@ class LargeGraph {
 
     size_t CountOutEdge() const { return out_edges_.size(); }
 
+    size_t CountOutEdge(const EdgeLabelType &edge_label) const {
+      auto it = this->out_edge_labels_.find(edge_label);
+      if (it == this->out_edge_labels_.end()) return 0;
+      return it->second.size();
+    }
     size_t CountInEdge() const { return in_edges_.size(); }
+    size_t CountInEdge(const EdgeLabelType &edge_label) const {
+      auto it = this->in_edge_labels_.find(edge_label);
+      if (it == this->in_edge_labels_.end()) return 0;
+      return it->second.size();
+    }
 
-    //size_t CountOutVertex() const { return out_vertices_.size(); }
+    // size_t CountOutVertex() const { return out_vertices_.size(); }
 
-    //size_t CountInVertex() const { return in_vertices_.size(); }
+    // size_t CountInVertex() const { return in_vertices_.size(); }
 
     EdgeIterator OutEdgeBegin() {
       return EdgeIterator(out_edges_.begin(), out_edges_.end());
@@ -134,8 +144,7 @@ class LargeGraph {
     VertexData(const IDType &id, const LabelType &label)
         : id_(id), label_(label) {}
 
-    ~VertexData() {
-    }
+    ~VertexData() {}
 
     void AddOutEdge(EdgeData *e) {
       assert(e->src_ptr() == this);

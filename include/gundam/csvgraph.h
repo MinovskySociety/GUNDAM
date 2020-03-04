@@ -2,9 +2,9 @@
 #define _CSVGRAPH_H
 
 #include <iostream>
+#include <set>
 #include <sstream>
 #include <string>
-
 #include "gundam/datatype.h"
 #include "gundam/geneator.h"
 #include "rapidcsv.h"
@@ -43,7 +43,7 @@ bool CheckAttributeKeyIsCorrect(std::vector<std::string>& after_parse_col_name,
                                 int begin_pos) {
   // check col name can change to attrkeytype
   for (int j = begin_pos; j < after_parse_col_name.size(); j++) {
-    //std::cout << after_parse_col_name[j] << std::endl;
+    // std::cout << after_parse_col_name[j] << std::endl;
     std::string str = after_parse_col_name[j];
     std::stringstream ss(str);
     AttributeKeyType check_flag;
@@ -132,9 +132,9 @@ int ReadCSVVertexFile(GraphType& graph, const std::string& v_file,
                       VertexIDGen& vertex_id_gen) {
   // read .v file(csv)
   //.v file format: (id,label,......)
-  using VertexType = typename GraphType::VertexType;  
+  using VertexType = typename GraphType::VertexType;
   using VertexIDType = typename VertexType::IDType;
-  using VertexLabelType = typename VertexType::LabelType;  
+  using VertexLabelType = typename VertexType::LabelType;
   using VertexPtr = typename GraphType::VertexPtr;
   using AttributeType = typename GraphType::VertexType::AttributeKeyType;
 
@@ -206,7 +206,7 @@ void LoadEdgeAttribue(GraphType& graph, typename GraphType::EdgePtr& edge_ptr,
                       std::vector<std::string>& after_parse_col_name,
                       std::vector<std::string>& after_parse_value_type,
                       int row_pos) {
-  using EdgeType = typename GraphType::EdgeType;  
+  using EdgeType = typename GraphType::EdgeType;
   using EdgeAttributeKeyType = typename EdgeType::AttributeKeyType;
 
   int col_num = static_cast<int>(after_parse_col_name.size());
@@ -243,7 +243,7 @@ void LoadEdgeAttribue(GraphType& graph, typename GraphType::EdgePtr& edge_ptr,
       case BasicDataType::kTypeUnknown:
       default:
         break;
-    }    
+    }
   }
   return;
 }
@@ -252,11 +252,11 @@ int ReadCSVEdgeFile(GraphType& graph, const std::string& e_file,
                     EdgeIDGen& edge_id_gen) {
   // read .e file(csv)
   //.e file format: (edge_id,from_id,to_id,edge_label,......)
-  
+
   using VertexType = typename GraphType::VertexType;
   using EdgeType = typename GraphType::EdgeType;
-  using VertexIDType = typename VertexType::IDType;  
-  using EdgeLabelType = typename EdgeType::LabelType;  
+  using VertexIDType = typename VertexType::IDType;
+  using EdgeLabelType = typename EdgeType::LabelType;
   using EdgeAttributeKeyType = typename GraphType::EdgeType::AttributeKeyType;
   using EdgePtr = typename GraphType::EdgePtr;
 
@@ -286,8 +286,8 @@ int ReadCSVEdgeFile(GraphType& graph, const std::string& e_file,
   std::vector<std::string> after_parse_col_name, after_parse_value_type;
   ParseCol(before_parse_col_name, after_parse_col_name, after_parse_value_type);
   // check col name can change to attrkeytype
-  if (CheckAttributeKeyIsCorrect<EdgeAttributeKeyType>(after_parse_col_name, 4) ==
-      false) {
+  if (CheckAttributeKeyIsCorrect<EdgeAttributeKeyType>(after_parse_col_name,
+                                                       4) == false) {
     std::cout << "Attribute type is not correct!" << std::endl;
     return -1;
   }
@@ -308,12 +308,12 @@ int ReadCSVEdgeFile(GraphType& graph, const std::string& e_file,
     bool res;
     std::tie(edge_ptr, res) = graph.AddEdge(
         from_id[i], to_id[i], EdgeLabelType(edge_label[i]), edge_id[i]);
-
-    if (!res || !edge_ptr) {
+    // wangyj:delete !edge_ptr
+    if (!res) {
       std::cout << "Failed to add edge from " << from_id[i] << " to "
                 << to_id[i] << ", label: " << EdgeLabelType(edge_label[i])
                 << ", id: " << edge_id[i] << std::endl;
-      
+
       continue;
     }
 
@@ -351,14 +351,14 @@ int ReadCSVGraph(GraphType& graph, const VertexFileList& v_list,
   int count = 0;
   for (const auto& v_file : v_list) {
     SimpleArithmeticIDEmptyGenerator<typename GraphType::VertexType::IDType>
-        empty_vertex_id_type;    
+        empty_vertex_id_type;
     int res = ReadCSVVertexFile(graph, v_file, empty_vertex_id_type);
     if (res < 0) return res;
     count += res;
   }
   for (const auto& e_file : e_list) {
     SimpleArithmeticIDEmptyGenerator<typename GraphType::EdgeType::IDType>
-        empty_edge_id_type;    
+        empty_edge_id_type;
     int res = ReadCSVEdgeFile(graph, e_file, empty_edge_id_type);
     if (res < 0) return res;
     count += res;

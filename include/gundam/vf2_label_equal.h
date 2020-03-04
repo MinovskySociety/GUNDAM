@@ -177,13 +177,11 @@ inline QueryVertexPtr DetermineMatchOrder(
   return res;
 }
 
-template <enum EdgeState edge_state, class QueryVertexPtr,
-          class TargetVertexPtr, class MatchStateMap>
+template <enum EdgeState edge_state, class QueryGraph, class TargetGraph,
+          class QueryVertexPtr, class TargetVertexPtr, class MatchStateMap>
 inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
                           const TargetVertexPtr &target_vertex_ptr,
                           const MatchStateMap &match_state) {
-  using QueryGraph = typename QueryVertexPtr::GraphType;
-  using TargetGraph = typename TargetVertexPtr::GraphType;
   using QueryEdgePtr = typename QueryGraph::EdgeConstPtr;
   using TargetEdgePtr = typename TargetGraph::EdgeConstPtr;
   using QueryEdgeMapPair = std::pair<typename QueryGraph::EdgeType::LabelType,
@@ -225,8 +223,9 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
   return true;
 }
 
-template <enum MatchSemantics match_semantics, class QueryVertexPtr,
-          class TargetVertexPtr, class MatchStateMap, class TargetVertexSet>
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class QueryVertexPtr, class TargetVertexPtr,
+          class MatchStateMap, class TargetVertexSet>
 inline bool IsJoinable(QueryVertexPtr query_vertex_ptr,
                        TargetVertexPtr target_vertex_ptr,
                        const MatchStateMap &match_state,
@@ -235,12 +234,12 @@ inline bool IsJoinable(QueryVertexPtr query_vertex_ptr,
       target_matched.count(target_vertex_ptr) > 0) {
     return false;
   }
-  if (!JoinableCheck<EdgeState::kIn>(query_vertex_ptr, target_vertex_ptr,
-                                     match_state)) {
+  if (!JoinableCheck<EdgeState::kIn, QueryGraph, TargetGraph>(
+          query_vertex_ptr, target_vertex_ptr, match_state)) {
     return false;
   }
-  if (!JoinableCheck<EdgeState::kOut>(query_vertex_ptr, target_vertex_ptr,
-                                      match_state)) {
+  if (!JoinableCheck<EdgeState::kOut, QueryGraph, TargetGraph>(
+          query_vertex_ptr, target_vertex_ptr, match_state)) {
     return false;
   }
   return true;
@@ -255,14 +254,13 @@ inline void UpdateState(QueryVertexPtr query_vertex_ptr,
   match_state.emplace(query_vertex_ptr, target_vertex_ptr);
   target_matched.emplace(target_vertex_ptr);
 }
-template <enum EdgeState edge_state, class QueryVertexPtr,
-          class TargetVertexPtr, class MatchStateMap, class TargetVertexSet>
+template <enum EdgeState edge_state, class QueryGraph, class TargetGraph,
+          class QueryVertexPtr, class TargetVertexPtr, class MatchStateMap,
+          class TargetVertexSet>
 inline void UpdateCandidateSetOneDirection(
     QueryVertexPtr query_vertex_ptr, TargetVertexPtr target_vertex_ptr,
     std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
     const MatchStateMap &match_state, const TargetVertexSet &target_matched) {
-  using QueryGraph = typename QueryVertexPtr::GraphType;
-  using TargetGraph = typename TargetVertexPtr::GraphType;
   std::map<typename QueryGraph::VertexType::LabelType,
            std::set<TargetVertexPtr>>
       temp_adj_vertex;
@@ -270,14 +268,16 @@ inline void UpdateCandidateSetOneDirection(
                             ? query_vertex_ptr->InEdgeLabelBegin()
                             : query_vertex_ptr->OutEdgeLabelBegin());
        !label_it.IsDone(); label_it++) {
-    for (auto it =
-             ((edge_state == EdgeState::kIn)
-                  ? target_vertex_ptr->InVertexCBegin(label_it->label())
-                  : target_vertex_ptr->OutVertexCBegin(label_it->label()));
+    for (auto it = ((edge_state == EdgeState::kIn)
+                        ? target_vertex_ptr->InEdgeCBegin(label_it->label())
+                        : target_vertex_ptr->OutEdgeCBegin(label_it->label()));
          !it.IsDone(); it++) {
-      TargetVertexPtr temp_target_ptr = it;
+      // std::cout << "target 111" << std::endl;
+      TargetVertexPtr temp_target_ptr = (edge_state == EdgeState::kIn)
+                                            ? it->const_src_ptr()
+                                            : it->const_dst_ptr();
       // if (target_matched.count(temp_target_ptr)) continue;
-      temp_adj_vertex[it->label()].insert(temp_target_ptr);
+      temp_adj_vertex[temp_target_ptr->label()].insert(temp_target_ptr);
     }
     for (auto vertex_it =
              ((edge_state == EdgeState::kIn)
@@ -287,6 +287,18 @@ inline void UpdateCandidateSetOneDirection(
       QueryVertexPtr temp_vertex_ptr = vertex_it;
       std::vector<TargetVertexPtr> res_candidate;
       if (match_state.count(temp_vertex_ptr)) continue;
+      // std::cout << "label = " << vertex_it->label() << std::endl;
+      // std::cout << "temp_adj_vertex:\n";
+      // for (auto &it : temp_adj_vertex[vertex_it->label()]) {
+      //   std::cout << it->id() << " ";
+      // }
+      // std::cout << std::endl;
+
+      // std::cout << "candidate set:\n";
+      // for (auto &it : candidate_set[temp_vertex_ptr]) {
+      //  std::cout << it->id() << " ";
+      //}
+      // std::cout << std::endl;
       std::set_intersection(temp_adj_vertex[vertex_it->label()].begin(),
                             temp_adj_vertex[vertex_it->label()].end(),
                             candidate_set[temp_vertex_ptr].begin(),
@@ -296,18 +308,16 @@ inline void UpdateCandidateSetOneDirection(
     }
   }
 }
-template <class QueryVertexPtr, class TargetVertexPtr, class MatchStateMap,
-          class TargetVertexSet>
+template <class QueryGraph, class TargetGraph, class QueryVertexPtr,
+          class TargetVertexPtr, class MatchStateMap, class TargetVertexSet>
 inline void UpdateCandidateSet(
     QueryVertexPtr query_vertex_ptr, TargetVertexPtr target_vertex_ptr,
     std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
     const MatchStateMap &match_state, const TargetVertexSet &target_matched) {
-  using QueryGraph = typename QueryVertexPtr::GraphType;
-  using TargetGraph = typename TargetVertexPtr::GraphType;
-  UpdateCandidateSetOneDirection<EdgeState::kIn>(
+  UpdateCandidateSetOneDirection<EdgeState::kIn, QueryGraph, TargetGraph>(
       query_vertex_ptr, target_vertex_ptr, candidate_set, match_state,
       target_matched);
-  UpdateCandidateSetOneDirection<EdgeState::kOut>(
+  UpdateCandidateSetOneDirection<EdgeState::kOut, QueryGraph, TargetGraph>(
       query_vertex_ptr, target_vertex_ptr, candidate_set, match_state,
       target_matched);
 }
@@ -350,13 +360,18 @@ inline bool PruneCallbackEmpty(
     const std::map<QueryVertexPtr, TargetVertexPtr> &m) {
   return false;
 }
-template <enum MatchSemantics match_semantics, class QueryVertexPtr,
-          class TargetVertexPtr, class MatchCallback, class PruneCallback>
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class QueryVertexPtr, class TargetVertexPtr,
+          class MatchCallback, class PruneCallback>
 bool _VF2(
     const std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
     std::map<QueryVertexPtr, TargetVertexPtr> &match_state,
     std::set<TargetVertexPtr> &target_matched, size_t &result_count,
     MatchCallback user_callback, PruneCallback prune_callback) {
+  // for (auto &it : match_state) {
+  //  std::cout << it.first->id() << " " << it.second->id() << std::endl;
+  // }
+  // std::cout << std::endl;
   if (prune_callback(match_state)) {
     return true;
   }
@@ -368,18 +383,19 @@ bool _VF2(
       DetermineMatchOrder(candidate_set, match_state);
   for (const TargetVertexPtr &next_target_vertex_ptr :
        candidate_set.find(next_query_vertex_ptr)->second) {
-    if (IsJoinable<match_semantics>(next_query_vertex_ptr,
-                                    next_target_vertex_ptr, match_state,
-                                    target_matched)) {
+    if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
+            next_query_vertex_ptr, next_target_vertex_ptr, match_state,
+            target_matched)) {
       std::map<QueryVertexPtr, std::vector<TargetVertexPtr>>
           temp_candidate_set = candidate_set;
       UpdateState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
                   target_matched);
-      UpdateCandidateSet(next_query_vertex_ptr, next_target_vertex_ptr,
-                         temp_candidate_set, match_state, target_matched);
-      if (!_VF2<match_semantics>(temp_candidate_set, match_state,
-                                 target_matched, result_count, user_callback,
-                                 prune_callback)) {
+      UpdateCandidateSet<QueryGraph, TargetGraph>(
+          next_query_vertex_ptr, next_target_vertex_ptr, temp_candidate_set,
+          match_state, target_matched);
+      if (!_VF2<match_semantics, QueryGraph, TargetGraph>(
+              temp_candidate_set, match_state, target_matched, result_count,
+              user_callback, prune_callback)) {
         return false;
       }
       RestoreState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
@@ -434,8 +450,9 @@ inline int VF2_Recursive(const QueryGraph &query_graph,
   std::map<QueryVertexPtr, TargetVertexPtr> match_state;
   std::set<TargetVertexPtr> target_matched;
   size_t result_count = 0;
-  _VF2<match_semantics>(candidate_set, match_state, target_matched,
-                        result_count, user_callback, prune_callback);
+  _VF2<match_semantics, QueryGraph, TargetGraph>(candidate_set, match_state,
+                                                 target_matched, result_count,
+                                                 user_callback, prune_callback);
 
   return static_cast<int>(result_count);
 }
@@ -528,13 +545,13 @@ inline int VF2_Label_Equal(
 
   _vf2_label_equal::UpdateState(query_ptr, target_ptr, match_state,
                                 target_matched);
-  _vf2_label_equal::UpdateCandidateSet(query_ptr, target_ptr, candidate_set,
-                                       match_state, target_matched);
+  _vf2_label_equal::UpdateCandidateSet<QueryGraph, TargetGraph>(
+      query_ptr, target_ptr, candidate_set, match_state, target_matched);
   size_t result_count = 0;
   auto prune_callback = std::bind(
       _vf2_label_equal::PruneCallbackEmpty<QueryVertexPtr, TargetVertexPtr>,
       std::placeholders::_1);
-  return _vf2_label_equal::_VF2<match_semantics>(
+  return _vf2_label_equal::_VF2<match_semantics, QueryGraph, TargetGraph>(
       candidate_set, match_state, target_matched, result_count,
       std::bind(_vf2::MatchCallbackSaveResult<QueryVertexPtr, TargetVertexPtr,
                                               ResultContainer>,

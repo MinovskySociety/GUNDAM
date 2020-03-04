@@ -16,11 +16,11 @@ void GetKStepAdj(VertexPtr vertex_ptr, int k, std::set<VertexPtr> &adj_list) {
     GetKStepAdj(next_vertex_ptr, k - 1, adj_list);
   }
 }
-template <class VertexPtr>
+template <class GraphType, class VertexPtr>
 bool SyntacticContainment(VertexPtr query_vertex_ptr,
                           VertexPtr target_vertex_ptr) {
   if (query_vertex_ptr->label() != target_vertex_ptr->label()) return false;
-  using EdgeLabelType = typename VertexPtr::GraphType::EdgeType::LabelType;
+  using EdgeLabelType = typename GraphType::EdgeType::LabelType;
   std::map<std::pair<EdgeLabelType, VertexPtr>, int> query_map, target_map;
   std::map<EdgeLabelType, int> query_num, target_num;
   for (auto it = query_vertex_ptr->OutEdgeCBegin(); !it.IsDone(); it++) {
@@ -73,11 +73,11 @@ bool SyntacticContainment(VertexPtr query_vertex_ptr,
   }
   return true;
 }
-template <class VertexPtr>
+template <class GraphType, class VertexPtr>
 bool SyntacticEquivalence(VertexPtr query_vertex_ptr,
                           VertexPtr target_vertex_ptr) {
-  return SyntacticContainment(query_vertex_ptr, target_vertex_ptr) &&
-         SyntacticContainment(target_vertex_ptr, query_vertex_ptr);
+  return SyntacticContainment<GraphType>(query_vertex_ptr, target_vertex_ptr) &&
+         SyntacticContainment<GraphType>(target_vertex_ptr, query_vertex_ptr);
 }
 template <class DataGraph>
 void ComputeAdaptedGraph(
@@ -105,7 +105,7 @@ void ComputeAdaptedGraph(
     GetKStepAdj(vertex_ptr, 1, adj_list);
     for (auto next_ptr : adj_list) {
       if (used_vertex.count(next_ptr)) continue;
-      if (SyntacticEquivalence(vertex_ptr, next_ptr)) {
+      if (SyntacticEquivalence<DataGraph>(vertex_ptr, next_ptr)) {
         h.emplace(next_ptr, vertex_num);
         map_vertex_list[vertex_num].push_back(next_ptr);
         used_vertex.insert(next_ptr);
@@ -127,7 +127,7 @@ void ComputeAdaptedGraph(
     GetKStepAdj(vertex_ptr, 2, adj_list);
     for (auto next_ptr : adj_list) {
       if (used_vertex.count(next_ptr)) continue;
-      if (SyntacticEquivalence(vertex_ptr, next_ptr)) {
+      if (SyntacticEquivalence<DataGraph>(vertex_ptr, next_ptr)) {
         h.emplace(next_ptr, vertex_num);
         map_vertex_list[vertex_num].push_back(next_ptr);
         used_vertex.insert(next_ptr);
