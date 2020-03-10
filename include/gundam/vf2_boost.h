@@ -1,5 +1,8 @@
 #ifndef _VF2BOOST_H
 #define _VF2BOOST_H
+
+#include <iterator>
+
 #include "graph.h"
 #include "vf2_label_equal.h"
 namespace GUNDAM {
