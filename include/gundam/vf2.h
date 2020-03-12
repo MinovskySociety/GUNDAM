@@ -266,7 +266,7 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
                           EdgeCompare edge_comp) {
   using QueryEdgePtr = typename QueryGraph::EdgeConstPtr;
   using TargetEdgePtr = typename TargetGraph::EdgeConstPtr;
-  /*
+
   std::set<typename TargetGraph::EdgeType::IDType> used_edge;
   for (auto query_edge_iter =
            ((edge_state == EdgeState::kIn) ? query_vertex_ptr->InEdgeCBegin()
@@ -301,8 +301,8 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
     if (!find_target_flag) return false;
   }
   return true;
-  */
 
+  /*
   for (auto query_edge_iter =
            ((edge_state == EdgeState::kIn) ? query_vertex_ptr->InEdgeCBegin()
                                            : query_vertex_ptr->OutEdgeCBegin());
@@ -368,6 +368,7 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
     if (!find_target_flag) return false;
   }
   return true;
+  */
 }
 
 // template <class Key1, class Key2, class Value>

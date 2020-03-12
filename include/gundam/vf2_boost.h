@@ -374,8 +374,8 @@ inline int VF2_Recursive(const QueryGraph &query_graph,
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
 
   std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> candidate_set;
-  if (!_vf2_label_equal::InitCandidateSet<match_semantics>(
-          query_graph, target_graph, candidate_set)) {
+  if (!_vf2_boost::InitCandidateSet<match_semantics>(query_graph, target_graph,
+                                                     candidate_set)) {
     return 0;
   }
   std::map<QueryVertexPtr, TargetVertexPtr> match_state;
