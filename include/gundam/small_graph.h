@@ -1,43 +1,33 @@
-#ifndef _LARGE_GRAPH_H
-#define _LARGE_GRAPH_H
+#ifndef _SMALL_GRAPH_H
+#define _SMALL_GRAPH_H
 
-#include <map>
-#include <set>
 #include <vector>
 
-#include "gundam/attribute.h"
 #include "gundam/iterator2.h"
 
 namespace GUNDAM {
-template <class VertexIDType, class VertexLabelType,
-          class VertexAttributeKeyType, class EdgeIDType, class EdgeLabelType,
-          class EdgeAttributeKeyType>
-class LargeGraph {
+template <class VertexIDType, class VertexLabelType, class EdgeIDType,
+          class EdgeLabelType>
+class SmallGraph {
  private:
   class VertexData;
 
   class EdgeData;
 
-  class VertexData
-      : public WithAttribute_<std::string, false, true, VertexAttributeKeyType,
-                              ContainerType::Vector, SortType::None> {
+  class VertexData {
    private:
-    friend class LargeGraph;
+    friend class SmallGraph;
 
     using VertexContainer = std::set<VertexData *>;
 
     using EdgeContainer = std::set<EdgeData *>;
 
-    using EdgeLabelContainer = std::map<EdgeLabelType, std::set<EdgeData *>>;
-
    public:
-    using GraphType = LargeGraph;
+    using GraphType = SmallGraph;
 
     using IDType = VertexIDType;
 
     using LabelType = VertexLabelType;
-
-    using AttributeKeyType = VertexAttributeKeyType;
 
     using VertexIterator =
         GIterator<typename VertexContainer::iterator, VertexData,
@@ -54,10 +44,6 @@ class LargeGraph {
     using EdgeConstIterator = GIterator<
         typename EdgeContainer::const_iterator, EdgeData,
         PointerCast<typename EdgeContainer::const_iterator, EdgeData>>;
-
-    using EdgeLabelConstIterator = GIterator<
-        typename EdgeLabelContainer::const_iterator, const EdgeLabelType,
-        PairFirstCast<typename EdgeLabelContainer::const_iterator, const EdgeLabelType>>;
 
     const IDType &id() const { return id_; }
 
@@ -77,22 +63,6 @@ class LargeGraph {
       return it->second.size();
     }
 
-    size_t CountInVertex() const {
-      return this->in_edge_build_on_vertex_.size();
-    }
-    size_t CountInVertex(const EdgeLabelType &edge_label) const {
-      auto it = this->in_vertices_.find(edge_label);
-      if (it == this->in_vertices_.end()) return 0;
-      return it->second.size();
-    }
-    size_t CountOutVertex() const {
-      return this->out_edge_build_on_vertex_.size();
-    }
-    size_t CountOutVertex(const EdgeLabelType &edge_label) const {
-      auto it = this->out_vertices_.find(edge_label);
-      if (it == this->out_vertices_.end()) return 0;
-      return it->second.size();
-    }
     // size_t CountOutVertex() const { return out_vertices_.size(); }
 
     // size_t CountInVertex() const { return in_vertices_.size(); }
@@ -162,116 +132,6 @@ class LargeGraph {
       return EdgeConstIterator(it->second.cbegin(), it->second.cend());
     }
 
-    // OutEdgeBegin(edge_label,dst_ptr),InEdgeBegin(edge_label,src_ptr)
-    EdgeIterator OutEdgeBegin(const EdgeLabelType &edge_label,
-                              const VertexData *vertex_ptr) {
-      auto it =
-          out_edge_build_on_vertex_.find(const_cast<VertexData *>(vertex_ptr));
-      if (it == out_edge_build_on_vertex_.end()) {
-        return EdgeIterator();
-      }
-      auto it1 = it->second.find(edge_label);
-      if (it1 == it->second.end()) {
-        return EdgeIterator();
-      }
-      return EdgeIterator(it1->second.begin(), it1->second.end());
-    }
-
-    EdgeConstIterator OutEdgeCBegin(const EdgeLabelType &edge_label,
-                                    const VertexData *vertex_ptr) const {
-      auto it =
-          out_edge_build_on_vertex_.find(const_cast<VertexData *>(vertex_ptr));
-      if (it == out_edge_build_on_vertex_.cend()) {
-        return EdgeConstIterator();
-      }
-      auto it1 = it->second.find(edge_label);
-      if (it1 == it->second.end()) {
-        return EdgeConstIterator();
-      }
-      return EdgeConstIterator(it1->second.cbegin(), it1->second.cend());
-    }
-
-    EdgeIterator InEdgeBegin(const EdgeLabelType &edge_label,
-                             const VertexData *vertex_ptr) {
-      auto it =
-          in_edge_build_on_vertex_.find(const_cast<VertexData *>(vertex_ptr));
-      if (it == in_edge_build_on_vertex_.end()) {
-        return EdgeIterator();
-      }
-      auto it1 = it->second.find(edge_label);
-      if (it1 == it->second.end()) {
-        return EdgeIterator();
-      }
-      return EdgeIterator(it1->second.begin(), it1->second.end());
-    }
-
-    EdgeConstIterator InEdgeCBegin(const EdgeLabelType &edge_label,
-                                   const VertexData *vertex_ptr) const {
-      auto it =
-          in_edge_build_on_vertex_.find(const_cast<VertexData *>(vertex_ptr));
-      if (it == in_edge_build_on_vertex_.cend()) {
-        return EdgeConstIterator();
-      }
-      auto it1 = it->second.find(edge_label);
-      if (it1 == it->second.end()) {
-        return EdgeConstIterator();
-      }
-      return EdgeConstIterator(it1->second.cbegin(), it1->second.cend());
-    }
-
-    // OutVertexBegin(edge_label),InVertexBegin(edge_label)
-    VertexIterator InVertexBegin(const EdgeLabelType &edge_label) {
-      auto it = this->in_vertices_.find(edge_label);
-      if (it == this->in_vertices_.end()) {
-        return VertexIterator();
-      }
-      return VertexIterator(it->second.begin(), it->second.end());
-    }
-
-    VertexConstIterator InVertexCBegin(const EdgeLabelType &edge_label) const {
-      auto it = this->in_vertices_.find(edge_label);
-      if (it == this->in_vertices_.cend()) {
-        return VertexIterator();
-      }
-      return VertexConstIterator(it->second.cbegin(), it->second.cend());
-    }
-
-    VertexIterator OutVertexBegin(const EdgeLabelType &edge_label) {
-      auto it = this->out_vertices_.find(edge_label);
-      if (it == this->out_vertices_.end()) {
-        return VertexIterator();
-      }
-      return VertexIterator(it->second.begin(), it->second.end());
-    }
-
-    VertexConstIterator OutVertexCBegin(const EdgeLabelType &edge_label) const {
-      auto it = this->out_vertices_.find(edge_label);
-      if (it == this->out_vertices_.cend()) {
-        return VertexIterator();
-      }
-      return VertexConstIterator(it->second.cbegin(), it->second.cend());
-    }
-
-    EdgeLabelConstIterator OutEdgeLabelBegin() const {
-      return EdgeLabelConstIterator(out_edge_labels_.cbegin(),
-                                    out_edge_labels_.cend());
-    }
-
-    EdgeLabelConstIterator OutEdgeLabelCBegin() const {
-      return EdgeLabelConstIterator(out_edge_labels_.cbegin(),
-                                    out_edge_labels_.cend());
-    }
-
-    EdgeLabelConstIterator InEdgeLabelBegin() const {
-      return EdgeLabelConstIterator(in_edge_labels_.cbegin(),
-                                    in_edge_labels_.cend());
-    }
-
-    EdgeLabelConstIterator InEdgeLabelCBegin() const {
-      return EdgeLabelConstIterator(in_edge_labels_.cbegin(),
-                                    in_edge_labels_.cend());
-    }
-
    private:
     VertexData(const IDType &id, const LabelType &label)
         : id_(id), label_(label) {}
@@ -281,21 +141,11 @@ class LargeGraph {
     void AddOutEdge(EdgeData *e) {
       assert(e->src_ptr() == this);
 
-      auto edge_label = e->label();
-
       auto ret1 = out_edges_.insert(e);
       assert(ret1.second);
 
-      auto ret2 = out_edge_labels_[edge_label].insert(e);
+      auto ret2 = out_edge_labels_[e->label()].insert(e);
       assert(ret2.second);
-
-      auto dst = e->dst_ptr();
-
-      auto ret3 = out_vertices_[edge_label].insert(dst);
-      // assert(ret3.second);
-
-      auto ret4 = out_edge_build_on_vertex_[dst][edge_label].insert(e);
-      assert(ret4.second);
 
       // auto dst = e->dst_ptr();
 
@@ -306,21 +156,13 @@ class LargeGraph {
 
     void AddInEdge(EdgeData *e) {
       assert(e->dst_ptr() == this);
-      auto edge_label = e->label();
 
       auto ret1 = in_edges_.insert(e);
       assert(ret1.second);
 
-      auto ret2 = in_edge_labels_[edge_label].insert(e);
+      auto ret2 = in_edge_labels_[e->label()].insert(e);
       assert(ret2.second);
 
-      auto src = e->src_ptr();
-
-      auto ret3 = in_vertices_[edge_label].insert(src);
-      // assert(ret3.second);
-
-      auto ret4 = in_edge_build_on_vertex_[src][edge_label].insert(e);
-      assert(ret4.second);
       // auto src = e->src_ptr();
 
       // in_vertices_.insert(src);
@@ -341,17 +183,6 @@ class LargeGraph {
       assert(it3 != it2->second.end());
       it2->second.erase(it3);
       if (it2->second.empty()) out_edge_labels_.erase(it2);
-
-      /*
-      auto it4 = out_edge_build_on_vertex_.find(e->dst_ptr());
-      assert(it4!=out_edge_build_on_vertex_.end());
-      auto it5 = it4->second.find(e->label());
-      it4->second.erase(it5);
-      if (it4->second.empty()){
-        out_vertices.find(e->label()).erase(e->dst_ptr());
-        out_edge_build_on_vertex_.erase(e->dst_ptr());
-      }
-      */
     }
 
     void RemoveInEdge(EdgeData *e) {
@@ -367,21 +198,10 @@ class LargeGraph {
       assert(it3 != it2->second.end());
       it2->second.erase(it3);
       if (it2->second.empty()) in_edge_labels_.erase(it2);
-      /*
-      auto it4 = in_edge_build_on_vertex_.find(e->src_ptr());
-      assert(it4!=in_edge_build_on_vertex_.end());
-      auto it5 = it4->second.find(e->label());
-      it4->second.erase(it5);
-      if (it4->second.empty()){
-        in_vertices.find(e->label()).erase(e->src_ptr());
-        in_edge_build_on_vertex_.erase(e->src_ptr());
-      }
-      */
     }
 
     VertexIDType id_;
     VertexLabelType label_;
-    // VertexAttributeListType attributes_;
 
     std::set<EdgeData *> out_edges_;
     std::set<EdgeData *> in_edges_;
@@ -396,33 +216,18 @@ class LargeGraph {
     //    in_vertex_labels_;
     // std::map<VertexLabelType, std::map<VertexData *, std::set<EdgeData *>>>
     //    out_vertex_labels_;
-
-    // InVertexBegin,OutVertexBegin,InVertexBegin(label),OutVertexBegin(label)
-    std::map<EdgeLabelType, std::set<VertexData *>> out_vertices_;
-    std::map<EdgeLabelType, std::set<VertexData *>> in_vertices_;
-
-    // CountOutVertex,CountInVertex
-    // OutEdgeBegin(edge_label,dst_ptr),InEdgeBegin(edge_label,src_ptr)
-    std::map<VertexData *, std::map<EdgeLabelType, std::set<EdgeData *>>>
-        out_edge_build_on_vertex_;
-    std::map<VertexData *, std::map<EdgeLabelType, std::set<EdgeData *>>>
-        in_edge_build_on_vertex_;
   };
 
-  class EdgeData
-      : public WithAttribute_<std::string, false, true, EdgeAttributeKeyType,
-                              ContainerType::Vector, SortType::None> {
+  class EdgeData {
    private:
-    friend class LargeGraph;
+    friend class SmallGraph;
 
    public:
-    using GraphType = LargeGraph;
+    using GraphType = SmallGraph;
 
     using IDType = EdgeIDType;
 
     using LabelType = EdgeLabelType;
-
-    using AttributeKeyType = EdgeAttributeKeyType;
 
     EdgeData(const EdgeIDType &id, const EdgeLabelType &label, VertexData *src,
              VertexData *dst)
@@ -447,7 +252,6 @@ class LargeGraph {
     EdgeLabelType label_;
     VertexData *src_;
     VertexData *dst_;
-    // EdgeAttributeListType attributes_;
   };
 
   using VertexContainer = std::map<VertexIDType, VertexData *>;
@@ -488,9 +292,9 @@ class LargeGraph {
 
   static const bool edge_has_attribute = true;
 
-  LargeGraph() = default;
+  SmallGraph() = default;
 
-  LargeGraph(const LargeGraph &other) {
+  SmallGraph(const SmallGraph &other) {
     for (auto v_it = other.VertexCBegin(); !v_it.IsDone(); ++v_it) {
       AddVertex(v_it->id(), v_it->label());
     }
@@ -500,9 +304,9 @@ class LargeGraph {
     }
   }
 
-  LargeGraph(LargeGraph &&) = default;
+  SmallGraph(SmallGraph &&) = default;
 
-  LargeGraph &operator=(const LargeGraph &other) {
+  SmallGraph &operator=(const SmallGraph &other) {
     Clear();
 
     for (auto v_it = other.VertexCBegin(); !v_it.IsDone(); ++v_it) {
@@ -516,9 +320,9 @@ class LargeGraph {
     return *this;
   };
 
-  LargeGraph &operator=(LargeGraph &&) = default;
+  SmallGraph &operator=(SmallGraph &&) = default;
 
-  ~LargeGraph() { Clear(); }
+  ~SmallGraph() { Clear(); }
 
   size_t CountVertex() const { return vertices_.size(); }
 
@@ -686,18 +490,6 @@ class LargeGraph {
 
   EdgeContainer edges_;
 };
-
-// class SmallGraph {
-//  class VertexData {
-//    VertexLabelType label_;
-//  };
-
-//  class EdgeData {
-//    EdgeLabelType label_;
-//  };
-//  std::vector<VertexData> vertices_;
-//  std::vector<EdgeDta> edges_;
-//};
 
 }  // namespace GUNDAM
 

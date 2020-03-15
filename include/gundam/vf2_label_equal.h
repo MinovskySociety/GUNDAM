@@ -10,7 +10,7 @@
 #include <stack>
 #include <type_traits>
 #include <vector>
-#include "graph.h"
+//#include "graph.h"
 #include "vf2.h"
 namespace GUNDAM {
 namespace _vf2_label_equal {
@@ -65,18 +65,18 @@ inline bool InitCandidateSet(const QueryGraph &query_graph,
         continue;
       for (auto edge_label_it = query_vertex_ptr->OutEdgeLabelBegin();
            !edge_label_it.IsDone(); edge_label_it++) {
-        auto query_out_count =
-            query_vertex_ptr->CountOutEdge(edge_label_it->label());
-        auto target_out_count =
-            target_vertex_ptr->CountOutEdge(edge_label_it->label());
+        auto query_out_count = query_vertex_ptr->CountOutEdge(
+            *edge_label_it /*edge_label_it->label()*/);
+        auto target_out_count = target_vertex_ptr->CountOutEdge(
+            *edge_label_it /*edge_label_it->label()*/);
         if (query_out_count > target_out_count) {
           flag = 1;
           break;
         }
-        query_out_count =
-            query_vertex_ptr->CountOutVertex(edge_label_it->label());
-        target_out_count =
-            target_vertex_ptr->CountOutVertex(edge_label_it->label());
+        query_out_count = query_vertex_ptr->CountOutVertex(
+            *edge_label_it /*edge_label_it->label()*/);
+        target_out_count = target_vertex_ptr->CountOutVertex(
+            *edge_label_it /*edge_label_it->label()*/);
         if (query_out_count > target_out_count) {
           flag = 1;
           break;
@@ -84,18 +84,18 @@ inline bool InitCandidateSet(const QueryGraph &query_graph,
       }
       for (auto edge_label_it = query_vertex_ptr->InEdgeLabelBegin();
            !edge_label_it.IsDone(); edge_label_it++) {
-        auto query_in_count =
-            query_vertex_ptr->CountInEdge(edge_label_it->label());
-        auto target_in_count =
-            target_vertex_ptr->CountInEdge(edge_label_it->label());
+        auto query_in_count = query_vertex_ptr->CountInEdge(
+            *edge_label_it /*edge_label_it->label()*/);
+        auto target_in_count = target_vertex_ptr->CountInEdge(
+            *edge_label_it /*edge_label_it->label()*/);
         if (query_in_count > target_in_count) {
           flag = 1;
           break;
         }
-        query_in_count =
-            query_vertex_ptr->CountInVertex(edge_label_it->label());
-        target_in_count =
-            target_vertex_ptr->CountInVertex(edge_label_it->label());
+        query_in_count = query_vertex_ptr->CountInVertex(
+            *edge_label_it /*edge_label_it->label()*/);
+        target_in_count = target_vertex_ptr->CountInVertex(
+            *edge_label_it /*edge_label_it->label()*/);
         if (query_in_count > target_in_count) {
           flag = 1;
           break;
@@ -298,10 +298,11 @@ inline void UpdateCandidateSetOneDirection(
                             ? query_vertex_ptr->InEdgeLabelBegin()
                             : query_vertex_ptr->OutEdgeLabelBegin());
        !label_it.IsDone(); label_it++) {
-    for (auto it =
-             ((edge_state == EdgeState::kIn)
-                  ? target_vertex_ptr->InVertexCBegin(label_it->label())
-                  : target_vertex_ptr->OutVertexCBegin(label_it->label()));
+    for (auto it = ((edge_state == EdgeState::kIn)
+                        ? target_vertex_ptr->InVertexCBegin(
+                              *label_it /*label_it->label()*/)
+                        : target_vertex_ptr->OutVertexCBegin(
+                              *label_it /*label_it->label()*/));
          !it.IsDone(); it++) {
       // std::cout << "target 111" << std::endl;
       TargetVertexPtr temp_target_ptr = it;
@@ -310,8 +311,10 @@ inline void UpdateCandidateSetOneDirection(
     }
     for (auto vertex_it =
              ((edge_state == EdgeState::kIn)
-                  ? query_vertex_ptr->InVertexCBegin(label_it->label())
-                  : query_vertex_ptr->OutVertexCBegin(label_it->label()));
+                  ? query_vertex_ptr->InVertexCBegin(
+                        *label_it /*label_it->label()*/)
+                               : query_vertex_ptr->OutVertexCBegin(
+                                     *label_it /*label_it->label()*/));
          !vertex_it.IsDone(); vertex_it++) {
       QueryVertexPtr temp_vertex_ptr = vertex_it;
       std::vector<TargetVertexPtr> res_candidate;
@@ -742,7 +745,7 @@ inline int VF2_Label_Equal(
           candidate_set, &cal_supp_vertex_ptr, possible_supp))
     return 0;
   time_t refine_begin = clock();
-  int tot_size0 = 0, tot_size1 = 0;
+  size_t tot_size0 = 0, tot_size1 = 0;
   for (auto &it : candidate_set) tot_size0 += it.second.size();
   if (!_vf2_label_equal::RefineCandidateSet(query_graph, target_graph,
                                             candidate_set)) {

@@ -3,7 +3,7 @@
 
 #include <iterator>
 
-#include "graph.h"
+//#include "graph.h"
 #include "vf2_label_equal.h"
 namespace GUNDAM {
 namespace _vf2_boost {
@@ -53,9 +53,9 @@ inline bool InitCandidateSet(
       for (auto edge_label_it = query_vertex_ptr->OutEdgeLabelBegin();
            !edge_label_it.IsDone(); edge_label_it++) {
         auto query_out_count =
-            query_vertex_ptr->CountOutEdge(edge_label_it->label());
-        auto target_out_count =
-            target_vertex_ptr->CountOutEdge(edge_label_it->label());
+            query_vertex_ptr->CountOutEdge(*edge_label_it /*edge_label_it->label()*/);
+        auto target_out_count = target_vertex_ptr->CountOutEdge(
+            *edge_label_it /*edge_label_it->label()*/);
         if (query_out_count > target_out_count) {
           flag = 1;
           break;
@@ -63,10 +63,10 @@ inline bool InitCandidateSet(
       }
       for (auto edge_label_it = query_vertex_ptr->InEdgeLabelBegin();
            !edge_label_it.IsDone(); edge_label_it++) {
-        auto query_in_count =
-            query_vertex_ptr->CountInEdge(edge_label_it->label());
-        auto target_in_count =
-            target_vertex_ptr->CountInEdge(edge_label_it->label());
+        auto query_in_count = query_vertex_ptr->CountInEdge(
+            *edge_label_it /*edge_label_it->label()*/);
+        auto target_in_count = target_vertex_ptr->CountInEdge(
+            *edge_label_it /*edge_label_it->label()*/);
         if (query_in_count > target_in_count) {
           flag = 1;
           break;
@@ -163,8 +163,10 @@ inline void UpdateCandidateSetOneDirection(
                             : query_vertex_ptr->OutEdgeLabelBegin());
        !label_it.IsDone(); label_it++) {
     for (auto it = ((edge_state == EdgeState::kIn)
-                        ? target_vertex_ptr->InEdgeCBegin(label_it->label())
-                        : target_vertex_ptr->OutEdgeCBegin(label_it->label()));
+                        ? target_vertex_ptr->InEdgeCBegin(
+                              *label_it /*label_it->label()*/)
+                        : target_vertex_ptr->OutEdgeCBegin(
+                              *label_it /*label_it->label()*/));
          !it.IsDone(); it++) {
       TargetVertexPtr temp_target_ptr = (edge_state == EdgeState::kIn)
                                             ? it->const_src_ptr()
@@ -172,10 +174,11 @@ inline void UpdateCandidateSetOneDirection(
       // if (target_matched.count(temp_target_ptr)) continue;
       temp_adj_vertex[temp_target_ptr->label()].insert(temp_target_ptr);
     }
-    for (auto vertex_it =
-             ((edge_state == EdgeState::kIn)
-                  ? query_vertex_ptr->InVertexCBegin(label_it->label())
-                  : query_vertex_ptr->OutVertexCBegin(label_it->label()));
+    for (auto vertex_it = ((edge_state == EdgeState::kIn)
+                               ? query_vertex_ptr->InVertexCBegin(
+                                     *label_it /*label_it->label()*/)
+                               : query_vertex_ptr->OutVertexCBegin(
+                                     *label_it /*label_it->label()*/));
          !vertex_it.IsDone(); vertex_it++) {
       QueryVertexPtr temp_vertex_ptr = vertex_it;
       std::vector<TargetVertexPtr> res_candidate;

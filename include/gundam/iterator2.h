@@ -22,6 +22,13 @@ class PointerCast {
 };
 
 template <class IteratorType,
+          class ValueType = typename IteratorType::value_type::first_type>
+class PairFirstCast {
+ public:
+  ValueType &operator()(IteratorType &it) { return it->first; }
+};
+
+template <class IteratorType,
           class ValueType = typename IteratorType::value_type::second_type>
 class PairSecondCast {
  public:

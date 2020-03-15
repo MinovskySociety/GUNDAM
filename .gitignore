@@ -37,3 +37,6 @@
 /out/
 /build/
 /CMakeSettings.json
+
+# apple
+.DS_Store

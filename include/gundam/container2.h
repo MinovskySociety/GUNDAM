@@ -1,12 +1,13 @@
 #ifndef _CONTAINER2_H
 #define _CONTAINER2_H
 
+#include <algorithm>
 #include <map>
 #include <utility>
 #include <vector>
 
 namespace GUNDAM {
-    
+
 template <typename KeyType, typename ValueType>
 class Vector {
  private:
@@ -104,9 +105,7 @@ class Map {
 
   void Clear() { container_.clear(); }
 
-  iterator begin() noexcept {
-    return container_.begin();
-  }
+  iterator begin() noexcept { return container_.begin(); }
 
   const_iterator begin() const noexcept { return container_.begin(); }
 
@@ -121,6 +120,7 @@ class Map {
  private:
   InnerContainerType container_;
 };
+
 
 }  // namespace GUNDAM
 

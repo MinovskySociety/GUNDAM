@@ -1,6 +1,6 @@
 #ifndef _BOOSTISO_H
 #define _BOOSTISO_H
-#include "gundam/graph.h"
+//#include "gundam/graph.h"
 template <class VertexPtr>
 void GetKStepAdj(VertexPtr vertex_ptr, int k, std::set<VertexPtr> &adj_list) {
   if (k == 0) {

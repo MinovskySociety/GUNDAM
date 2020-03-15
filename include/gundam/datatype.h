@@ -9,7 +9,7 @@
 namespace GUNDAM {
 
 namespace _datatype {
-inline constexpr bool StringCompare(const char* a, const char* b) {
+inline bool StringCompare(const char* a, const char* b) {
   while (*a != '\0' || *b != '\0') {
     if (*a != *b) return false;
     a++;
@@ -27,7 +27,7 @@ enum class BasicDataType : int {
   kTypeDateTime = 4,
 };
 
-inline constexpr BasicDataType StringToEnum(const char* type_str) {
+inline BasicDataType StringToEnum(const char* type_str) {
   if (_datatype::StringCompare(type_str, "int"))
     return BasicDataType::kTypeInt;
   else if (_datatype::StringCompare(type_str, "double"))
@@ -43,7 +43,7 @@ inline constexpr BasicDataType StringToEnum(const char* type_str) {
 template <typename DataType,
           typename std::enable_if<std::is_same<DataType, BasicDataType>::value,
                                   bool>::type = false>
-inline constexpr const char* EnumToString(DataType data) {
+inline const char* EnumToString(DataType data) {
   switch (data) {
     case BasicDataType::kTypeInt:
       return "int";

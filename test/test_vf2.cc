@@ -1,4 +1,5 @@
 #include "gundam/large_graph.h"
+#include "gundam/small_graph.h"
 //#include "gundam/graph.h"
 #include "gundam/label.h"
 #include "gundam/vf2.h"
@@ -22,7 +23,7 @@ bool LabelEqual2(const Ptr1& a, const Ptr2& b) {
 }
 
 template<class GraphType>
-void test_vf2_1() {
+void TestVF2_1() {
   using namespace GUNDAM;
 
   using VertexType = typename GraphType::VertexType;
@@ -85,10 +86,10 @@ TEST(TestGUNDAM, VF2_1) {
   using namespace GUNDAM;
   
   //using G = Graph<>;
-  //test_vf2_1<G>();
+  //TestVF2_1<G>();
 
   using LG = LargeGraph<uint32_t, uint32_t, std::string, uint32_t, uint32_t, std::string>;
-  test_vf2_1<LG>();
+  TestVF2_1<LG>();
 }
 
 template <typename Ptr1, typename Ptr2>
@@ -97,7 +98,7 @@ bool LabelEqualCustom(const Ptr1& a, const Ptr2& b) {
 }
 
 template <class QueryGraph, class TargetGraph>
-void test_vf2_2() {
+void TestVF2_2() {
   using namespace GUNDAM;
 
   QueryGraph query;
@@ -162,11 +163,11 @@ TEST(TestGUNDAM, VF2_2) {
   using TargetGraph = LargeGraph<uint64_t, std::string, std::string, uint64_t,
                                  std::string, std::string>;  
 
-  test_vf2_2<QueryGraph, TargetGraph>();
+  TestVF2_2<QueryGraph, TargetGraph>();
 }
 
 template <class QueryGraph, class TargetGraph>
-void test_vf2_3() {
+void TestVF2_3() {
   using namespace GUNDAM;
 
   QueryGraph query;
@@ -232,12 +233,12 @@ TEST(TestGUNDAM, VF2_3) {
   using TargetGraph = LargeGraph<uint64_t, std::string, std::string, uint64_t,
                                  std::string, std::string>;  
 
-  test_vf2_3<QueryGraph, TargetGraph>();
+  TestVF2_3<QueryGraph, TargetGraph>();
 }
 
 
 template <class QueryGraph, class TargetGraph>
-void test_vf2_speed_1(int times_outer, int times_inner) {
+void TestVF2Speed1(int times_outer, int times_inner) {
   using namespace GUNDAM;
 
   QueryGraph query;
@@ -434,14 +435,13 @@ TEST(TestGUNDAM, VF2_Speed_1) {
   //          SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
   //          SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
 
-  using QueryGraph2 = LargeGraph<uint32_t, uint32_t, std::string, uint32_t,
-                                uint32_t, std::string>; 
+  using QueryGraph2 = SmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
 
   using TargetGraph2 = LargeGraph<uint64_t, uint32_t, std::string, uint64_t,
-                                uint32_t, std::string>;
+                                  uint32_t, std::string>;
 
-  //test_vf2_speed_1<QueryGraph1, TargetGraph1>(1, 10000);
-  test_vf2_speed_1<QueryGraph2, TargetGraph2>(1, 10000);
-  //test_vf2_speed_1<QueryGraph1, TargetGraph2>(1, 10000);
-  //test_vf2_speed_1<QueryGraph2, TargetGraph1>(1, 10000);
+  //TestVF2Speed1<QueryGraph1, TargetGraph1>(1, 10000);
+  TestVF2Speed1<QueryGraph2, TargetGraph2>(1, 10000);
+  //TestVF2Speed1<QueryGraph1, TargetGraph2>(1, 10000);
+  //TestVF2Speed1<QueryGraph2, TargetGraph1>(1, 10000);
 }

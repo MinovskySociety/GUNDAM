@@ -3,7 +3,6 @@
 #include <string>
 
 #include "gtest/gtest.h"
-
 #include "gundam/graph.h"
 #include "gundam/large_graph.h"
 
@@ -162,7 +161,10 @@ TEST(TestGUNDAM, LargeGraph) {
 
   g.EraseVertex(3);
 
-  G1 t(g);
+  G1 t1{g};
+  g.Clear();
 
-  g = t;
+  G1 t2{std::move(t1)};
+
+  g = t2;
 }

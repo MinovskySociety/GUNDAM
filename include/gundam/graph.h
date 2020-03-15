@@ -530,7 +530,13 @@ class Graph {
     }
 
    public:
-    inline const EdgeLabelType& label() const {
+    //inline const EdgeLabelType& label() const {
+    //  assert(!this->IsDone());
+    //  return InnerIteratorType::template get_const<
+    //      EdgeLabelType, edge_label_idx_, depth_ - 1>();
+    //}
+
+    const EdgeLabelType& operator*() const {
       assert(!this->IsDone());
       return InnerIteratorType::template get_const<
           EdgeLabelType, edge_label_idx_, depth_ - 1>();
