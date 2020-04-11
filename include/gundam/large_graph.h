@@ -40,24 +40,21 @@ class LargeGraph {
     using AttributeKeyType = VertexAttributeKeyType;
 
     using VertexIterator =
-        GIterator<typename VertexContainer::iterator, VertexData,
-                  PointerCast<typename VertexContainer::iterator, VertexData>>;
+        GIterator<typename VertexContainer::iterator, VertexData, PointerCast>;
 
-    using VertexConstIterator = GIterator<
-        typename VertexContainer::const_iterator, VertexData,
-        PointerCast<typename VertexContainer::const_iterator, VertexData>>;
+    using VertexConstIterator =
+        GIterator<typename VertexContainer::const_iterator, VertexData,
+                  PointerCast>;
 
     using EdgeIterator =
-        GIterator<typename EdgeContainer::iterator, EdgeData,
-                  PointerCast<typename EdgeContainer::iterator, EdgeData>>;
+        GIterator<typename EdgeContainer::iterator, EdgeData, PointerCast>;
 
-    using EdgeConstIterator = GIterator<
-        typename EdgeContainer::const_iterator, EdgeData,
-        PointerCast<typename EdgeContainer::const_iterator, EdgeData>>;
+    using EdgeConstIterator = GIterator<typename EdgeContainer::const_iterator,
+                                        EdgeData, PointerCast>;
 
-    using EdgeLabelConstIterator = GIterator<
-        typename EdgeLabelContainer::const_iterator, const EdgeLabelType,
-        PairFirstCast<typename EdgeLabelContainer::const_iterator, const EdgeLabelType>>;
+    using EdgeLabelConstIterator =
+        GIterator<typename EdgeLabelContainer::const_iterator,
+                  const EdgeLabelType, PairFirstCast>;
 
     const IDType &id() const { return id_; }
 
@@ -292,7 +289,7 @@ class LargeGraph {
       auto dst = e->dst_ptr();
 
       auto ret3 = out_vertices_[edge_label].insert(dst);
-      // assert(ret3.second);
+      assert(ret3.second);
 
       auto ret4 = out_edge_build_on_vertex_[dst][edge_label].insert(e);
       assert(ret4.second);
@@ -434,6 +431,10 @@ class LargeGraph {
 
     const EdgeLabelType &label() const { return label_; }
 
+    const VertexIDType &src_id() const { return src_->id(); }
+
+    const VertexIDType &dst_id() const { return dst_->id(); }
+
     VertexData *src_ptr() { return src_; }
 
     VertexData *dst_ptr() { return dst_; }
@@ -465,24 +466,21 @@ class LargeGraph {
 
   using VertexIterator = GIterator<
       typename VertexContainer::iterator, VertexData,
-      PairSecondPointerCast<typename VertexContainer::iterator, VertexData>>;
+      PairSecondPointerCast>;
 
   using VertexConstIterator =
       GIterator<typename VertexContainer::const_iterator, VertexData,
-                PairSecondPointerCast<typename VertexContainer::const_iterator,
-                                      VertexData>>;
+                PairSecondPointerCast>;
 
   using EdgePtr = EdgeData *;
 
   using EdgeConstPtr = const EdgeData *;
 
-  using EdgeIterator = GIterator<
-      typename EdgeContainer::iterator, EdgeData,
-      PairSecondPointerCast<typename EdgeContainer::iterator, EdgeData>>;
+  using EdgeIterator = GIterator<typename EdgeContainer::iterator, EdgeData,
+                                 PairSecondPointerCast>;
 
-  using EdgeConstIterator = GIterator<
-      typename EdgeContainer::const_iterator, EdgeData,
-      PairSecondPointerCast<typename EdgeContainer::const_iterator, EdgeData>>;
+  using EdgeConstIterator = GIterator<typename EdgeContainer::const_iterator,
+                                      EdgeData, PairSecondPointerCast>;
 
   static const bool vertex_has_attribute = true;
 

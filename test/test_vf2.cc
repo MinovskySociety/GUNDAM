@@ -22,20 +22,19 @@ bool LabelEqual2(const Ptr1& a, const Ptr2& b) {
   return a->label() == b->label();
 }
 
-template<class GraphType>
+template<class QueryGraph, class TargetGraph>
 void TestVF2_1() {
-  using namespace GUNDAM;
+  using VertexLabelType = typename QueryGraph::VertexType::LabelType;
+  using EdgeLabelType = typename TargetGraph::EdgeType::LabelType;
 
-  using VertexType = typename GraphType::VertexType;
-  using EdgeType = typename GraphType::EdgeType;
-  // using VertexIDType = typename VertexType::IDType;
-  using VertexLabelType = typename VertexType::LabelType;
-  using EdgeLabelType = typename EdgeType::LabelType;
-  using VertexConstPtr = typename GraphType::VertexConstPtr;
-  using EdgeConstPtr = typename GraphType::EdgeConstPtr;
+  using QueryVertexConstPtr = typename QueryGraph::VertexConstPtr;  
+  using TargetVertexConstPtr = typename TargetGraph::VertexConstPtr;  
 
-  GraphType query, target;
-  // VertexIDType query_id = 1, target_id = 1;
+  using QueryEdgeConstPtr = typename QueryGraph::EdgeConstPtr;  
+  using TargetEdgeConstPtr = typename TargetGraph::EdgeConstPtr;  
+
+  QueryGraph query;
+  TargetGraph target;  
 
   // query
   query.AddVertex(1, VertexLabelType(0));
@@ -43,7 +42,7 @@ void TestVF2_1() {
   query.AddVertex(3, VertexLabelType(0));
   query.AddEdge(1, 2, EdgeLabelType(1), 1);
   query.AddEdge(3, 2, EdgeLabelType(1), 2);
-  // query.AddEdge(3,1,EdgeLabelType(1));
+  //query.AddEdge(3, 1, EdgeLabelType(1), 3);
 
   // target
   target.AddVertex(1, VertexLabelType(0));
@@ -53,9 +52,9 @@ void TestVF2_1() {
   target.AddEdge(3, 2, EdgeLabelType(1), 2);
   target.AddEdge(3, 1, EdgeLabelType(1), 3);
 
-  std::vector<std::map<VertexConstPtr, VertexConstPtr>> match_result;
+  std::vector<std::map<QueryVertexConstPtr, TargetVertexConstPtr>> match_result;
   int count =
-      VF2<MatchSemantics::kIsomorphism>(query, target, -1, match_result);
+      GUNDAM::VF2<GUNDAM::MatchSemantics::kIsomorphism>(query, target, -1, match_result);
 
   for (size_t i = 0; i < match_result.size(); i++) {
     std::cout << "match " << i << std::endl;
@@ -67,9 +66,9 @@ void TestVF2_1() {
   std::cout << "count: " << match_result.size() << std::endl;
   ASSERT_EQ(count, 2);
 
-  count = VF2<MatchSemantics::kIsomorphism>(
-      query, target, LabelEqual2<VertexConstPtr, VertexConstPtr>,
-      LabelEqual2<EdgeConstPtr, EdgeConstPtr>, -1, match_result);
+  count = GUNDAM::VF2<GUNDAM::MatchSemantics::kIsomorphism>(
+      query, target, LabelEqual2<QueryVertexConstPtr, TargetVertexConstPtr>,
+      LabelEqual2<QueryEdgeConstPtr, TargetEdgeConstPtr>, -1, match_result);
 
   for (size_t i = 0; i < match_result.size(); i++) {
     std::cout << "match " << i << std::endl;
@@ -88,8 +87,12 @@ TEST(TestGUNDAM, VF2_1) {
   //using G = Graph<>;
   //TestVF2_1<G>();
 
-  using LG = LargeGraph<uint32_t, uint32_t, std::string, uint32_t, uint32_t, std::string>;
-  TestVF2_1<LG>();
+  using LG = LargeGraph<uint32_t, uint32_t, std::string, uint32_t, uint32_t, std::string>;  
+  //TestVF2_1<LG>();
+
+  using SG = SmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
+  TestVF2_1<LG, LG>();
+  TestVF2_1<SG, LG>();
 }
 
 template <typename Ptr1, typename Ptr2>
@@ -435,13 +438,14 @@ TEST(TestGUNDAM, VF2_Speed_1) {
   //          SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
   //          SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
 
-  using QueryGraph2 = SmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
+  using QLG = LargeGraph<uint32_t, uint32_t, std::string, uint32_t,
+                                 uint32_t, std::string>; 
 
-  using TargetGraph2 = LargeGraph<uint64_t, uint32_t, std::string, uint64_t,
+  using QSG = SmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
+
+  using TLG = LargeGraph<uint64_t, uint32_t, std::string, uint64_t,
                                   uint32_t, std::string>;
-
-  //TestVF2Speed1<QueryGraph1, TargetGraph1>(1, 10000);
-  TestVF2Speed1<QueryGraph2, TargetGraph2>(1, 10000);
-  //TestVF2Speed1<QueryGraph1, TargetGraph2>(1, 10000);
-  //TestVF2Speed1<QueryGraph2, TargetGraph1>(1, 10000);
+  
+  TestVF2Speed1<QLG, TLG>(1, 10000);
+  TestVF2Speed1<QSG, TLG>(1, 10000);  
 }

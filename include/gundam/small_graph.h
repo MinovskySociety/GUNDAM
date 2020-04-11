@@ -1,27 +1,91 @@
 #ifndef _SMALL_GRAPH_H
 #define _SMALL_GRAPH_H
 
+#include <algorithm>
+#include <iterator>
 #include <vector>
 
+#include "gundam/container2.h"
 #include "gundam/iterator2.h"
+#include "gundam/pointer.h"
 
 namespace GUNDAM {
+
 template <class VertexIDType, class VertexLabelType, class EdgeIDType,
           class EdgeLabelType>
 class SmallGraph {
  private:
-  class VertexData;
-
-  class EdgeData;
-
   class VertexData {
-   private:
-    friend class SmallGraph;
+   public:
+    VertexData(const VertexLabelType &label) : label_(label){};
 
-    using VertexContainer = std::set<VertexData *>;
+    VertexLabelType label_;
+    SortedVectorSet<EdgeIDType> out_edges_;
+    SortedVectorSet<EdgeIDType> in_edges_;
+  };
 
-    using EdgeContainer = std::set<EdgeData *>;
+  class EdgeData {
+   public:
+    EdgeData(const EdgeLabelType &label, const VertexIDType &src,
+             const VertexIDType &dst)
+        : label_(label), src_(src), dst_(dst){};
 
+    EdgeLabelType label_;
+    VertexIDType src_;
+    VertexIDType dst_;
+  };   
+ 
+  using VertexContainer = SortedVectorDict<VertexIDType, VertexData>;
+  using EdgeContainer = SortedVectorDict<EdgeIDType, EdgeData>;
+
+  using VertexContent = std::pair<VertexIDType, VertexData>;
+  using EdgeContent = std::pair<EdgeIDType, EdgeData>;
+
+  VertexContainer vertices_;
+  EdgeContainer edges_;
+  
+  template <bool is_const>
+  class _Vertex;
+
+  template <bool is_const>
+  class _Edge;
+
+  using Vertex = _Vertex<false>;
+
+  using ConstVertex = _Vertex<true>;
+
+  using Edge = _Edge<false>;
+
+  using ConstEdge = _Edge<true>;
+
+ public:
+  using VertexPtr = GPointer<Vertex, false>;
+
+  using VertexConstPtr = GPointer<ConstVertex, true>;
+
+  using EdgePtr = GPointer<Edge, false>;
+
+  using EdgeConstPtr = GPointer<ConstEdge, true>;
+
+  using VertexIterator =
+      GIterator2<false, SmallGraph, typename VertexContainer::iterator, Vertex,
+                VertexPtr>;
+
+  using VertexConstIterator =
+      GIterator2<true, SmallGraph, typename VertexContainer::const_iterator,
+                ConstVertex, VertexConstPtr>;
+
+  using EdgeIterator =
+      GIterator2<false, SmallGraph, typename EdgeContainer::iterator, Edge,
+                EdgePtr>;
+
+  using EdgeConstIterator =
+      GIterator2<true, SmallGraph, typename EdgeContainer::const_iterator,
+                ConstEdge, EdgeConstPtr>;
+
+ private:
+  template <bool is_const>
+  class _Vertex {
    public:
     using GraphType = SmallGraph;
 
@@ -29,199 +93,114 @@ class SmallGraph {
 
     using LabelType = VertexLabelType;
 
-    using VertexIterator =
-        GIterator<typename VertexContainer::iterator, VertexData,
-                  PointerCast<typename VertexContainer::iterator, VertexData>>;
-
-    using VertexConstIterator = GIterator<
-        typename VertexContainer::const_iterator, VertexData,
-        PointerCast<typename VertexContainer::const_iterator, VertexData>>;
-
     using EdgeIterator =
-        GIterator<typename EdgeContainer::iterator, EdgeData,
-                  PointerCast<typename EdgeContainer::iterator, EdgeData>>;
+        GIterator2<false, SmallGraph,
+                  typename SortedVectorSet<EdgeIDType>::iterator, Edge,
+                  EdgePtr>;
 
-    using EdgeConstIterator = GIterator<
-        typename EdgeContainer::const_iterator, EdgeData,
-        PointerCast<typename EdgeContainer::const_iterator, EdgeData>>;
+    using EdgeConstIterator =
+        GIterator2<true, SmallGraph,
+                  typename SortedVectorSet<EdgeIDType>::const_iterator,
+                  ConstEdge, EdgeConstPtr>;
 
+   private:
+    friend GraphType;
+    friend typename GraphType::VertexPtr;
+    friend typename GraphType::VertexConstPtr;
+    friend typename GraphType::VertexIterator;
+    friend typename GraphType::VertexConstIterator;
+    friend typename GraphType::EdgePtr;
+    friend typename GraphType::EdgeConstPtr;
+    friend typename GraphType::EdgeIterator;
+    friend typename GraphType::EdgeConstIterator;
+
+    _Vertex() = default;
+
+    _Vertex(typename std::conditional<is_const, const GraphType *,
+                                      GraphType *>::type graph,
+            const VertexContent &content)
+        : graph_(graph), id_(content.first), label_(content.second.label_) {}
+
+    _Vertex(typename std::conditional<is_const, const GraphType *,
+                                      GraphType *>::type graph,
+            const VertexIDType &id)
+        : graph_(graph), id_(id) {
+      assert(graph_);
+      const auto &data = graph_->vertices_.Find(id_)->second;
+      label_ = data.label_;
+    }
+
+   public:
     const IDType &id() const { return id_; }
 
     const VertexLabelType &label() const { return label_; }
 
-    size_t CountOutEdge() const { return out_edges_.size(); }
-
-    size_t CountOutEdge(const EdgeLabelType &edge_label) const {
-      auto it = this->out_edge_labels_.find(edge_label);
-      if (it == this->out_edge_labels_.end()) return 0;
-      return it->second.size();
-    }
-    size_t CountInEdge() const { return in_edges_.size(); }
-    size_t CountInEdge(const EdgeLabelType &edge_label) const {
-      auto it = this->in_edge_labels_.find(edge_label);
-      if (it == this->in_edge_labels_.end()) return 0;
-      return it->second.size();
+    size_t CountOutEdge() const {
+      assert(graph_);
+      const auto &data = graph_->vertices_.Find(id_)->second;
+      return data.out_edges_.Count();
     }
 
-    // size_t CountOutVertex() const { return out_vertices_.size(); }
-
-    // size_t CountInVertex() const { return in_vertices_.size(); }
+    size_t CountInEdge() const {
+      assert(graph_);
+      const auto &data = graph_->vertices_.Find(id_)->second;
+      return data.in_edges_.Count();
+    }
 
     EdgeIterator OutEdgeBegin() {
-      return EdgeIterator(out_edges_.begin(), out_edges_.end());
+      assert(graph_);
+      auto &data = graph_->vertices_.Find(id_)->second;
+      return EdgeIterator(graph_, data.out_edges_.begin(),
+                          data.out_edges_.end());
     }
 
     EdgeConstIterator OutEdgeCBegin() const {
-      return EdgeConstIterator(out_edges_.cbegin(), out_edges_.cend());
+      assert(graph_);
+      const auto &data = graph_->vertices_.Find(id_)->second;
+      return EdgeConstIterator(graph_, data.out_edges_.cbegin(),
+                               data.out_edges_.cend());
     }
 
     EdgeIterator InEdgeBegin() {
-      return EdgeIterator(in_edges_.begin(), in_edges_.end());
+      assert(graph_);
+      auto &data = graph_->vertices_.Find(id_)->second;
+      return EdgeIterator(graph_, data.in_edges_.begin(), data.in_edges_.end());
     }
 
     EdgeConstIterator InEdgeCBegin() const {
-      return EdgeIterator(in_edges_.cbegin(), in_edges_.cend());
+      assert(graph_);
+      const auto &data = graph_->vertices_.Find(id_)->second;
+      return EdgeConstIterator(graph_, data.in_edges_.cbegin(),
+                               data.in_edges_.cend());
     }
 
-    // VertexIterator OutVertexBegin() {
-    //  return VertexIterator(out_vertices_.begin(), out_vertices_.end());
-    //}
-
-    // VertexConstIterator OutVertexCBegin() const {
-    //  return VertexConstIterator(out_vertices_.cbegin(),
-    //  out_vertices_.cend());
-    //}
-
-    // VertexIterator InVertexBegin() {
-    //  return VertexIterator(in_vertices_.begin(), in_vertices_.end());
-    //}
-
-    // VertexConstIterator InVertexCBegin() const {
-    //  return VertexIterator(in_vertices_.cbegin(), in_vertices_.cend());
-    //}
-
-    EdgeIterator OutEdgeBegin(const EdgeLabelType &edge_label) {
-      auto it = out_edge_labels_.find(edge_label);
-      if (it == out_edge_labels_.end()) {
-        return EdgeIterator();
+    bool operator==(const _Vertex &b) const {
+      if (!graph_) {
+        return !b.graph_;
+      } else if (!b.graph_) {
+        return false;
+      } else {
+        return id_ == b.id_;
       }
-      return EdgeIterator(it->second.begin(), it->second.end());
     }
 
-    EdgeConstIterator OutEdgeCBegin(const EdgeLabelType &edge_label) const {
-      auto it = out_edge_labels_.find(edge_label);
-      if (it == out_edge_labels_.cend()) {
-        return EdgeConstIterator();
+    bool operator<(const _Vertex &b) const {
+      if (!graph_ || !b.graph_) {
+        return false;
+      } else {
+        return id_ < b.id_;
       }
-      return EdgeConstIterator(it->second.cbegin(), it->second.cend());
-    }
-
-    EdgeIterator InEdgeBegin(const EdgeLabelType &edge_label) {
-      auto it = in_edge_labels_.find(edge_label);
-      if (it == in_edge_labels_.end()) {
-        return EdgeIterator();
-      }
-      return EdgeIterator(it->second.begin(), it->second.end());
-    }
-
-    EdgeConstIterator InEdgeCBegin(const EdgeLabelType &edge_label) const {
-      auto it = in_edge_labels_.find(edge_label);
-      if (it == in_edge_labels_.cend()) {
-        return EdgeConstIterator();
-      }
-      return EdgeConstIterator(it->second.cbegin(), it->second.cend());
     }
 
    private:
-    VertexData(const IDType &id, const LabelType &label)
-        : id_(id), label_(label) {}
-
-    ~VertexData() {}
-
-    void AddOutEdge(EdgeData *e) {
-      assert(e->src_ptr() == this);
-
-      auto ret1 = out_edges_.insert(e);
-      assert(ret1.second);
-
-      auto ret2 = out_edge_labels_[e->label()].insert(e);
-      assert(ret2.second);
-
-      // auto dst = e->dst_ptr();
-
-      // out_vertices_.insert(dst);
-
-      // out_vertex_labels_[dst->label()].insert(dst);
-    }
-
-    void AddInEdge(EdgeData *e) {
-      assert(e->dst_ptr() == this);
-
-      auto ret1 = in_edges_.insert(e);
-      assert(ret1.second);
-
-      auto ret2 = in_edge_labels_[e->label()].insert(e);
-      assert(ret2.second);
-
-      // auto src = e->src_ptr();
-
-      // in_vertices_.insert(src);
-
-      // in_vertex_labels_[src->label()].insert(src);
-    }
-
-    void RemoveOutEdge(EdgeData *e) {
-      assert(e->src_ptr() == this);
-
-      auto it1 = out_edges_.find(e);
-      if (it1 == out_edges_.end()) return;
-      out_edges_.erase(it1);
-
-      auto it2 = out_edge_labels_.find(e->label());
-      assert(it2 != out_edge_labels_.end());
-      auto it3 = it2->second.find(e);
-      assert(it3 != it2->second.end());
-      it2->second.erase(it3);
-      if (it2->second.empty()) out_edge_labels_.erase(it2);
-    }
-
-    void RemoveInEdge(EdgeData *e) {
-      assert(e->dst_ptr() == this);
-
-      auto it1 = in_edges_.find(e);
-      if (it1 == in_edges_.end()) return;
-      in_edges_.erase(it1);
-
-      auto it2 = in_edge_labels_.find(e->label());
-      assert(it2 != in_edge_labels_.end());
-      auto it3 = it2->second.find(e);
-      assert(it3 != it2->second.end());
-      it2->second.erase(it3);
-      if (it2->second.empty()) in_edge_labels_.erase(it2);
-    }
-
+    typename std::conditional<is_const, const GraphType *, GraphType *>::type
+        graph_;
     VertexIDType id_;
     VertexLabelType label_;
-
-    std::set<EdgeData *> out_edges_;
-    std::set<EdgeData *> in_edges_;
-
-    // std::map<VertexData *, std::set<EdgeData *>> out_vertices_;
-    // std::map<VertexData *, std::set<EdgeData *>> in_vertices_;
-
-    std::map<EdgeLabelType, std::set<EdgeData *>> out_edge_labels_;
-    std::map<EdgeLabelType, std::set<EdgeData *>> in_edge_labels_;
-
-    // std::map<VertexLabelType, std::map<VertexData *, std::set<EdgeData *>>>
-    //    in_vertex_labels_;
-    // std::map<VertexLabelType, std::map<VertexData *, std::set<EdgeData *>>>
-    //    out_vertex_labels_;
   };
 
-  class EdgeData {
-   private:
-    friend class SmallGraph;
-
+  template <bool is_const>
+  class _Edge {
    public:
     using GraphType = SmallGraph;
 
@@ -229,68 +208,105 @@ class SmallGraph {
 
     using LabelType = EdgeLabelType;
 
-    EdgeData(const EdgeIDType &id, const EdgeLabelType &label, VertexData *src,
-             VertexData *dst)
-        : id_(id), label_(label), src_(src), dst_(dst) {}
+   private:
+    friend GraphType;
+    friend typename GraphType::VertexPtr;
+    friend typename GraphType::VertexConstPtr;
+    friend typename GraphType::VertexIterator;
+    friend typename GraphType::VertexConstIterator;
+    friend typename GraphType::EdgePtr;
+    friend typename GraphType::EdgeConstPtr;
+    friend typename GraphType::EdgeIterator;
+    friend typename GraphType::EdgeConstIterator;
+    friend typename GraphType::Vertex::EdgeIterator;
+    friend typename GraphType::Vertex::EdgeConstIterator;
 
-    ~EdgeData() {}
+    _Edge() = default;
 
+    _Edge(typename std::conditional<is_const, const GraphType *,
+                                    GraphType *>::type graph,
+          const EdgeContent &content)
+        : graph_(graph),
+          id_(content.first),
+          label_(content.second.label_),
+          src_(content.second.src_),
+          dst_(content.second.dst_) {}
+
+    _Edge(typename std::conditional<is_const, const GraphType *,
+                                    GraphType *>::type graph,
+          const EdgeIDType &id)
+        : graph_(graph), id_(id) {
+      assert(graph_);
+      const auto &data = graph_->edges_.Find(id_)->second;
+      label_ = data.label_;
+      src_ = data.src_;
+      dst_ = data.dst_;
+    }
+
+   public:
     const EdgeIDType &id() const { return id_; }
 
     const EdgeLabelType &label() const { return label_; }
 
-    VertexData *src_ptr() { return src_; }
+    const VertexIDType &src_id() const { return src_; }
 
-    VertexData *dst_ptr() { return dst_; }
+    const VertexIDType &dst_id() const { return dst_; }
 
-    const VertexData *const_src_ptr() const { return src_; }
+    VertexPtr src_ptr() { return VertexPtr(Vertex(graph_, src_)); }
 
-    const VertexData *const_dst_ptr() const { return dst_; }
+    VertexConstPtr src_ptr() const {
+      return VertexConstPtr(ConstVertex(graph_, src_));
+    }
+
+    VertexConstPtr const_src_ptr() const {
+      return VertexConstPtr(ConstVertex(graph_, src_));
+    }
+
+    VertexPtr dst_ptr() { return VertexPtr(Vertex(graph_, dst_)); }
+
+    VertexConstPtr dst_ptr() const {
+      return VertexConstPtr(ConstVertex(graph_, dst_));
+    }
+
+    VertexConstPtr const_dst_ptr() const {
+      return VertexConstPtr(ConstVertex(graph_, dst_));
+    }
+
+    bool operator==(const _Edge &b) const {
+      if (graph_) {
+        if (b.graph_) {
+          return id_ == b.id_;
+        } else {
+          return false;
+        }
+      } else {
+        if (b.graph_) {
+          return false;
+        } else {
+          return true;
+        }
+      }
+    }
 
    private:
+    typename std::conditional<is_const, const GraphType *, GraphType *>::type
+        graph_;
     EdgeIDType id_;
     EdgeLabelType label_;
-    VertexData *src_;
-    VertexData *dst_;
+    VertexIDType src_;
+    VertexIDType dst_;
   };
 
-  using VertexContainer = std::map<VertexIDType, VertexData *>;
-
-  using EdgeContainer = std::map<EdgeIDType, EdgeData *>;
-
  public:
-  using VertexType = VertexData;
+  using VertexType = Vertex;
 
-  using EdgeType = EdgeData;
+  using EdgeType = Edge;
 
-  using VertexPtr = VertexData *;
+  static constexpr bool vertex_has_attribute = false;
 
-  using VertexConstPtr = const VertexData *;
+  static constexpr bool edge_has_attribute = false;
 
-  using VertexIterator = GIterator<
-      typename VertexContainer::iterator, VertexData,
-      PairSecondPointerCast<typename VertexContainer::iterator, VertexData>>;
-
-  using VertexConstIterator =
-      GIterator<typename VertexContainer::const_iterator, VertexData,
-                PairSecondPointerCast<typename VertexContainer::const_iterator,
-                                      VertexData>>;
-
-  using EdgePtr = EdgeData *;
-
-  using EdgeConstPtr = const EdgeData *;
-
-  using EdgeIterator = GIterator<
-      typename EdgeContainer::iterator, EdgeData,
-      PairSecondPointerCast<typename EdgeContainer::iterator, EdgeData>>;
-
-  using EdgeConstIterator = GIterator<
-      typename EdgeContainer::const_iterator, EdgeData,
-      PairSecondPointerCast<typename EdgeContainer::const_iterator, EdgeData>>;
-
-  static const bool vertex_has_attribute = true;
-
-  static const bool edge_has_attribute = true;
+  static constexpr bool is_mutable = true;
 
   SmallGraph() = default;
 
@@ -306,189 +322,152 @@ class SmallGraph {
 
   SmallGraph(SmallGraph &&) = default;
 
-  SmallGraph &operator=(const SmallGraph &other) {
-    Clear();
-
-    for (auto v_it = other.VertexCBegin(); !v_it.IsDone(); ++v_it) {
-      AddVertex(v_it->id(), v_it->label());
-    }
-    for (auto e_it = other.EdgeCBegin(); !e_it.IsDone(); ++e_it) {
-      AddEdge(e_it->const_src_ptr()->id(), e_it->const_dst_ptr()->id(),
-              e_it->label(), e_it->id());
-    }
-
-    return *this;
-  };
+  SmallGraph &operator=(const SmallGraph &other) = default;
 
   SmallGraph &operator=(SmallGraph &&) = default;
 
-  ~SmallGraph() { Clear(); }
+  ~SmallGraph() = default;
 
-  size_t CountVertex() const { return vertices_.size(); }
+  size_t CountVertex() const { return vertices_.Count(); }
 
-  size_t CountVertex(const typename VertexType::LabelType &label) const {
-    auto it = vertex_labels_.find(label);
-    if (it == vertex_labels_.cend()) {
-      return 0;
-    }
-    return it->second.size();
+  std::pair<VertexPtr, bool> AddVertex(const VertexIDType &id,
+                                       const VertexLabelType &label) {
+    typename VertexContainer::iterator it;
+    bool res;
+    std::tie(it, res) = vertices_.Insert(id, label);
+
+    return std::make_pair(VertexPtr(Vertex(this, *it)), res);
   }
 
-  std::pair<VertexPtr, bool> AddVertex(
-      const typename VertexType::IDType &id,
-      const typename VertexType::LabelType &label) {
-    VertexData *v = new VertexData(id, label);
-
-    auto p = std::make_pair(id, v);
-
-    auto ret1 = vertices_.insert(p);
-    if (!ret1.second) {
-      delete v;
-      return std::make_pair(ret1.first->second, false);
-    }
-
-    auto ret2 = vertex_labels_[label].insert(p);
-    assert(ret2.second);
-
-    return std::make_pair(v, true);
-  }
-
-  VertexPtr FindVertex(const typename VertexType::IDType &id) {
-    auto it = vertices_.find(id);
+  VertexPtr FindVertex(const VertexIDType &id) {
+    auto it = vertices_.Find(id);
     if (it == vertices_.end()) return nullptr;
-    return it->second;
+    return VertexPtr(Vertex(this, *it));
   }
 
-  VertexConstPtr FindConstVertex(const typename VertexType::IDType &id) const {
-    auto it = vertices_.find(id);
+  VertexConstPtr FindConstVertex(const VertexIDType &id) const {
+    auto it = vertices_.Find(id);
     if (it == vertices_.end()) return nullptr;
-    return it->second;
+    return VertexConstPtr(ConstVertex(this, *it));
   }
 
   VertexIterator VertexBegin() {
-    return VertexIterator(vertices_.begin(), vertices_.end());
+    return VertexIterator(this, vertices_.begin(), vertices_.end());
   }
 
   VertexConstIterator VertexCBegin() const {
-    return VertexConstIterator(vertices_.cbegin(), vertices_.cend());
+    return VertexConstIterator(this, vertices_.cbegin(), vertices_.cend());
   }
 
-  VertexIterator VertexBegin(const typename VertexType::LabelType &label) {
-    auto it = vertex_labels_.find(label);
-    if (it == vertex_labels_.end()) {
-      return VertexIterator();
-    }
-    return VertexIterator(it->second.begin(), it->second.end());
-  };
+  // VertexIterator VertexBegin(const VertexLabelType &label) {
+  //  auto it = vertex_labels_.find(label);
+  //  if (it == vertex_labels_.end()) {
+  //    return VertexIterator();
+  //  }
+  //  return VertexIterator(it->second.begin(), it->second.end());
+  //};
 
-  VertexConstIterator VertexCBegin(
-      const typename VertexType::LabelType &label) const {
-    auto it = vertex_labels_.find(label);
-    if (it == vertex_labels_.cend()) {
-      return VertexConstIterator();
-    }
-    return VertexConstIterator(it->second.cbegin(), it->second.cend());
-  }
+  // VertexConstIterator VertexCBegin(
+  //    const VertexLabelType &label) const {
+  //  auto it = vertex_labels_.find(label);
+  //  if (it == vertex_labels_.cend()) {
+  //    return VertexConstIterator();
+  //  }
+  //  return VertexConstIterator(it->second.cbegin(), it->second.cend());
+  //}
 
-  bool EraseVertex(const typename VertexType::IDType &id) {
-    auto it = vertices_.find(id);
+  bool EraseVertex(const VertexIDType &id) {
+    auto it = vertices_.Find(id);
     if (it == vertices_.end()) return false;
 
-    VertexData *v = it->second;
-    while (!v->out_edges_.empty()) {
-      EraseEdge((*(v->out_edges_.begin()))->id());
-    }
-    while (!v->in_edges_.empty()) {
-      EraseEdge((*(v->in_edges_.begin()))->id());
-    }
-    assert(v->out_edges_.empty());
-    assert(v->in_edges_.empty());
-    assert(v->out_edge_labels_.empty());
-    assert(v->in_edge_labels_.empty());
-    delete v;
+    auto &v_data = it->second;
 
-    vertices_.erase(it);
+    std::vector<VertexIDType> edges;
+    std::merge(v_data.out_edges_.begin(), v_data.out_edges_.end(),
+               v_data.in_edges_.begin(), v_data.in_edges_.end(),
+               std::back_inserter(edges));
+
+    for (auto it_r = edges.rbegin(); it_r != edges.rend(); ++it_r) {
+      if (it_r != edges.rbegin() && *it_r == *(it_r - 1)) continue;
+      edges_.Erase(*it_r);
+    }
+
+    vertices_.Erase(it);
+
     return true;
   }
 
-  size_t CountEdge() const { return edges_.size(); }
+  size_t CountEdge() const { return edges_.Count(); }
 
-  std::pair<EdgePtr, bool> AddEdge(const typename VertexType::IDType &src,
-                                   const typename VertexType::IDType &dst,
-                                   const typename EdgeType::LabelType &label,
-                                   const typename EdgeType::IDType &id) {
-    VertexData *src_ptr = FindVertex(src);
-    VertexData *dst_ptr = FindVertex(dst);
-    if (!src_ptr || !dst_ptr) {
-      return std::make_pair(nullptr, false);
+  std::pair<EdgePtr, bool> AddEdge(const VertexIDType &src,
+                                   const VertexIDType &dst,
+                                   const EdgeLabelType &label,
+                                   const EdgeIDType &id) {
+    auto it_src = vertices_.Find(src);
+    if (it_src == vertices_.end()) return std::make_pair(EdgePtr(), false);
+
+    auto it_dst = vertices_.Find(dst);
+    if (it_dst == vertices_.end()) {
+      return std::make_pair(EdgePtr(), false);
     }
 
-    EdgeData *e = new EdgeData(id, label, src_ptr, dst_ptr);
-    assert(e);
-
-    auto ret1 = edges_.insert(std::make_pair(id, e));
+    auto ret1 = edges_.Insert(id, label, src, dst);
     if (!ret1.second) {
-      return std::make_pair(ret1.first->second, false);
+      return std::make_pair(EdgePtr(Edge(this, *ret1.first)), false);
     }
 
-    src_ptr->AddOutEdge(e);
-    dst_ptr->AddInEdge(e);
+    it_src->second.out_edges_.Insert(id);
 
-    return std::make_pair(e, true);
+    it_dst->second.in_edges_.Insert(id);
+
+    return std::make_pair(EdgePtr(Edge(this, *ret1.first)), true);
   }
 
-  EdgePtr FindEdge(const typename EdgeType::IDType &id) {
+  EdgePtr FindEdge(const EdgeIDType &id) {
     auto it = edges_.find(id);
-    if (it == edges_.end()) return nullptr;
-    return it->second;
+    if (it == edges_.end()) return EdgePtr();
+    return EdgePtr(this, *it);
   }
 
-  EdgeConstPtr FindConstEdge(const typename EdgeType::IDType &id) const {
-    auto it = edges_.find(id);
-    if (it == edges_.end()) return nullptr;
-    return it->second;
+  EdgeConstPtr FindConstEdge(const EdgeIDType &id) const {
+    auto it = edges_.Find(id);
+    if (it == edges_.end()) return EdgeConstPtr();
+    return EdgeConstPtr(this, *it);
   }
 
   EdgeIterator EdgeBegin() {
-    return EdgeIterator(edges_.begin(), edges_.end());
+    return EdgeIterator(this, edges_.begin(), edges_.end());
   }
 
   EdgeConstIterator EdgeCBegin() const {
-    return EdgeConstIterator(edges_.cbegin(), edges_.cend());
+    return EdgeConstIterator(this, edges_.cbegin(), edges_.cend());
   }
 
-  bool EraseEdge(const typename EdgeType::IDType &id) {
-    auto it = edges_.find(id);
-    if (it == edges_.end()) return false;
+  bool EraseEdge(const EdgeIDType &id) {
+    auto it1 = edges_.Find(id);
+    if (it1 == edges_.end()) return false;
 
-    EdgeData *e = it->second;
-    e->src_ptr()->RemoveOutEdge(e);
-    e->dst_ptr()->RemoveInEdge(e);
-    delete e;
+    auto &e_data = it1->second;
 
-    edges_.erase(it);
+    auto it2 = vertices_.Find(e_data.src_);
+    auto &src_data = it2->second;
+    bool res = src_data.out_edges_.Erase(id);
+    assert(res);
+
+    auto it3 = vertices_.Find(e_data.dst_);
+    auto &dst_data = it3->second;
+    res = dst_data.in_edges_.Erase(id);
+    assert(res);
+
+    edges_.Erase(it1);
+
     return true;
   }
 
   void Clear() {
-    for (auto &p : vertices_) {
-      delete p.second;
-    }
-    for (auto &p : edges_) {
-      delete p.second;
-    }
-
-    vertices_.clear();
-    edges_.clear();
-    vertex_labels_.clear();
+    vertices_.Clear();
+    edges_.Clear();
   }
-
- private:
-  VertexContainer vertices_;
-
-  std::map<VertexLabelType, VertexContainer> vertex_labels_;
-
-  EdgeContainer edges_;
 };
 
 }  // namespace GUNDAM

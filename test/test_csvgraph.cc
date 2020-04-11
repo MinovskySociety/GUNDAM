@@ -57,15 +57,15 @@ TEST(TestGUNDAM, ReadCSVGraph) {
   //    "D://Work/cu100/liantong_e_attr_send_message.csv",
   //    "D://Work/cu100/liantong_e_attr_visit.csv"};
 
-  std::vector<std::string> v_list{"D://Work/cu5000/liantong_n_attr_user.csv",
-                                  "D://Work/cu5000/liantong_n_attr_faketype.csv",
-                                  "D://Work/cu5000/liantong_n_attr_phone.csv",
-                                  "D://Work/cu5000/liantong_n_attr_web.csv"};
+  std::vector<std::string> v_list{"/mnt/d/Work/cu5000/liantong_n_attr_user.csv",
+                                  "/mnt/d/Work/cu5000/liantong_n_attr_faketype.csv",
+                                  "/mnt/d/Work/cu5000/liantong_n_attr_phone.csv",
+                                  "/mnt/d/Work/cu5000/liantong_n_attr_web.csv"};
 
   std::vector<std::string> e_list{
-      "D://Work/cu5000/liantong_e_attr_call.csv",
-      "D://Work/cu5000/liantong_e_attr_send_message.csv",
-      "D://Work/cu5000/liantong_e_attr_visit.csv"};
+      "/mnt/d/Work/cu5000/liantong_e_attr_call.csv",
+      "/mnt/d/Work/cu5000/liantong_e_attr_send_message.csv",
+      "/mnt/d/Work/cu5000/liantong_e_attr_visit.csv"};
 
   //const char *v_list = "D://Work/cu5000/liantong_n.csv";
   //const char *e_list = "D://Work/cu5000/liantong_e.csv";

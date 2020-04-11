@@ -7,75 +7,74 @@
 
 namespace GUNDAM {
 
-template <class IteratorType,
-          class ValueType = typename IteratorType::value_type>
+template <class IteratorType, class ValueType>
 class DefaultCast {
  public:
   ValueType &operator()(IteratorType &it) { return *it; }
 };
 
-template <class IteratorType, class ValueType = typename std::remove_pointer<
-                                  typename IteratorType::value_type>::type>
+template <class IteratorType, class ValueType>
+class ReinterpretCast {
+ public:
+  ValueType &operator()(IteratorType &it) {
+    return *reinterpret_cast<ValueType *>(&*it);
+  }
+};
+
+template <class IteratorType, class ValueType>
 class PointerCast {
  public:
   ValueType &operator()(IteratorType &it) { return *(*it); }
 };
 
-template <class IteratorType,
-          class ValueType = typename IteratorType::value_type::first_type>
+template <class IteratorType, class ValueType>
 class PairFirstCast {
  public:
   ValueType &operator()(IteratorType &it) { return it->first; }
 };
 
 template <class IteratorType,
-          class ValueType = typename IteratorType::value_type::second_type>
+          class ValueType>
 class PairSecondCast {
  public:
   ValueType &operator()(IteratorType &it) { return it->second; }
 };
 
-template <class IteratorType,
-          class ValueType = typename std::remove_pointer<
-              typename IteratorType::value_type::second_type>::type>
+template <class IteratorType, class ValueType>
 class PairSecondPointerCast {
  public:
   ValueType &operator()(IteratorType &it) const { return *(it->second); }
 };
 
 template <class IteratorType, class ValueType,
-          class Cast = DefaultCast<IteratorType>>
+          template<class _IteratorType, class _ValueType> class Cast = DefaultCast>
 class GIterator {
  public:
   GIterator() = default;
 
-  template <class IterBegin, class IterEnd>
-  GIterator(IterBegin &&begin, IterEnd &&end)
-      : it_{std::forward<IterBegin>(begin)}, end_{std::forward<IterEnd>(end)} {}
+  template <class Iter, class IterEnd>
+  GIterator(Iter &&it, IterEnd &&end)
+      : it_(std::forward<Iter>(it)), end_(std::forward<IterEnd>(end)) {}
 
-  GIterator(const GIterator &) = default;
+  ValueType &operator*() { return Cast<IteratorType, ValueType>()(it_); }
 
-  GIterator(GIterator &&) = default;
+  const ValueType &operator*() const {
+    return Cast<IteratorType, ValueType>()(it_);
+  }
 
-  GIterator &operator=(const GIterator &) = default;
+  ValueType *operator->() { return &Cast<IteratorType, ValueType>()(it_); }
 
-  GIterator &operator=(GIterator &&) = default;
+  const ValueType *operator->() const {
+    return &Cast<IteratorType, ValueType>(it_);
+  }
 
-  ~GIterator() = default;
+  operator ValueType *() { return &Cast<IteratorType, ValueType>()(it_); }
 
-  ValueType &operator*() { return Cast()(it_); }
+  operator const ValueType *() const {
+    return &Cast<IteratorType, ValueType>()(it_);
+  }
 
-  const ValueType operator*() const { return Cast()(it_); }
-
-  ValueType *operator->() { return &Cast()(it_); }
-
-  const ValueType *operator->() const { return &Cast()(it_); }
-
-  operator ValueType *() { return &Cast()(it_); }
-
-  operator const ValueType *() const { return &Cast()(it_); }
-
-  GIterator operator++() {
+  GIterator& operator++() {
     /// prefix
     assert(!this->IsDone());
     ++it_;
@@ -94,6 +93,68 @@ class GIterator {
   bool IsDone() const { return it_ == end_; }
 
  private:
+  IteratorType it_;
+  IteratorType end_;
+};
+
+template <bool is_const, class GraphType, class IteratorType, class ValueType, class PointerType>
+class GIterator2 {
+ public:
+  GIterator2() = default;
+
+  template <class GraphPtr, class Iter, class IterEnd>
+  GIterator2(GraphPtr &&graph, Iter &&it, IterEnd &&end)
+      : graph_(std::forward<GraphPtr>(graph)),
+        it_(std::forward<Iter>(it)),
+        end_(std::forward<IterEnd>(end)) {}
+
+  ValueType operator*() { return ValueType(graph_, *it_); }
+
+  const ValueType operator*() const { return ValueType(graph_, *it_); }
+
+  PointerType operator->() { return PointerType(ValueType(graph_, *it_)); }
+
+  const PointerType operator->() const {
+    return PointerType(ValueType(graph_, *it_));
+  }
+
+  operator PointerType() { return PointerType(ValueType(graph_, *it_)); }
+
+  operator const PointerType() const {
+    return PointerType(ValueType(graph_, *it_));
+  }
+
+  GIterator2 &operator++() {
+    /// prefix
+    assert(!this->IsDone());
+    ++it_;
+    return *this;
+  }
+
+  GIterator2 operator++(int) {
+    /// postfix
+    assert(!this->IsDone());
+    GIterator2 tmp(*this);
+    //++(*this);
+    ++it_;
+    return tmp;
+  }
+
+  bool operator==(const GIterator2 &b) const {
+    assert(graph_);
+    assert(b.graph_);
+    assert(end_ == b.end_);
+    return it_ == b.it_;
+  }
+
+  bool IsDone() const {
+    assert(graph_);
+    return it_ == end_;
+  }
+
+ private:
+  typename std::conditional<is_const, const GraphType *, GraphType *>::type
+      graph_;
   IteratorType it_;
   IteratorType end_;
 };

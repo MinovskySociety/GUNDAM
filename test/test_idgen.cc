@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-#include "gundam/graph.h"
+#include "gundam/large_graph.h"
 #include "gundam/geneator.h"
 #include "gundam/util.h"
 
@@ -10,9 +10,12 @@
 
 TEST(TestGUNDAM, IDGEN) {
   using namespace GUNDAM;
-  Graph<> g;
+
+  using G = GUNDAM::LargeGraph<uint64_t, uint32_t, std::string, uint64_t,
+                               uint32_t, std::string>;
+  G g;
   time(0);
-  SimpleArithmeticIDGenerator<Graph<>::EdgeType::IDType> edge_id_gen;
+  SimpleArithmeticIDGenerator<typename G::EdgeType::IDType> edge_id_gen;
   for (int i = 1; i <= 10; i++) g.AddVertex(i, 0);
   for (int i = 1; i <= 10; i++) {
     for (int j = i + 1; j <= 10; j++) {
