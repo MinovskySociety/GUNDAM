@@ -1,5 +1,3 @@
-#include "gundam/vf2.h"
-
 #include <functional>
 #include <iostream>
 #include <list>
@@ -7,9 +5,13 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-TEST(TestGUNDAM, MULTI_VF2) {
-  using namespace GUNDAM;
-  using GraphType = GUNDAM::Graph<>;
+
+#include "gundam/vf2.h"
+#include "gundam/large_graph.h"
+//#include "gundam/graph.h"
+
+template <class GraphType>
+void TestMultiVF2() {
   using VertexType = typename GraphType::VertexType;
   using EdgeType = typename GraphType::EdgeType;
   using VertexIDType = typename VertexType::IDType;
@@ -37,9 +39,10 @@ TEST(TestGUNDAM, MULTI_VF2) {
   target.AddEdge(1, 2, EdgeLabelType(1), 2);
 
   std::vector<std::map<VertexConstPtr, VertexConstPtr>> match_result;
-  int count = VF2<MatchSemantics::kIsomorphism>(
-      query, target, 1, 1, _vf2::LabelEqual<VertexConstPtr, VertexConstPtr>(),
-      _vf2::LabelEqual<EdgeConstPtr, EdgeConstPtr>(), -1, match_result);
+  int count = GUNDAM::VF2<GUNDAM::MatchSemantics::kIsomorphism>(
+      query, target, 1, 1,
+      GUNDAM::_vf2::LabelEqual<VertexConstPtr, VertexConstPtr>(),
+      GUNDAM::_vf2::LabelEqual<EdgeConstPtr, EdgeConstPtr>(), -1, match_result);
 
   for (size_t i = 0; i < match_result.size(); i++) {
     std::cout << "match " << i << std::endl;
@@ -50,4 +53,12 @@ TEST(TestGUNDAM, MULTI_VF2) {
   }
   std::cout << "count: " << match_result.size() << std::endl;
   ASSERT_EQ(count, 1);
+}
+
+TEST(TestGUNDAM, MULTI_VF2) {  
+  //using G1 = GUNDAM::Graph<>;
+
+  using G2 = GUNDAM::LargeGraph<uint32_t, uint32_t, std::string, uint32_t, uint32_t, std::string>;
+  
+  TestMultiVF2<G2>();
 }

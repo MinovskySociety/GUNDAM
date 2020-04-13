@@ -1,13 +1,15 @@
 #include <ctime>
 #include <iostream>
 #include <string>
+
+#include "gtest/gtest.h"
+
+#include "gundam/graph.h"
 #include "gundam/csvgraph.h"
 #include "gundam/geneator.h"
 #include "gundam/matchresult.h"
 #include "gundam/util.h"
 #include "gundam/vf2.h"
-
-#include "gtest/gtest.h"
 
 TEST(TestGUNDAM, WRITEMATCHRESULT) {
   using namespace GUNDAM;

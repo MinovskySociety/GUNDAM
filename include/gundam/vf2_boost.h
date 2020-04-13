@@ -1,6 +1,9 @@
 #ifndef _VF2BOOST_H
 #define _VF2BOOST_H
-#include "graph.h"
+
+#include <iterator>
+
+//#include "graph.h"
 #include "vf2_label_equal.h"
 namespace GUNDAM {
 namespace _vf2_boost {
@@ -50,9 +53,9 @@ inline bool InitCandidateSet(
       for (auto edge_label_it = query_vertex_ptr->OutEdgeLabelBegin();
            !edge_label_it.IsDone(); edge_label_it++) {
         auto query_out_count =
-            query_vertex_ptr->CountOutEdge(edge_label_it->label());
-        auto target_out_count =
-            target_vertex_ptr->CountOutEdge(edge_label_it->label());
+            query_vertex_ptr->CountOutEdge(*edge_label_it /*edge_label_it->label()*/);
+        auto target_out_count = target_vertex_ptr->CountOutEdge(
+            *edge_label_it /*edge_label_it->label()*/);
         if (query_out_count > target_out_count) {
           flag = 1;
           break;
@@ -60,10 +63,10 @@ inline bool InitCandidateSet(
       }
       for (auto edge_label_it = query_vertex_ptr->InEdgeLabelBegin();
            !edge_label_it.IsDone(); edge_label_it++) {
-        auto query_in_count =
-            query_vertex_ptr->CountInEdge(edge_label_it->label());
-        auto target_in_count =
-            target_vertex_ptr->CountInEdge(edge_label_it->label());
+        auto query_in_count = query_vertex_ptr->CountInEdge(
+            *edge_label_it /*edge_label_it->label()*/);
+        auto target_in_count = target_vertex_ptr->CountInEdge(
+            *edge_label_it /*edge_label_it->label()*/);
         if (query_in_count > target_in_count) {
           flag = 1;
           break;
@@ -86,7 +89,9 @@ inline bool CheckIsInCandidateSet(
     QueryVertexPtr query_vertex_ptr,
     const std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
     const TargetVertexID &target_id) {
+  if (candidate_set.find(query_vertex_ptr) == candidate_set.end()) return false;
   for (const auto &v : candidate_set.find(query_vertex_ptr)->second) {
+    // std::cout << "id = " << v->id() << std::endl;
     if (v->id() == target_id) {
       return true;
     }
@@ -139,18 +144,17 @@ inline QueryVertexPtr DetermineMatchOrder(
       min = candidate_count;
     }
   }
-  assert(min >= 0 && !res.IsNull());
+  //assert(min >= 0 && !res.IsNull());
   return res;
 }
 
-template <enum EdgeState edge_state, class QueryVertexPtr,
-          class TargetVertexPtr, class MatchStateMap, class TargetVertexSet>
+template <enum EdgeState edge_state, class QueryGraph, class TargetGraph,
+          class QueryVertexPtr, class TargetVertexPtr, class MatchStateMap,
+          class TargetVertexSet>
 inline void UpdateCandidateSetOneDirection(
     QueryVertexPtr query_vertex_ptr, TargetVertexPtr target_vertex_ptr,
     std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
     const MatchStateMap &match_state, const TargetVertexSet &target_matched) {
-  using QueryGraph = typename QueryVertexPtr::GraphType;
-  using TargetGraph = typename TargetVertexPtr::GraphType;
   std::map<typename QueryGraph::VertexType::LabelType,
            std::set<TargetVertexPtr>>
       temp_adj_vertex;
@@ -158,19 +162,23 @@ inline void UpdateCandidateSetOneDirection(
                             ? query_vertex_ptr->InEdgeLabelBegin()
                             : query_vertex_ptr->OutEdgeLabelBegin());
        !label_it.IsDone(); label_it++) {
-    for (auto it =
-             ((edge_state == EdgeState::kIn)
-                  ? target_vertex_ptr->InVertexCBegin(label_it->label())
-                  : target_vertex_ptr->OutVertexCBegin(label_it->label()));
+    for (auto it = ((edge_state == EdgeState::kIn)
+                        ? target_vertex_ptr->InEdgeCBegin(
+                              *label_it /*label_it->label()*/)
+                        : target_vertex_ptr->OutEdgeCBegin(
+                              *label_it /*label_it->label()*/));
          !it.IsDone(); it++) {
-      TargetVertexPtr temp_target_ptr = it;
+      TargetVertexPtr temp_target_ptr = (edge_state == EdgeState::kIn)
+                                            ? it->const_src_ptr()
+                                            : it->const_dst_ptr();
       // if (target_matched.count(temp_target_ptr)) continue;
-      temp_adj_vertex[it->label()].insert(temp_target_ptr);
+      temp_adj_vertex[temp_target_ptr->label()].insert(temp_target_ptr);
     }
-    for (auto vertex_it =
-             ((edge_state == EdgeState::kIn)
-                  ? query_vertex_ptr->InVertexCBegin(label_it->label())
-                  : query_vertex_ptr->OutVertexCBegin(label_it->label()));
+    for (auto vertex_it = ((edge_state == EdgeState::kIn)
+                               ? query_vertex_ptr->InVertexCBegin(
+                                     *label_it /*label_it->label()*/)
+                               : query_vertex_ptr->OutVertexCBegin(
+                                     *label_it /*label_it->label()*/));
          !vertex_it.IsDone(); vertex_it++) {
       QueryVertexPtr temp_vertex_ptr = vertex_it;
       std::vector<TargetVertexPtr> res_candidate;
@@ -184,29 +192,26 @@ inline void UpdateCandidateSetOneDirection(
     }
   }
 }
-template <class QueryVertexPtr, class TargetVertexPtr, class MatchStateMap,
-          class TargetVertexSet>
+template <class QueryGraph, class TargetGraph, class QueryVertexPtr,
+          class TargetVertexPtr, class MatchStateMap, class TargetVertexSet>
 inline void UpdateCandidateSet(
     QueryVertexPtr query_vertex_ptr, TargetVertexPtr target_vertex_ptr,
     std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
     const MatchStateMap &match_state, const TargetVertexSet &target_matched) {
-  using QueryGraph = typename QueryVertexPtr::GraphType;
-  using TargetGraph = typename TargetVertexPtr::GraphType;
-  UpdateCandidateSetOneDirection<EdgeState::kIn>(
+  UpdateCandidateSetOneDirection<EdgeState::kIn, QueryGraph, TargetGraph>(
       query_vertex_ptr, target_vertex_ptr, candidate_set, match_state,
       target_matched);
-  UpdateCandidateSetOneDirection<EdgeState::kOut>(
+  UpdateCandidateSetOneDirection<EdgeState::kOut, QueryGraph, TargetGraph>(
       query_vertex_ptr, target_vertex_ptr, candidate_set, match_state,
       target_matched);
 }
-template <enum EdgeState edge_state, class QueryVertexPtr,
-          class TargetVertexPtr, class MatchStateMap, class IsCliqueMap>
+template <enum EdgeState edge_state, class QueryGraph, class TargetGraph,
+          class QueryVertexPtr, class TargetVertexPtr, class MatchStateMap,
+          class IsCliqueMap>
 inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
                           const TargetVertexPtr &target_vertex_ptr,
                           const MatchStateMap &match_state,
                           const IsCliqueMap &is_clique) {
-  using QueryGraph = typename QueryVertexPtr::GraphType;
-  using TargetGraph = typename TargetVertexPtr::GraphType;
   using QueryEdgePtr = typename QueryGraph::EdgeConstPtr;
   using TargetEdgePtr = typename TargetGraph::EdgeConstPtr;
   using QueryEdgeMapPair = std::pair<typename QueryGraph::EdgeType::LabelType,
@@ -228,8 +233,8 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
 
     TargetVertexPtr query_opp_match_vertex_ptr = match_iter->second;
     if (query_opp_match_vertex_ptr == target_vertex_ptr) {
-      equal_vertex_map[TargetEdgeMapPair(query_edge_ptr->label(),
-                                         query_opp_vertex_ptr)]++;
+      equal_vertex_map[std::make_pair(query_edge_ptr->label(),
+                                      query_opp_vertex_ptr)]++;
       continue;
     }
     bool find_target_flag = false;
@@ -259,9 +264,10 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
   }
   return true;
 }
-template <enum MatchSemantics match_semantics, class QueryVertexPtr,
-          class TargetVertexPtr, class MatchStateMap, class TargetVertexSet,
-          class UsedTimeMap, class IsCliqueMap>
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class QueryVertexPtr, class TargetVertexPtr,
+          class MatchStateMap, class TargetVertexSet, class UsedTimeMap,
+          class IsCliqueMap>
 inline bool IsJoinable(QueryVertexPtr query_vertex_ptr,
                        TargetVertexPtr target_vertex_ptr,
                        const MatchStateMap &match_state,
@@ -275,12 +281,12 @@ inline bool IsJoinable(QueryVertexPtr query_vertex_ptr,
       return false;
     }
   }
-  if (!JoinableCheck<EdgeState::kIn>(query_vertex_ptr, target_vertex_ptr,
-                                     match_state, is_clique)) {
+  if (!JoinableCheck<EdgeState::kIn, QueryGraph, TargetGraph>(
+          query_vertex_ptr, target_vertex_ptr, match_state, is_clique)) {
     return false;
   }
-  if (!JoinableCheck<EdgeState::kOut>(query_vertex_ptr, target_vertex_ptr,
-                                      match_state, is_clique)) {
+  if (!JoinableCheck<EdgeState::kOut, QueryGraph, TargetGraph>(
+          query_vertex_ptr, target_vertex_ptr, match_state, is_clique)) {
     return false;
   }
   return true;
@@ -311,9 +317,9 @@ inline void RestoreState(QueryVertexPtr query_vertex_ptr,
     target_matched.find(target_vertex_ptr)->second--;
 }
 
-template <enum MatchSemantics match_semantics, class QueryVertexPtr,
-          class TargetVertexPtr, class MatchCallback, class UsedtimeMap,
-          class IsCliqueMap>
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class QueryVertexPtr, class TargetVertexPtr,
+          class MatchCallback, class UsedtimeMap, class IsCliqueMap>
 bool _VF2(
     const std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
     std::map<QueryVertexPtr, TargetVertexPtr> &match_state,
@@ -321,7 +327,7 @@ bool _VF2(
     const UsedtimeMap &vertex_used_time, const IsCliqueMap &is_clique,
     size_t &result_count, MatchCallback user_callback) {
   // for (auto &it : match_state) {
-  // std::cout << it.first->id() << " " << it.second->id() << std::endl;
+  //  std::cout << it.first->id() << " " << it.second->id() << std::endl;
   //}
   // std::cout << std::endl;
   if (match_state.size() == candidate_set.size()) {
@@ -331,20 +337,26 @@ bool _VF2(
 
   QueryVertexPtr next_query_vertex_ptr =
       DetermineMatchOrder(candidate_set, match_state);
+  // std::cout << "next size = "
+  //          << candidate_set.find(next_query_vertex_ptr)->second.size()
+  //         << std::endl;
   for (const TargetVertexPtr &next_target_vertex_ptr :
        candidate_set.find(next_query_vertex_ptr)->second) {
-    if (IsJoinable<match_semantics>(
+    // std::cout << "pair = " << next_query_vertex_ptr->id() << " "
+    //           << next_target_vertex_ptr->id() << std::endl;
+    if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
             next_query_vertex_ptr, next_target_vertex_ptr, match_state,
             target_matched, vertex_used_time, is_clique)) {
       std::map<QueryVertexPtr, std::vector<TargetVertexPtr>>
           temp_candidate_set = candidate_set;
       UpdateState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
                   target_matched);
-      UpdateCandidateSet(next_query_vertex_ptr, next_target_vertex_ptr,
-                         temp_candidate_set, match_state, target_matched);
-      if (!_VF2<match_semantics>(temp_candidate_set, match_state,
-                                 target_matched, vertex_used_time, is_clique,
-                                 result_count, user_callback)) {
+      UpdateCandidateSet<QueryGraph, TargetGraph>(
+          next_query_vertex_ptr, next_target_vertex_ptr, temp_candidate_set,
+          match_state, target_matched);
+      if (!_VF2<match_semantics, QueryGraph, TargetGraph>(
+              temp_candidate_set, match_state, target_matched, vertex_used_time,
+              is_clique, result_count, user_callback)) {
         return false;
       }
       RestoreState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
@@ -365,16 +377,16 @@ inline int VF2_Recursive(const QueryGraph &query_graph,
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
 
   std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> candidate_set;
-  if (!_vf2_label_equal::InitCandidateSet<match_semantics>(
-          query_graph, target_graph, candidate_set)) {
+  if (!_vf2_boost::InitCandidateSet<match_semantics>(query_graph, target_graph,
+                                                     candidate_set)) {
     return 0;
   }
   std::map<QueryVertexPtr, TargetVertexPtr> match_state;
   std::map<TargetVertexPtr, int> target_matched;
   size_t result_count = 0;
-  _VF2<match_semantics>(candidate_set, match_state, target_matched,
-                        vertex_used_time, is_clique, result_count,
-                        user_callback);
+  _VF2<match_semantics, QueryGraph, TargetGraph>(
+      candidate_set, match_state, target_matched, vertex_used_time, is_clique,
+      result_count, user_callback);
 
   return static_cast<int>(result_count);
 }
@@ -447,24 +459,28 @@ inline int VF2_Boost(const QueryGraph &query_graph,
   // for (auto &it : candidate_set) {
   // std::cout << it.first->id() << " " << it.second.size() << std::endl;
   //}
+  // std::cout << "cout end!" << std::endl;
   QueryVertexPtr query_ptr = query_graph.FindConstVertex(query_id);
   TargetVertexPtr target_ptr = target_graph.FindConstVertex(target_id);
   if (!_vf2_boost::CheckIsInCandidateSet(query_ptr, candidate_set, target_id)) {
     return 0;
   }
+  // std::cout << "check end!" << std::endl;
   std::map<QueryVertexPtr, TargetVertexPtr> match_state;
   std::map<TargetVertexPtr, int> target_matched;
 
   _vf2_boost::UpdateState(query_ptr, target_ptr, match_state, target_matched);
-  _vf2_boost::UpdateCandidateSet(query_ptr, target_ptr, candidate_set,
-                                 match_state, target_matched);
+  // std::cout << "update end!" << std::endl;
+  _vf2_boost::UpdateCandidateSet<QueryGraph, TargetGraph>(
+      query_ptr, target_ptr, candidate_set, match_state, target_matched);
+  // std::cout << "update1 end!" << std::endl;
   size_t result_count = 0;
-  return _vf2_boost::_VF2<match_semantics>(
+  return _vf2_boost::_VF2<match_semantics, QueryGraph, TargetGraph>(
       candidate_set, match_state, target_matched, vertex_used_time, is_clique,
       result_count,
       std::bind(_vf2::MatchCallbackSaveResult<QueryVertexPtr, TargetVertexPtr,
                                               ResultContainer>,
                 std::placeholders::_1, &max_result, &match_result));
-}
+}  // namespace GUNDAM
 }  // namespace GUNDAM
 #endif

@@ -5,7 +5,7 @@
 template <typename PatternVertexIDType, typename TargetVertexIDType,
           typename MatchResultContainer>
 void MatchResultToFile(const MatchResultContainer &r, std::ostream &out) {
-  size_t total_match_num = r.size();
+  //size_t total_match_num = r.size();
   std::map<PatternVertexIDType, int> vertex_id_to_index;
   std::vector<PatternVertexIDType> index_to_vertex_id;
   for (const auto &single_match_result : r) {

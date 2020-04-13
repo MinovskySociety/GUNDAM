@@ -4,6 +4,7 @@
 #include "container.h"
 
 namespace GUNDAM {
+
 using IteratorDepthType = int8_t;
 
 template <typename ContainerType_, bool is_const_, IteratorDepthType depth_>
@@ -12,45 +13,6 @@ class InnerIterator_;
 template <typename ContainerType_, bool is_const_, IteratorDepthType depth_,
           IteratorDepthType now_depth_>
 class _InnerIterator_;
-
-template <typename ContentIterator_>
-class Iterator_ : protected ContentIterator_ {
- private:
-  using ContentPtr = typename ContentIterator_ ::ContentPtr;
-
- public:
-  using ContentIterator_::ContentIterator_;
-
-  template <bool judge = ContentIterator_::kIsConst_,
-            typename std::enable_if<!judge, bool>::type = false>
-  inline ContentPtr operator->() {
-    assert(!this->IsDone());
-    return ContentIterator_::content_ptr();
-  }
-
-  template <bool judge = ContentIterator_::kIsConst_,
-            typename std::enable_if<judge, bool>::type = false>
-  inline ContentPtr operator->() const {
-    assert(!this->IsDone());
-    return ContentIterator_::content_ptr();
-  }
-
-  inline Iterator_ operator++() {
-    /// prefix
-    assert(!this->IsDone());
-    ContentIterator_::ToNext();
-    return *this;
-  }
-  inline Iterator_ operator++(int) {
-    /// postfix
-    assert(!this->IsDone());
-    Iterator_ temp(*this);
-    //++(*this);
-    ContentIterator_::ToNext();
-    return temp;
-  }
-  inline bool IsDone() const { return ContentIterator_::IsDone(); }
-};
 
 /// the iterator of the container that only has one layer
 template <enum ContainerType container_type_, enum SortType sort_type_,
@@ -175,7 +137,7 @@ class InnerIterator_<Container<container_type_, sort_type_, KeyType_,
     return;
   }
 
- protected:
+  // protected:
   inline bool IsDone() const { return this->iterator_ == this->kIteratorEnd_; }
 
   inline void ToNext() {
@@ -693,6 +655,46 @@ class _InnerIterator_<Container<container_type_, sort_type_, KeyType_,
         "Type mismatch");
     return std::get<return_idx>(*(this->iterator_));
   }
+};
+
+// Iterator_ "outter"
+template <typename ContentIterator_>
+class Iterator_ : protected ContentIterator_ {
+ private:
+  using ContentPtr = typename ContentIterator_ ::ContentPtr;
+
+ public:
+  using ContentIterator_::ContentIterator_;
+
+  template <bool judge = ContentIterator_::kIsConst_,
+            typename std::enable_if<!judge, bool>::type = false>
+  inline ContentPtr operator->() {
+    assert(!this->IsDone());
+    return ContentIterator_::content_ptr();
+  }
+
+  template <bool judge = ContentIterator_::kIsConst_,
+            typename std::enable_if<judge, bool>::type = false>
+  inline ContentPtr operator->() const {
+    assert(!this->IsDone());
+    return ContentIterator_::content_ptr();
+  }
+
+  inline Iterator_ operator++() {
+    /// prefix
+    assert(!this->IsDone());
+    ContentIterator_::ToNext();
+    return *this;
+  }
+  inline Iterator_ operator++(int) {
+    /// postfix
+    assert(!this->IsDone());
+    Iterator_ temp(*this);
+    //++(*this);
+    ContentIterator_::ToNext();
+    return temp;
+  }
+  inline bool IsDone() const { return ContentIterator_::IsDone(); }
 };
 
 }  // namespace GUNDAM

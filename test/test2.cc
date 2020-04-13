@@ -2,17 +2,18 @@
 #include <string>
 
 #include "gtest/gtest.h"
+
 #include "gundam/graph.h"
 
-TEST(TestGUNDAM, GoogleTest) { ASSERT_TRUE(true); }
-
-TEST(TestGUNDAM, GraphClass) {
+TEST(TestGUNDAM, TestGraphLabel) {
   using namespace GUNDAM;
+
   Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<Label<std::string>>,
         SetEdgeIDType<uint64_t>, SetEdgeLabelType<Label<int64_t>>,
         SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
         SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>
       g1;
+
   // AddVertex
   auto res1 = g1.AddVertex(1, Label<std::string>("AAA"));
   ASSERT_TRUE(res1.second);
@@ -25,18 +26,20 @@ TEST(TestGUNDAM, GraphClass) {
   ASSERT_FALSE(res1.first.IsNull());
   ASSERT_EQ(res1.first->id(), 2);
   ASSERT_EQ(res1.first->label(), Label<std::string>("AAA"));
+
   // AddEdge
   using EdgeLabelType = decltype(g1)::EdgeType::LabelType;
   auto res2 = g1.AddEdge(2, 1, EdgeLabelType(1), 1);
   ASSERT_TRUE(res2.second);
   ASSERT_FALSE(res2.first.IsNull());
   ASSERT_EQ(res2.first->id(), 1);
+
   // ASSERT_EQ(res2.first->label(), Label<std::string>("ccc"));
-  std::cout << "Adge 1's label: " << res2.first->label().to_string()
+  std::cout << "Edge 1's label: " << res2.first->label().to_string()
             << std::endl;
 }
 
-TEST(TestGUNDAM, Graph_Edge) {
+TEST(TestGUNDAM, GraphEdge) {
   using namespace GUNDAM;
 
   using GraphType1 =
@@ -79,9 +82,14 @@ TEST(TestGUNDAM, Graph_Edge) {
   ASSERT_TRUE(g1.AddEdge(1, 3, "b", 3).second);
 
   e1 = g1.FindEdge(1);
+  ASSERT_FALSE(e1.IsNull());
 
-  auto e_it1 = v1->OutEdgeCBegin();
-  GraphType1::EdgeConstPtr e1_const1 = e_it1;
+  auto e_it1 = v1->OutEdgeBegin();  
+  auto e_it_const1 = v1->OutEdgeCBegin();
+
+  GraphType1::EdgePtr e1_1 = e_it1;
+  GraphType1::EdgeConstPtr e1_const1 = e_it_const1;
+
   ASSERT_EQ(e1->id(), e1_const1->id());
   ASSERT_EQ(e1->const_src_ptr(), e1_const1->const_src_ptr());
   ASSERT_EQ(e1->const_dst_ptr(), e1_const1->const_dst_ptr());
@@ -96,9 +104,9 @@ TEST(TestGUNDAM, Graph_Edge) {
   ASSERT_EQ("a", e1_const2->label());
   ASSERT_EQ(e1, e1_const2);
 
-  GraphType1::EdgePtr e1a = e1;  
+  GraphType1::EdgePtr e1a = e1;
   e1a = e1;
-  GraphType1::EdgeConstPtr e1b = e1_const1;  
+  GraphType1::EdgeConstPtr e1b = e1_const1;
   e1b = e1_const2;
 
   res2 = g1.AddEdge(1, 1, "sss", 4);

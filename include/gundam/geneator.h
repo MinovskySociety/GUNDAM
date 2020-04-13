@@ -9,10 +9,7 @@ class SimpleArithmeticIDEmptyGenerator {
  public:
   IDType GetID() {}
 
-  void UseID(const IDType& id) {
-    IDType id_temp = id + 1;
-    return;
-  }
+  void UseID(const IDType& id) {}    
 };
 
 template <typename IDType,

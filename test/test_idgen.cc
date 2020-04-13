@@ -1,7 +1,8 @@
 #include <ctime>
 #include <iostream>
 #include <string>
-#include "gundam/csvgraph.h"
+
+#include "gundam/graph.h"
 #include "gundam/geneator.h"
 #include "gundam/util.h"
 
