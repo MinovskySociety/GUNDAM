@@ -57,12 +57,10 @@ TEST(TestGUNDAM, TestGIterator) {
   {
     using C2 = std::set<TestString*>;
 
-    using I2 = GUNDAM::GIterator<C2::iterator, TestString,
-                                 GUNDAM::PointerCast<typename C2::iterator>>;
+    using I2 = GUNDAM::GIterator<C2::iterator, TestString, GUNDAM::PointerCast>;
 
     using CI2 =
-        GUNDAM::GIterator<C2::const_iterator, TestString,
-                          GUNDAM::PointerCast<typename C2::const_iterator>>;
+        GUNDAM::GIterator<C2::const_iterator, TestString, GUNDAM::PointerCast>;
 
     C2 c2;
     c2.emplace(new TestString("a"));
@@ -100,8 +98,8 @@ TEST(TestGUNDAM, TestGIterator) {
   {
     using C3 = std::map<int, TestString>;
 
-    using I3 = GUNDAM::GIterator<C3::iterator, TestString,
-                                 GUNDAM::PairSecondCast<typename C3::iterator>>;
+    using I3 =
+        GUNDAM::GIterator<C3::iterator, TestString, GUNDAM::PairSecondCast>;
 
     C3 c3;
     c3.emplace(1, "a");
@@ -125,13 +123,11 @@ TEST(TestGUNDAM, TestGIterator) {
   {
     using C4 = std::map<int, std::shared_ptr<TestString>>;
 
-    using I4 = GUNDAM::GIterator<
-        C4::iterator, TestString,
-        GUNDAM::PairSecondPointerCast<typename C4::iterator, TestString>>;
+    using I4 = GUNDAM::GIterator<C4::iterator, TestString,
+                                 GUNDAM::PairSecondPointerCast>;
 
-    using CI4 = GUNDAM::GIterator<
-        C4::const_iterator, const TestString,
-        GUNDAM::PairSecondPointerCast<typename C4::const_iterator, const TestString>>;
+    using CI4 = GUNDAM::GIterator<C4::const_iterator, const TestString,
+                                  GUNDAM::PairSecondPointerCast>;
 
     C4 c4;
     c4.emplace(1, std::make_shared<TestString>("a"));

@@ -3,12 +3,12 @@
 #include <tuple>
 
 #include "gtest/gtest.h"
-
 #include "gundam/container2.h"
 
 template <class ContainerType>
-inline void TestKVContainer(ContainerType &c) {
-  c.Clear();
+inline void TestDictContainer() {
+  ContainerType c;
+
   ASSERT_EQ(0, c.Count());
 
   ASSERT_TRUE(c.Insert(5, "e").second);
@@ -29,7 +29,7 @@ inline void TestKVContainer(ContainerType &c) {
   const ContainerType &c_const = c;
   auto it_const = c_const.Find(3);
   ASSERT_NE(c.cend(), it_const);
-    
+
   ASSERT_TRUE(c.Erase(4));
   ASSERT_FALSE(c.Erase(4));
   ASSERT_TRUE(c.Insert(4, "D").second);
@@ -87,12 +87,11 @@ inline void TestKVContainer(ContainerType &c) {
 TEST(TestGUNDAM, TestContainer2) {
   using namespace GUNDAM;
 
-  using C1 = Vector<int, std::string>;
-  using C2 = Map<int, std::string>;
+  using C1 = VectorDict<int, std::string>;
+  using C2 = MapDict<int, std::string>;
+  using C3 = SortedVectorDict<int, std::string>;
 
-  C1 c1;
-  C2 c2;
-
-  TestKVContainer(c1);
-  TestKVContainer(c2);
+  TestDictContainer<C1>();
+  TestDictContainer<C2>();
+  TestDictContainer<C3>();
 }

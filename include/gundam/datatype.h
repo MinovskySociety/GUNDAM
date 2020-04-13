@@ -59,27 +59,6 @@ inline const char* EnumToString(DataType data) {
   }
 }
 
-template <enum BasicDataType data_type,
-          typename std::enable_if<data_type == BasicDataType::kTypeInt,
-                                  bool>::type = false>
-int EnumToType() {
-  int a;
-  return a;
-}
-template <enum BasicDataType data_type,
-          typename std::enable_if<data_type == BasicDataType::kTypeDouble,
-                                  bool>::type = false>
-double EnumToType() {
-  double a;
-  return a;
-}
-template <enum BasicDataType data_type,
-          typename std::enable_if<data_type == BasicDataType::kTypeString,
-                                  bool>::type = false>
-std::string EnumToType() {
-  std::string a;
-  return a;
-}
 template <typename DataType,
           typename std::enable_if<std::is_integral<DataType>::value,
                                   bool>::type = false>

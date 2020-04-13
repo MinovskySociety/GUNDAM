@@ -57,12 +57,6 @@ class LargeGraph {
         GIterator<typename EdgeLabelContainer::const_iterator,
                   const EdgeLabelType, PairFirstCast>;
 
-    using EdgeLabelConstIterator =
-        GIterator<typename EdgeLabelContainer::const_iterator,
-                  const EdgeLabelType,
-                  PairFirstCast<typename EdgeLabelContainer::const_iterator,
-                                const EdgeLabelType>>;
-
     const IDType &id() const { return id_; }
 
     const VertexLabelType &label() const { return label_; }
@@ -76,14 +70,16 @@ class LargeGraph {
     }
     size_t CountOutEdge(const EdgeLabelType &edge_label,
                         const VertexData *vertex_ptr) const {
-      auto it = this->out_edge_build_on_vertex_.find(
-          const_cast<VertexData *>(vertex_ptr));
-      if (it == this->out_edge_build_on_vertex_.end()) {
+      auto it =
+          out_edge_build_on_vertex_.find(const_cast<VertexData *>(vertex_ptr));
+      if (it == out_edge_build_on_vertex_.end()) {
         return 0;
       }
       auto it1 = it->second.find(edge_label);
-      if (it1 == it->second.end()) return 0;
-      return it1->second.size();
+      if (it1 == it->second.end()) {
+        return 0;
+      }
+      return it->second.size();
     }
     size_t CountInEdge() const { return in_edges_.size(); }
     size_t CountInEdge(const EdgeLabelType &edge_label) const {
@@ -93,14 +89,16 @@ class LargeGraph {
     }
     size_t CountInEdge(const EdgeLabelType &edge_label,
                        const VertexData *vertex_ptr) const {
-      auto it = this->in_edge_build_on_vertex_.find(
-          const_cast<VertexData *>(vertex_ptr));
-      if (it == this->in_edge_build_on_vertex_.end()) {
+      auto it =
+          in_edge_build_on_vertex_.find(const_cast<VertexData *>(vertex_ptr));
+      if (it == in_edge_build_on_vertex_.end()) {
         return 0;
       }
       auto it1 = it->second.find(edge_label);
-      if (it1 == it->second.end()) return 0;
-      return it1->second.size();
+      if (it1 == it->second.end()) {
+        return 0;
+      }
+      return it->second.size();
     }
     size_t CountInVertex() const {
       return this->in_edge_build_on_vertex_.size();

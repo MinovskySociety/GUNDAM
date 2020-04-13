@@ -52,8 +52,8 @@ inline bool InitCandidateSet(
       int flag = 0;
       for (auto edge_label_it = query_vertex_ptr->OutEdgeLabelBegin();
            !edge_label_it.IsDone(); edge_label_it++) {
-        auto query_out_count =
-            query_vertex_ptr->CountOutEdge(*edge_label_it /*edge_label_it->label()*/);
+        auto query_out_count = query_vertex_ptr->CountOutEdge(
+            *edge_label_it /*edge_label_it->label()*/);
         auto target_out_count = target_vertex_ptr->CountOutEdge(
             *edge_label_it /*edge_label_it->label()*/);
         if (query_out_count > target_out_count) {
@@ -144,7 +144,7 @@ inline QueryVertexPtr DetermineMatchOrder(
       min = candidate_count;
     }
   }
-  //assert(min >= 0 && !res.IsNull());
+  assert(min >= 0 && !res.IsNull());
   return res;
 }
 

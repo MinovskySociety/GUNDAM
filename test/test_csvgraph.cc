@@ -1,27 +1,26 @@
+#include <ctime>
 #include <iostream>
 #include <string>
-#include <ctime>
 
 #include "gtest/gtest.h"
-
 #include "gundam/csvgraph.h"
-#include "gundam/util.h"
-
 #include "gundam/large_graph.h"
+#include "gundam/util.h"
 //#include "gundam/graph.h"
 
 inline uint64_t GetTime() { return clock() * 1000 / CLOCKS_PER_SEC; }
 
 template <class GraphType, class VertexFileList, class EdgeFileList>
-void TestReadCSVGraph(const VertexFileList &v_list, const EdgeFileList &e_list) {
+void TestReadCSVGraph(const VertexFileList &v_list,
+                      const EdgeFileList &e_list) {
   using namespace GUNDAM;
-  
+
   auto begin_time = GetTime();
 
   GraphType g1;
-  
+
   ReadCSVGraph(g1, v_list, e_list);
-    
+
   auto end_time = GetTime();
 
   std::cout << "  Time: " << end_time - begin_time << "ms" << std::endl;
@@ -29,53 +28,54 @@ void TestReadCSVGraph(const VertexFileList &v_list, const EdgeFileList &e_list) 
   // PrintGraph(g1);
   std::cout << "Vertex: " << g1.CountVertex() << std::endl;
   std::cout << "  Edge: " << g1.CountEdge() << std::endl;
-  
+
   ASSERT_TRUE(true);
 }
 
 TEST(TestGUNDAM, ReadCSVGraph) {
   using namespace GUNDAM;
 
-  //using G1 = Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<uint32_t>,
+  // using G1 = Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<uint32_t>,
   //                 SetEdgeIDType<uint32_t>, SetEdgeLabelType<uint32_t>,
   //                 SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
   //                 SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>,
   //                 SetVertexAttributeKeyType<std::string>,
   //                 SetEdgeAttributeKeyType<std::string>>;
 
-  using G2 = LargeGraph<uint32_t, uint32_t, std::string, 
-                               uint32_t, uint32_t, std::string>;
+  using G2 = LargeGraph<uint32_t, uint32_t, std::string, uint32_t, uint32_t,
+                        std::string>;
 
-  //std::vector<std::string> v_list{
+  // std::vector<std::string> v_list{
   //    "D://Work/cu100/liantong_n_attr_user.csv",
   //    "D://Work/cu100/liantong_n_attr_faketype.csv",
   //    "D://Work/cu100/liantong_n_attr_phone.csv",
   //    "D://Work/cu100/liantong_n_attr_web.csv"};
 
-  //std::vector<std::string> e_list{
+  // std::vector<std::string> e_list{
   //    "D://Work/cu100/liantong_e_attr_call.csv",
   //    "D://Work/cu100/liantong_e_attr_send_message.csv",
   //    "D://Work/cu100/liantong_e_attr_visit.csv"};
 
-  std::vector<std::string> v_list{"D://Work/cu5000/liantong_n_attr_user.csv",
-                                  "D://Work/cu5000/liantong_n_attr_faketype.csv",
-                                  "D://Work/cu5000/liantong_n_attr_phone.csv",
-                                  "D://Work/cu5000/liantong_n_attr_web.csv"};
+  std::vector<std::string> v_list{
+      "/mnt/d/Work/cu5000/liantong_n_attr_user.csv",
+      "/mnt/d/Work/cu5000/liantong_n_attr_faketype.csv",
+      "/mnt/d/Work/cu5000/liantong_n_attr_phone.csv",
+      "/mnt/d/Work/cu5000/liantong_n_attr_web.csv"};
 
   std::vector<std::string> e_list{
-      "D://Work/cu5000/liantong_e_attr_call.csv",
-      "D://Work/cu5000/liantong_e_attr_send_message.csv",
-      "D://Work/cu5000/liantong_e_attr_visit.csv"};
+      "/mnt/d/Work/cu5000/liantong_e_attr_call.csv",
+      "/mnt/d/Work/cu5000/liantong_e_attr_send_message.csv",
+      "/mnt/d/Work/cu5000/liantong_e_attr_visit.csv"};
 
-  //const char *v_list = "D://Work/cu5000/liantong_n.csv";
-  //const char *e_list = "D://Work/cu5000/liantong_e.csv";
-        
-  //TestReadCSVGraph<G1>(v_list, e_list);
+  // const char *v_list = "D://Work/cu5000/liantong_n.csv";
+  // const char *e_list = "D://Work/cu5000/liantong_e.csv";
+
+  // TestReadCSVGraph<G1>(v_list, e_list);
   TestReadCSVGraph<G2>(v_list, e_list);
 }
 
-//template <class GraphType>
-//void TestWriteReadCSVGraph() {    
+// template <class GraphType>
+// void TestWriteReadCSVGraph() {
 //  GraphType g1, g1a;
 //
 //  // g1
@@ -111,7 +111,7 @@ TEST(TestGUNDAM, ReadCSVGraph) {
 //  PrintGraph(g1a);
 //}
 //
-//TEST(TestGUNDAM, WriteReadCSVGraph) {
+// TEST(TestGUNDAM, WriteReadCSVGraph) {
 //  using namespace GUNDAM;
 //
 //  //using GraphType =
