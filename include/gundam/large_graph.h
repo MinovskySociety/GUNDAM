@@ -7,6 +7,7 @@
 
 #include "gundam/attribute.h"
 #include "gundam/iterator2.h"
+#include "gundam/container2.h"
 
 namespace GUNDAM {
 template <class VertexIDType, class VertexLabelType,
@@ -451,9 +452,9 @@ class LargeGraph {
     // EdgeAttributeListType attributes_;
   };
 
-  using VertexContainer = std::map<VertexIDType, VertexData *>;
+  using VertexContainer = MapDict<VertexIDType, VertexData *>;
 
-  using EdgeContainer = std::map<EdgeIDType, EdgeData *>;
+  using EdgeContainer = MapDict<EdgeIDType, EdgeData *>;
 
  public:
   using VertexType = VertexData;
@@ -518,43 +519,41 @@ class LargeGraph {
 
   ~LargeGraph() { Clear(); }
 
-  size_t CountVertex() const { return vertices_.size(); }
+  size_t CountVertex() const { return vertices_.Count(); }
 
   size_t CountVertex(const typename VertexType::LabelType &label) const {
     auto it = vertex_labels_.find(label);
     if (it == vertex_labels_.cend()) {
       return 0;
     }
-    return it->second.size();
+    return it->second.Count();
   }
 
   std::pair<VertexPtr, bool> AddVertex(
       const typename VertexType::IDType &id,
       const typename VertexType::LabelType &label) {
     VertexData *v = new VertexData(id, label);
-
-    auto p = std::make_pair(id, v);
-
-    auto ret1 = vertices_.insert(p);
+    
+    auto ret1 = vertices_.Insert(id, v);
     if (!ret1.second) {
       delete v;
       return std::make_pair(ret1.first->second, false);
     }
 
-    auto ret2 = vertex_labels_[label].insert(p);
+    auto ret2 = vertex_labels_[label].Insert(id, v);
     assert(ret2.second);
 
     return std::make_pair(v, true);
   }
 
   VertexPtr FindVertex(const typename VertexType::IDType &id) {
-    auto it = vertices_.find(id);
+    auto it = vertices_.Find(id);
     if (it == vertices_.end()) return nullptr;
     return it->second;
   }
 
   VertexConstPtr FindConstVertex(const typename VertexType::IDType &id) const {
-    auto it = vertices_.find(id);
+    auto it = vertices_.Find(id);
     if (it == vertices_.end()) return nullptr;
     return it->second;
   }
@@ -585,7 +584,7 @@ class LargeGraph {
   }
 
   bool EraseVertex(const typename VertexType::IDType &id) {
-    auto it = vertices_.find(id);
+    auto it = vertices_.Find(id);
     if (it == vertices_.end()) return false;
 
     VertexData *v = it->second;
@@ -601,11 +600,11 @@ class LargeGraph {
     assert(v->in_edge_labels_.empty());
     delete v;
 
-    vertices_.erase(it);
+    vertices_.Erase(it);
     return true;
   }
 
-  size_t CountEdge() const { return edges_.size(); }
+  size_t CountEdge() const { return edges_.Count(); }
 
   std::pair<EdgePtr, bool> AddEdge(const typename VertexType::IDType &src,
                                    const typename VertexType::IDType &dst,
@@ -620,7 +619,7 @@ class LargeGraph {
     EdgeData *e = new EdgeData(id, label, src_ptr, dst_ptr);
     assert(e);
 
-    auto ret1 = edges_.insert(std::make_pair(id, e));
+    auto ret1 = edges_.Insert(id, e);
     if (!ret1.second) {
       return std::make_pair(ret1.first->second, false);
     }
@@ -632,13 +631,13 @@ class LargeGraph {
   }
 
   EdgePtr FindEdge(const typename EdgeType::IDType &id) {
-    auto it = edges_.find(id);
+    auto it = edges_.Find(id);
     if (it == edges_.end()) return nullptr;
     return it->second;
   }
 
   EdgeConstPtr FindConstEdge(const typename EdgeType::IDType &id) const {
-    auto it = edges_.find(id);
+    auto it = edges_.Find(id);
     if (it == edges_.end()) return nullptr;
     return it->second;
   }
@@ -652,7 +651,7 @@ class LargeGraph {
   }
 
   bool EraseEdge(const typename EdgeType::IDType &id) {
-    auto it = edges_.find(id);
+    auto it = edges_.Find(id);
     if (it == edges_.end()) return false;
 
     EdgeData *e = it->second;
@@ -660,7 +659,7 @@ class LargeGraph {
     e->dst_ptr()->RemoveInEdge(e);
     delete e;
 
-    edges_.erase(it);
+    edges_.Erase(it);
     return true;
   }
 
@@ -672,8 +671,8 @@ class LargeGraph {
       delete p.second;
     }
 
-    vertices_.clear();
-    edges_.clear();
+    vertices_.Clear();
+    edges_.Clear();
     vertex_labels_.clear();
   }
 

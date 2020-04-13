@@ -291,17 +291,19 @@ class PosKeyVector {
   size_t Count() const { return container_.size(); }
 
   template <class... VArgs>
-  std::pair<iterator, bool> Insert(size_t pos, VArgs&&... vargs) {
-    container_[pos] = ValueType(std::forward<VArgs>(vargs)...);
+  iterator Insert(VArgs&&... vargs) {
+    container_.emplace_back(std::forward<VArgs>(vargs)...);
+    return container_.end() - 1;
   }
 
-  iterator Find(size_t pos) { return container_.begin() + pos; }
+  iterator Find(size_t pos) {
+    assert(pos < container_.size());
+    return container_.begin() + pos;    
+  }
 
-  const_iterator Find(size_t pos) const { return container_.cbegin() + pos; }
-
-  bool Erase(size_t pos) {
-    //static_assert(false, "Not Support");
-    return false;
+  const_iterator Find(size_t pos) const {
+    assert(pos < container_.size());    
+    return container_.cbegin() + pos;    
   }
 
   void Clear() { container_.clear(); }
@@ -318,9 +320,19 @@ class PosKeyVector {
 
   const_iterator cend() const noexcept { return container_.cend(); }
 
+  size_t GetPos(const const_iterator &it) const {
+    return static_cast<size_t>(it - container_.cbegin());
+  }
+
+  size_t GetPos(const ValueType* p) const {
+    return static_cast<size_t>(p - &*container_.cbegin());
+  }
+
  private:
   InnerContainerType container_;
 };
+
+
 
 
 }  // namespace GUNDAM

@@ -57,6 +57,10 @@ add_executable (test_graph "test_graph.cc")
 target_link_libraries(test_graph GTest::GTest GTest::Main)
 add_test(AllTests test_graph)
 
+add_executable (test_simple_graph "test_simple_graph.cc")
+target_link_libraries(test_simple_graph GTest::GTest GTest::Main)
+add_test(AllTests test_simple_graph)
+
 add_executable (test_iterator2 "test_iterator2.cc")
 target_link_libraries(test_iterator2 GTest::GTest GTest::Main)
 add_test(AllTests test_iterator2)

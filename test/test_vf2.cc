@@ -1,20 +1,21 @@
-#include "gundam/large_graph.h"
-#include "gundam/small_graph.h"
-//#include "gundam/graph.h"
-#include "gundam/label.h"
-#include "gundam/vf2.h"
-
 #include <cstdint>
+#include <cstring>
+#include <ctime>
 #include <functional>
 #include <iostream>
 #include <list>
 #include <map>
-#include <cstring>
 #include <vector>
 
 #include "gtest/gtest.h"
 
-#include <ctime>
+#include "gundam/vf2.h"
+#include "gundam/label.h"
+//#include "gundam/graph.h"
+#include "gundam/large_graph.h"
+#include "gundam/small_graph.h"
+#include "gundam/simple_small_graph.h"
+
 inline uint64_t GetTime() { return clock() * 1000 / CLOCKS_PER_SEC; }
 
 template <typename Ptr1, typename Ptr2>
@@ -84,15 +85,16 @@ void TestVF2_1() {
 TEST(TestGUNDAM, VF2_1) {
   using namespace GUNDAM;
   
-  //using G = Graph<>;
-  //TestVF2_1<G>();
-
+  //using G = Graph<>;  
   using LG = LargeGraph<uint32_t, uint32_t, std::string, uint32_t, uint32_t, std::string>;  
-  //TestVF2_1<LG>();
-
   using SG = SmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
+  using SSG = SimpleSmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
+
+  //TestVF2_1<G, G>();
+  //TestVF2_1<LG, G>();  
   TestVF2_1<LG, LG>();
   TestVF2_1<SG, LG>();
+  TestVF2_1<SSG, LG>();
 }
 
 template <typename Ptr1, typename Ptr2>
@@ -443,9 +445,12 @@ TEST(TestGUNDAM, VF2_Speed_1) {
 
   using QSG = SmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
 
+  using QSSG = SimpleSmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
+
   using TLG = LargeGraph<uint64_t, uint32_t, std::string, uint64_t,
                                   uint32_t, std::string>;
   
   TestVF2Speed1<QLG, TLG>(1, 10000);
   TestVF2Speed1<QSG, TLG>(1, 10000);  
+  TestVF2Speed1<QSSG, TLG>(1, 10000);
 }
