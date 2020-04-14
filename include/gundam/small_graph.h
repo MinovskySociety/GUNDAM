@@ -90,6 +90,8 @@ class SmallGraph {
 
     using LabelType = VertexLabelType;
 
+    using AttributeKeyType = unsigned int;
+
     using EdgeIterator =
         GIterator2<false, SmallGraph,
                    typename SortedVectorSet<EdgeIDType>::iterator, Edge,
@@ -185,6 +187,21 @@ class SmallGraph {
       }
       return out_vertex_id_set.size();
     }
+    size_t CountInVertex() const {
+      std::set<VertexIDType> in_vertex_id_set;
+      for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
+        in_vertex_id_set.insert(it->const_src_ptr()->id());
+      }
+      return in_vertex_id_set.size();
+    }
+    size_t CountInVertex(const EdgeLabelType &edge_label) const {
+      std::set<VertexIDType> in_vertex_id_set;
+      for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
+        if (it->label() == edge_label)
+          in_vertex_id_set.insert(it->const_src_ptr()->id());
+      }
+      return in_vertex_id_set.size();
+    }
     EdgeIterator OutEdgeBegin() {
       assert(HasValue());
       auto &data = graph_->vertices_.Find(id_)->second;
@@ -249,6 +266,8 @@ class SmallGraph {
     using IDType = EdgeIDType;
 
     using LabelType = EdgeLabelType;
+
+    using AttributeKeyType = unsigned int;
 
    private:
     friend GraphType;

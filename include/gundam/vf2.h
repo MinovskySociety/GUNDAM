@@ -33,8 +33,9 @@ inline bool ForEachVertexIf(
     LabelEqual<VertexPtr1,
                typename GraphType::VertexConstPtr> /* vertex_comp */,
     const VertexPtr1 &vertex_a_ptr) {
-  for (auto vertex_iter = graph.VertexCBegin(vertex_a_ptr->label());
-       !vertex_iter.IsDone(); vertex_iter++) {
+  for (auto vertex_iter = graph.VertexCBegin(); !vertex_iter.IsDone();
+       vertex_iter++) {
+    if (vertex_iter->label() != vertex_a_ptr->label()) continue;
     typename GraphType::VertexConstPtr vertex_ptr = vertex_iter;
     if (!f(vertex_ptr)) return false;
   }
@@ -108,20 +109,20 @@ inline bool InitCandidateSet(
 
     auto &l = candidate_set[query_vertex_iter];
 
-    ForEachVertexIf(target_graph,
-                    [&query_in_count, &query_out_count,
-                     &l](const TargetVertexPtr &target_vertex_ptr) -> bool {
-                      auto target_in_count = target_vertex_ptr->CountInEdge();
-                      if (target_in_count >= query_in_count) {
-                        auto target_out_count =
-                            target_vertex_ptr->CountOutEdge();
-                        if (target_out_count >= query_out_count) {
-                          l.emplace_back(target_vertex_ptr);
-                        }
-                      }
-                      return true;
-                    },
-                    vertex_comp, query_vertex_ptr);
+    ForEachVertexIf(
+        target_graph,
+        [&query_in_count, &query_out_count,
+         &l](const TargetVertexPtr &target_vertex_ptr) -> bool {
+          auto target_in_count = target_vertex_ptr->CountInEdge();
+          if (target_in_count >= query_in_count) {
+            auto target_out_count = target_vertex_ptr->CountOutEdge();
+            if (target_out_count >= query_out_count) {
+              l.emplace_back(target_vertex_ptr);
+            }
+          }
+          return true;
+        },
+        vertex_comp, query_vertex_ptr);
 
     if (l.empty()) return false;
   }

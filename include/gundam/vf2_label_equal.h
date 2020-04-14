@@ -64,39 +64,39 @@ inline bool InitCandidateSet(const QueryGraph &query_graph,
       if (query_vertex_ptr->CountInVertex() >
           target_vertex_ptr->CountInVertex())
         continue;
-      for (auto edge_label_it = query_vertex_ptr->OutEdgeLabelBegin();
+      for (auto edge_label_it = query_vertex_ptr->OutEdgeCBegin();
            !edge_label_it.IsDone(); edge_label_it++) {
-        auto query_out_count = query_vertex_ptr->CountOutEdge(
-            *edge_label_it /*edge_label_it->label()*/);
-        auto target_out_count = target_vertex_ptr->CountOutEdge(
-            *edge_label_it /*edge_label_it->label()*/);
+        auto query_out_count =
+            query_vertex_ptr->CountOutEdge(edge_label_it->label());
+        auto target_out_count =
+            target_vertex_ptr->CountOutEdge(edge_label_it->label());
         if (query_out_count > target_out_count) {
           flag = 1;
           break;
         }
-        query_out_count = query_vertex_ptr->CountOutVertex(
-            *edge_label_it /*edge_label_it->label()*/);
-        target_out_count = target_vertex_ptr->CountOutVertex(
-            *edge_label_it /*edge_label_it->label()*/);
+        query_out_count =
+            query_vertex_ptr->CountOutVertex(edge_label_it->label());
+        target_out_count =
+            target_vertex_ptr->CountOutVertex(edge_label_it->label());
         if (query_out_count > target_out_count) {
           flag = 1;
           break;
         }
       }
-      for (auto edge_label_it = query_vertex_ptr->InEdgeLabelBegin();
+      for (auto edge_label_it = query_vertex_ptr->InEdgeCBegin();
            !edge_label_it.IsDone(); edge_label_it++) {
-        auto query_in_count = query_vertex_ptr->CountInEdge(
-            *edge_label_it /*edge_label_it->label()*/);
-        auto target_in_count = target_vertex_ptr->CountInEdge(
-            *edge_label_it /*edge_label_it->label()*/);
+        auto query_in_count =
+            query_vertex_ptr->CountInEdge(edge_label_it->label());
+        auto target_in_count =
+            target_vertex_ptr->CountInEdge(edge_label_it->label());
         if (query_in_count > target_in_count) {
           flag = 1;
           break;
         }
-        query_in_count = query_vertex_ptr->CountInVertex(
-            *edge_label_it /*edge_label_it->label()*/);
-        target_in_count = target_vertex_ptr->CountInVertex(
-            *edge_label_it /*edge_label_it->label()*/);
+        query_in_count =
+            query_vertex_ptr->CountInVertex(edge_label_it->label());
+        target_in_count =
+            target_vertex_ptr->CountInVertex(edge_label_it->label());
         if (query_in_count > target_in_count) {
           flag = 1;
           break;
@@ -295,28 +295,37 @@ inline void UpdateCandidateSetOneDirection(
   std::map<typename QueryGraph::VertexType::LabelType,
            std::set<TargetVertexPtr>>
       temp_adj_vertex;
-  for (auto label_it = ((edge_state == EdgeState::kIn)
-                            ? query_vertex_ptr->InEdgeLabelBegin()
-                            : query_vertex_ptr->OutEdgeLabelBegin());
+  std::set<typename QueryGraph::EdgeType::LabelType> used_edge_label;
+  for (auto label_it =
+           ((edge_state == EdgeState::kIn) ? query_vertex_ptr->InEdgeCBegin()
+                                           : query_vertex_ptr->OutEdgeCBegin());
        !label_it.IsDone(); label_it++) {
-    for (auto it = ((edge_state == EdgeState::kIn)
-                        ? target_vertex_ptr->InVertexCBegin(
-                              *label_it /*label_it->label()*/)
-                        : target_vertex_ptr->OutVertexCBegin(
-                              *label_it /*label_it->label()*/));
+    //枚举label
+    if (used_edge_label.count(label_it->label())) continue;
+    used_edge_label.insert(label_it->label());
+    for (auto it =
+             ((edge_state == EdgeState::kIn)
+                  ? target_vertex_ptr->InVertexCBegin(label_it->label())
+                  : target_vertex_ptr->OutVertexCBegin(label_it->label()));
          !it.IsDone(); it++) {
       // std::cout << "target 111" << std::endl;
       TargetVertexPtr temp_target_ptr = it;
       // if (target_matched.count(temp_target_ptr)) continue;
       temp_adj_vertex[temp_target_ptr->label()].insert(temp_target_ptr);
     }
+    std::set<QueryVertexPtr> used_vertex;
     for (auto vertex_it = ((edge_state == EdgeState::kIn)
-                               ? query_vertex_ptr->InVertexCBegin(
-                                     *label_it /*label_it->label()*/)
-                               : query_vertex_ptr->OutVertexCBegin(
-                                     *label_it /*label_it->label()*/));
+                               ? query_vertex_ptr->InEdgeCBegin()
+                               : query_vertex_ptr->OutEdgeCBegin());
          !vertex_it.IsDone(); vertex_it++) {
-      QueryVertexPtr temp_vertex_ptr = vertex_it;
+      //枚举Vertex
+      if (vertex_it->label() != label_it->label()) continue;
+
+      QueryVertexPtr temp_vertex_ptr = (edge_state == EdgeState::kIn)
+                                           ? vertex_it->const_src_ptr()
+                                           : vertex_it->const_dst_ptr();
+      if (used_vertex.count(temp_vertex_ptr)) continue;
+      used_vertex.insert(temp_vertex_ptr);
       std::vector<TargetVertexPtr> res_candidate;
       if (match_state.count(temp_vertex_ptr)) continue;
       // std::cout << "label = " << vertex_it->label() << std::endl;
@@ -331,8 +340,8 @@ inline void UpdateCandidateSetOneDirection(
       //  std::cout << it->id() << " ";
       //}
       // std::cout << std::endl;
-      std::set_intersection(temp_adj_vertex[vertex_it->label()].begin(),
-                            temp_adj_vertex[vertex_it->label()].end(),
+      std::set_intersection(temp_adj_vertex[temp_vertex_ptr->label()].begin(),
+                            temp_adj_vertex[temp_vertex_ptr->label()].end(),
                             candidate_set[temp_vertex_ptr].begin(),
                             candidate_set[temp_vertex_ptr].end(),
                             inserter(res_candidate, res_candidate.begin()));
