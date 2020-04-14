@@ -49,6 +49,7 @@ class TestString {
   std::string str_;
 };
 
+/*
 TEST(TestGUNDAM, TestGPointer) {
   using TestStringPtr = GUNDAM::GPointer<TestString, false>;
   using TestStringConstPtr = GUNDAM::GPointer<TestString, true>;
@@ -104,3 +105,4 @@ TEST(TestGUNDAM, TestGPointer) {
   ss.emplace(TestString("d"));
   ASSERT_EQ(5, ss.size());
 }
+*/
