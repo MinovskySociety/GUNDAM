@@ -15,3 +15,11 @@
 	VertexSetType vertex_set;   
 	vertex_ptr->CopyVertexSetTo(vertex_set);   
 	vertex_ptr->CopyVertexSetTo(edge_label, vertex_set); 
+
+
+# Now Problem
+
+1. Large Graph删边时，OutVertexBegin(label),InVertexBegin(label)的索引不会被删除
+
+2. GPointer没有 const ptr = 非const ptr方式
+

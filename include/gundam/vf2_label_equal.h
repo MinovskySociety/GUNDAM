@@ -200,7 +200,7 @@ inline QueryVertexPtr DetermineMatchOrder(
       min = candidate_count;
     }
   }
-  assert(min >= 0 && !res.IsNull());
+  // assert(min >= 0 && !res.IsNull());
   return res;
 }
 
