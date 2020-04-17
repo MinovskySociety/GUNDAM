@@ -504,9 +504,9 @@ class LargeGraph {
   using EdgeConstIterator = GIterator<typename EdgeContainer::const_iterator,
                                       EdgeData, PairSecondPointerCast>;
 
-  static const bool vertex_has_attribute = true;
+  static constexpr bool vertex_has_attribute = true;
 
-  static const bool edge_has_attribute = true;
+  static constexpr bool edge_has_attribute = true;
 
   LargeGraph() = default;
 

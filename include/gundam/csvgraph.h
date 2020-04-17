@@ -11,338 +11,477 @@
 #include "rapidcsv.h"
 
 namespace GUNDAM {
-using ReturnType = int;
-// Parse col
-// before: node_id:int
-// after:  col_name: node_id  value_type:int
-template <typename Data>
-void ParseCol(std::vector<Data>& before_parse_col_name,
-              std::vector<Data>& after_parse_col_name,
-              std::vector<Data>& after_parse_value_type) {
-  for (auto const& str : before_parse_col_name) {
-    std::string col_name, value_type;
-    int nameflag = 0;
-    for (int i = 0; i < str.size(); i++) {
-      if (str[i] == ':') {
-        nameflag = 1;
-        continue;
-      }
-      if (!nameflag) {
-        col_name.push_back(str[i]);
+
+// An universial void callback function template
+template <class... T>
+inline void VoidCallback(const T&...) {}
+//
+//// Parse col
+//// before: vertex_id:int
+//// after:  col_name - vertex_id;  value_type - int
+//inline void ParseCol(std::vector<std::string>& before_parse_col_name,
+//                     std::vector<std::string>& after_parse_col_name,
+//                     std::vector<std::string>& after_parse_value_type) {
+//  for (const auto& str : before_parse_col_name) {
+//    std::string col_name, value_type;
+//    bool nameflag = false;
+//    for (const auto& c : str) {
+//      if (c == ':') {
+//        nameflag = true;
+//        continue;
+//      }
+//      if (!nameflag) {
+//        col_name.push_back(c);
+//      } else {
+//        value_type.push_back(c);
+//      }
+//    }
+//    after_parse_col_name.emplace_back(std::move(col_name));
+//    after_parse_value_type.emplace_back(std::move(value_type));
+//  }
+//}
+//
+//// check Attribute Key type is correct
+//// when no attribute after_parse_col_name.size()==begin_pos
+//template <typename AttributeKeyType>
+//bool CheckAttributeKeyIsCorrect(std::vector<std::string>& after_parse_col_name,
+//                                size_t begin_pos) {
+//  // check col name can change to attrkeytype
+//  for (size_t j = begin_pos; j < after_parse_col_name.size(); j++) {
+//    // std::cout << after_parse_col_name[j] << std::endl;
+//    std::string str = after_parse_col_name[j];
+//    std::stringstream ss(str);
+//    AttributeKeyType check_flag;
+//    ss >> check_flag;
+//    std::stringstream s1;
+//    std::string str1;
+//    s1 << check_flag;
+//    s1 >> str1;
+//    if (str1 != str) {
+//      return false;
+//    }
+//  }
+//  return true;
+//}
+
+template <typename AttributeKeyType>
+bool GetAttributeInfo(
+    const std::vector<std::string>& col_name,
+    std::vector<std::pair<AttributeKeyType, enum BasicDataType>> &attr_info) {
+
+  attr_info.clear();
+
+  for (const auto& str : col_name) {
+    std::string key_str, value_str;
+
+    bool flag = false;
+    for (const auto& c : str) {
+      if (c == ':') {
+        flag = true;        
+      } else if (!flag) {
+        key_str.push_back(c);
       } else {
-        value_type.push_back(str[i]);
+        value_str.push_back(c);
       }
     }
-    after_parse_col_name.push_back(col_name);
-    after_parse_value_type.push_back(value_type);
-  }
-}
-// check Attribute Key type is correct
-// when no attribute after_parse_col_name.size()==begin_pos
-template <typename AttributeKeyType>
-bool CheckAttributeKeyIsCorrect(std::vector<std::string>& after_parse_col_name,
-                                int begin_pos) {
-  // check col name can change to attrkeytype
-  for (int j = begin_pos; j < after_parse_col_name.size(); j++) {
-    // std::cout << after_parse_col_name[j] << std::endl;
-    std::string str = after_parse_col_name[j];
-    std::stringstream ss(str);
-    AttributeKeyType check_flag;
-    ss >> check_flag;
+
+    std::stringstream s0(key_str);
+    AttributeKeyType attr_key;
+    s0 >> attr_key;
     std::stringstream s1;
     std::string str1;
-    s1 << check_flag;
+    s1 << attr_key;
     s1 >> str1;
-    if (str1 != str) {
+    if (str1 != key_str) {
       return false;
+    }
+
+    enum BasicDataType value_type = StringToEnum(value_str.c_str());
+    if (value_type == BasicDataType::kTypeUnknown) {
+      return false;
+    }
+    attr_info.emplace_back(std::move(attr_key), std::move(value_type));
+  }
+
+  return true;
+}
+
+template <bool has_attribute, class GraphType, class VertexEdgePtr,
+          class AttributeKeyType,
+          typename std::enable_if<!has_attribute, bool>::type = false>
+inline bool ReadAttribues(
+    GraphType& graph, VertexEdgePtr& vertex_edge_ptr,
+    rapidcsv::Document& vertex_edge_file,
+    const std::vector<std::pair<AttributeKeyType, enum BasicDataType>>&
+        attr_info,
+    size_t col_begin, size_t row) {
+  return true;
+}
+
+template <bool has_attribute, class GraphType, class VertexEdgePtr,
+          class AttributeKeyType,
+          typename std::enable_if<has_attribute, bool>::type = false>
+inline bool ReadAttribues(
+    GraphType& graph, VertexEdgePtr& vertex_edge_ptr,
+    rapidcsv::Document& vertex_edge_file,
+    const std::vector<std::pair<AttributeKeyType, enum BasicDataType>>&
+        attr_info,
+    size_t col_begin, size_t row) {
+
+  for (size_t col = col_begin; col < attr_info.size(); col++) {
+    const AttributeKeyType& attr_key = attr_info[col].first;
+    const enum BasicDataType& value_type = attr_info[col].second;
+  
+    switch (value_type) {
+      case BasicDataType::kTypeString: {
+        auto cell = vertex_edge_file.GetCellNew<std::string>(col, row);
+        if (cell.second || cell.first.empty()) continue;
+        vertex_edge_ptr->AddAttribute(attr_key, cell.first);
+        break;
+      }
+      case BasicDataType::kTypeInt: {
+        auto cell = vertex_edge_file.GetCellNew<int>(col, row);
+        if (cell.second) continue;
+        vertex_edge_ptr->AddAttribute(attr_key, cell.first);
+        break;
+      }
+      case BasicDataType::kTypeInt64: {
+        auto cell = vertex_edge_file.GetCellNew<int64_t>(col, row);
+        if (cell.second) continue;
+        vertex_edge_ptr->AddAttribute(attr_key, cell.first);
+        break;
+      }
+      case BasicDataType::kTypeFloat: {
+        auto cell = vertex_edge_file.GetCellNew<float>(col, row);
+        if (cell.second) continue;
+        vertex_edge_ptr->AddAttribute(attr_key, cell.first);
+        break;
+      }
+      case BasicDataType::kTypeDouble: {
+        auto cell = vertex_edge_file.GetCellNew<double>(col, row);
+        if (cell.second) continue;
+        vertex_edge_ptr->AddAttribute(attr_key, cell.first);
+        break;
+      }
+      case BasicDataType::kTypeDateTime: {
+        auto cell = vertex_edge_file.GetCellNew<std::string>(col, row);
+        if (cell.second || cell.first.empty()) continue;
+        DateTime date_time(cell.first.c_str());
+        vertex_edge_ptr->AddAttribute(attr_key, date_time);
+        break;
+      }
+      case BasicDataType::kTypeUnknown:
+      default:
+        return false;
     }
   }
   return true;
 }
-template <class GraphType,
-          typename std::enable_if<!GraphType::vertex_has_attribute,
-                                  bool>::type = false>
-void LoadVertexAttribue(GraphType& graph,
-                        typename GraphType::VertexPtr& node_ptr,
-                        rapidcsv::Document& node_file,
-                        std::vector<std::string>& after_parse_col_name,
-                        std::vector<std::string>& after_parse_value_type,
-                        int row_pos) {
-  return;
-}
-// load Vertex Attribute
-template <class GraphType,
-          typename std::enable_if<GraphType::vertex_has_attribute, bool>::type =
-              false>
-void LoadVertexAttribue(GraphType& graph,
-                        typename GraphType::VertexPtr& node_ptr,
-                        rapidcsv::Document& node_file,
-                        std::vector<std::string>& after_parse_col_name,
-                        std::vector<std::string>& after_parse_value_type,
-                        int row_pos) {
-  using VertexType = typename GraphType::VertexType;
-  using VertexAttributeKeyType = typename VertexType::AttributeKeyType;
 
-  int col_num = static_cast<int>(after_parse_col_name.size());
-  for (int col_iter = 2; col_iter < col_num; col_iter++) {
-    // key is col_iter
-    // std::cout << "attribute" << std::endl;
-    std::stringstream ss(after_parse_col_name[col_iter]);
-    VertexAttributeKeyType attr_key;
-    ss >> attr_key;
-    switch (StringToEnum(after_parse_value_type[col_iter].c_str())) {
-      case BasicDataType::kTypeString: {
-        std::pair<std::string, bool> cell_attr =
-            node_file.GetCellNew<std::string>(col_iter, row_pos);
-        if (cell_attr.second || cell_attr.first.empty()) continue;
-        node_ptr->AddAttribute(attr_key, cell_attr.first);
-        break;
-      }
-      case BasicDataType::kTypeInt: {
-        std::pair<int, bool> cell_attr =
-            node_file.GetCellNew<int>(col_iter, row_pos);
-        if (cell_attr.second) continue;
-        node_ptr->AddAttribute(attr_key, cell_attr.first);
-        break;
-      }
-      case BasicDataType::kTypeDouble: {
-        std::pair<double, bool> cell_attr =
-            node_file.GetCellNew<double>(col_iter, row_pos);
-        if (cell_attr.second) continue;
-        node_ptr->AddAttribute(attr_key, cell_attr.first);
-        break;
-      }
-      case BasicDataType::kTypeDateTime: {
-        std::pair<std::string, bool> cell_attr =
-            node_file.GetCellNew<std::string>(col_iter, row_pos);
-        if (cell_attr.second || cell_attr.first.empty()) continue;
-        DateTime date_time(cell_attr.first.c_str());
-        node_ptr->AddAttribute(attr_key, date_time);
-        break;
-      }
-      case BasicDataType::kTypeUnknown:
-      default:
-        break;
-    }
-  }
-  return;
-}
+//template <class GraphType,
+//          typename std::enable_if<!GraphType::vertex_has_attribute,
+//                                  bool>::type = false>
+//bool LoadVertexAttribue(GraphType& graph,
+//                        typename GraphType::VertexPtr& vertex_ptr,
+//                        rapidcsv::Document& vertex_file,
+//                        std::vector<std::string>& after_parse_col_name,
+//                        std::vector<std::string>& after_parse_value_type,
+//                        int row_pos) {
+//  return false;
+//}
+//// load Vertex Attribute
+//template <class GraphType,
+//          typename std::enable_if<GraphType::vertex_has_attribute, bool>::type =
+//              false>
+//bool LoadVertexAttribue(GraphType& graph,
+//                        typename GraphType::VertexPtr& vertex_ptr,
+//                        rapidcsv::Document& vertex_file,
+//                        std::vector<std::string>& after_parse_col_name,
+//                        std::vector<std::string>& after_parse_value_type,
+//                        int row_pos) {
+//  using VertexType = typename GraphType::VertexType;
+//  using VertexAttributeKeyType = typename VertexType::AttributeKeyType;
+//
+//  int col_num = static_cast<int>(after_parse_col_name.size());
+//  for (int i = 2; i < col_num; i++) {
+//    // key is i
+//    // std::cout << "attribute" << std::endl;
+//    std::stringstream ss(after_parse_col_name[i]);
+//    VertexAttributeKeyType attr_key;
+//    ss >> attr_key;
+//    switch (StringToEnum(after_parse_value_type[i].c_str())) {
+//      case BasicDataType::kTypeString: {
+//        std::pair<std::string, bool> cell =
+//            vertex_file.GetCellNew<std::string>(i, row_pos);
+//        if (cell.second || cell.first.empty()) continue;
+//        vertex_ptr->AddAttribute(attr_key, cell.first);
+//        break;
+//      }
+//      case BasicDataType::kTypeInt: {
+//        std::pair<int, bool> cell =
+//            vertex_file.GetCellNew<int>(i, row_pos);
+//        if (cell.second) continue;
+//        vertex_ptr->AddAttribute(attr_key, cell.first);
+//        break;
+//      }
+//      case BasicDataType::kTypeDouble: {
+//        std::pair<double, bool> cell =
+//            vertex_file.GetCellNew<double>(i, row_pos);
+//        if (cell.second) continue;
+//        vertex_ptr->AddAttribute(attr_key, cell.first);
+//        break;
+//      }
+//      case BasicDataType::kTypeDateTime: {
+//        std::pair<std::string, bool> cell =
+//            vertex_file.GetCellNew<std::string>(i, row_pos);
+//        if (cell.second || cell.first.empty()) continue;
+//        DateTime date_time(cell.first.c_str());
+//        vertex_ptr->AddAttribute(attr_key, date_time);
+//        break;
+//      }
+//      case BasicDataType::kTypeUnknown:
+//      default:
+//        return false;
+//    }
+//  }
+//  return true;
+//}
 
-template <class GraphType, class VertexIDGen>
+template <bool read_attr = true, class GraphType, class ReadVertexFileCallback>
 int ReadCSVVertexFile(GraphType& graph, const std::string& v_file,
-                      VertexIDGen& vertex_id_gen) {
-  // read .v file(csv)
-  //.v file format: (id,label,......)
-  using VertexType = typename GraphType::VertexType;
-  using VertexIDType = typename VertexType::IDType;
-  using VertexLabelType = typename VertexType::LabelType;
-  using VertexPtr = typename GraphType::VertexPtr;
-  using AttributeType = typename GraphType::VertexType::AttributeKeyType;
+                      ReadVertexFileCallback v_callback) {
+  // read vertex file(csv)
+  // file format: (vertex_id,label_id,......)  
+  using VertexIDType = typename GraphType::VertexType::IDType;
+  using VertexLabelType = typename GraphType::VertexType::LabelType;
+  using VertexAttributeKeyType = typename GraphType::VertexType::AttributeKeyType;
+  using VertexPtr = typename GraphType::VertexPtr;  
 
   std::cout << v_file << std::endl;
+
   // check file exist
-  std::ifstream check_node_file(v_file);
-  if (!check_node_file) {
-    std::cout << v_file << " not exist!" << std::endl;
+  std::ifstream check_vertex_file(v_file);
+  if (!check_vertex_file) {
+    std::cout << "File not exist!" << std::endl;
     return -1;
   }
-  rapidcsv::Document node_file(v_file, rapidcsv::LabelParams(0, -1));
-  size_t col_num = node_file.GetColumnCount();
+
+  rapidcsv::Document vertex_file(v_file, rapidcsv::LabelParams(0, -1));
+
+  // phase column names
+  std::vector<std::string> col_name = vertex_file.GetColumnNames();
+  std::vector<std::pair<VertexAttributeKeyType, enum BasicDataType>> attr_info;
+  bool res = GetAttributeInfo(col_name, attr_info);
+  if (!res) {  
+    std::cout << "Attribute key type is not correct!" << std::endl;
+    return -1;
+  }
+
+  size_t col_num = attr_info.size();
   // check col num >= 2
   if (col_num < 2) {
-    std::cout << "node file does not have node_id or node_label!" << std::endl;
-    return -1;
-  }
-  // check attribute correct
-  if (col_num >= 3 && !graph.vertex_has_attribute) {
-    std::cout << "node file has attribute but graph does not support!"
+    std::cout << "vertex file does not have vertex_id or vertex_label!"
               << std::endl;
     return -1;
   }
-  // parse col
-  std::vector<std::string> before_parse_col_name = node_file.GetColumnNames();
-  std::vector<std::string> after_parse_col_name, after_parse_value_type;
-  ParseCol(before_parse_col_name, after_parse_col_name, after_parse_value_type);
-  // check attribute key type is correct
-  if (CheckAttributeKeyIsCorrect<AttributeType>(after_parse_col_name, 2) ==
-      false) {
-    std::cout << "Attribute Key Type is not correct!" << std::endl;
+  // check attributes
+  if (col_num >= 3 && read_attr && !GraphType::vertex_has_attribute) {
+    std::cout << "vertex file has attribute but graph does not support!"
+              << std::endl;
     return -1;
   }
-  std::vector<VertexIDType> node_id = node_file.GetColumn<VertexIDType>(0);
-  std::vector<VertexLabelType> node_label =
-      node_file.GetColumn<VertexLabelType>(1);
-  size_t sz = node_id.size();
-  for (int i = 0; i < sz; i++) {
-    // add node_id and node_label;
-    // std::cout << "i=" << i << std::endl;
-    VertexPtr node_ptr =
-        graph.AddVertex(node_id[i], VertexLabelType(node_label[i])).first;
-    vertex_id_gen.UseID(node_id[i]);
-    // add other attribute
-    if (graph.vertex_has_attribute) {
-      LoadVertexAttribue(graph, node_ptr, node_file, after_parse_col_name,
-                         after_parse_value_type, i);
-    }
-  }
+  //if (attr_info[0].second != TypeToEnum<VertexIDType>() ||
+  //    attr_info[1].second != TypeToEnum<VertexLabelType>()) {
+  //  std::cout << "vertex id or label type is wrong!" << std::endl;
+  //  return -1;
+  //}
 
-  return static_cast<int>(sz);
-}
-template <
-    class GraphType,
-    typename std::enable_if<!GraphType::edge_has_attribute, bool>::type = false>
-void LoadEdgeAttribue(GraphType& graph, typename GraphType::EdgePtr& edge_ptr,
-                      rapidcsv::Document& edge_file,
-                      std::vector<std::string>& after_parse_col_name,
-                      std::vector<std::string>& after_parse_value_type,
-                      int row_pos) {
-  return;
-}
-// load edge attribute
-template <
-    class GraphType,
-    typename std::enable_if<GraphType::edge_has_attribute, bool>::type = false>
-void LoadEdgeAttribue(GraphType& graph, typename GraphType::EdgePtr& edge_ptr,
-                      rapidcsv::Document& edge_file,
-                      std::vector<std::string>& after_parse_col_name,
-                      std::vector<std::string>& after_parse_value_type,
-                      int row_pos) {
-  using EdgeType = typename GraphType::EdgeType;
-  using EdgeAttributeKeyType = typename EdgeType::AttributeKeyType;
-
-  int col_num = static_cast<int>(after_parse_col_name.size());
-  for (int col_iter = 4; col_iter < col_num; col_iter++) {
-    std::stringstream ss(after_parse_col_name[col_iter]);
-    EdgeAttributeKeyType attr_key;
-    ss >> attr_key;
-    switch (StringToEnum(after_parse_value_type[col_iter].c_str())) {
-      case BasicDataType::kTypeString: {
-        auto cell_attr = edge_file.GetCellNew<std::string>(col_iter, row_pos);
-        if (cell_attr.second || cell_attr.first.empty()) continue;
-        edge_ptr->AddAttribute(attr_key, cell_attr.first);
-        break;
+  const std::vector<VertexIDType> vertex_id = vertex_file.GetColumn<VertexIDType>(0);
+  const std::vector<VertexLabelType> label_id = vertex_file.GetColumn<VertexLabelType>(1);
+  
+  int count_success = 0;
+  int count_fail = 0;
+  size_t sz = vertex_id.size();
+  for (size_t row = 0; row < sz; row++) {
+    VertexPtr vertex_ptr;
+    std::tie(vertex_ptr, res) = graph.AddVertex(vertex_id[row], label_id[row]);
+    if (res) {
+      if (read_attr) {
+        res = ReadAttribues<GraphType::vertex_has_attribute>(
+            graph, vertex_ptr, vertex_file, attr_info, 2, row);
       }
-      case BasicDataType::kTypeInt: {
-        auto cell_attr = edge_file.GetCellNew<int>(col_iter, row_pos);
-        if (cell_attr.second) continue;
-        edge_ptr->AddAttribute(attr_key, cell_attr.first);
-        break;
-      }
-      case BasicDataType::kTypeDouble: {
-        auto cell_attr = edge_file.GetCellNew<double>(col_iter, row_pos);
-        if (cell_attr.second) continue;
-        edge_ptr->AddAttribute(attr_key, cell_attr.first);
-        break;
-      }
-      case BasicDataType::kTypeDateTime: {
-        auto cell_attr = edge_file.GetCellNew<std::string>(col_iter, row_pos);
-        if (cell_attr.second || cell_attr.first.empty()) continue;
-        DateTime date_time(cell_attr.first.c_str());
-        edge_ptr->AddAttribute(attr_key, date_time);
-        break;
-      }
-      case BasicDataType::kTypeUnknown:
-      default:
-        break;
     }
+    
+    v_callback(row, vertex_id[row], label_id[row], res);
+
+    if (res)
+      ++count_success;
+    else
+      ++count_fail;
   }
-  return;
+  if (count_fail > 0) {
+    std::cout << "Failed: " << count_fail << std::endl;
+  }
+  return count_success;
 }
-template <class GraphType, class EdgeIDGen>
+
+//template <
+//    class GraphType,
+//    typename std::enable_if<!GraphType::edge_has_attribute, bool>::type = false>
+//bool LoadEdgeAttribue(GraphType& graph, typename GraphType::EdgePtr& edge_vertex_ptr,
+//                      rapidcsv::Document& edge_vertex_file,
+//                      std::vector<std::string>& after_parse_col_name,
+//                      std::vector<std::string>& after_parse_value_type,
+//                      size_t row_pos) {
+//  return false;
+//}
+//// load edge attribute
+//template <
+//    class GraphType,
+//    typename std::enable_if<GraphType::edge_has_attribute, bool>::type = false>
+//bool LoadEdgeAttribue(GraphType& graph, typename GraphType::EdgePtr& edge_vertex_ptr,
+//                      rapidcsv::Document& edge_vertex_file,
+//                      std::vector<std::string>& after_parse_col_name,
+//                      std::vector<std::string>& after_parse_value_type,
+//                      size_t row_pos) {
+//  using EdgeType = typename GraphType::EdgeType;
+//  using EdgeAttributeKeyType = typename EdgeType::AttributeKeyType;
+//
+//  int col_num = static_cast<int>(after_parse_col_name.size());
+//  for (int i = 4; i < col_num; i++) {
+//    std::stringstream ss(after_parse_col_name[i]);
+//    EdgeAttributeKeyType attr_key;
+//    ss >> attr_key;
+//    switch (StringToEnum(after_parse_value_type[i].c_str())) {
+//      case BasicDataType::kTypeString: {
+//        auto cell = edge_vertex_file.GetCellNew<std::string>(i, row_pos);
+//        if (cell.second || cell.first.empty()) continue;
+//        edge_vertex_ptr->AddAttribute(attr_key, cell.first);
+//        break;
+//      }
+//      case BasicDataType::kTypeInt: {
+//        auto cell = edge_vertex_file.GetCellNew<int>(i, row_pos);
+//        if (cell.second) continue;
+//        edge_vertex_ptr->AddAttribute(attr_key, cell.first);
+//        break;
+//      }
+//      case BasicDataType::kTypeDouble: {
+//        auto cell = edge_vertex_file.GetCellNew<double>(i, row_pos);
+//        if (cell.second) continue;
+//        edge_vertex_ptr->AddAttribute(attr_key, cell.first);
+//        break;
+//      }
+//      case BasicDataType::kTypeDateTime: {
+//        auto cell = edge_vertex_file.GetCellNew<std::string>(i, row_pos);
+//        if (cell.second || cell.first.empty()) continue;
+//        DateTime date_time(cell.first.c_str());
+//        edge_vertex_ptr->AddAttribute(attr_key, date_time);
+//        break;
+//      }
+//      case BasicDataType::kTypeUnknown:
+//      default:
+//        return false;
+//    }
+//  }
+//  return true;
+//}
+
+template <bool read_attr = true, class GraphType, class ReadEdgeFileCallback>
 int ReadCSVEdgeFile(GraphType& graph, const std::string& e_file,
-                    EdgeIDGen& edge_id_gen) {
-  // read .e file(csv)
-  //.e file format: (edge_id,from_id,to_id,edge_label,......)
-
-  using VertexType = typename GraphType::VertexType;
-  using EdgeType = typename GraphType::EdgeType;
-  using VertexIDType = typename VertexType::IDType;
-  using EdgeLabelType = typename EdgeType::LabelType;
+                    ReadEdgeFileCallback e_callback) {
+  // read edge file(csv)
+  // file format: (edge_id,source_id,target_id,label_id,......)
+  using VertexIDType = typename GraphType::VertexType::IDType;
+  using EdgeIDType = typename GraphType::EdgeType::IDType;
+  using EdgeLabelType = typename GraphType::EdgeType::LabelType;
   using EdgeAttributeKeyType = typename GraphType::EdgeType::AttributeKeyType;
   using EdgePtr = typename GraphType::EdgePtr;
 
   std::cout << e_file << std::endl;
 
+  // check file exist
   std::ifstream check_edge_file(e_file);
   if (!check_edge_file) {
-    std::cout << e_file << " not exist!" << std::endl;
+    std::cout << "File not exist!" << std::endl;
     return -1;
   }
+
   rapidcsv::Document edge_file(e_file, rapidcsv::LabelParams(0, -1));
-  std::vector<VertexIDType> from_id, to_id, edge_id;
-  std::vector<EdgeLabelType> edge_label;
-  size_t col_num = edge_file.GetColumnCount();
+
+  // phase column names
+  std::vector<std::string> col_name = edge_file.GetColumnNames();
+  std::vector<std::pair<EdgeAttributeKeyType, enum BasicDataType>> attr_info;
+  bool res = GetAttributeInfo(col_name, attr_info);
+  if (!res) {
+    std::cout << "Attribute key type is not correct!" << std::endl;
+    return -1;
+  }
+
+  size_t col_num = attr_info.size();
   // check col_num >= 4
   if (col_num < 4) {
     std::cout << "edge file is not correct!(col num must >=4)" << std::endl;
     return -1;
   }
-  if (col_num >= 5 && !graph.edge_has_attribute) {
+  if (col_num >= 5 && read_attr && !GraphType::edge_has_attribute) {
     std::cout << "edge file has attribute but graph does not support!"
               << std::endl;
     return -1;
   }
-  // parse col
-  std::vector<std::string> before_parse_col_name = edge_file.GetColumnNames();
-  std::vector<std::string> after_parse_col_name, after_parse_value_type;
-  ParseCol(before_parse_col_name, after_parse_col_name, after_parse_value_type);
-  // check col name can change to attrkeytype
-  if (CheckAttributeKeyIsCorrect<EdgeAttributeKeyType>(after_parse_col_name,
-                                                       4) == false) {
-    std::cout << "Attribute type is not correct!" << std::endl;
-    return -1;
-  }
 
-  edge_id = edge_file.GetColumn<VertexIDType>(0);
-  from_id = edge_file.GetColumn<VertexIDType>(1);
-  to_id = edge_file.GetColumn<VertexIDType>(2);
-  edge_label = edge_file.GetColumn<EdgeLabelType>(3);
-  for (const auto& it : edge_id) {
-    edge_id_gen.UseID(it);
-  }
-  size_t sz = from_id.size();
-  for (int i = 0; i < sz; i++) {
-    // std::cout << "j=" << i << std::endl;
-    // std::cout<<from_id[i]<<" "<<to_id[i]<<" "<<edge_label[i]<<std::endl;
+  const std::vector<EdgeIDType> edge_id = edge_file.GetColumn<EdgeIDType>(0);
+  const std::vector<VertexIDType> source_id =
+      edge_file.GetColumn<VertexIDType>(1);
+  const std::vector<VertexIDType> target_id =
+      edge_file.GetColumn<VertexIDType>(2);
+  const std::vector<EdgeLabelType> label_id =
+      edge_file.GetColumn<EdgeLabelType>(3);
 
-    EdgePtr edge_ptr;
+  int count_success = 0;
+  int count_fail = 0;
+  size_t sz = edge_id.size();
+  for (size_t row = 0; row < sz; row++) {
     bool res;
-    std::tie(edge_ptr, res) = graph.AddEdge(
-        from_id[i], to_id[i], EdgeLabelType(edge_label[i]), edge_id[i]);
-    // wangyj:delete !edge_ptr
-    if (!res) {
-      std::cout << "Failed to add edge from " << from_id[i] << " to "
-                << to_id[i] << ", label: " << EdgeLabelType(edge_label[i])
-                << ", id: " << edge_id[i] << std::endl;
-
-      continue;
+    EdgePtr edge_ptr;
+    std::tie(edge_ptr, res) =
+        graph.AddEdge(source_id[row], target_id[row], label_id[row], edge_id[row]);
+    if (res) {
+      if (read_attr) {
+        res = ReadAttribues<GraphType::edge_has_attribute>(
+            graph, edge_ptr, edge_file, attr_info, 4, row);
+      }
     }
 
-    if (graph.edge_has_attribute) {
-      LoadEdgeAttribue(graph, edge_ptr, edge_file, after_parse_col_name,
-                       after_parse_value_type, i);
-    }
+    e_callback(row, edge_id[row], source_id[row], target_id[row], label_id[row], res);
+
+    if (res)
+      ++count_success;
+    else
+      ++count_fail;
   }
-  return static_cast<int>(sz);
+  if (count_fail > 0) {
+    std::cout << "Failed: " << count_fail << std::endl;
+  }
+  return count_success;
 }
 
-template <class GraphType, typename VertexFileList, typename EdgeFileList,
-          class VertexIDGen, class EdgeIDGen>
-int ReadCSVGraph(GraphType& graph, const VertexFileList& v_list,
-                 const EdgeFileList& e_list, VertexIDGen& vertex_id_gen,
-                 EdgeIDGen& edge_id_gen) {
+template <class GraphType, class VertexFileList, class EdgeFileList,
+          class ReadVertexFileCallback, class ReadEdgeFileCallback>
+int ReadCSVGraphWithCallback(GraphType& graph, const VertexFileList& v_list,
+                 const EdgeFileList& e_list, ReadVertexFileCallback v_callback,
+                 ReadEdgeFileCallback e_callback) {
   graph.Clear();
 
   int count_v = 0;
   for (const auto& v_file : v_list) {
-    int res = ReadCSVVertexFile(graph, v_file, vertex_id_gen);
+    int res = ReadCSVVertexFile(graph, v_file, v_callback);
     if (res < 0) return res;
     count_v += res;
   }
 
   int count_e = 0;
   for (const auto& e_file : e_list) {
-    int res = ReadCSVEdgeFile(graph, e_file, edge_id_gen);
+    int res = ReadCSVEdgeFile(graph, e_file, e_callback);
     if (res < 0) return res;
     count_e += res;
   }
@@ -353,36 +492,19 @@ int ReadCSVGraph(GraphType& graph, const VertexFileList& v_list,
   return count_v + count_e;
 }
 
-template <class GraphType, typename VertexFileList, typename EdgeFileList>
+template <class GraphType, class VertexFileList, class EdgeFileList>
 int ReadCSVGraph(GraphType& graph, const VertexFileList& v_list,
                  const EdgeFileList& e_list) {
-  ArithmeticIDEmptyGenerator<typename GraphType::VertexType::IDType>
-      empty_vertex_id_gen;
-  ArithmeticIDEmptyGenerator<typename GraphType::EdgeType::IDType>
-      empty_edge_id_gen;
+  using VertexIDType = typename GraphType::VertexType::IDType;
+  using VertexLabelType = typename GraphType::VertexType::LabelType;
+  using EdgeIDType = typename GraphType::EdgeType::IDType;
+  using EdgeLabelType = typename GraphType::EdgeType::LabelType;
 
-  return ReadCSVGraph(graph, v_list, e_list, empty_vertex_id_gen,
-                      empty_edge_id_gen);
-}
-
-template <class GraphType, class VertexIDGen, class EdgeIDGen>
-int ReadCSVGraph(GraphType& graph, const char* v_file, const char* e_file,
-                 VertexIDGen& vertex_id_gen, EdgeIDGen& edge_id_gen) {
-  std::vector<const char*> v_file_list{v_file};
-  std::vector<const char*> e_file_list{e_file};
-
-  return ReadCSVGraph(graph, v_file_list, e_file_list, vertex_id_gen,
-                      edge_id_gen);
-}
-
-template <class GraphType>
-int ReadCSVGraph(GraphType& graph, const char* v_file, const char* e_file) {
-  ArithmeticIDEmptyGenerator<typename GraphType::VertexType::IDType>
-      empty_vertex_id_gen;
-  ArithmeticIDEmptyGenerator<typename GraphType::EdgeType::IDType>
-      empty_edge_id_gen;
-  return ReadCSVGraph(graph, v_file, e_file, empty_vertex_id_gen,
-                      empty_edge_id_gen);
+  return ReadCSVGraphWithCallback(
+      graph, v_list, e_list,
+      VoidCallback<size_t, VertexIDType, VertexLabelType, bool>,
+      VoidCallback<size_t, EdgeIDType, VertexIDType, VertexIDType,
+                   EdgeLabelType, bool>);
 }
 
 // Write CSV
@@ -423,20 +545,20 @@ template <class GraphType,
           typename std::enable_if<!GraphType::vertex_has_attribute,
                                   bool>::type = false>
 void GetVertexAttributeValueType(
-    const GraphType& graph, std::vector<std::string>& node_col_name,
+    const GraphType& graph, std::vector<std::string>& vertex_col_name,
     std::vector<std::string>& col_value_type,
     std::vector<typename GraphType::VertexType::AttributeKeyType>&
-        node_attr_key) {
+        vertex_attr_key) {
   return;
 }
 template <class GraphType,
           typename std::enable_if<GraphType::vertex_has_attribute, bool>::type =
               false>
 void GetVertexAttributeValueType(
-    const GraphType& graph, std::vector<std::string>& node_col_name,
+    const GraphType& graph, std::vector<std::string>& vertex_col_name,
     std::vector<std::string>& col_value_type,
     std::vector<typename GraphType::VertexType::AttributeKeyType>&
-        node_attr_key) {
+        vertex_attr_key) {
   using VertexType = typename GraphType::VertexType;
   using EdgeType = typename GraphType::EdgeType;
   using VertexIDType = typename VertexType::IDType;
@@ -449,24 +571,24 @@ void GetVertexAttributeValueType(
   using EdgeAttributeKeyType = typename EdgeType::AttributeKeyType;
 
   std::set<VertexLabelType> used_label;
-  for (auto node_it = graph.VertexCBegin(); !node_it.IsDone(); node_it++) {
-    if (used_label.count(node_it->label())) continue;
-    used_label.insert(node_it->label());
-    VertexConstPtr node_ptr = node_it;
-    for (auto attr_it = node_ptr->AttributeCBegin(); !attr_it.IsDone();
+  for (auto vertex_it = graph.VertexCBegin(); !vertex_it.IsDone(); vertex_it++) {
+    if (used_label.count(vertex_it->label())) continue;
+    used_label.insert(vertex_it->label());
+    VertexConstPtr vertex_ptr = vertex_it;
+    for (auto attr_it = vertex_ptr->AttributeCBegin(); !attr_it.IsDone();
          attr_it++) {
       VertexAttributeKeyType attr_key = attr_it->key();
-      if (std::find(node_attr_key.begin(), node_attr_key.end(), attr_key) !=
-          node_attr_key.end())
+      if (std::find(vertex_attr_key.begin(), vertex_attr_key.end(), attr_key) !=
+          vertex_attr_key.end())
         continue;
       std::string attr_value_type =
-          node_ptr->attribute_value_type_name(attr_key);
+          vertex_ptr->attribute_value_type_name(attr_key);
       std::stringstream ss;
       ss << attr_key;
       std::string col_name;
       ss >> col_name;
-      node_col_name.push_back(col_name);
-      node_attr_key.push_back(attr_key);
+      vertex_col_name.push_back(col_name);
+      vertex_attr_key.push_back(attr_key);
       col_value_type.push_back(attr_value_type);
     }
   }
@@ -503,21 +625,21 @@ void GetEdgeAttributeValueType(
   using AttributeKeyType = typename VertexType::AttributeKeyType;
   using EdgeAttributeKeyType = typename EdgeType::AttributeKeyType;
   std::set<EdgeLabelType> edge_used_label;
-  for (auto node_it = graph.VertexCBegin(); !node_it.IsDone(); node_it++) {
-    VertexConstPtr node_ptr = node_it;
-    for (auto edge_it = node_ptr->OutEdgeCBegin(); !edge_it.IsDone();
+  for (auto vertex_it = graph.VertexCBegin(); !vertex_it.IsDone(); vertex_it++) {
+    VertexConstPtr vertex_ptr = vertex_it;
+    for (auto edge_it = vertex_ptr->OutEdgeCBegin(); !edge_it.IsDone();
          edge_it++) {
       if (edge_used_label.count(edge_it->label())) continue;
       edge_used_label.insert(edge_it->label());
-      EdgeConstPtr edge_ptr = edge_it;
-      for (auto edge_attr_it = edge_ptr->AttributeCBegin();
+      EdgeConstPtr edge_vertex_ptr = edge_it;
+      for (auto edge_attr_it = edge_vertex_ptr->AttributeCBegin();
            !edge_attr_it.IsDone(); edge_attr_it++) {
         EdgeAttributeKeyType attr_key = edge_attr_it->key();
         if (std::find(edge_attr_key.begin(), edge_attr_key.end(), attr_key) !=
             edge_attr_key.end())
           continue;
         std::string attr_value_type =
-            edge_ptr->attribute_value_type_name(attr_key);
+            edge_vertex_ptr->attribute_value_type_name(attr_key);
         std::stringstream ss;
         ss << attr_key;
         std::string col_name;
@@ -534,22 +656,22 @@ template <class GraphType,
           typename std::enable_if<!GraphType::vertex_has_attribute,
                                   bool>::type = false>
 void WriteVertexAttribute(
-    const GraphType& graph, typename GraphType::VertexConstPtr& node_ptr,
+    const GraphType& graph, typename GraphType::VertexConstPtr& vertex_ptr,
     std::vector<typename GraphType::VertexType::AttributeKeyType>&
-        node_attr_key,
+        vertex_attr_key,
     std::vector<std::string>& col_value_type,
-    std::vector<std::string>& line_node_info) {
+    std::vector<std::string>& line_vertex_info) {
   return;
 }
 template <class GraphType,
           typename std::enable_if<GraphType::vertex_has_attribute, bool>::type =
               false>
 void WriteVertexAttribute(
-    const GraphType& graph, typename GraphType::VertexConstPtr& node_ptr,
+    const GraphType& graph, typename GraphType::VertexConstPtr& vertex_ptr,
     std::vector<typename GraphType::VertexType::AttributeKeyType>&
-        node_attr_key,
+        vertex_attr_key,
     std::vector<std::string>& col_value_type,
-    std::vector<std::string>& line_node_info) {
+    std::vector<std::string>& line_vertex_info) {
   using VertexType = typename GraphType::VertexType;
   using EdgeType = typename GraphType::EdgeType;
   using VertexIDType = typename VertexType::IDType;
@@ -560,33 +682,33 @@ void WriteVertexAttribute(
   using EdgeConstPtr = typename GraphType::EdgeConstPtr;
   using AttributeKeyType = typename VertexType::AttributeKeyType;
   using EdgeAttributeKeyType = typename EdgeType::AttributeKeyType;
-  for (auto attr_it = node_ptr->AttributeCBegin(); !attr_it.IsDone();
+  for (auto attr_it = vertex_ptr->AttributeCBegin(); !attr_it.IsDone();
        attr_it++) {
     int attr_key_pos = 0;
     AttributeKeyType attr_key = attr_it->key();
-    for (int j = 0; j < node_attr_key.size(); j++) {
-      if (node_attr_key[j] == attr_key) {
+    for (int j = 0; j < vertex_attr_key.size(); j++) {
+      if (vertex_attr_key[j] == attr_key) {
         attr_key_pos = j + 2;
         break;
       }
     }
     enum BasicDataType value_type_id =
-        node_ptr->attribute_value_type_id(attr_key);
+        vertex_ptr->attribute_value_type_id(attr_key);
     switch (value_type_id) {
       case BasicDataType::kTypeInt:
-        line_node_info[attr_key_pos] =
+        line_vertex_info[attr_key_pos] =
             std::to_string(attr_it->template const_value<int>());
         break;
       case BasicDataType::kTypeDouble:
-        line_node_info[attr_key_pos] =
+        line_vertex_info[attr_key_pos] =
             std::to_string(attr_it->template const_value<double>());
         break;
       case BasicDataType::kTypeString:
-        line_node_info[attr_key_pos] =
+        line_vertex_info[attr_key_pos] =
             attr_it->template const_value<std::string>();
         break;
       case BasicDataType::kTypeDateTime:
-        line_node_info[attr_key_pos] =
+        line_vertex_info[attr_key_pos] =
             (attr_it->template const_value<DateTime>()).to_string();
         break;
       case BasicDataType::kTypeUnknown:
@@ -601,7 +723,7 @@ template <
     class GraphType,
     typename std::enable_if<!GraphType::edge_has_attribute, bool>::type = false>
 void WriteEdgeAttribute(
-    const GraphType& graph, typename GraphType::EdgeConstPtr& edge_ptr,
+    const GraphType& graph, typename GraphType::EdgeConstPtr& edge_vertex_ptr,
     std::vector<typename GraphType::EdgeType::AttributeKeyType>& edge_attr_key,
     std::vector<std::string>& edge_col_value_type,
     std::vector<std::string>& line_edge_info) {
@@ -612,7 +734,7 @@ template <
     class GraphType,
     typename std::enable_if<GraphType::edge_has_attribute, bool>::type = false>
 void WriteEdgeAttribute(
-    const GraphType& graph, typename GraphType::EdgeConstPtr& edge_ptr,
+    const GraphType& graph, typename GraphType::EdgeConstPtr& edge_vertex_ptr,
     std::vector<typename GraphType::EdgeType::AttributeKeyType>& edge_attr_key,
     std::vector<std::string>& edge_col_value_type,
     std::vector<std::string>& line_edge_info) {
@@ -626,7 +748,7 @@ void WriteEdgeAttribute(
   using EdgeConstPtr = typename GraphType::EdgeConstPtr;
   using AttributeKeyType = typename VertexType::AttributeKeyType;
   using EdgeAttributeKeyType = typename EdgeType::AttributeKeyType;
-  for (auto attr_it = edge_ptr->AttributeCBegin(); !attr_it.IsDone();
+  for (auto attr_it = edge_vertex_ptr->AttributeCBegin(); !attr_it.IsDone();
        attr_it++) {
     int attr_key_pos = 0;
     EdgeAttributeKeyType attr_key = attr_it->key();
@@ -637,7 +759,7 @@ void WriteEdgeAttribute(
       }
     }
     enum BasicDataType value_type_id =
-        edge_ptr->attribute_value_type_id(attr_key);
+        edge_vertex_ptr->attribute_value_type_id(attr_key);
     switch (value_type_id) {
       case BasicDataType::kTypeDouble:
         line_edge_info[attr_key_pos] =
@@ -678,16 +800,16 @@ int WriteCSVGraph(const GraphType& graph, const char* v_file,
   using EdgeAttributeKeyType = typename EdgeType::AttributeKeyType;
 
   // write .v file
-  std::ofstream node_file(v_file);
+  std::ofstream vertex_file(v_file);
   int count = 0;
-  std::vector<std::string> node_col_name, col_value_type;
-  std::vector<VertexAttributeKeyType> node_attr_key;
-  node_col_name.push_back("node_id");
-  node_col_name.push_back("node_label");
+  std::vector<std::string> vertex_col_name, col_value_type;
+  std::vector<VertexAttributeKeyType> vertex_attr_key;
+  vertex_col_name.push_back("vertex_id");
+  vertex_col_name.push_back("vertex_label");
   // get ID and Label Type
   int has_vertex_flag = 0;
-  for (auto node_it = graph.VertexCBegin(); !node_it.IsDone(); node_it++) {
-    VertexConstPtr node_ptr = node_it;
+  for (auto vertex_it = graph.VertexCBegin(); !vertex_it.IsDone(); vertex_it++) {
+    VertexConstPtr vertex_ptr = vertex_it;
     col_value_type.push_back(TypeToString<VertexIDType>());
     col_value_type.push_back(TypeToString<VertexLabelType>());
     has_vertex_flag = 1;
@@ -698,41 +820,41 @@ int WriteCSVGraph(const GraphType& graph, const char* v_file,
   }
   // Get Attribute value type
   if (graph.vertex_has_attribute) {
-    GetVertexAttributeValueType(graph, node_col_name, col_value_type,
-                                node_attr_key);
+    GetVertexAttributeValueType(graph, vertex_col_name, col_value_type,
+                                vertex_attr_key);
   }
   // cout col
-  WriteCSVCol(node_file, node_col_name, col_value_type);
+  WriteCSVCol(vertex_file, vertex_col_name, col_value_type);
   // cout each vertex
-  for (auto node_it = graph.VertexCBegin(); !node_it.IsDone(); node_it++) {
+  for (auto vertex_it = graph.VertexCBegin(); !vertex_it.IsDone(); vertex_it++) {
     count++;
-    std::vector<std::string> line_node_info;
-    line_node_info.resize(node_col_name.size());
-    line_node_info[0] = ToString(node_it->id());
-    line_node_info[1] = ToString(node_it->label());
-    VertexConstPtr node_ptr = node_it;
+    std::vector<std::string> line_vertex_info;
+    line_vertex_info.resize(vertex_col_name.size());
+    line_vertex_info[0] = ToString(vertex_it->id());
+    line_vertex_info[1] = ToString(vertex_it->label());
+    VertexConstPtr vertex_ptr = vertex_it;
     if (graph.vertex_has_attribute) {
-      WriteVertexAttribute(graph, node_ptr, node_attr_key, col_value_type,
-                           line_node_info);
+      WriteVertexAttribute(graph, vertex_ptr, vertex_attr_key, col_value_type,
+                           line_vertex_info);
     }
-    WriteLine(node_file, line_node_info);
+    WriteLine(vertex_file, line_vertex_info);
   }
   // write .e file
-  std::ofstream edge_file(e_file);
+  std::ofstream edge_vertex_file(e_file);
 
   std::vector<std::string> edge_col_name, edge_col_value_type;
   std::vector<EdgeAttributeKeyType> edge_attr_key;
   edge_col_name.push_back("edge_id");
-  edge_col_name.push_back("source_node_id");
-  edge_col_name.push_back("target_node_id");
+  edge_col_name.push_back("source_vertex_id");
+  edge_col_name.push_back("target_vertex_id");
   edge_col_name.push_back("edge_label_id");
   // get ID and Label Type
   int insert_edge_flag = 0;
-  for (auto node_it = graph.VertexCBegin(); !node_it.IsDone(); node_it++) {
-    VertexConstPtr node_ptr = node_it;
-    for (auto edge_it = node_ptr->OutEdgeCBegin(); !edge_it.IsDone();
+  for (auto vertex_it = graph.VertexCBegin(); !vertex_it.IsDone(); vertex_it++) {
+    VertexConstPtr vertex_ptr = vertex_it;
+    for (auto edge_it = vertex_ptr->OutEdgeCBegin(); !edge_it.IsDone();
          edge_it++) {
-      EdgeConstPtr edge_ptr = edge_it;
+      EdgeConstPtr edge_vertex_ptr = edge_it;
       edge_col_value_type.push_back(TypeToString<EdgeIDType>());
       edge_col_value_type.push_back(TypeToString<VertexIDType>());
       edge_col_value_type.push_back(TypeToString<VertexIDType>());
@@ -752,11 +874,11 @@ int WriteCSVGraph(const GraphType& graph, const char* v_file,
                               edge_attr_key);
   }
   // cout col
-  WriteCSVCol(edge_file, edge_col_name, edge_col_value_type);
+  WriteCSVCol(edge_vertex_file, edge_col_name, edge_col_value_type);
   // cout each edge
-  for (auto node_it = graph.VertexCBegin(); !node_it.IsDone(); node_it++) {
-    VertexConstPtr node_ptr = node_it;
-    for (auto edge_it = node_ptr->OutEdgeCBegin(); !edge_it.IsDone();
+  for (auto vertex_it = graph.VertexCBegin(); !vertex_it.IsDone(); vertex_it++) {
+    VertexConstPtr vertex_ptr = vertex_it;
+    for (auto edge_it = vertex_ptr->OutEdgeCBegin(); !edge_it.IsDone();
          edge_it++) {
       count++;
       std::vector<std::string> line_edge_info;
@@ -765,12 +887,12 @@ int WriteCSVGraph(const GraphType& graph, const char* v_file,
       line_edge_info[1] = ToString(edge_it->const_src_ptr()->id());
       line_edge_info[2] = ToString(edge_it->const_dst_ptr()->id());
       line_edge_info[3] = ToString(edge_it->label());
-      EdgeConstPtr edge_ptr = edge_it;
+      EdgeConstPtr edge_vertex_ptr = edge_it;
       if (graph.edge_has_attribute) {
-        WriteEdgeAttribute(graph, edge_ptr, edge_attr_key, edge_col_value_type,
+        WriteEdgeAttribute(graph, edge_vertex_ptr, edge_attr_key, edge_col_value_type,
                            line_edge_info);
       }
-      WriteLine(edge_file, line_edge_info);
+      WriteLine(edge_vertex_file, line_edge_info);
     }
   }
   return count;
