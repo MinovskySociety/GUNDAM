@@ -325,47 +325,66 @@ int ReadCSVEdgeFile(GraphType& graph, const std::string& e_file,
   }
   return static_cast<int>(sz);
 }
-template <class GraphType>
-int ReadCSVGraph(GraphType& graph, const char* v_file, const char* e_file) {
-  SimpleArithmeticIDEmptyGenerator<typename GraphType::VertexType::IDType>
-      empty_vertex_id_type;
-  SimpleArithmeticIDEmptyGenerator<typename GraphType::EdgeType::IDType>
-      empty_edge_id_type;
-  return ReadCSVGraph(graph, v_file, e_file, empty_vertex_id_type,
-                      empty_edge_id_type);
+
+template <class GraphType, typename VertexFileList, typename EdgeFileList,
+          class VertexIDGen, class EdgeIDGen>
+int ReadCSVGraph(GraphType& graph, const VertexFileList& v_list,
+                 const EdgeFileList& e_list, VertexIDGen& vertex_id_gen,
+                 EdgeIDGen& edge_id_gen) {
+  graph.Clear();
+
+  int count_v = 0;
+  for (const auto& v_file : v_list) {
+    int res = ReadCSVVertexFile(graph, v_file, vertex_id_gen);
+    if (res < 0) return res;
+    count_v += res;
+  }
+
+  int count_e = 0;
+  for (const auto& e_file : e_list) {
+    int res = ReadCSVEdgeFile(graph, e_file, edge_id_gen);
+    if (res < 0) return res;
+    count_e += res;
+  }
+
+  std::cout << "Vertex: " << count_v << std::endl;
+  std::cout << "Edge: " << count_e << std::endl;
+
+  return count_v + count_e;
 }
-template <class GraphType, class VertexIDGen, class EdgeIDGen>
-int ReadCSVGraph(GraphType& graph, const char* v_file, const char* e_file,
-                 VertexIDGen& vertex_id_gen, EdgeIDGen& edge_id_gen) {
-  int count = 0;
-  int res = ReadCSVVertexFile(graph, v_file, vertex_id_gen);
-  if (res < 0) return res;
-  count += res;
-  res = ReadCSVEdgeFile(graph, e_file, edge_id_gen);
-  if (res < 0) return res;
-  count += res;
-  return count;
-}
+
 template <class GraphType, typename VertexFileList, typename EdgeFileList>
 int ReadCSVGraph(GraphType& graph, const VertexFileList& v_list,
                  const EdgeFileList& e_list) {
-  int count = 0;
-  for (const auto& v_file : v_list) {
-    SimpleArithmeticIDEmptyGenerator<typename GraphType::VertexType::IDType>
-        empty_vertex_id_type;
-    int res = ReadCSVVertexFile(graph, v_file, empty_vertex_id_type);
-    if (res < 0) return res;
-    count += res;
-  }
-  for (const auto& e_file : e_list) {
-    SimpleArithmeticIDEmptyGenerator<typename GraphType::EdgeType::IDType>
-        empty_edge_id_type;
-    int res = ReadCSVEdgeFile(graph, e_file, empty_edge_id_type);
-    if (res < 0) return res;
-    count += res;
-  }
-  return count;
+  ArithmeticIDEmptyGenerator<typename GraphType::VertexType::IDType>
+      empty_vertex_id_gen;
+  ArithmeticIDEmptyGenerator<typename GraphType::EdgeType::IDType>
+      empty_edge_id_gen;
+
+  return ReadCSVGraph(graph, v_list, e_list, empty_vertex_id_gen,
+                      empty_edge_id_gen);
 }
+
+template <class GraphType, class VertexIDGen, class EdgeIDGen>
+int ReadCSVGraph(GraphType& graph, const char* v_file, const char* e_file,
+                 VertexIDGen& vertex_id_gen, EdgeIDGen& edge_id_gen) {
+  std::vector<const char*> v_file_list{v_file};
+  std::vector<const char*> e_file_list{e_file};
+
+  return ReadCSVGraph(graph, v_file_list, e_file_list, vertex_id_gen,
+                      edge_id_gen);
+}
+
+template <class GraphType>
+int ReadCSVGraph(GraphType& graph, const char* v_file, const char* e_file) {
+  ArithmeticIDEmptyGenerator<typename GraphType::VertexType::IDType>
+      empty_vertex_id_gen;
+  ArithmeticIDEmptyGenerator<typename GraphType::EdgeType::IDType>
+      empty_edge_id_gen;
+  return ReadCSVGraph(graph, v_file, e_file, empty_vertex_id_gen,
+                      empty_edge_id_gen);
+}
+
 // Write CSV
 // ToString
 template <typename ElementType>

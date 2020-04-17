@@ -1,15 +1,17 @@
 #ifndef _GENEATOR_H
 #define _GENEATOR_H
+
 #include <type_traits>
+
+namespace GUNDAM {
 template <typename IDType,
           typename std::enable_if<std::is_arithmetic<IDType>::value,
                                   bool>::type = false>
-class SimpleArithmeticIDEmptyGenerator {
- private:
+class ArithmeticIDEmptyGenerator {
  public:
   IDType GetID() {}
 
-  void UseID(const IDType& id) {}    
+  void UseID(const IDType& id) {}
 };
 
 template <typename IDType,
@@ -31,4 +33,6 @@ class SimpleArithmeticIDGenerator {
     }
   }
 };
+
+}  // namespace GUNDAM
 #endif
