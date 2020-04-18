@@ -8,6 +8,8 @@ TEST(TestGUNDAM, TestDataType) {
 
   DateTime t("1984-5-23 19:3:1");
 
+  std::cout << t << std::endl;
+
   ASSERT_EQ("1984-05-23 19:03:01", t.to_string());
 
   ASSERT_EQ(BasicDataType::kTypeString, StringToEnum("string"));

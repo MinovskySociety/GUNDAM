@@ -42,7 +42,7 @@ TEST(TestGUNDAM, ReadCSVGraph) {
   //                 SetVertexAttributeKeyType<std::string>,
   //                 SetEdgeAttributeKeyType<std::string>>;
 
-  using G2 = LargeGraph<uint32_t, uint32_t, std::string, uint32_t, uint32_t,
+  using G2 = LargeGraph<uint64_t, uint32_t, std::string, uint64_t, uint32_t,
                         std::string>;
 
   // std::vector<std::string> v_list{
@@ -57,15 +57,14 @@ TEST(TestGUNDAM, ReadCSVGraph) {
   //    "D://Work/cu100/liantong_e_attr_visit.csv"};
 
   std::vector<std::string> v_list{
-      "/mnt/d/Work/cu5000/liantong_n_attr_user.csv",
-      "/mnt/d/Work/cu5000/liantong_n_attr_faketype.csv",
-      "/mnt/d/Work/cu5000/liantong_n_attr_phone.csv",
-      "/mnt/d/Work/cu5000/liantong_n_attr_web.csv"};
+      "/mnt/d/Work/cu4999/liantong_v_user.csv",      
+      "/mnt/d/Work/cu4999/liantong_v_phone.csv",
+      "/mnt/d/Work/cu4999/liantong_v_web.csv"};
 
   std::vector<std::string> e_list{
-      "/mnt/d/Work/cu5000/liantong_e_attr_call.csv",
-      "/mnt/d/Work/cu5000/liantong_e_attr_send_message.csv",
-      "/mnt/d/Work/cu5000/liantong_e_attr_visit.csv"};
+      "/mnt/d/Work/cu4999/liantong_e_call.csv",
+      "/mnt/d/Work/cu4999/liantong_e_send_message.csv",
+      "/mnt/d/Work/cu4999/liantong_e_visit.csv"};
 
   // const char *v_list = "D://Work/cu5000/liantong_n.csv";
   // const char *e_list = "D://Work/cu5000/liantong_e.csv";

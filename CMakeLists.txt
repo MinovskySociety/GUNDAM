@@ -13,7 +13,6 @@ endif()
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   message("MSVC")
 
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS)  
   add_compile_options(/W3 /WX)
   add_compile_options(/wd4819)
   
@@ -27,6 +26,21 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   message("Intel")
 
+endif()
+
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+	message(STATUS "Linux ")
+
+elseif (CMAKE_SYSTEM_NAME MATCHES "Windows")
+	message(STATUS "Windows")
+
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)  
+
+elseif (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+	message(STATUS "FreeBSD")
+
+else ()
+	message(STATUS "${CMAKE_SYSTEM_NAME}")
 endif()
 
 set(CMAKE_CXX_STANDARD 11)
