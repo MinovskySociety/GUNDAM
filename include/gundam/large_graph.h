@@ -315,7 +315,7 @@ class LargeGraph {
       auto dst = e->dst_ptr();
 
       auto ret3 = out_vertices_[edge_label].insert(dst);
-      assert(ret3.second);
+      // assert(ret3.second);
 
       auto ret4 = out_edge_build_on_vertex_[dst][edge_label].insert(e);
       assert(ret4.second);
