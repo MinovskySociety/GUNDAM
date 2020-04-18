@@ -370,7 +370,7 @@ class LargeGraph {
       auto it5 = it4->second.find(e->label());
       it4->second.erase(it5);
       if (it4->second.empty()) {
-        out_vertices_.find(e->label()).erase(e->dst_ptr());
+        out_vertices_.find(e->label())->second.erase(e->dst_ptr());
         out_edge_build_on_vertex_.erase(e->dst_ptr());
       }
     }
@@ -394,7 +394,7 @@ class LargeGraph {
       auto it5 = it4->second.find(e->label());
       it4->second.erase(it5);
       if (it4->second.empty()) {
-        in_vertices_.find(e->label()).erase(e->src_ptr());
+        in_vertices_.find(e->label())->second.erase(e->src_ptr());
         in_edge_build_on_vertex_.erase(e->src_ptr());
       }
     }

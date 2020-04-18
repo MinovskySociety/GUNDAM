@@ -258,6 +258,13 @@ inline bool ReadAttribues(
 //  return true;
 //}
 
+inline bool IsFileExisted(const std::string file) {
+  std::ifstream check(file);
+  if (!check) return false;
+  check.close();
+  return true;
+}
+
 template <bool read_attr = true, class GraphType, class ReadVertexCallback>
 int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph, 
                                   ReadVertexCallback callback) {
@@ -271,8 +278,7 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
   std::cout << v_file << std::endl;
 
   // check file exist
-  std::ifstream check_vertex_file(v_file);
-  if (!check_vertex_file) {
+  if (!IsFileExisted(v_file)) {
     std::cout << "File not exist!" << std::endl;
     return -1;
   }

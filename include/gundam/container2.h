@@ -104,6 +104,10 @@ class MapDict {
     return true;
   }
 
+  iterator Erase(iterator it) { return container_.erase(it); }
+
+  iterator Erase(const_iterator it) { return container_.erase(it); }
+
   void Clear() { container_.clear(); }
 
   iterator begin() noexcept { return container_.begin(); }
