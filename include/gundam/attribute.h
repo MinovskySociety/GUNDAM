@@ -1,8 +1,11 @@
 #ifndef _ATTRIBUTE_H
 #define _ATTRIBUTE_H
 
-#include "gundam/datatype.h"
+#include <sstream>
+#include <string>
+
 #include "gundam/container.h"
+#include "gundam/datatype.h"
 #include "gundam/iterator.h"
 
 namespace GUNDAM {
@@ -10,23 +13,32 @@ namespace GUNDAM {
 // Value
 class AbstractValue {
  public:
-  virtual ~AbstractValue() { return; }
+  virtual ~AbstractValue() {}
+
+  virtual std::string value_str() const = 0;
 };
 
 template <typename ConcreteDataType_>
 class ConcreteValue : public AbstractValue {
+ public:
+  ConcreteValue(const ConcreteDataType_& value) : value_(value) {}
+
+  virtual ~ConcreteValue() override {}
+
+  virtual std::string value_str() const override {
+    std::stringstream ss;
+    ss << value_;
+    return ss.str();
+  }
+
+  const ConcreteDataType_& const_value() const { return this->value_; }
+
+  ConcreteDataType_& value() { return this->value_; }
+
+  void set_value(const ConcreteDataType_& value) { this->value_ = value; }
+
  private:
   ConcreteDataType_ value_;
-
- public:
-  ConcreteValue(const ConcreteDataType_& value) : value_(value) { return; }
-  virtual ~ConcreteValue() { return; }
-  const ConcreteDataType_& const_value() const { return this->value_; }
-  ConcreteDataType_& value() { return this->value_; }
-  void set_value(const ConcreteDataType_& value) {
-    this->value_ = value;
-    return;
-  }
 };
 
 // Attribute
@@ -34,17 +46,17 @@ constexpr TupleIdxType kAttributeKeyIdx = 0;
 constexpr TupleIdxType kAttributeValuePtrIdx = 1;
 constexpr TupleIdxType kAttributeValueTypeIdx = 2;
 
- template <typename KeyType_, enum ContainerType container_type_,
+template <typename KeyType_, enum ContainerType container_type_,
           enum SortType sort_type_>
- using AttributeContainer = Container<container_type_, sort_type_, KeyType_,
+using AttributeContainer = Container<container_type_, sort_type_, KeyType_,
                                      AbstractValue*, enum BasicDataType>;
 
- template <typename AttributeType_, bool is_const_, bool is_dynamic_,
-           typename KeyType_, enum ContainerType container_type_,
-           enum SortType sort_type_>
- class WithAttribute_;
+template <typename AttributeType_, bool is_const_, bool is_dynamic_,
+          typename KeyType_, enum ContainerType container_type_,
+          enum SortType sort_type_>
+class WithAttribute_;
 
- // This"Ptr" is iterator!
+// This"Ptr" is iterator!
 template <typename AttributeContainerType, bool is_const_>
 class AttributeContentPtr_ {
  private:
@@ -81,7 +93,11 @@ class AttributeContentPtr_ {
                std::get<kAttributeValuePtrIdx>(*(this->iterator_)))
         ->value();
   }
-  BasicDataType value_type_id() const {
+  std::string value_str() const {
+    assert(!this->is_null_);
+    return std::get<kAttributeValuePtrIdx>(*(this->iterator_))->value_str();
+  }
+  BasicDataType value_type() const {
     assert(!this->is_null_);
     return std::get<kAttributeValueTypeIdx>(*(this->iterator_));
   }
@@ -146,40 +162,40 @@ class AttributePtr_
   bool IsNull() const { return AttributeContentPtrType::IsNull(); }
 };
 
-//class InnerVertex_;
+// class InnerVertex_;
 //
-//using VertexAttributeType =
+// using VertexAttributeType =
 //    WithAttribute_<VertexStaticAttributeType, vertex_attribute_is_const,
 //                   vertex_has_dynamic_attribute, VertexAttributeKeyType,
 //                   vertex_attribute_container_type,
 //                   vertex_attribute_container_sort_type>;
 //
-//using EdgeAttributeType =
+// using EdgeAttributeType =
 //    WithAttribute_<EdgeStaticAttributeType, edge_attribute_is_const,
 //                   edge_has_dynamic_attribute, EdgeAttributeKeyType,
 //                   edge_attribute_container_type,
 //                   edge_attribute_container_sort_type>;
 
- /// these ContentIterator classes are transparent to programmers
+/// these ContentIterator classes are transparent to programmers
 template <typename KeyType_, typename ContainerType_, bool is_const_,
           IteratorDepthType depth_, IteratorDepthType begin_depth_,
           TupleIdxType key_idx_, TupleIdxType value_ptr_idx_,
-          TupleIdxType value_type_idx_>
+          TupleIdxType value_typex_>
 class AttributeContentIterator_
     : protected InnerIterator_<ContainerType_, is_const_, depth_> {
  private:
   using InnerIteratorType = InnerIterator_<ContainerType_, is_const_, depth_>;
 
-  //friend typename VertexAttributeType::AttributeIterator
-  //VertexAttributeType::EraseAttribute(
+  // friend typename VertexAttributeType::AttributeIterator
+  // VertexAttributeType::EraseAttribute(
   //    const typename VertexAttributeType::AttributeIterator&
   //        attribute_iterator);
-  //friend typename EdgeAttributeType::AttributeIterator
-  //EdgeAttributeType::EraseAttribute(
-  //    const typename EdgeAttributeType::AttributeIterator& attribute_iterator);
+  // friend typename EdgeAttributeType::AttributeIterator
+  // EdgeAttributeType::EraseAttribute(
+  //    const typename EdgeAttributeType::AttributeIterator&
+  //    attribute_iterator);
 
-  inline const typename InnerIteratorType::IteratorType& ConstInnerIterator()
-      const {
+  const typename InnerIteratorType::IteratorType& ConstInnerIterator() const {
     return InnerIteratorType::ConstInnerIterator();
   }
 
@@ -193,14 +209,14 @@ class AttributeContentIterator_
 
   template <bool judge = is_const_,
             typename std::enable_if<!judge, bool>::type = false>
-  inline ContentPtr content_ptr() {
+  ContentPtr content_ptr() {
     ContentPtr const temp_this_ptr = this;
     return temp_this_ptr;
   }
 
   template <bool judge = is_const_,
             typename std::enable_if<judge, bool>::type = false>
-  inline ContentPtr content_ptr() const {
+  ContentPtr content_ptr() const {
     ContentPtr const temp_this_ptr = this;
     return temp_this_ptr;
   }
@@ -208,31 +224,41 @@ class AttributeContentIterator_
  public:
   using InnerIteratorType::InnerIteratorType;
 
-  inline const KeyType_& key() const {
+  const KeyType_& key() const {
     assert(!this->IsDone());
     return InnerIteratorType::template get_const<KeyType_, key_idx_,
                                                  begin_depth_>();
   }
+
   template <typename ConcreteDataType>
-  inline const ConcreteDataType& const_value() const {
+  const ConcreteDataType& const_value() const {
     assert(!this->IsDone());
     return static_cast<ConcreteValue<const ConcreteDataType>*>(
                InnerIteratorType::template get_const<
                    AbstractValue*, value_ptr_idx_, begin_depth_>())
         ->const_value();
   }
+
   template <typename ConcreteDataType>
-  inline ConcreteDataType& value() {
+  ConcreteDataType& value() {
     assert(!this->IsDone());
     return static_cast<ConcreteValue<ConcreteDataType>*>(
                InnerIteratorType::template get<AbstractValue*, value_ptr_idx_,
                                                begin_depth_>())
         ->value();
   }
-  inline enum BasicDataType value_type_id() const {
+
+  std::string value_str() const {
+    assert(!this->IsDone());
+    return (InnerIteratorType::template get_const<
+                AbstractValue*, value_ptr_idx_, begin_depth_>())
+        ->value_str();
+  }
+
+  enum BasicDataType value_type() const {
     assert(!this->IsDone());
     return InnerIteratorType::template get_const<
-        enum BasicDataType, value_type_idx_, begin_depth_>();
+        enum BasicDataType, value_typex_, begin_depth_>();
   }
 };
 
@@ -328,7 +354,7 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
     return;
   }
 
-  BasicDataType attribute_value_type_id(const KeyType_& key) const {
+  BasicDataType attribute_value_type(const KeyType_& key) const {
     assert(key_to_value_type_map.find(key) != key_to_value_type_map.end());
     return key_to_value_type_map.find(key)->second;
   }
@@ -393,11 +419,11 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
       /// has already existed in the Container
       return std::pair<AttributePtr, bool>(AttributePtr(ret.first), false);
     }
-    enum BasicDataType value_type_id = TypeToEnum(value);
-    this->SetValueType(key, value_type_id);
+    enum BasicDataType value_type = TypeToEnum(value);
+    this->SetValueType(key, value_type);
     std::get<kAttributeValuePtrIdx>(*(ret.first)) =
         new ConcreteValue<ConcreteDataType>(value);
-    std::get<kAttributeValueTypeIdx>(*ret.first) = value_type_id;
+    std::get<kAttributeValueTypeIdx>(*ret.first) = value_type;
     return std::pair<AttributePtr, bool>(AttributePtr(ret.first), true);
   }
 
@@ -414,8 +440,8 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
     static_cast<ConcreteValue<ConcreteDataType>*>(
         std::get<kAttributeValuePtrIdx>(*(ret.first)))
         ->set_value(value);
-    enum BasicDataType value_type_id = TypeToEnum(value);
-    std::get<kAttributeValueTypeIdx>(*ret.first) = value_type_id;
+    enum BasicDataType value_type = TypeToEnum(value);
+    std::get<kAttributeValueTypeIdx>(*ret.first) = value_type;
     return std::pair<AttributePtr, bool>(AttributePtr(ret.first), true);
   }
 

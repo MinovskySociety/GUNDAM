@@ -322,9 +322,9 @@ class Graph {
         const EdgeAttributeKeyType& key) const {
       return this->_const_attribute().attribute_value_type_name(key);
     }
-    inline const enum BasicDataType attribute_value_type_id(
+    inline const enum BasicDataType attribute_value_type(
         const EdgeAttributeKeyType& key) const {
-      return this->_const_attribute().attribute_value_type_id(key);
+      return this->_const_attribute().attribute_value_type(key);
     }
     template <typename ConcreteDataType>
     inline std::pair<EdgeAttributePtr, bool> AddAttribute(
@@ -855,9 +855,9 @@ class Graph {
           const EdgeAttributeKeyType& key) const {
         return this->const_attribute().attribute_value_type_name(key);
       }
-      inline const enum BasicDataType attribute_value_type_id(
+      inline const enum BasicDataType attribute_value_type(
           const EdgeAttributeKeyType& key) const {
-        return this->const_attribute().attribute_value_type_id(key);
+        return this->const_attribute().attribute_value_type(key);
       }
     };
 

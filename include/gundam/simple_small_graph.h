@@ -151,7 +151,7 @@ class SimpleSmallGraph {
 
     size_t CountOutEdge(const EdgeLabelType &edge_label) const {
       size_t out_edge_count = 0;
-      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); ++it) {
         if (it->label() == edge_label) out_edge_count++;
       }
       return out_edge_count;
@@ -161,38 +161,43 @@ class SimpleSmallGraph {
       assert(HasValue());
       return data_->in_edges_.Count();
     }
+    
     size_t CountInEdge(const EdgeLabelType &edge_label) const {
       size_t in_edge_count = 0;
-      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->InEdgeCBegin(); !it.IsDone(); ++it) {
         if (it->label() == edge_label) in_edge_count++;
       }
       return in_edge_count;
     }
+
     size_t CountOutVertex() const {
       std::set<VertexIDType> out_vertex_id_set;
-      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); ++it) {
         out_vertex_id_set.insert(it->const_dst_ptr()->id());
       }
       return out_vertex_id_set.size();
     }
+
     size_t CountOutVertex(const EdgeLabelType &edge_label) const {
       std::set<VertexIDType> out_vertex_id_set;
-      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); ++it) {
         if (it->label() == edge_label)
           out_vertex_id_set.insert(it->const_dst_ptr()->id());
       }
       return out_vertex_id_set.size();
     }
+
     size_t CountInVertex() const {
       std::set<VertexIDType> in_vertex_id_set;
-      for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->InEdgeCBegin(); !it.IsDone(); ++it) {
         in_vertex_id_set.insert(it->const_src_ptr()->id());
       }
       return in_vertex_id_set.size();
     }
+
     size_t CountInVertex(const EdgeLabelType &edge_label) const {
       std::set<VertexIDType> in_vertex_id_set;
-      for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->InEdgeCBegin(); !it.IsDone(); ++it) {
         if (it->label() == edge_label)
           in_vertex_id_set.insert(it->const_src_ptr()->id());
       }

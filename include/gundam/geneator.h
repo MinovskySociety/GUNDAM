@@ -1,24 +1,21 @@
 #ifndef _GENEATOR_H
 #define _GENEATOR_H
+
 #include <type_traits>
-template <typename IDType,
-          typename std::enable_if<std::is_arithmetic<IDType>::value,
-                                  bool>::type = false>
-class SimpleArithmeticIDEmptyGenerator {
- private:
+
+namespace GUNDAM {
+
+template <class IDType>
+class VoidIDGenerator {
  public:
   IDType GetID() {}
 
-  void UseID(const IDType& id) {}    
+  void UseID(const IDType& id) {}
 };
 
-template <typename IDType,
-          typename std::enable_if<std::is_arithmetic<IDType>::value,
-                                  bool>::type = false>
+template <class IDType, class = typename std::enable_if<
+                            std::is_arithmetic<IDType>::value, bool>::type>
 class SimpleArithmeticIDGenerator {
- private:
-  IDType used_max_ = 0;
-
  public:
   IDType GetID() {
     this->used_max_ = this->used_max_ + 1;
@@ -30,5 +27,10 @@ class SimpleArithmeticIDGenerator {
       this->used_max_ = id;
     }
   }
+
+ private:
+  IDType used_max_ = 0;
 };
+
+}  // namespace GUNDAM
 #endif

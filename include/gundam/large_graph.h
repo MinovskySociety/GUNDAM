@@ -315,7 +315,7 @@ class LargeGraph {
       auto dst = e->dst_ptr();
 
       auto ret3 = out_vertices_[edge_label].insert(dst);
-      assert(ret3.second);
+      // assert(ret3.second);
 
       auto ret4 = out_edge_build_on_vertex_[dst][edge_label].insert(e);
       assert(ret4.second);
@@ -370,7 +370,7 @@ class LargeGraph {
       auto it5 = it4->second.find(e->label());
       it4->second.erase(it5);
       if (it4->second.empty()) {
-        out_vertices_.find(e->label()).erase(e->dst_ptr());
+        out_vertices_.find(e->label())->second.erase(e->dst_ptr());
         out_edge_build_on_vertex_.erase(e->dst_ptr());
       }
     }
@@ -394,7 +394,7 @@ class LargeGraph {
       auto it5 = it4->second.find(e->label());
       it4->second.erase(it5);
       if (it4->second.empty()) {
-        in_vertices_.find(e->label()).erase(e->src_ptr());
+        in_vertices_.find(e->label())->second.erase(e->src_ptr());
         in_edge_build_on_vertex_.erase(e->src_ptr());
       }
     }
@@ -504,9 +504,9 @@ class LargeGraph {
   using EdgeConstIterator = GIterator<typename EdgeContainer::const_iterator,
                                       EdgeData, PairSecondPointerCast>;
 
-  static const bool vertex_has_attribute = true;
+  static constexpr bool vertex_has_attribute = true;
 
-  static const bool edge_has_attribute = true;
+  static constexpr bool edge_has_attribute = true;
 
   LargeGraph() = default;
 
