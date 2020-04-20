@@ -97,7 +97,7 @@ class AttributeContentPtr_ {
     assert(!this->is_null_);
     return std::get<kAttributeValuePtrIdx>(*(this->iterator_))->value_str();
   }
-  BasicDataType value_type_id() const {
+  BasicDataType value_type() const {
     assert(!this->is_null_);
     return std::get<kAttributeValueTypeIdx>(*(this->iterator_));
   }
@@ -180,7 +180,7 @@ class AttributePtr_
 template <typename KeyType_, typename ContainerType_, bool is_const_,
           IteratorDepthType depth_, IteratorDepthType begin_depth_,
           TupleIdxType key_idx_, TupleIdxType value_ptr_idx_,
-          TupleIdxType value_type_idx_>
+          TupleIdxType value_typex_>
 class AttributeContentIterator_
     : protected InnerIterator_<ContainerType_, is_const_, depth_> {
  private:
@@ -255,10 +255,10 @@ class AttributeContentIterator_
         ->value_str();
   }
 
-  enum BasicDataType value_type_id() const {
+  enum BasicDataType value_type() const {
     assert(!this->IsDone());
     return InnerIteratorType::template get_const<
-        enum BasicDataType, value_type_idx_, begin_depth_>();
+        enum BasicDataType, value_typex_, begin_depth_>();
   }
 };
 
@@ -354,7 +354,7 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
     return;
   }
 
-  BasicDataType attribute_value_type_id(const KeyType_& key) const {
+  BasicDataType attribute_value_type(const KeyType_& key) const {
     assert(key_to_value_type_map.find(key) != key_to_value_type_map.end());
     return key_to_value_type_map.find(key)->second;
   }
@@ -419,11 +419,11 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
       /// has already existed in the Container
       return std::pair<AttributePtr, bool>(AttributePtr(ret.first), false);
     }
-    enum BasicDataType value_type_id = TypeToEnum(value);
-    this->SetValueType(key, value_type_id);
+    enum BasicDataType value_type = TypeToEnum(value);
+    this->SetValueType(key, value_type);
     std::get<kAttributeValuePtrIdx>(*(ret.first)) =
         new ConcreteValue<ConcreteDataType>(value);
-    std::get<kAttributeValueTypeIdx>(*ret.first) = value_type_id;
+    std::get<kAttributeValueTypeIdx>(*ret.first) = value_type;
     return std::pair<AttributePtr, bool>(AttributePtr(ret.first), true);
   }
 
@@ -440,8 +440,8 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
     static_cast<ConcreteValue<ConcreteDataType>*>(
         std::get<kAttributeValuePtrIdx>(*(ret.first)))
         ->set_value(value);
-    enum BasicDataType value_type_id = TypeToEnum(value);
-    std::get<kAttributeValueTypeIdx>(*ret.first) = value_type_id;
+    enum BasicDataType value_type = TypeToEnum(value);
+    std::get<kAttributeValueTypeIdx>(*ret.first) = value_type;
     return std::pair<AttributePtr, bool>(AttributePtr(ret.first), true);
   }
 

@@ -36,14 +36,14 @@ TEST(TestGUNDAM, TestAttribute) {
   ASSERT_EQ(ret.first->const_value<int>(), 2);
   ASSERT_EQ(ret.first->key(), "a");  
   ASSERT_EQ(ret.first->value_str(), "2");
-  ASSERT_EQ(ret.first->value_type_id(), BasicDataType::kTypeInt);
+  ASSERT_EQ(ret.first->value_type(), BasicDataType::kTypeInt);
 
   ret = attr.AddAttribute<std::string>("b", "ABC");
   ASSERT_TRUE(ret.second);
   ASSERT_EQ(ret.first->value<std::string>(), "ABC");
   ASSERT_EQ(ret.first->key(), "b");
   ASSERT_EQ(ret.first->value_str(), "ABC");
-  ASSERT_EQ(ret.first->value_type_id(), BasicDataType::kTypeString);
+  ASSERT_EQ(ret.first->value_type(), BasicDataType::kTypeString);
   
   ret = attr.AddAttribute<std::string>("a", "ABC");
   ASSERT_FALSE(ret.second);
@@ -56,8 +56,8 @@ TEST(TestGUNDAM, TestAttribute) {
   }
   ASSERT_EQ(2, count);
 
-  ASSERT_EQ(BasicDataType::kTypeInt, attr.attribute_value_type_id("a"));
-  ASSERT_EQ(BasicDataType::kTypeString, attr.attribute_value_type_id("b"));
+  ASSERT_EQ(BasicDataType::kTypeInt, attr.attribute_value_type("a"));
+  ASSERT_EQ(BasicDataType::kTypeString, attr.attribute_value_type("b"));
 
   ASSERT_EQ(std::string("int"), attr.attribute_value_type_name("a"));
   ASSERT_EQ(std::string("string"), attr.attribute_value_type_name("b"));

@@ -21,8 +21,8 @@ VertexPtr及VertexIterator可调用接口表如下所示:
 |:--|:--|:--|
 |AddAttribute|pair\<AtributePtr,bool\> AddAttribute(key,value)<br>key:属性的键值<br>value:属性的值<br>返回值:若该节点中已存在键为key的属性则返回<指向已有属性的指针, false>；否则，加入新的属性并返回<指向新属性的指针, true>|往节点中加入属性key值为key,value值为value的属性|
 |attribute<br>const_attribute|template\<ValueType\>attribute(key)<br>key:属性的键值<br>ValueType:value值的数据类型<br>返回值:返回key对应的value|得到该节点键值为key的value/常量value|
-|attribute_value_type_id|BasicDataType attribute_value_type_id(key)<br>key:属性的键值|得到该节点键值为key的value的类型的id|
-|attribute_value_type_name|string attribute_value_type_id(key)<br>key:属性的键值<br>返回值:若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string"，其他类型返回"unknown type"|得到该节点键值为key的value的类型的名字|
+|attribute_value_type|BasicDataType attribute_value_type(key)<br>key:属性的键值|得到该节点键值为key的value的类型的id|
+|attribute_value_type_name|string attribute_value_type(key)<br>key:属性的键值<br>返回值:若类型是整型(int,long long,unsigned int等等)，返回"int",若类型是浮点类型(float,double,long double),返回"double"，若是std::string类型，返回"string"，其他类型返回"unknown type"|得到该节点键值为key的value的类型的名字|
 |AttributeBegin<br>AttributeBegin|AttributeIterator AttributeBegin()<br>AttributeConstIterator AttributeCBegin()|得到这个节点属性的迭代器/常量迭代器|
 |CountInEdge|size_t CountInEdge()|得到指向这个节点的边的数量|
 |CountOutEdge|size_t CountOutEdge()|得到指出这个节点的边的数量|

@@ -253,7 +253,7 @@ TEST(TestGUNDAM, TestGraphAttribute) {
 
   for (G1::EdgeAttributeIterator it = v1->AttributeBegin(); !it.IsDone(); it++) {
     std::cout << "key = " << it->key() << std::endl
-              << "value type = " << EnumToString(it->value_type_id())
+              << "value type = " << EnumToString(it->value_type())
               << std::endl;
     ++count;
   }
@@ -263,7 +263,7 @@ TEST(TestGUNDAM, TestGraphAttribute) {
     G1::VertexAttributePtr va = v1->FindAttributePtr(key);
 
     std::cout << "key = " << va->key() << std::endl
-              << "value type = " << EnumToString(va->value_type_id())
+              << "value type = " << EnumToString(va->value_type())
               << std::endl;
   }
 
