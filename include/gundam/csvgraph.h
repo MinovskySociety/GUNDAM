@@ -482,10 +482,10 @@ int ReadCSVEdgeFileWithCallback(const std::string& e_file, GraphType& graph,
   return count_success;
 }
 
-template <class GraphType, class VertexFileList, class EdgeFileList,
-          class ReadVertexCallback, class ReadEdgeCallback>
-int ReadCSVGraphWithCallback(GraphType& graph, const VertexFileList& v_list,
-                             const EdgeFileList& e_list,
+template <class GraphType, class ReadVertexCallback, class ReadEdgeCallback>
+int ReadCSVGraphWithCallback(GraphType& graph,
+                             const std::vector<std::string>& v_list,
+                             const std::vector<std::string>& e_list,
                              ReadVertexCallback rv_callback,
                              ReadEdgeCallback re_callback) {
   graph.Clear();
@@ -510,9 +510,9 @@ int ReadCSVGraphWithCallback(GraphType& graph, const VertexFileList& v_list,
   return count_v + count_e;
 }
 
-template <class GraphType, class VertexFileList, class EdgeFileList>
-int ReadCSVGraph(GraphType& graph, const VertexFileList& v_list,
-                 const EdgeFileList& e_list) {
+template <class GraphType>
+inline int ReadCSVGraph(GraphType& graph, const std::vector<std::string>& v_list,
+                 const std::vector<std::string>& e_list) {
   using VertexIDType = typename GraphType::VertexType::IDType;
   using VertexLabelType = typename GraphType::VertexType::LabelType;
   using EdgeIDType = typename GraphType::EdgeType::IDType;
@@ -523,6 +523,15 @@ int ReadCSVGraph(GraphType& graph, const VertexFileList& v_list,
       [](size_t, VertexIDType, VertexLabelType, bool) {},
       [](size_t, EdgeIDType, VertexIDType, VertexIDType, EdgeLabelType,
          bool) {});
+}
+
+template <class GraphType>
+inline int ReadCSVGraph(GraphType& graph, const std::string v_file,
+                        const std::string e_file) {
+  std::vector<std::string> v_list, e_list;
+  v_list.push_back(v_file);
+  e_list.push_back(e_file);
+  return ReadCSVGraph(graph, v_list, e_list);
 }
 
 //template <class VertexIDType, class VertexLabelType, class VertexIDGenerator>
@@ -544,11 +553,10 @@ int ReadCSVGraph(GraphType& graph, const VertexFileList& v_list,
 //  eidgen.UseID(vertex_id);
 //}
 
-template <class GraphType, class VertexFileList, class EdgeFileList,
-          class VertexIDGenerator, class EdgeIDGenerator>
-int ReadCSVGraph(GraphType& graph, const VertexFileList& v_list,
-                 const EdgeFileList& e_list, VertexIDGenerator& vidgen,
-                 EdgeIDGenerator& eidgen) {
+template <class GraphType, class VertexIDGenerator, class EdgeIDGenerator>
+inline int ReadCSVGraph(GraphType& graph, const std::vector<std::string>& v_list,
+                 const std::vector<std::string>& e_list,
+                 VertexIDGenerator& vidgen, EdgeIDGenerator& eidgen) {
   using VertexIDType = typename GraphType::VertexType::IDType;
   using VertexLabelType = typename GraphType::VertexType::LabelType;
   using EdgeIDType = typename GraphType::EdgeType::IDType;
@@ -561,6 +569,16 @@ int ReadCSVGraph(GraphType& graph, const VertexFileList& v_list,
       [&eidgen](size_t, const EdgeIDType& edge_id, const VertexIDType&,
                 const VertexIDType&, const EdgeLabelType&,
                 bool) { eidgen.UseID(edge_id); });
+}
+
+template <class GraphType, class VertexIDGenerator, class EdgeIDGenerator>
+inline int ReadCSVGraph(GraphType& graph, const std::string v_file,
+                        const std::string e_file, VertexIDGenerator& vidgen,
+                        EdgeIDGenerator& eidgen) {
+  std::vector<std::string> v_list, e_list;
+  v_list.push_back(v_file);
+  e_list.push_back(e_file);
+  return ReadCSVGraph(graph, v_list, e_list, vidgen, eidgen);
 }
 
 // Write CSV
@@ -1035,7 +1053,7 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
   return count;
 }
 
-template <bool write_attr, class GraphType>
+template <bool write_attr = true, class GraphType>
 int WriteCSVGraph(const GraphType& graph, const std::string &v_file,
                   const std::string &e_file) {
 
