@@ -296,13 +296,19 @@ inline void UpdateCandidateSetOneDirection(
            std::set<TargetVertexPtr>>
       temp_adj_vertex;
   std::set<typename QueryGraph::EdgeType::LabelType> used_edge_label;
+  time_t t_begin = clock();
   for (auto label_it =
            ((edge_state == EdgeState::kIn) ? query_vertex_ptr->InEdgeCBegin()
                                            : query_vertex_ptr->OutEdgeCBegin());
        !label_it.IsDone(); label_it++) {
+    QueryVertexPtr temp_ptr = (edge_state == EdgeState::kIn)
+                                  ? label_it->const_src_ptr()
+                                  : label_it->const_dst_ptr();
+    if (match_state.count(temp_ptr)) continue;
     //枚举label
     if (used_edge_label.count(label_it->label())) continue;
     used_edge_label.insert(label_it->label());
+    temp_adj_vertex.clear();
     for (auto it =
              ((edge_state == EdgeState::kIn)
                   ? target_vertex_ptr->InVertexCBegin(label_it->label())
@@ -348,6 +354,9 @@ inline void UpdateCandidateSetOneDirection(
       candidate_set[temp_vertex_ptr] = res_candidate;
     }
   }
+  time_t t_end = clock();
+  // std::cout << "single time = " << (1.0 * t_end - t_begin) / CLOCKS_PER_SEC
+  //          << std::endl;
 }
 template <class QueryGraph, class TargetGraph, class QueryVertexPtr,
           class TargetVertexPtr, class MatchStateMap, class TargetVertexSet,
@@ -826,6 +835,7 @@ inline int VF2_Label_Equal(
   for (const auto &target_ptr :
        candidate_set.find(cal_supp_vertex_ptr)->second) {
     // if (target_ptr->id() == 1) break;
+    // std::cout << "id=" << target_ptr->id() << std::endl;
     _vf2_label_equal::func_call = 0;
     time_t begin = clock();
     int max_result = 1;
@@ -842,10 +852,13 @@ inline int VF2_Label_Equal(
                   std::placeholders::_1, &max_result);
     _vf2_label_equal::UpdateState(cal_supp_vertex_ptr, target_ptr, match_state,
                                   target_matched);
-
+    time_t time_begin = clock();
     _vf2_label_equal::UpdateCandidateSet<QueryGraph, TargetGraph>(
         cal_supp_vertex_ptr, target_ptr, temp_candidate_set, match_state,
         target_matched);
+    time_t time_end = clock();
+    // std::cout << "update time = "
+    //          << (1.0 * time_end - time_begin) / CLOCKS_PER_SEC << std::endl;
     _vf2_label_equal::_VF2<match_semantics, QueryGraph, TargetGraph>(
         temp_candidate_set, match_state, target_matched, result_count,
         user_callback, prune_callback);
