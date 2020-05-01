@@ -365,13 +365,24 @@ class LargeGraph {
       it2->second.erase(it3);
       if (it2->second.empty()) out_edge_labels_.erase(it2);
 
+      // find VertexPtr
       auto it4 = out_edge_build_on_vertex_.find(e->dst_ptr());
       assert(it4 != out_edge_build_on_vertex_.end());
+      // find (VertexPtr,label)
       auto it5 = it4->second.find(e->label());
-      it4->second.erase(it5);
-      if (it4->second.empty()) {
+      assert(it5 != it4->second.end());
+      // find (VertexPtr,label,edge)
+      auto it6 = it5->second.find(e);
+      assert(it6 != it5->second.end());
+      it5->second.erase(it6);
+      //(VertexPtr,label) empty
+      if (it5->second.empty()) {
+        it4->second.erase(it5);
         out_vertices_.find(e->label())->second.erase(e->dst_ptr());
-        out_edge_build_on_vertex_.erase(e->dst_ptr());
+        //(VertexPtr) empty
+        if (it4->second.empty()) {
+          out_edge_build_on_vertex_.erase(e->dst_ptr());
+        }
       }
     }
 
@@ -392,10 +403,17 @@ class LargeGraph {
       auto it4 = in_edge_build_on_vertex_.find(e->src_ptr());
       assert(it4 != in_edge_build_on_vertex_.end());
       auto it5 = it4->second.find(e->label());
-      it4->second.erase(it5);
-      if (it4->second.empty()) {
+      assert(it5 != it4->second.end());
+      auto it6 = it5->second.find(e);
+      assert(it6 != it5->second.end());
+      it5->second.erase(it6);
+      if (it5->second.empty()) {
+        it4->second.erase(it5);
         in_vertices_.find(e->label())->second.erase(e->src_ptr());
-        in_edge_build_on_vertex_.erase(e->src_ptr());
+        //(VertexPtr) empty
+        if (it4->second.empty()) {
+          in_edge_build_on_vertex_.erase(e->src_ptr());
+        }
       }
     }
 

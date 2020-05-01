@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <string>
 #include <vector>
 
 #include "gundam/container2.h"
@@ -90,7 +91,7 @@ class SmallGraph {
 
     using LabelType = VertexLabelType;
 
-    using AttributeKeyType = unsigned int;
+    using AttributeKeyType = std::string;
 
     using EdgeIterator =
         GIterator2<false, SmallGraph,
@@ -267,7 +268,7 @@ class SmallGraph {
 
     using LabelType = EdgeLabelType;
 
-    using AttributeKeyType = unsigned int;
+    using AttributeKeyType = std::string;
 
    private:
     friend GraphType;

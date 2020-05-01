@@ -285,13 +285,11 @@ class WithAttribute_<AttributeType_, is_const_, false, KeyType_,
     return;
   }
 
-  inline const AttributeType_& const_attribute() const {
-    return this->attribute_;
-  }
+  const AttributeType_& const_attribute() const { return this->attribute_; }
 
   template <bool judge_is_const = is_const_,
             typename std::enable_if<!judge_is_const, bool>::type = false>
-  inline AttributeType_& attribute() {
+  AttributeType_& attribute() {
     static_assert(judge_is_const == is_const_, "Illegal usage of this method");
     /// the constant attribute should not be modified
     return this->attribute_;
@@ -299,7 +297,7 @@ class WithAttribute_<AttributeType_, is_const_, false, KeyType_,
 
   template <bool judge_is_const = is_const_,
             typename std::enable_if<!judge_is_const, bool>::type = false>
-  inline void set_attribute(const AttributeType_& attribute) {
+  void set_attribute(const AttributeType_& attribute) {
     static_assert(judge_is_const == is_const_, "Illegal usage of this method");
     /// only the non-constant non-dynamic attribute could be set
     this->attribute_ = attribute;
@@ -324,7 +322,7 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
                                 kAttributeValueTypeIdx>;
 
   std::map<KeyType_, enum BasicDataType> key_to_value_type_map;
-  inline bool SetValueType(const KeyType_& key, enum BasicDataType value_type) {
+  bool SetValueType(const KeyType_& key, enum BasicDataType value_type) {
     if (key_to_value_type_map.find(key) != key_to_value_type_map.end()) {
       return false;
     }
@@ -370,19 +368,19 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
                              this->attributes_.end());
   }
 
-  inline AttributeConstIterator AttributeCBegin() const {
+  AttributeConstIterator AttributeCBegin() const {
     return AttributeConstIterator(this->attributes_.cbegin(),
                                   this->attributes_.cend());
   }
 
-  inline AttributePtr FindAttributePtr(const KeyType_& key) {
+  AttributePtr FindAttributePtr(const KeyType_& key) {
     /// <iterator of attribute container, bool>
     auto ret = this->attributes_.Find(key);
     if (!ret.second) return AttributePtr();
     return AttributePtr(ret.first);
   }
 
-  inline AttributeConstPtr FindConstAttributePtr(const KeyType_& key) const {
+  AttributeConstPtr FindConstAttributePtr(const KeyType_& key) const {
     /// <constant iterator of attribute container, bool>
     auto ret = this->attributes_.FindConst(key);
     if (!ret.second) return AttributeConstPtr();
@@ -390,7 +388,7 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
   }
 
   template <typename ConcreteDataType>
-  inline ConcreteDataType& attribute(const KeyType_& key) {
+  ConcreteDataType& attribute(const KeyType_& key) {
     /// <iterator of attribute container, bool>
     auto ret = this->attributes_.Find(key);
     assert(ret.second);
@@ -400,7 +398,7 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
   }
 
   template <typename ConcreteDataType>
-  inline const ConcreteDataType& const_attribute(const KeyType_& key) const {
+  const ConcreteDataType& const_attribute(const KeyType_& key) const {
     /// <iterator of attribute container, bool>
     auto ret = this->attributes_.FindConst(key);
     assert(ret.second);
@@ -410,8 +408,8 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
   }
 
   template <typename ConcreteDataType>
-  inline std::pair<AttributePtr, bool> AddAttribute(
-      const KeyType_& key, const ConcreteDataType& value) {
+  std::pair<AttributePtr, bool> AddAttribute(const KeyType_& key,
+                                             const ConcreteDataType& value) {
     /// the constant attribute should not be modified
     /// <iterator of attribute container, bool>
     auto ret = this->attributes_.Insert(key);
@@ -426,10 +424,32 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
     std::get<kAttributeValueTypeIdx>(*ret.first) = value_type;
     return std::pair<AttributePtr, bool>(AttributePtr(ret.first), true);
   }
-
+  
+  std::pair<AttributePtr, bool> AddAttribute(
+      const KeyType_& key, const enum BasicDataType& data_type,
+      const std::string& value_str) {
+    switch (data_type) {
+      case BasicDataType::kTypeString:
+        return AddAttribute<std::string>(key, value_str);
+      case BasicDataType::kTypeInt:
+        return AddAttribute<int>(key, std::stoi(value_str));
+      case BasicDataType::kTypeInt64:
+        return AddAttribute<int64_t>(key, std::stoll(value_str));
+      case BasicDataType::kTypeFloat:
+        return AddAttribute<float>(key, std::stof(value_str));
+      case BasicDataType::kTypeDouble:
+        return AddAttribute<double>(key, std::stod(value_str));
+      case BasicDataType::kTypeDateTime:
+        return AddAttribute<DateTime>(key, DateTime(value_str));
+      case BasicDataType::kTypeUnknown:
+      default:
+        return std::make_pair(AttributePtr(), false);
+    }
+  }
+  
   template <typename ConcreteDataType>
-  inline std::pair<AttributePtr, bool> SetAttribute(
-      const KeyType_& key, const ConcreteDataType& value) {
+  std::pair<AttributePtr, bool> SetAttribute(const KeyType_& key,
+                                             const ConcreteDataType& value) {
     /// the constant attribute should not be modified
     /// <iterator of attribute container, bool>
     auto ret = this->attributes_.Find(key);
@@ -445,7 +465,7 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
     return std::pair<AttributePtr, bool>(AttributePtr(ret.first), true);
   }
 
-  inline AttributeIterator EraseAttribute(
+  AttributeIterator EraseAttribute(
       const AttributeIterator& attribute_iterator) {
     const void* const ptr = &attribute_iterator;
     /// iterator of AttributeContainer
@@ -455,7 +475,7 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
     return AttributeIterator(it, this->attributes_.end());
   }
 
-  inline bool EraseAttribute(const KeyType_& key) {
+  bool EraseAttribute(const KeyType_& key) {
     return this->attributes_.Erase(key);
   }
 };

@@ -61,4 +61,19 @@ TEST(TestGUNDAM, TestAttribute) {
 
   ASSERT_EQ(std::string("int"), attr.attribute_value_type_name("a"));
   ASSERT_EQ(std::string("string"), attr.attribute_value_type_name("b"));
+
+  ASSERT_TRUE(
+      attr.AddAttribute("XXX1", BasicDataType::kTypeString, "sss").second);
+  ASSERT_TRUE(attr.AddAttribute("XXX2", BasicDataType::kTypeInt, "-5").second);
+  ASSERT_TRUE(
+      attr.AddAttribute("XXX3", BasicDataType::kTypeInt64, "555").second);
+  ASSERT_TRUE(
+      attr.AddAttribute("XXX4", BasicDataType::kTypeFloat, "0.55").second);
+  ASSERT_TRUE(
+      attr.AddAttribute("XXX5", BasicDataType::kTypeDouble, "0.55").second);
+  ASSERT_TRUE(attr.AddAttribute("XXX6", BasicDataType::kTypeDateTime,
+                                "2000-1-1 10:10:10")
+                  .second);
+  ASSERT_FALSE(
+      attr.AddAttribute("XXX6", BasicDataType::kTypeUnknown, "abc").second);
 }
