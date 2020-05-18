@@ -3,13 +3,13 @@
 
 #include <cstdint>
 #include <functional>
+#include <iostream>
 #include <list>
 #include <map>
 #include <set>
 #include <stack>
 #include <type_traits>
 #include <vector>
-
 namespace GUNDAM {
 
 // enum   match tyep bool is_iso,1/// iso or homo
@@ -99,11 +99,12 @@ inline bool InitCandidateSet(
         &candidate_set) {
   using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
-
+  // std::cout << query_graph.FindConstVertex(1) << std::endl;
   for (auto query_vertex_iter = query_graph.VertexCBegin();
        !query_vertex_iter.IsDone(); query_vertex_iter++) {
     QueryVertexPtr query_vertex_ptr = query_vertex_iter;
-
+    // std::cout << query_vertex_ptr->id() << " " << query_vertex_ptr <<
+    // std::endl;
     auto query_in_count = query_vertex_ptr->CountInEdge();
     auto query_out_count = query_vertex_ptr->CountOutEdge();
 
@@ -117,7 +118,7 @@ inline bool InitCandidateSet(
           if (target_in_count >= query_in_count) {
             auto target_out_count = target_vertex_ptr->CountOutEdge();
             if (target_out_count >= query_out_count) {
-              l.emplace_back(target_vertex_ptr);
+              l.push_back(target_vertex_ptr);
             }
           }
           return true;
@@ -156,7 +157,7 @@ inline QueryVertexPtr DetermineMatchOrder(
          !edge_iter.IsDone(); edge_iter++) {
       auto query_opp_vertex_ptr = edge_iter->const_dst_ptr();
       if (match_state.count(query_opp_vertex_ptr) == 0) {
-        next_query_set.emplace(query_opp_vertex_ptr);
+        next_query_set.insert(query_opp_vertex_ptr);
       }
     }
 
@@ -164,7 +165,7 @@ inline QueryVertexPtr DetermineMatchOrder(
          edge_iter++) {
       auto query_opp_vertex_ptr = edge_iter->const_src_ptr();
       if (match_state.count(query_opp_vertex_ptr) == 0) {
-        next_query_set.emplace(query_opp_vertex_ptr);
+        next_query_set.insert(query_opp_vertex_ptr);
       }
     }
   }
@@ -173,7 +174,7 @@ inline QueryVertexPtr DetermineMatchOrder(
     for (const auto &candidate_pair : candidate_set) {
       const auto &query_vertex_ptr = candidate_pair.first;
       if (match_state.count(query_vertex_ptr) == 0) {
-        next_query_set.emplace(query_vertex_ptr);
+        next_query_set.insert(query_vertex_ptr);
       }
     }
   }
@@ -508,8 +509,8 @@ inline void UpdateState(QueryVertexPtr query_vertex_ptr,
                         TargetVertexPtr target_vertex_ptr,
                         MatchStateMap &match_state,
                         TargetVertexSet &target_matched) {
-  match_state.emplace(query_vertex_ptr, target_vertex_ptr);
-  target_matched.emplace(target_vertex_ptr);
+  match_state.insert(std::make_pair(query_vertex_ptr, target_vertex_ptr));
+  target_matched.insert(target_vertex_ptr);
 }
 
 template <class QueryVertexPtr, class TargetVertexPtr, class MatchStateMap,
@@ -568,7 +569,9 @@ bool _VF2(
     size_t &result_count, MatchCallback user_callback) {
   if (match_state.size() == candidate_set.size()) {
     result_count++;
-    return user_callback(match_state);
+    bool flag = user_callback(match_state);
+    // std::cout << "call back end!" << std::endl;
+    return flag;
   }
 
   QueryVertexPtr next_query_vertex_ptr =
@@ -634,7 +637,7 @@ inline bool InitMatch(
     if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
             query_vertex_ptr, *target_vertex_iter, match_state, target_matched,
             edge_comp)) {
-      match_stack.emplace(std::make_pair(query_vertex_ptr, target_vertex_iter));
+      match_stack.push(std::make_pair(query_vertex_ptr, target_vertex_iter));
       return true;
     }
     target_vertex_iter++;
@@ -826,8 +829,8 @@ int VF2_NonRecursive(
     const QueryVertexPtr &query_vertex_ptr = match_iter->first;
     const TargetVertexPtr &target_vertex_ptr = match_iter->second;
 
-    match_state.emplace(query_vertex_ptr, target_vertex_ptr);
-    target_matched.emplace(target_vertex_ptr);
+    match_state.insert(std::make_pair(query_vertex_ptr, target_vertex_ptr));
+    target_matched.insert(target_vertex_ptr);
 
     if (anchor_count == 0) {
       auto target_vertex_iter =
@@ -835,7 +838,7 @@ int VF2_NonRecursive(
       while (*target_vertex_iter != target_vertex_ptr) {
         target_vertex_iter++;
       }
-      match_stack.emplace(query_vertex_ptr, target_vertex_iter);
+      match_stack.insert(query_vertex_ptr, target_vertex_iter);
     } else {
       anchor_count--;
     }

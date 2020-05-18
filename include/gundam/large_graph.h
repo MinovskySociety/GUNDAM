@@ -79,7 +79,7 @@ class LargeGraph {
       if (it1 == it->second.end()) {
         return 0;
       }
-      return it->second.size();
+      return it1->second.size();
     }
     size_t CountInEdge() const { return in_edges_.size(); }
     size_t CountInEdge(const EdgeLabelType &edge_label) const {
@@ -98,7 +98,7 @@ class LargeGraph {
       if (it1 == it->second.end()) {
         return 0;
       }
-      return it->second.size();
+      return it1->second.size();
     }
     size_t CountInVertex() const {
       return this->in_edge_build_on_vertex_.size();
@@ -662,7 +662,6 @@ class LargeGraph {
     if (!ret1.second) {
       return std::make_pair(ret1.first->second, false);
     }
-
     src_ptr->AddOutEdge(e);
     dst_ptr->AddInEdge(e);
 

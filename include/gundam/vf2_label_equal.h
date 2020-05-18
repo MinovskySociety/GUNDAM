@@ -282,8 +282,8 @@ inline void UpdateState(QueryVertexPtr query_vertex_ptr,
                         TargetVertexPtr target_vertex_ptr,
                         MatchStateMap &match_state,
                         TargetVertexSet &target_matched) {
-  match_state.emplace(query_vertex_ptr, target_vertex_ptr);
-  target_matched.emplace(target_vertex_ptr);
+  match_state.insert(std::make_pair(query_vertex_ptr, target_vertex_ptr));
+  target_matched.insert(target_vertex_ptr);
 }
 template <enum EdgeState edge_state, class QueryGraph, class TargetGraph,
           class QueryVertexPtr, class TargetVertexPtr, class MatchStateMap,
@@ -293,10 +293,9 @@ inline void UpdateCandidateSetOneDirection(
     CandidateSetContainer &candidate_set, const MatchStateMap &match_state,
     const TargetVertexSet &target_matched) {
   std::map<typename QueryGraph::VertexType::LabelType,
-           std::set<TargetVertexPtr>>
+           std::vector<TargetVertexPtr>>
       temp_adj_vertex;
   std::set<typename QueryGraph::EdgeType::LabelType> used_edge_label;
-  time_t t_begin = clock();
   for (auto label_it =
            ((edge_state == EdgeState::kIn) ? query_vertex_ptr->InEdgeCBegin()
                                            : query_vertex_ptr->OutEdgeCBegin());
@@ -314,10 +313,13 @@ inline void UpdateCandidateSetOneDirection(
                   ? target_vertex_ptr->InVertexCBegin(label_it->label())
                   : target_vertex_ptr->OutVertexCBegin(label_it->label()));
          !it.IsDone(); it++) {
-      // std::cout << "target 111" << std::endl;
       TargetVertexPtr temp_target_ptr = it;
-      // if (target_matched.count(temp_target_ptr)) continue;
-      temp_adj_vertex[temp_target_ptr->label()].insert(temp_target_ptr);
+      temp_adj_vertex[temp_target_ptr->label()].emplace_back(temp_target_ptr);
+    }
+    for (auto &it : temp_adj_vertex) {
+      std::sort(it.second.begin(), it.second.end());
+      auto erase_it = std::unique(it.second.begin(), it.second.end());
+      it.second.erase(erase_it, it.second.end());
     }
     std::set<QueryVertexPtr> used_vertex;
     for (auto vertex_it = ((edge_state == EdgeState::kIn)
@@ -334,18 +336,6 @@ inline void UpdateCandidateSetOneDirection(
       used_vertex.insert(temp_vertex_ptr);
       std::vector<TargetVertexPtr> res_candidate;
       if (match_state.count(temp_vertex_ptr)) continue;
-      // std::cout << "label = " << vertex_it->label() << std::endl;
-      // std::cout << "temp_adj_vertex:\n";
-      // for (auto &it : temp_adj_vertex[vertex_it->label()]) {
-      //   std::cout << it->id() << " ";
-      // }
-      // std::cout << std::endl;
-
-      // std::cout << "candidate set:\n";
-      // for (auto &it : candidate_set[temp_vertex_ptr]) {
-      //  std::cout << it->id() << " ";
-      //}
-      // std::cout << std::endl;
       std::set_intersection(temp_adj_vertex[temp_vertex_ptr->label()].begin(),
                             temp_adj_vertex[temp_vertex_ptr->label()].end(),
                             candidate_set[temp_vertex_ptr].begin(),
@@ -354,9 +344,6 @@ inline void UpdateCandidateSetOneDirection(
       candidate_set[temp_vertex_ptr] = res_candidate;
     }
   }
-  time_t t_end = clock();
-  // std::cout << "single time = " << (1.0 * t_end - t_begin) / CLOCKS_PER_SEC
-  //          << std::endl;
 }
 template <class QueryGraph, class TargetGraph, class QueryVertexPtr,
           class TargetVertexPtr, class MatchStateMap, class TargetVertexSet,
@@ -366,16 +353,12 @@ inline void UpdateCandidateSet(QueryVertexPtr query_vertex_ptr,
                                CandidateSetContainer &candidate_set,
                                const MatchStateMap &match_state,
                                const TargetVertexSet &target_matched) {
-  time_t begin = clock();
   UpdateCandidateSetOneDirection<EdgeState::kIn, QueryGraph, TargetGraph>(
       query_vertex_ptr, target_vertex_ptr, candidate_set, match_state,
       target_matched);
   UpdateCandidateSetOneDirection<EdgeState::kOut, QueryGraph, TargetGraph>(
       query_vertex_ptr, target_vertex_ptr, candidate_set, match_state,
       target_matched);
-  time_t end = clock();
-  // std::cout << "update candidate time = "
-  //           << (1.0 * end - begin) / CLOCKS_PER_SEC << std::endl;
 }
 template <class QueryVertexPtr, class TargetVertexPtr, class MatchStateMap,
           class TargetVertexSet>
@@ -428,7 +411,7 @@ bool _VF2(const CandidateSetContainer &candidate_set,
   //  std::cout << it.first->id() << " " << it.second->id() << std::endl;
   //}
   // std::cout << std::endl;
-  func_call++;
+  // func_call++;
   if (prune_callback(match_state)) {
     return true;
   }
@@ -438,9 +421,6 @@ bool _VF2(const CandidateSetContainer &candidate_set,
   }
   QueryVertexPtr next_query_vertex_ptr =
       DetermineMatchOrder(candidate_set, match_state);
-  // std::cout << "next size = "
-  //          << candidate_set.find(next_query_vertex_ptr)->second.size()
-  //          << std::endl;
   for (const TargetVertexPtr &next_target_vertex_ptr :
        candidate_set.find(next_query_vertex_ptr)->second) {
     if (prune_callback(match_state)) {
@@ -592,9 +572,17 @@ inline bool EdgeCheck(const QueryVertexPtr &query_vertex_ptr,
                       const TargetVertexPtr &temp_target_vertex_ptr,
                       const EdgeCountContainer &out_edge_count,
                       const EdgeCountContainer &in_edge_count) {
+  // std::cout << "query pair = " << query_vertex_ptr->id() << " "
+  //          << temp_query_vertex_ptr->id() << std::endl;
+  // std::cout << "target pair = " << target_vertex_ptr->id() << " "
+  //          << temp_target_vertex_ptr->id() << std::endl;
   auto it = out_edge_count.find(temp_query_vertex_ptr);
   if (it != out_edge_count.end()) {
     for (const auto &edge_count : it->second) {
+      // std::cout << "out count = "
+      //           << target_vertex_ptr->CountOutEdge(edge_count.first,
+      //                                              temp_target_vertex_ptr)
+      //           << " " << edge_count.second << std::endl;
       if (target_vertex_ptr->CountOutEdge(
               edge_count.first, temp_target_vertex_ptr) < edge_count.second)
         return false;
@@ -603,6 +591,10 @@ inline bool EdgeCheck(const QueryVertexPtr &query_vertex_ptr,
   it = in_edge_count.find(temp_query_vertex_ptr);
   if (it != in_edge_count.end()) {
     for (const auto &edge_count : it->second) {
+      // std::cout << "in count = "
+      //          << target_vertex_ptr->CountInEdge(edge_count.first,
+      //                                            temp_target_vertex_ptr)
+      //          << " " << edge_count.second << std::endl;
       if (target_vertex_ptr->CountInEdge(
               edge_count.first, temp_target_vertex_ptr) < edge_count.second)
         return false;
@@ -705,9 +697,12 @@ inline bool RefineCandidateSet(const QueryGraph &query_graph,
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
   std::vector<QueryVertexPtr> topu_seq;
   GetTopuSeq(query_graph, topu_seq);
+  // std::cout << "seq size = " << topu_seq.size() << std::endl;
   if (!DAGDP(query_graph, target_graph, topu_seq, candidate_set)) return false;
+  // std::cout << "dag dp end!" << std::endl;
   std::reverse(topu_seq.begin(), topu_seq.end());
   if (!DAGDP(query_graph, target_graph, topu_seq, candidate_set)) return false;
+  // std::cout << "dag dp1 end!" << std::endl;
   return true;
 }
 
@@ -806,6 +801,10 @@ inline int VF2_Label_Equal(
   if (!_vf2_label_equal::InitCandidateSet<match_semantics>(
           query_graph, target_graph, candidate_set))
     return 0;
+  // std::cout << "before:" << std::endl;
+  // for (const auto &it : candidate_set) {
+  //  std::cout << it.first->id() << " " << it.second.size() << std::endl;
+  //}
   time_t t_end = clock();
   // std::cout << "init time = " << (1.0 * t_end - t_begin) / CLOCKS_PER_SEC
   //          << std::endl;
@@ -820,6 +819,7 @@ inline int VF2_Label_Equal(
                                             candidate_set)) {
     return 0;
   }
+  // std::cout << "after:" << std::endl;
   // for (const auto &it : candidate_set) {
   //  std::cout << it.first->id() << " " << it.second.size() << std::endl;
   //}
