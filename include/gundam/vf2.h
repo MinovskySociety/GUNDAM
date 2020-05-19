@@ -10,6 +10,8 @@
 #include <stack>
 #include <type_traits>
 #include <vector>
+
+#include "match.h"
 namespace GUNDAM {
 
 // enum   match tyep bool is_iso,1/// iso or homo
@@ -1148,6 +1150,77 @@ inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
       std::bind(_vf2::MatchCallbackSaveResult<QueryVertexPtr, TargetVertexPtr,
                                               ResultContainer>,
                 std::placeholders::_1, &max_result, &match_result));
+}
+
+// using GUNDAM::MatchSet
+template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+          class QueryGraph, class TargetGraph>
+inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
+               MatchSet<const QueryGraph, const TargetGraph> &match_set) {
+  using PatternVertexConstPtr = typename QueryGraph::VertexConstPtr;
+  using DataGraphVertexConstPtr = typename TargetGraph::VertexConstPtr;
+  using MatchMap = std::map<PatternVertexConstPtr, DataGraphVertexConstPtr>;
+  using MatchContainer = std::vector<MatchMap>;
+  MatchContainer match_result;
+  size_t result_count = VF2<match_semantics, QueryGraph, TargetGraph>(
+      query_graph, target_graph, -1, match_result);
+  for (const auto &single_match : match_result) {
+    Match<const QueryGraph, const TargetGraph> match;
+    for (const auto &match_pair : single_match) {
+      match.AddMap(match_pair.first, match_pair.second);
+    }
+    match_set.AddMatch(match);
+  }
+  return result_count;
+}
+template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+          class QueryGraph, class TargetGraph, class Match, class MatchSet>
+inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
+               const Match &partical_match, MatchSet &match_set) {
+  using PatternVertexConstPtr = typename QueryGraph::VertexConstPtr;
+  using DataGraphVertexConstPtr = typename TargetGraph::VertexConstPtr;
+  using MatchMap = std::map<PatternVertexConstPtr, DataGraphVertexConstPtr>;
+  using MatchContainer = std::vector<MatchMap>;
+  using CandidateSetContainer =
+      std::map<PatternVertexConstPtr, std::vector<DataGraphVertexConstPtr>>;
+  using PatternEdgePtr = typename QueryGraph::EdgeConstPtr;
+  using DataGraphEdgePtr = typename TargetGraph::EdgeConstPtr;
+  CandidateSetContainer candidate_set;
+  _vf2::InitCandidateSet<match_semantics>(
+      query_graph, target_graph,
+      _vf2::LabelEqual<PatternVertexConstPtr, DataGraphVertexConstPtr>(),
+      candidate_set);
+  MatchMap match_state;
+  MatchContainer match_result;
+  std::set<DataGraphVertexConstPtr> target_matched;
+  for (auto vertex_it = query_graph.VertexCBegin(); !vertex_it.IsDone();
+       vertex_it++) {
+    PatternVertexConstPtr vertex_ptr = vertex_it;
+    if (partical_match.HasMap(vertex_ptr)) {
+      DataGraphVertexConstPtr match_vertex_ptr =
+          partical_match.MapTo(vertex_ptr);
+      match_state.insert(std::make_pair(vertex_ptr, match_vertex_ptr));
+      target_matched.insert(match_vertex_ptr);
+    }
+  }
+  int max_result = -1;
+  size_t result_count = 0;
+  auto user_callback = std::bind(
+      _vf2::MatchCallbackSaveResult<PatternVertexConstPtr,
+                                    DataGraphVertexConstPtr, MatchContainer>,
+      std::placeholders::_1, &max_result, &match_result);
+  _vf2::_VF2<match_semantics, QueryGraph, TargetGraph>(
+      candidate_set, match_state, target_matched,
+      _vf2::LabelEqual<PatternEdgePtr, DataGraphEdgePtr>(), result_count,
+      user_callback);
+  for (const auto &single_match : match_result) {
+    Match match;
+    for (const auto &match_pair : single_match) {
+      match.AddMap(match_pair.first, match_pair.second);
+    }
+    match_set.AddMatch(match);
+  }
+  return result_count;
 }
 
 }  // namespace GUNDAM
