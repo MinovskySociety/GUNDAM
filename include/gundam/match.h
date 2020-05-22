@@ -8,6 +8,7 @@
 #include "container.h"
 #include "iterator.h"
 namespace GUNDAM {
+
 /// can be configured to much different type
 ///     constant src graph to     constant dst graph
 ///     constant src graph to non-constant dst graph
@@ -204,8 +205,6 @@ class Match {
                             this->match_container_.cend());
   }
 
-
-
   /// composition
   /// match2 = match1(match0);
   /// match0: SrcSrcGraphType -> SrcGraphType
@@ -260,7 +259,8 @@ class MatchSet {
     using InnerIteratorType = InnerIterator_<ContainerType_, is_const_, depth_>;
 
    protected:
-    using ContentPtr = MatchType*;
+    using ContentPtr      = MatchType*;
+    using ContentDataType = MatchType;
     using InnerIteratorType::IsDone;
     using InnerIteratorType::ToNext;
     static constexpr bool kIsConst_ = is_const_;
@@ -268,6 +268,7 @@ class MatchSet {
     template <bool judge = is_const_,
               typename std::enable_if<judge, bool>::type = false>
     inline ContentPtr const content_ptr() const {
+      static_assert(judge == is_const_, "illegal usage of this method");
       assert(!this->IsDone());
       return &(InnerIteratorType::template get_const<MatchType, key_idx_,
                                                      depth_ - 1>());
@@ -276,8 +277,27 @@ class MatchSet {
     template <bool judge = is_const_,
               typename std::enable_if<!judge, bool>::type = false>
     inline ContentPtr content_ptr() {
+      static_assert(judge == is_const_, "illegal usage of this method");
       assert(!this->IsDone());
       return &(
+          InnerIteratorType::template get<MatchType, key_idx_, depth_ - 1>());
+    }
+
+    template <bool judge = is_const_,
+              typename std::enable_if<judge, bool>::type = false>
+    inline const MatchType& instance() const {
+      static_assert(judge == is_const_, "illegal usage of this method");
+      assert(!this->IsDone());
+      return (InnerIteratorType::template get_const<MatchType, key_idx_,
+                                                     depth_ - 1>());
+    }
+
+    template <bool judge = is_const_,
+              typename std::enable_if<!judge, bool>::type = false>
+    inline MatchType& instance() {
+      static_assert(judge == is_const_, "illegal usage of this method");
+      assert(!this->IsDone());
+      return (
           InnerIteratorType::template get<MatchType, key_idx_, depth_ - 1>());
     }
 
@@ -289,9 +309,9 @@ class MatchSet {
 
  public:
   using MatchIterator =
-      Iterator_<MatchContentIterator_<MatchContainerType, false, 1, kMatchIdx>>;
+      IteratorWithInstance_<MatchContentIterator_<MatchContainerType, false, 1, kMatchIdx>>;
   using MatchConstIterator =
-      Iterator_<MatchContentIterator_<MatchContainerType, true, 1, kMatchIdx>>;
+      IteratorWithInstance_<MatchContentIterator_<MatchContainerType, true, 1, kMatchIdx>>;
 
   using size_type = typename MatchContainerType::size_type;
 
