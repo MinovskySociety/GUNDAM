@@ -167,7 +167,8 @@ inline QueryVertexPtr DetermineMatchOrder(
     for (auto edge_iter = query_vertex_ptr->OutEdgeCBegin();
          !edge_iter.IsDone(); edge_iter++) {
       auto query_opp_vertex_ptr = edge_iter->const_dst_ptr();
-      if (match_state.count(query_opp_vertex_ptr) == 0) {
+      if (match_state.count(query_opp_vertex_ptr) == 0 &&
+          candidate_set.count(query_opp_vertex_ptr)) {
         next_query_set.emplace(query_opp_vertex_ptr);
       }
     }
@@ -175,7 +176,8 @@ inline QueryVertexPtr DetermineMatchOrder(
     for (auto edge_iter = query_vertex_ptr->InEdgeCBegin(); !edge_iter.IsDone();
          edge_iter++) {
       auto query_opp_vertex_ptr = edge_iter->const_src_ptr();
-      if (match_state.count(query_opp_vertex_ptr) == 0) {
+      if (match_state.count(query_opp_vertex_ptr) == 0 &&
+          candidate_set.count(query_opp_vertex_ptr)) {
         next_query_set.emplace(query_opp_vertex_ptr);
       }
     }
@@ -304,6 +306,7 @@ inline void UpdateCandidateSetOneDirection(
                                   ? label_it->const_src_ptr()
                                   : label_it->const_dst_ptr();
     if (match_state.count(temp_ptr)) continue;
+    if (!candidate_set.count(temp_ptr)) continue;
     //枚举label
     if (used_edge_label.count(label_it->label())) continue;
     used_edge_label.insert(label_it->label());
@@ -333,6 +336,7 @@ inline void UpdateCandidateSetOneDirection(
                                            ? vertex_it->const_src_ptr()
                                            : vertex_it->const_dst_ptr();
       if (used_vertex.count(temp_vertex_ptr)) continue;
+      if (!candidate_set.count(temp_vertex_ptr)) continue;
       used_vertex.insert(temp_vertex_ptr);
       std::vector<TargetVertexPtr> res_candidate;
       if (match_state.count(temp_vertex_ptr)) continue;
@@ -421,6 +425,8 @@ bool _VF2(const CandidateSetContainer &candidate_set,
   }
   QueryVertexPtr next_query_vertex_ptr =
       DetermineMatchOrder(candidate_set, match_state);
+  // std::cout << "next = " << next_query_vertex_ptr->id() << std::endl;
+  // std::cout << std::endl;
   for (const TargetVertexPtr &next_target_vertex_ptr :
        candidate_set.find(next_query_vertex_ptr)->second) {
     if (prune_callback(match_state)) {
@@ -722,9 +728,13 @@ inline int VF2_Recursive(const QueryGraph &query_graph,
                                          candidate_set)) {
     return 0;
   }
+  if (!RefineCandidateSet(query_graph, target_graph, candidate_set)) {
+    return 0;
+  }
   if (!update_candidate_callback(candidate_set)) {
     return 0;
   }
+  // std::cout << "candidate size = " << candidate_set.size() << std::endl;
   std::map<QueryVertexPtr, TargetVertexPtr> match_state;
   std::set<TargetVertexPtr> target_matched;
   size_t result_count = 0;
