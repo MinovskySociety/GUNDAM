@@ -17,6 +17,9 @@ class GraphConfigures;
 /// store data type
 template <enum StoreData store_data_type>
 class SetStoreDataType;
+template <enum ContainerType container_type>
+class SetVertexIDContainerType;
+
 /// node configurations
 template <typename LabelType>
 class SetVertexLabelType;
@@ -88,7 +91,7 @@ class GraphConfigures<> {
   static constexpr enum ContainerType DefaultContainerType =
       ContainerType::Vector;
 
-  static constexpr enum SortType DefaultSortType = SortType::None;
+  static constexpr enum SortType DefaultSortType = SortType::Default;
 
  protected:
   /// mark whether specified store data type
@@ -116,9 +119,11 @@ class GraphConfigures<> {
   static constexpr bool specified_edge_attribute_container_type = false;
   static constexpr bool specified_edge_attribute_container_sort_type = false;
   /// mark whether specified containers type
-  static constexpr bool specified_edge_label_container_type = false;
-  static constexpr bool specified_vertex_ptr_container_type = false;
-  static constexpr bool specified_edge_container_type = false;
+  static constexpr bool specified_vertex_label_container_type = false;
+  static constexpr bool specified_vertex_id_container_type    = false;
+  static constexpr bool specified_edge_label_container_type   = false;
+  static constexpr bool specified_vertex_ptr_container_type   = false;
+  static constexpr bool specified_edge_container_type         = false;
   /// mark whether specified containers sort types
   static constexpr bool specified_edgeLabel_container_sort_type = false;
   static constexpr bool specified_vertex_ptr_container_sort_type = false;
@@ -188,6 +193,24 @@ class GraphConfigures<> {
   using DuplicateNumType = uint32_t;
 };
 
+// Set Vertex ID Container Type
+template <enum ContainerType container_type,
+          typename... other_configures>
+class GraphConfigures<SetVertexIDContainerType<container_type>,
+                      other_configures...>
+    : public GraphConfigures<other_configures...> {
+ private:
+  static_assert(!GraphConfigures<other_configures...>::specified_vertex_id_container_type,
+                "Redefination of vertex id container type!\n");
+
+ protected:
+  static constexpr bool specified_vertex_id_container_type = true;
+
+ public:
+  static constexpr enum ContainerType vertex_id_container_type
+                                              = container_type;
+};
+
 // Set Vertex ID
 template <typename VIDType, typename... other_configures>
 class GraphConfigures<SetVertexIDType<VIDType>, other_configures...>
@@ -198,7 +221,7 @@ class GraphConfigures<SetVertexIDType<VIDType>, other_configures...>
   static_assert(std::is_object<VIDType>::value, "Illegal Edge ID Type");
 
  protected:
-  static constexpr bool specified_vertex_id_type = false;
+  static constexpr bool specified_vertex_id_type = true;
 
  public:
   using VertexIDType = VIDType;

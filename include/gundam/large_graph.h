@@ -5,23 +5,23 @@
 #include <set>
 #include <vector>
 
-#include "gundam/attribute.h"
-#include "gundam/container2.h"
-#include "gundam/iterator2.h"
+#include "attribute.h"
+#include "container2.h"
+#include "iterator2.h"
 
 namespace GUNDAM {
 template <class VertexIDType, class VertexLabelType,
           class VertexAttributeKeyType, class EdgeIDType, class EdgeLabelType,
           class EdgeAttributeKeyType>
 class LargeGraph {
- private:
+ public:
   class VertexData;
 
   class EdgeData;
 
   class VertexData
       : public WithAttribute_<std::string, false, true, VertexAttributeKeyType,
-                              ContainerType::Vector, SortType::None> {
+                              ContainerType::Vector, SortType::Default> {
    private:
     friend class LargeGraph;
 
@@ -449,7 +449,7 @@ class LargeGraph {
 
   class EdgeData
       : public WithAttribute_<std::string, false, true, EdgeAttributeKeyType,
-                              ContainerType::Vector, SortType::None> {
+                              ContainerType::Vector, SortType::Default> {
    private:
     friend class LargeGraph;
 
@@ -492,6 +492,7 @@ class LargeGraph {
     // EdgeAttributeListType attributes_;
   };
 
+ private:
   using VertexContainer = MapDict<VertexIDType, VertexData *>;
 
   using EdgeContainer = MapDict<EdgeIDType, EdgeData *>;
