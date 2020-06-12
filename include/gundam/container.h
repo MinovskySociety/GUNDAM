@@ -63,6 +63,11 @@ class Container<ContainerType::Vector,
   template<bool is_const_>
   class Iterator_{
    private:
+    friend class Container<ContainerType::Vector,
+                               sort_type_,
+                                 KeyType_,
+                               ValueTypes_...>;
+
     using InnerIteratorType = typename std::conditional<is_const_,
                       typename InnerContainerType::const_iterator,
                       typename InnerContainerType::      iterator>::type;
@@ -196,7 +201,7 @@ class Container<ContainerType::Vector,
       for (iterator it  = this->container_.begin();
                     it != this->container_. end ();++it){
         if ((it.template get<kKeyIdx>()) == key){
-          this->container_.erase(it);
+          this->container_.erase(it.iterator_);
           return true;
         }
       }
@@ -209,7 +214,7 @@ class Container<ContainerType::Vector,
 
   inline iterator Erase(const iterator& it) {
     if (sort_type_ == SortType::Default) {
-      return this->container_.erase(it);
+      return this->container_.erase(it.iterator_);
     }
     /// other sorting type are not implemented
     assert(false);
@@ -271,6 +276,10 @@ class Container<ContainerType::Set,
   template<bool is_const_>
   class Iterator_{
    private:
+    friend class Container<ContainerType::Set,
+                               sort_type_,
+                                 KeyType_>;
+
     using InnerIteratorType = typename std::conditional<is_const_,
                       typename InnerContainerType::const_iterator,
                       typename InnerContainerType::      iterator>::type;
@@ -392,7 +401,7 @@ class Container<ContainerType::Set,
 
   inline iterator Erase(const iterator& it) {
     assert(it != this->container_.end());
-    return this->container_.erase(it);
+    return this->container_.erase(it.iterator_);
   }
 
   inline std::pair<iterator, bool> Find(const KeyType& key) {
@@ -429,6 +438,10 @@ class Container<ContainerType::Map,
   using ElementType = std::pair<KeyType,ValueType>;
 
  private:
+  using AbstractElementType = std::tuple<KeyType_,
+                                       ValueType_,
+                                       ValueTypes_...>;
+
   using InnerContainerType = std::map<KeyType,ValueType>;
   InnerContainerType container_;
 
@@ -438,6 +451,12 @@ class Container<ContainerType::Map,
   template<bool is_const_>
   class Iterator_{
    private:
+    friend class Container<ContainerType::Map,
+                               sort_type_,
+                                 KeyType_,
+                               ValueType_,
+                               ValueTypes_...>;
+
     using InnerIteratorType = typename std::conditional<is_const_,
                       typename InnerContainerType::const_iterator,
                       typename InnerContainerType::      iterator>::type;
@@ -513,25 +532,21 @@ class Container<ContainerType::Map,
              bool judge0 =  is_const_,
              bool judge1 = (tuple_idx == 0),
              typename std::enable_if<!judge0 &&!judge1, bool>::type = false>
-    inline typename std::tuple_element<tuple_idx - 1, ValueType>::type& get() const{
+    inline typename std::tuple_element<tuple_idx, AbstractElementType>::type& get() const{
       static_assert(judge0 == is_const_, "illegal usage of this method");
       static_assert(judge1 == (tuple_idx == 0), "illegal usage of this method");
       return std::get<tuple_idx - 1>(this->iterator_->second);
     }
 
     template<TupleIdxType  tuple_idx,
-             bool judge = (tuple_idx == 0),
-             typename std::enable_if<judge, bool>::type = false>
+             typename std::enable_if<tuple_idx == 0, bool>::type = false>
     inline const KeyType& get_const() const{
-      static_assert(judge == (tuple_idx == 0), "illegal usage of this method");
       return this->iterator_->first;
     }
 
-    template<TupleIdxType  tuple_idx,
-             bool judge = (tuple_idx == 0),
-             typename std::enable_if<!judge, bool>::type = false>
-    inline const typename std::tuple_element<tuple_idx - 1, ValueType>::type& get_const() const{
-      static_assert(judge == (tuple_idx == 0), "illegal usage of this method");
+    template<TupleIdxType tuple_idx,
+             typename std::enable_if<tuple_idx != 0, bool>::type = false>
+    inline const typename std::tuple_element<tuple_idx, AbstractElementType>::type& get_const() const{
       return std::get<tuple_idx - 1>(this->iterator_->second);
     }
   };
@@ -584,7 +599,7 @@ class Container<ContainerType::Map,
 
   inline iterator Erase(const iterator& it) {
     assert(it != this->container_.end());
-    return this->container_.erase(it);
+    return this->container_.erase(it.iterator_);
   }
 
   inline std::pair<iterator, bool> Find(const KeyType& key) {

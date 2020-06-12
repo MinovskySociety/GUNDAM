@@ -90,7 +90,7 @@ class InnerIterator_<Container<container_type_, sort_type_, KeyType_>,
         std::is_same<const ReturnType&,
                      decltype(this->iterator_.template get_const<return_idx>())>::value,
         "Type mismatch");
-    return (this->iterator_.template get<return_idx>());
+    return (this->iterator_.template get_const<return_idx>());
   }
 };
 
@@ -236,14 +236,14 @@ class InnerIterator_<Container<container_type_, sort_type_, KeyType_,
             typename std::enable_if<judge, bool>::type = false>
   inline static typename InnerContainerType::const_iterator
   inner_iterator_begin(const IteratorType& container_iterator) {
-    return (container_iterator.template get<kInnerContainerIdx_>()).cbegin();
+    return (container_iterator.template get_const<kInnerContainerIdx_>()).cbegin();
   }
 
   template <bool judge = is_const_,
             typename std::enable_if<judge, bool>::type = false>
   inline static typename InnerContainerType::const_iterator inner_iterator_end(
       const IteratorType& container_iterator) {
-    return (container_iterator.template get<kInnerContainerIdx_>()).cend();
+    return (container_iterator.template get_const<kInnerContainerIdx_>()).cend();
   }
 
   inline bool InnerIsDone() const {
@@ -395,14 +395,14 @@ class _InnerIterator_<Container<container_type_, sort_type_, KeyType_,
             typename std::enable_if<judge, bool>::type = false>
   inline static typename InnerContainerType::const_iterator
   inner_iterator_begin(const IteratorType& container_iterator) {
-    return (container_iterator.template get<kInnerContainerIdx_>()).cbegin();
+    return (container_iterator.template get_const<kInnerContainerIdx_>()).cbegin();
   }
 
   template <bool judge = is_const_,
             typename std::enable_if<judge, bool>::type = false>
   inline static typename InnerContainerType::const_iterator inner_iterator_end(
       const IteratorType& container_iterator) {
-    return (container_iterator.template get<kInnerContainerIdx_>()).cend();
+    return (container_iterator.template get_const<kInnerContainerIdx_>()).cend();
   }
 
   inline bool InnerIsDone() const {
@@ -492,12 +492,12 @@ class _InnerIterator_<Container<container_type_, sort_type_, KeyType_,
   inline const ReturnType& get_const() const {
     static_assert(
         (!is_const_ &&
-         std::is_same<ReturnType&, decltype(this->iterator_.template get<return_idx>())>::value) ||
+         std::is_same<ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value) ||
         ( is_const_ &&
-         std::is_same<const ReturnType&, decltype(this->iterator_.template get<return_idx>())>::value),
+         std::is_same<const ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value),
         "Type mismatch");
 
-    return (this->iterator_.template get<return_idx>());
+    return (this->iterator_.template get_const<return_idx>());
   }
 
   template <
@@ -570,11 +570,11 @@ class _InnerIterator_<Container<container_type_, sort_type_, KeyType_>,
   inline const ReturnType& get_const() const {
     static_assert(
         (!is_const_ &&
-         std::is_same<ReturnType&, decltype(this->iterator_.template get<return_idx>())>::value) ||
+         std::is_same<ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value) ||
         ( is_const_ &&
-         std::is_same<const ReturnType&, decltype(this->iterator_.template get<return_idx>())>::value),
+         std::is_same<const ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value),
         "Type mismatch");
-    return (this->iterator_.template get<return_idx>());
+    return (this->iterator_.template get_const<return_idx>());
   }
 };
 template <enum ContainerType container_type_, enum SortType sort_type_,
@@ -641,11 +641,11 @@ class _InnerIterator_<Container<container_type_, sort_type_, KeyType_,
   inline const ReturnType& get_const() const {
     static_assert(
         (!is_const_ &&
-         std::is_same<ReturnType&, decltype(this->iterator_.template get<return_idx>())>::value) ||
+         std::is_same<ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value) ||
         ( is_const_ &&
-         std::is_same<const ReturnType&, decltype(this->iterator_.template get<return_idx>())>::value),
+         std::is_same<const ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value),
         "Type mismatch");
-    return (this->iterator_.template get<return_idx>());
+    return (this->iterator_.template get_const<return_idx>());
   }
 };
 

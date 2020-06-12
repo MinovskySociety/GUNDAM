@@ -1,8 +1,8 @@
 #ifndef _GRAPH_CONFIGURE_H
 #define _GRAPH_CONFIGURE_H
 
-#include "container.h"
-#include "label.h"
+#include "gundam/container.h"
+#include "gundam/label.h"
 
 #include <cstdint>
 #include <string>

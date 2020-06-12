@@ -7,6 +7,8 @@
 
 #include "container.h"
 #include "iterator.h"
+#include "graph_item.h"
+
 namespace GUNDAM {
 
 /// can be configured to much different type
@@ -14,7 +16,8 @@ namespace GUNDAM {
 ///     constant src graph to non-constant dst graph
 /// non-constant src graph to     constant dst graph
 /// non-constant src graph to non-constant dst graph
-template <typename SrcGraphType, typename DstGraphType,
+template <typename SrcGraphType,
+          typename DstGraphType,
           enum ContainerType map_container_type = ContainerType::Vector,
           enum SortType map_container_sort_type = SortType::Default>
 class Match {
@@ -183,6 +186,36 @@ class Match {
     }
     /// found that
     return DstVertexConstPtr(ret.first.template get<kDstVertexPtrIdx>());
+  }
+
+  /// constant dst
+  inline GraphItem<DstGraphType> MapTo(GraphItem<SrcGraphType>& src_item) const {
+    switch(src_item.type()){
+    case ItemType::Vertex:
+      return GraphItem<DstGraphType>(this->MapTo(src_item.vertex_ptr()));
+    case ItemType::VertexAttr:
+      return GraphItem<DstGraphType>(this->MapTo(src_item.vertex_ptr()),
+                                                 src_item.vertex_attribute_key());
+    default:
+      assert(false);
+    }
+    assert(false);
+    return GraphItem<DstGraphType>(this->MapTo(src_item.vertex_ptr()));
+  }
+
+  /// constant dst
+  inline GraphItem<const DstGraphType> MapToConst(GraphItem<SrcGraphType>& src_item) const {
+    switch(src_item.type()){
+    case ItemType::Vertex:
+      return GraphItem<DstGraphType>(this->MapToConst(src_item.vertex_ptr()));
+    case ItemType::VertexAttr:
+      return GraphItem<DstGraphType>(this->MapToConst(src_item.vertex_ptr()),
+                                                      src_item.vertex_attribute_key());
+    default:
+      assert(false);
+    }
+    assert(false);
+    return GraphItem<DstGraphType>(this->MapToConst(src_item.vertex_ptr()));
   }
 
   bool operator==(const Match& match) const {

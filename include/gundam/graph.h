@@ -5,6 +5,7 @@
 #include "gundam/datatype.h"
 #include "gundam/datetime.h"
 #include "gundam/geneator.h"
+#include "gundam/graph_item.h"
 #include "gundam/graph_configure.h"
 #include "gundam/iterator.h"
 #include "gundam/label.h"
@@ -644,8 +645,9 @@ class Graph {
       template <typename _ContainerType_, IteratorDepthType _depth_,
                 TupleIdxType _vertex_ptr_idx_>
       inline VertexPtr_& operator=(
-          const FriendVertexIterator<_ContainerType_, _depth_,
-                                     _vertex_ptr_idx_>& vertex_ptr_iterator) {
+          const FriendVertexIterator<_ContainerType_,
+                                             _depth_,
+                                    _vertex_ptr_idx_>& vertex_ptr_iterator) {
         this->Construct(vertex_ptr_iterator);
         return *this;
       }
@@ -2161,9 +2163,6 @@ class Graph {
         return VertexIteratorSpecifiedEdgeLabel();
       }
       return VertexIteratorSpecifiedEdgeLabel(
-          (std::get<kVertexPtrContainerIdx>(*(ret.first))).begin(),
-          (std::get<kVertexPtrContainerIdx>(*(ret.first))).end());
-      return VertexIteratorSpecifiedEdgeLabel(
           (ret.first.template get<kVertexPtrContainerIdx>()).begin(),
           (ret.first.template get<kVertexPtrContainerIdx>()).end());
     }
@@ -2176,8 +2175,8 @@ class Graph {
         return VertexConstIteratorSpecifiedEdgeLabel();
       }
       return VertexConstIteratorSpecifiedEdgeLabel(
-          (ret.first.template get<kVertexPtrContainerIdx>()).cbegin(),
-          (ret.first.template get<kVertexPtrContainerIdx>()).cend());
+          (ret.first.template get_const<kVertexPtrContainerIdx>()).cbegin(),
+          (ret.first.template get_const<kVertexPtrContainerIdx>()).cend());
     }
     inline EdgeIterator EdgeBegin(
         enum EdgeDirection direction,
@@ -2492,6 +2491,54 @@ class Graph {
   ///     AddVertex(id,attribute0,attribute1,...)
   ///     ...
 
+  /// return whether has removed that vertex successfully
+  inline bool EraseVertex(const VertexConstPtr& vertex_const_ptr){
+    /// <iterator, bool>
+    auto vertex_label_ret = this->vertexes_.Find(vertex_const_ptr->label());
+    if (!vertex_label_ret.second){
+      /// does not have a vertex with that label
+      return false;
+    }
+    return vertex_label_ret.first
+                           .template get<kVertexIDContainerIdx>()
+                           .Erase(vertex_const_ptr->id());
+  }
+
+  inline bool EraseItem(const GraphItem<Graph>& graph_item){
+    switch(graph_item.type()){
+    case ItemType::Vertex:
+      assert(!graph_item.vertex_const_ptr().IsNull());
+      return this->EraseVertex(graph_item.vertex_const_ptr());
+    case ItemType::VertexAttr:
+      assert(!graph_item.vertex_const_ptr().IsNull());
+      return graph_item.vertex_ptr()
+                      ->EraseAttribute(graph_item
+                                      .vertex_attribute_key());
+    default:
+      assert(false);
+    }
+    return false;
+  }
+
+  inline bool EraseItem(const GraphItem<const Graph>& graph_item){
+    VertexPtr vertex_ptr;
+    switch(graph_item.type()){
+    case ItemType::Vertex:
+      assert(!graph_item.vertex_const_ptr().IsNull());
+      return this->EraseVertex(graph_item.vertex_const_ptr());
+    case ItemType::VertexAttr:
+      assert(!graph_item.vertex_const_ptr().IsNull());
+      vertex_ptr = this->FindVertex(graph_item.vertex_const_ptr()->id(),
+                                    graph_item.vertex_const_ptr()->label());
+      assert(!vertex_ptr.IsNull());
+      return vertex_ptr->EraseAttribute(graph_item
+                                       .vertex_attribute_key());
+    default:
+      assert(false);
+    }
+    return false;
+  }
+
   inline bool EraseEdge(const typename EdgeType::IDType& edge_id) {
     for (auto vertex_it = this->VertexBegin(); !vertex_it.IsDone();
          vertex_it++) {
@@ -2527,15 +2574,15 @@ class Graph {
       /// the src vertex or the dst vertex does not exist
       return std::pair<EdgePtr, bool>(EdgePtr(), false);
     }
-    for (auto vertex_ptr_it = this->VertexBegin();
-             !vertex_ptr_it.IsDone();
-            ++vertex_ptr_it) {
-      EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
-      if (!edge_ptr.IsNull()) {
-        /// the edge with this edge_id has already existed
-        return std::pair<EdgePtr, bool>(edge_ptr, false);
-      }
-    }
+//    for (auto vertex_ptr_it = this->VertexBegin();
+//             !vertex_ptr_it.IsDone();
+//            ++vertex_ptr_it) {
+//      EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
+//      if (!edge_ptr.IsNull()) {
+//        /// the edge with this edge_id has already existed
+//        return std::pair<EdgePtr, bool>(edge_ptr, false);
+//      }
+//    }
     /// assume that the duplicate edge is allowed
     return src_ptr->AddEdge(dst_ptr, edge_label, edge_id);
   }
@@ -2646,7 +2693,7 @@ class Graph {
     return vertex_num;
   }
 
-  VertexSizeType CountVertex(
+  inline VertexSizeType CountVertex(
       const typename VertexType::LabelType& label) const {
     /// <iterator of VertexLabelContainer, bool>
     auto ret = this->vertexes_.FindConst(label);
