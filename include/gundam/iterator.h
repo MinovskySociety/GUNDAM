@@ -697,6 +697,32 @@ class Iterator_ : protected ContentIterator_ {
   inline bool IsDone() const { return ContentIterator_::IsDone(); }
 };
 
+template <typename ContentIterator_>
+class IteratorWithInstance_ : public Iterator_<ContentIterator_> {
+ private:
+  using IteratorType = Iterator_<ContentIterator_>;
+
+  using ContentDataType = typename ContentIterator_
+                                 ::ContentDataType;
+
+ public:
+  using IteratorType::IteratorType;
+
+  template <bool judge = ContentIterator_::kIsConst_,
+            typename std::enable_if<!judge, bool>::type = false>
+  inline const ContentDataType& operator*() {
+    assert(!this->IsDone());
+    return ContentIterator_::instance();
+  }
+
+  template <bool judge = ContentIterator_::kIsConst_,
+            typename std::enable_if<judge, bool>::type = false>
+  inline const ContentDataType& operator*() const {
+    assert(!this->IsDone());
+    return ContentIterator_::instance();
+  }
+};
+
 }  // namespace GUNDAM
 
 #endif  // _ITERATOR_H
