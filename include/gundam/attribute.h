@@ -75,31 +75,31 @@ class AttributeContentPtr_ {
       : is_null_(false), iterator_(iterator) {
     return;
   }
-  const typename AttributeContainerType::KeyType& key() const {
+  inline const typename AttributeContainerType::KeyType& key() const {
     assert(!this->is_null_);
-    return std::get<kAttributeKeyIdx>(*(this->iterator_));
+    return this->iterator_.template get<kAttributeKeyIdx>();
   }
   template <typename ConcreteDataType>
-  const ConcreteDataType& const_value() const {
+  inline const ConcreteDataType& const_value() const {
     assert(!this->is_null_);
     return static_cast<const ConcreteValue<ConcreteDataType>*>(
-               std::get<kAttributeValuePtrIdx>(*(this->iterator_)))
+              this->iterator_.template get_const<kAttributeValuePtrIdx>())
         ->const_value();
   }
   template <typename ConcreteDataType>
-  ConcreteDataType& value() {
+  inline ConcreteDataType& value() {
     assert(!this->is_null_);
     return static_cast<ConcreteValue<ConcreteDataType>*>(
-               std::get<kAttributeValuePtrIdx>(*(this->iterator_)))
+              this->iterator_.template get<kAttributeValuePtrIdx>())
         ->value();
   }
-  std::string value_str() const {
+  inline std::string value_str() const {
     assert(!this->is_null_);
-    return std::get<kAttributeValuePtrIdx>(*(this->iterator_))->value_str();
+    return this->iterator_.template get_const<kAttributeValuePtrIdx>()->value_str();
   }
-  BasicDataType value_type() const {
+  inline BasicDataType value_type() const {
     assert(!this->is_null_);
-    return std::get<kAttributeValueTypeIdx>(*(this->iterator_));
+    return this->iterator_.template get_const<kAttributeValueTypeIdx>();
   }
 };
 
@@ -346,8 +346,9 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
   }
 
   ~WithAttribute_() {
-    for (auto& it : this->attributes_)
-      delete std::get<kAttributeValuePtrIdx>(it);
+    for (auto it  = this->attributes_.begin();
+              it != this->attributes_.end(); it++)
+      delete it.template get<kAttributeValuePtrIdx>();
     key_to_value_type_map.clear();
     return;
   }
@@ -393,7 +394,7 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
     auto ret = this->attributes_.Find(key);
     assert(ret.second);
     return static_cast<ConcreteValue<ConcreteDataType>*>(
-               std::get<kAttributeValuePtrIdx>(*(ret.first)))
+               ret.first.template get<kAttributeValuePtrIdx>())
         ->value();
   }
 
@@ -403,7 +404,7 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
     auto ret = this->attributes_.FindConst(key);
     assert(ret.second);
     return static_cast<const ConcreteValue<ConcreteDataType>*>(
-               std::get<kAttributeValuePtrIdx>(*(ret.first)))
+               ret.first.template get_const<kAttributeValuePtrIdx>())
         ->const_value();
   }
 
@@ -419,12 +420,12 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
     }
     enum BasicDataType value_type = TypeToEnum(value);
     this->SetValueType(key, value_type);
-    std::get<kAttributeValuePtrIdx>(*(ret.first)) =
-        new ConcreteValue<ConcreteDataType>(value);
-    std::get<kAttributeValueTypeIdx>(*ret.first) = value_type;
+    ret.first.template get<kAttributeValuePtrIdx>()
+      = new ConcreteValue<ConcreteDataType>(value);
+    ret.first.template get<kAttributeValueTypeIdx>() = value_type;
     return std::pair<AttributePtr, bool>(AttributePtr(ret.first), true);
   }
-  
+
   std::pair<AttributePtr, bool> AddAttribute(
       const KeyType_& key, const enum BasicDataType& data_type,
       const std::string& value_str) {
@@ -446,7 +447,7 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
         return std::make_pair(AttributePtr(), false);
     }
   }
-  
+
   template <typename ConcreteDataType>
   std::pair<AttributePtr, bool> SetAttribute(const KeyType_& key,
                                              const ConcreteDataType& value) {
@@ -458,10 +459,10 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
       return std::pair<AttributePtr, bool>(AttributePtr(), false);
     }
     static_cast<ConcreteValue<ConcreteDataType>*>(
-        std::get<kAttributeValuePtrIdx>(*(ret.first)))
+        ret.first.template get<kAttributeValuePtrIdx>())
         ->set_value(value);
     enum BasicDataType value_type = TypeToEnum(value);
-    std::get<kAttributeValueTypeIdx>(*ret.first) = value_type;
+    ret.first.template get<kAttributeValueTypeIdx>() = value_type;
     return std::pair<AttributePtr, bool>(AttributePtr(ret.first), true);
   }
 
