@@ -9,18 +9,19 @@
 TEST(TestGUNDAM, TestInnerIterator) {
   using namespace GUNDAM;
 
-  using C1 = Container<ContainerType::Vector, SortType::None, int, std::string>;
+  using C1 = Container<ContainerType::Vector, SortType::Default, int, std::string>;
   using II1 = InnerIterator_<C1, false, 1>;
-  using C2 = Container<ContainerType::Vector, SortType::None, int, C1>;
+  using C2 = Container<ContainerType::Vector, SortType::Default, int, C1>;
   using II2 = InnerIterator_<C2, false, 2>;
 
   II1 it0;
   ASSERT_TRUE(it0.IsDone());
 
   C1 c1;
-  std::get<1>(*c1.Insert(1).first) = "A";
-  std::get<1>(*c1.Insert(2).first) = "B";
-  std::get<1>(*c1.Insert(3).first) = "C";
+
+  c1.Insert(1).first.get<1>() = "A";
+  c1.Insert(2).first.get<1>() = "B";
+  c1.Insert(3).first.get<1>() = "C";
 
   II1 it1(c1.begin(), c1.end());
 
@@ -42,15 +43,15 @@ TEST(TestGUNDAM, TestInnerIterator) {
   ASSERT_TRUE(it1.IsDone());
 
   C2 c2;
-  C1 &c1r1 = std::get<1>(*c2.Insert(1).first);  
+  C1 &c1r1 = c2.Insert(1).first.get<1>();  
   c1r1.Insert(101);
   c1r1.Insert(102);
   c1r1.Insert(103);  
-  C1 &c1r2 = std::get<1>(*c2.Insert(2).first);  
+  C1 &c1r2 = c2.Insert(2).first.get<1>();
   c1r2.Insert(201);
   c1r2.Insert(202);
   c1r2.Insert(203);
-  C1 &c1r3 = std::get<1>(*c2.Insert(3).first);  
+  C1 &c1r3 = c2.Insert(3).first.get<1>();  
   c1r3.Insert(301);
   c1r3.Insert(302);
   c1r3.Insert(303);

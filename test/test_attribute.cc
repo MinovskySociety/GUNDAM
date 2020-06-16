@@ -26,7 +26,7 @@ TEST(TestGUNDAM, TestAttribute) {
 
   using TestAttributeType =
       WithAttribute_<std::string, false, true, std::string,
-                     ContainerType::Vector, SortType::None>;
+                     ContainerType::Vector, SortType::Default>;
 
   TestAttributeType attr;
   auto ret = attr.AddAttribute<int>("a", 1);
