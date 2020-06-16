@@ -504,8 +504,8 @@ int ReadCSVGraphWithCallback(GraphType& graph,
     count_e += res;
   }
 
-  std::cout << "Vertex: " << count_v << std::endl;
-  std::cout << "  Edge: " << count_e << std::endl;
+  std::cout << " Vertex: " << count_v << std::endl;
+  std::cout << "   Edge: " << count_e << std::endl;
 
   return count_v + count_e;
 }

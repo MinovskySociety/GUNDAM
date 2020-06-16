@@ -623,23 +623,32 @@ class LargeGraph {
   }
 
   bool EraseVertex(const typename VertexType::IDType &id) {
-    auto it = vertices_.Find(id);
-    if (it == vertices_.end()) return false;
+    auto v_it = vertices_.Find(id);
+    if (v_it == vertices_.end()) return false;
 
-    VertexData *v = it->second;
+    VertexData *v = v_it->second;
     while (!v->out_edges_.empty()) {
       EraseEdge((*(v->out_edges_.begin()))->id());
     }
     while (!v->in_edges_.empty()) {
       EraseEdge((*(v->in_edges_.begin()))->id());
-    }
+    }    
     assert(v->out_edges_.empty());
     assert(v->in_edges_.empty());
     assert(v->out_edge_labels_.empty());
-    assert(v->in_edge_labels_.empty());
-    delete v;
+    assert(v->in_edge_labels_.empty());    
+    
+    auto label = v->label();
+    auto l_it = vertex_labels_.find(label);
+    assert(l_it != vertices_.end());
+    l_it->second.Erase(id);
+    if (l_it->second.Empty()) {
+      vertex_labels_.erase(label);
+    }
 
-    vertices_.Erase(it);
+    delete v;
+    vertices_.Erase(v_it);
+        
     return true;
   }
 

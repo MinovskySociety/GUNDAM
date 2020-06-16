@@ -21,6 +21,8 @@ class VectorDict {
   using value_type = typename InnerContainerType::value_type;
 
  public:
+  bool Empty() const { return container_.empty(); }
+
   size_t Count() const { return container_.size(); }
 
   template <class... VArgs>
@@ -87,6 +89,8 @@ class MapDict {
   using value_type = typename InnerContainerType::value_type;
 
  public:
+  bool Empty() const { return container_.empty(); }
+
   size_t Count() const { return container_.size(); }
 
   std::pair<iterator, bool> Insert(const KeyType& key, const ValueType& value) {
@@ -139,6 +143,8 @@ class SortedVectorSet {
   using value_type = typename InnerContainerType::value_type;
 
  public:
+  bool Empty() const { return container_.empty(); }
+
   size_t Count() const { return container_.size(); }
 
   template <class... VArgs>
@@ -218,6 +224,8 @@ class SortedVectorDict {
   using const_iterator = typename InnerContainerType::const_iterator;
 
  public:
+  bool Empty() const { return container_.empty(); }
+
   size_t Count() const { return container_.size(); }
 
   template <class... VArgs>
@@ -311,6 +319,8 @@ class PosKeyVector {
     return container_.cbegin() + pos;
   }
 
+  bool Empty() const { return container_.empty(); }
+
   void Clear() { container_.clear(); }
 
   iterator begin() noexcept { return container_.begin(); }
@@ -332,6 +342,64 @@ class PosKeyVector {
   size_t GetPos(const ValueType* p) const {
     return static_cast<size_t>(p - &*container_.cbegin());
   }
+
+ private:
+  InnerContainerType container_;
+};
+
+template <class BaseType>
+class PointerVector {
+ private:
+  using InnerContainerType = std::vector<BaseType*>;
+
+ public:
+  using iterator = typename InnerContainerType::iterator;
+
+  using const_iterator = typename InnerContainerType::const_iterator;
+
+  using value_type = typename InnerContainerType::value_type;
+
+ public:
+  ~PointerVector() { Clear(); }
+
+  bool Empty() const { return container_.empty(); }
+
+  size_t Count() const { return container_.size(); }
+
+  template <class DerivedType = BaseType, class... VArgs>
+  void Add(VArgs&&... vargs) {
+    BaseType* ptr = new DerivedType(std::forward<VArgs>(vargs)...);
+    container_.push_back(ptr);
+  }
+
+  iterator Erase(iterator pos) {
+    delete *pos;
+    return container_.erase(pos);
+  }
+
+  iterator Erase(const_iterator pos) {
+    delete *pos;
+    return container_.erase(pos);
+  }
+
+  void Clear() {
+    for (auto& ptr : container_) {
+      delete ptr;
+    }
+    container_.clear();
+  }
+
+  iterator begin() noexcept { return container_.begin(); }
+
+  const_iterator begin() const noexcept { return container_.begin(); }
+
+  const_iterator cbegin() const noexcept { return container_.cbegin(); }
+
+  iterator end() noexcept { return container_.end(); }
+
+  const_iterator end() const noexcept { return container_.cend(); }
+
+  const_iterator cend() const noexcept { return container_.cend(); }
 
  private:
   InnerContainerType container_;
