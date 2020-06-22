@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/graph.h"
+#include "gundam/large_graph.h"
 #include "gundam/csvgraph.h"
 #include "gundam/geneator.h"
 #include "gundam/matchresult.h"
@@ -13,7 +13,9 @@
 
 TEST(TestGUNDAM, WRITEMATCHRESULT) {
   using namespace GUNDAM;
-  using GraphType = GUNDAM::Graph<>;
+
+  using GraphType = LargeGraph<uint32_t, uint32_t, std::string, uint32_t,
+                               uint32_t, std::string>;
   using VertexType = typename GraphType::VertexType;
   using EdgeType = typename GraphType::EdgeType;
   using VertexIDType = typename VertexType::IDType;

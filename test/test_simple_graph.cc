@@ -8,8 +8,6 @@
 #include "gundam/small_graph.h"
 #include "gundam/simple_small_graph.h"
 
-TEST(TestGUNDAM, GoogleTest) { ASSERT_TRUE(true); }
-
 template <class GraphType>
 void TestBuildSimpleGraph1(GraphType& g) {
   bool res;

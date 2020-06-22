@@ -7,15 +7,18 @@
 #include "gundam/large_graph.h"
 #include "gundam/util.h"
 
-TEST(TestGUNDAM, IDGEN) {  
+TEST(TestGUNDAM, IDGEN)
+{
   using G = GUNDAM::LargeGraph<uint64_t, uint32_t, std::string, uint64_t,
                                uint32_t, std::string>;
   G g;
-  time(0);
   GUNDAM::SimpleArithmeticIDGenerator<typename G::EdgeType::IDType> edge_id_gen;
-  for (int i = 1; i <= 10; i++) g.AddVertex(i, 0);
-  for (int i = 1; i <= 10; i++) {
-    for (int j = i + 1; j <= 10; j++) {
+  for (int i = 1; i <= 10; i++)
+    g.AddVertex(i, 0);
+  for (int i = 1; i <= 10; i++)
+  {
+    for (int j = i + 1; j <= 10; j++)
+    {
       int id = rand() % 10000000;
       g.AddEdge(i, j, 0, id);
       edge_id_gen.UseID(id);

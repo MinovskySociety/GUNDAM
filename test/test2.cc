@@ -3,50 +3,45 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/graph.h"
+#include "gundam/large_graph.h"
 
 TEST(TestGUNDAM, TestGraphLabel) {
   using namespace GUNDAM;
 
-  Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<Label<std::string>>,
-        SetEdgeIDType<uint64_t>, SetEdgeLabelType<Label<int64_t>>,
-        SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-        SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>
+  LargeGraph<uint64_t, std::string, std::string, 
+             uint64_t, int32_t, std::string>
       g1;
 
   // AddVertex
-  auto res1 = g1.AddVertex(1, Label<std::string>("AAA"));
+  auto res1 = g1.AddVertex(1, "AAA");
   ASSERT_TRUE(res1.second);
-  ASSERT_FALSE(res1.first.IsNull());
+  ASSERT_TRUE(res1.first);
   ASSERT_EQ(res1.first->id(), 1);
-  ASSERT_EQ(res1.first->label(), Label<std::string>("AAA"));
+  ASSERT_EQ(res1.first->label(), "AAA");
 
-  res1 = g1.AddVertex(2, Label<std::string>("AAA"));
+  res1 = g1.AddVertex(2, "AAA");
   ASSERT_TRUE(res1.second);
-  ASSERT_FALSE(res1.first.IsNull());
+  ASSERT_TRUE(res1.first);
   ASSERT_EQ(res1.first->id(), 2);
-  ASSERT_EQ(res1.first->label(), Label<std::string>("AAA"));
+  ASSERT_EQ(res1.first->label(), "AAA");
 
   // AddEdge
   using EdgeLabelType = decltype(g1)::EdgeType::LabelType;
   auto res2 = g1.AddEdge(2, 1, EdgeLabelType(1), 1);
   ASSERT_TRUE(res2.second);
-  ASSERT_FALSE(res2.first.IsNull());
+  ASSERT_TRUE(res2.first);
   ASSERT_EQ(res2.first->id(), 1);
 
   // ASSERT_EQ(res2.first->label(), Label<std::string>("ccc"));
-  std::cout << "Edge 1's label: " << res2.first->label().to_string()
+  std::cout << "Edge 1's label: " << res2.first->label()
             << std::endl;
 }
 
 TEST(TestGUNDAM, GraphEdge) {
   using namespace GUNDAM;
 
-  using GraphType1 =
-      Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<std::string>,
-            SetEdgeIDType<uint64_t>, SetEdgeLabelType<std::string>,
-            SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-            SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>;
+  using GraphType1 = LargeGraph<uint32_t, std::string, std::string, uint64_t,
+                                std::string, std::string>;            
 
   GraphType1 g1;
 
@@ -61,20 +56,20 @@ TEST(TestGUNDAM, GraphEdge) {
   auto res1 = g1.AddVertex(3, "BBB");
   ASSERT_TRUE(res1.second);
   v3 = res1.first;
-  ASSERT_FALSE(v3.IsNull());
+  ASSERT_TRUE(v3);
 
   GraphType1::EdgePtr e1, e2;
 
   auto res2 = g1.AddEdge(1, 2, "a", 1);
   ASSERT_TRUE(res2.second);
-  ASSERT_FALSE(res2.first.IsNull());
+  ASSERT_TRUE(res2.first);
   ASSERT_EQ(1, res2.first->id());
   ASSERT_EQ(1, res2.first->const_src_ptr()->id());
   ASSERT_EQ(2, res2.first->const_dst_ptr()->id());
 
   std::tie(e2, res_bool) = g1.AddEdge(2, 3, "b", 2);
   ASSERT_TRUE(res_bool);
-  ASSERT_FALSE(e2.IsNull());
+  ASSERT_TRUE(e2);
   ASSERT_EQ(2, e2->id());
   ASSERT_EQ(2, e2->const_src_ptr()->id());
   ASSERT_EQ(3, e2->const_dst_ptr()->id());
@@ -82,7 +77,7 @@ TEST(TestGUNDAM, GraphEdge) {
   ASSERT_TRUE(g1.AddEdge(1, 3, "b", 3).second);
 
   e1 = g1.FindEdge(1);
-  ASSERT_FALSE(e1.IsNull());
+  ASSERT_TRUE(e1);
 
   auto e_it1 = v1->OutEdgeBegin();  
   auto e_it_const1 = v1->OutEdgeCBegin();
