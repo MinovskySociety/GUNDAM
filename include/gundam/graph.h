@@ -1,19 +1,19 @@
 #ifndef _GRAPH_H
 #define _GRAPH_H
 
+#include <iostream>
+#include <set>
+#include <tuple>
+
+#include "gundam/attribute.h"
 #include "gundam/container.h"
 #include "gundam/datatype.h"
 #include "gundam/datetime.h"
 #include "gundam/geneator.h"
-#include "gundam/graph_item.h"
 #include "gundam/graph_configure.h"
+#include "gundam/graph_item.h"
 #include "gundam/iterator.h"
 #include "gundam/label.h"
-#include "gundam/attribute.h"
-
-#include <iostream>
-#include <set>
-#include <tuple>
 
 namespace GUNDAM {
 
@@ -423,7 +423,8 @@ class Graph {
     }
     inline const EdgeLabelType& label() const {
       assert(!this->IsDone());
-      return this->edge_label_iterator_.template get_const<InnerVertex_::kEdgeLabelIdx>();
+      return this->edge_label_iterator_
+          .template get_const<InnerVertex_::kEdgeLabelIdx>();
     }
   };
 
@@ -531,7 +532,7 @@ class Graph {
     }
 
    public:
-    //inline const EdgeLabelType& label() const {
+    // inline const EdgeLabelType& label() const {
     //  assert(!this->IsDone());
     //  return InnerIteratorType::template get_const<
     //      EdgeLabelType, edge_label_idx_, depth_ - 1>();
@@ -645,9 +646,8 @@ class Graph {
       template <typename _ContainerType_, IteratorDepthType _depth_,
                 TupleIdxType _vertex_ptr_idx_>
       inline VertexPtr_& operator=(
-          const FriendVertexIterator<_ContainerType_,
-                                             _depth_,
-                                    _vertex_ptr_idx_>& vertex_ptr_iterator) {
+          const FriendVertexIterator<_ContainerType_, _depth_,
+                                     _vertex_ptr_idx_>& vertex_ptr_iterator) {
         this->Construct(vertex_ptr_iterator);
         return *this;
       }
@@ -705,7 +705,7 @@ class Graph {
         return this->ptr_;
       }
 
-      inline void Release() const{
+      inline void Release() const {
         delete this->ptr_;
         return;
       }
@@ -789,7 +789,8 @@ class Graph {
       }
 
       inline const EdgeAttributeType& const_attribute() const {
-        return *(this->decomposed_edge_iterator_.template get_const<kEdgeAttributePtrIdx>());
+        return *(this->decomposed_edge_iterator_
+                     .template get_const<kEdgeAttributePtrIdx>());
       }
 
       inline bool IsNull() const { return this->vertex_ptr_.IsNull(); }
@@ -872,11 +873,13 @@ class Graph {
       using EdgePtrContent = EdgePtrContent_<false, false, meaning_less_>;
 
       inline VertexPtr& VertexPtrContainerElement() {
-        return EdgePtrContent::vertex_ptr_iterator_.template get<kVertexPtrIdx>();
+        return EdgePtrContent::vertex_ptr_iterator_
+            .template get<kVertexPtrIdx>();
       }
 
       inline EdgeAttributeType& _attribute() {
-        return *(EdgePtrContent::decomposed_edge_iterator_.template get<kEdgeAttributePtrIdx>());
+        return *(EdgePtrContent::decomposed_edge_iterator_
+                     .template get<kEdgeAttributePtrIdx>());
       }
 
      public:
@@ -1171,15 +1174,13 @@ class Graph {
                           const EdgeLabelType& edge_label,
                           const EdgeIDType& edge_id,
                           EdgeAttributeType* const edge_attribute_ptr) {
-      auto edge_label_it = this->edges_.in_edges()
-                                       .Insert(edge_label)
-                                       .first;
+      auto edge_label_it = this->edges_.in_edges().Insert(edge_label).first;
       auto vertex_ptr_it = edge_label_it.template get<kVertexPtrContainerIdx>()
-                                        .Insert(dst_ptr)
-                                        .first;
+                               .Insert(dst_ptr)
+                               .first;
       auto edge_it = vertex_ptr_it.template get<kDecomposedEdgeContainerIdx>()
-                                  .Insert(edge_id)
-                                  .first;
+                         .Insert(edge_id)
+                         .first;
       edge_it.template get<kEdgeAttributePtrIdx>() = edge_attribute_ptr;
       return;
     }
@@ -1188,15 +1189,13 @@ class Graph {
         const VertexPtr& dst_ptr, const EdgeLabelType& edge_label,
         const EdgeIDType& edge_id,
         EdgeAttributeType* const edge_attribute_ptr) {
-      auto edge_label_it = this->edges_.out_edges()
-                                       .Insert(edge_label)
-                                       .first;
+      auto edge_label_it = this->edges_.out_edges().Insert(edge_label).first;
       auto vertex_ptr_it = edge_label_it.template get<kVertexPtrContainerIdx>()
-                                        .Insert(dst_ptr)
-                                        .first;
+                               .Insert(dst_ptr)
+                               .first;
       auto edge_it = vertex_ptr_it.template get<kDecomposedEdgeContainerIdx>()
-                                  .Insert(edge_id)
-                                  .first;
+                         .Insert(edge_id)
+                         .first;
       edge_it.template get<kEdgeAttributePtrIdx>() = edge_attribute_ptr;
       InnerVertex_* const temp_this_ptr = this;
       VertexPtr temp_vertex_ptr(temp_this_ptr);
@@ -1246,17 +1245,19 @@ class Graph {
     }
 
     ~InnerVertex_() {
-      for (auto edge_label_it  = this->edges_.out_edges().begin();
-                edge_label_it != this->edges_.out_edges(). end ();
-                edge_label_it++) {
-        for (auto vertex_ptr_it  = edge_label_it.template get<kVertexPtrContainerIdx>().begin();
-                  vertex_ptr_it != edge_label_it.template get<kVertexPtrContainerIdx>(). end ();
-                  vertex_ptr_it++) {
-          for (auto decomposed_edge_it
-                       = vertex_ptr_it.template get<kDecomposedEdgeContainerIdx>().begin();
-                    decomposed_edge_it
-                      != vertex_ptr_it.template get<kDecomposedEdgeContainerIdx>(). end ();
-                    decomposed_edge_it++) {
+      for (auto edge_label_it = this->edges_.out_edges().begin();
+           edge_label_it != this->edges_.out_edges().end(); edge_label_it++) {
+        for (auto vertex_ptr_it =
+                 edge_label_it.template get<kVertexPtrContainerIdx>().begin();
+             vertex_ptr_it !=
+             edge_label_it.template get<kVertexPtrContainerIdx>().end();
+             vertex_ptr_it++) {
+          for (auto decomposed_edge_it =
+                   vertex_ptr_it.template get<kDecomposedEdgeContainerIdx>()
+                       .begin();
+               decomposed_edge_it !=
+               vertex_ptr_it.template get<kDecomposedEdgeContainerIdx>().end();
+               decomposed_edge_it++) {
             delete decomposed_edge_it.template get<kEdgeAttributePtrIdx>();
           }
         }
@@ -1293,14 +1294,14 @@ class Graph {
       auto edge_label_ret = edge_label_container_ptr->Find(edge_label);
       assert(edge_label_ret.second);
       // second level container
-      VertexPtrContainerType& vertex_ptr_container
-            = edge_label_ret.first.template get<kVertexPtrContainerIdx>();
+      VertexPtrContainerType& vertex_ptr_container =
+          edge_label_ret.first.template get<kVertexPtrContainerIdx>();
       /// <iterator of VertexPtrContainer, bool>
       auto vertex_ptr_ret = vertex_ptr_container.Find(vertex_ptr);
       assert(vertex_ptr_ret.second);
       // third level container
-      DecomposedEdgeContainerType& decomposed_edge_container
-            = vertex_ptr_ret.first.template get<kDecomposedEdgeContainerIdx>();
+      DecomposedEdgeContainerType& decomposed_edge_container =
+          vertex_ptr_ret.first.template get<kDecomposedEdgeContainerIdx>();
       /// <iterator of DecomposedEdgeContainer, bool>
       auto decomposed_edge_ret = decomposed_edge_container.Find(edge_id);
       assert(decomposed_edge_ret.second);
@@ -1324,12 +1325,12 @@ class Graph {
                           const EdgeIDType& edge_id) {
       for (auto edge_label_it = edge_label_contaienr.begin();
            edge_label_it != edge_label_contaienr.end(); edge_label_it++) {
-        VertexPtrContainerType& vertex_ptr_container
-            = edge_label_it.template get<kVertexPtrContainerIdx>();
+        VertexPtrContainerType& vertex_ptr_container =
+            edge_label_it.template get<kVertexPtrContainerIdx>();
         for (auto vertex_ptr_it = vertex_ptr_container.begin();
              vertex_ptr_it != vertex_ptr_container.end(); vertex_ptr_it++) {
-          DecomposedEdgeContainerType& decomposed_edge_container
-              = vertex_ptr_it.template get<kDecomposedEdgeContainerIdx>();
+          DecomposedEdgeContainerType& decomposed_edge_container =
+              vertex_ptr_it.template get<kDecomposedEdgeContainerIdx>();
           auto edge_id_ret = decomposed_edge_container.Find(edge_id);
           if (!edge_id_ret.second) {
             //  not found edge_id in this container
@@ -1339,12 +1340,12 @@ class Graph {
           decomposed_edge_container.Erase(edge_id_ret.first);
           InnerVertex_* temp_this_ptr = this;
           VertexPtr temp_vertex_ptr(temp_this_ptr);
-          vertex_ptr_it.template get<kVertexPtrIdx>()
-              ->EraseEdge(edge_direction == EdgeDirection::InputEdge
-                              ? EdgeDirection::OutputEdge
-                              : EdgeDirection::InputEdge,
-                          edge_label_it.template get<kEdgeLabelIdx>(),
-                          temp_vertex_ptr, edge_id);
+          vertex_ptr_it.template get<kVertexPtrIdx>()->EraseEdge(
+              edge_direction == EdgeDirection::InputEdge
+                  ? EdgeDirection::OutputEdge
+                  : EdgeDirection::InputEdge,
+              edge_label_it.template get<kEdgeLabelIdx>(), temp_vertex_ptr,
+              edge_id);
 
           if (!decomposed_edge_container.empty()) return true;
           // the decomposed_edge_container is empty,
@@ -1426,7 +1427,8 @@ class Graph {
                          const VertexPtr& dst_ptr) {
       for (auto& edge_label_it : edge_label_container) {
         /// <iterator, bool>
-        auto ret = edge_label_it.template get<kVertexPtrContainerIdx>().Find(dst_ptr);
+        auto ret =
+            edge_label_it.template get<kVertexPtrContainerIdx>().Find(dst_ptr);
         if (ret.second) {
           /// found it
           return ret.first.template get<kVertexPtrIdx>();
@@ -1438,10 +1440,12 @@ class Graph {
     VertexConstPtr FindConstVertex(
         const EdgeLabelContainerType& edge_label_container,
         const VertexPtr& dst_ptr) const {
-      for (auto edge_label_it  = edge_label_container.cbegin();
-                edge_label_it != edge_label_container.cend(); ++edge_label_it) {
+      for (auto edge_label_it = edge_label_container.cbegin();
+           edge_label_it != edge_label_container.cend(); ++edge_label_it) {
         /// <iterator, bool>
-        auto ret = edge_label_it.template get<kVertexPtrContainerIdx>().FindConst(dst_ptr);
+        auto ret =
+            edge_label_it.template get<kVertexPtrContainerIdx>().FindConst(
+                dst_ptr);
         if (ret.second) {
           /// found it
           return ret.first.template get<kVertexPtrIdx>();
@@ -1452,12 +1456,13 @@ class Graph {
 
     VertexPtr FindVertex(EdgeLabelContainerType& edge_label_container,
                          const VertexIDType& dst_id) {
-      for (auto edge_label_it  = edge_label_container.begin();
-                edge_label_it != edge_label_container. end ();
-                edge_label_it++) {
-        for (auto vertex_it  = edge_label_it.template get<kVertexPtrContainerIdx>().begin();
-                  vertex_it != edge_label_it.template get<kVertexPtrContainerIdx>(). end ();
-                  vertex_it++) {
+      for (auto edge_label_it = edge_label_container.begin();
+           edge_label_it != edge_label_container.end(); edge_label_it++) {
+        for (auto vertex_it =
+                 edge_label_it.template get<kVertexPtrContainerIdx>().begin();
+             vertex_it !=
+             edge_label_it.template get<kVertexPtrContainerIdx>().end();
+             vertex_it++) {
           VertexPtr vertex_ptr = vertex_it.template get<kVertexPtrIdx>();
           if (vertex_ptr->id() == dst_id) return vertex_ptr;  /// found it
         }
@@ -1469,12 +1474,13 @@ class Graph {
     VertexConstPtr FindConstVertex(
         const EdgeLabelContainerType& edge_label_container,
         const VertexIDType& dst_id) const {
-      for (auto edge_label_it  = edge_label_container.cbegin();
-                edge_label_it != edge_label_container. cend ();
-                edge_label_it++) {
-        for (auto vertex_it  = edge_label_it.template get<kVertexPtrContainerIdx>().cbegin();
-                  vertex_it != edge_label_it.template get<kVertexPtrContainerIdx>(). cend ();
-                  vertex_it++) {
+      for (auto edge_label_it = edge_label_container.cbegin();
+           edge_label_it != edge_label_container.cend(); edge_label_it++) {
+        for (auto vertex_it =
+                 edge_label_it.template get<kVertexPtrContainerIdx>().cbegin();
+             vertex_it !=
+             edge_label_it.template get<kVertexPtrContainerIdx>().cend();
+             vertex_it++) {
           VertexPtr vertex_ptr = vertex_it.template get<kVertexPtrIdx>();
           if (vertex_ptr->id() == dst_id) return vertex_ptr;  /// found it
         }
@@ -1491,8 +1497,9 @@ class Graph {
       if (!edge_label_ret.second)  /// does not have edge_label
         return VertexPtr();
       /// <iterator of VertexPtrContainer, bool>
-      auto vertex_ptr_ret
-         = edge_label_ret.first.template get<kVertexPtrContainerIdx>().Find(dst_ptr);
+      auto vertex_ptr_ret =
+          edge_label_ret.first.template get<kVertexPtrContainerIdx>().Find(
+              dst_ptr);
       if (!vertex_ptr_ret.second) return VertexPtr();
       /// found it
       return vertex_ptr_ret.first.template get<kVertexPtrIdx>();
@@ -1506,8 +1513,9 @@ class Graph {
       if (!edge_label_ret.second)  /// does not have edge_label
         return VertexPtr();
       /// <iterator of VertexContainer, bool>
-      auto vertex_ptr_ret
-         = edge_label_ret.first.template get<kVertexPtrContainerIdx>().FindConst(dst_ptr);
+      auto vertex_ptr_ret =
+          edge_label_ret.first.template get<kVertexPtrContainerIdx>().FindConst(
+              dst_ptr);
       if (!vertex_ptr_ret.second) return VertexPtr();
       /// found it
       return vertex_ptr_ret.first.template get<kVertexPtrIdx>();
@@ -1520,9 +1528,12 @@ class Graph {
       auto edge_label_ret = edge_label_container.Find(edge_label);
       if (!edge_label_ret.second)  /// does not have edge_label
         return VertexPtr();
-      for (auto vertex_it  = edge_label_ret.first.template get<kVertexPtrContainerIdx>().begin();
-                vertex_it != edge_label_ret.first.template get<kVertexPtrContainerIdx>(). end ();
-                vertex_it++) {
+      for (auto vertex_it =
+               edge_label_ret.first.template get<kVertexPtrContainerIdx>()
+                   .begin();
+           vertex_it !=
+           edge_label_ret.first.template get<kVertexPtrContainerIdx>().end();
+           vertex_it++) {
         VertexPtr vertex_ptr = vertex_it.template get<kVertexPtrIdx>();
         if (vertex_ptr->id() == dst_id) return vertex_ptr;  /// found it
       }
@@ -1537,10 +1548,14 @@ class Graph {
       auto edge_label_ret = edge_label_container.FindConst(edge_label);
       if (!edge_label_ret.second)  /// does not have edge_label
         return VertexConstPtr();
-      for (auto vertex_cit  = edge_label_ret.first.template get<kVertexPtrContainerIdx>().cbegin();
-                vertex_cit != edge_label_ret.first.template get<kVertexPtrContainerIdx>(). cend ();
-                vertex_cit++) {
-        VertexConstPtr vertex_const_ptr = vertex_cit.template get<kVertexPtrIdx>();
+      for (auto vertex_cit =
+               edge_label_ret.first.template get<kVertexPtrContainerIdx>()
+                   .cbegin();
+           vertex_cit !=
+           edge_label_ret.first.template get<kVertexPtrContainerIdx>().cend();
+           vertex_cit++) {
+        VertexConstPtr vertex_const_ptr =
+            vertex_cit.template get<kVertexPtrIdx>();
         if (vertex_const_ptr->id() == dst_id)
           return vertex_const_ptr;  /// found it
       }
@@ -1615,8 +1630,7 @@ class Graph {
         const EdgeLabelType& edge_label) const {
       /// <constant iterator of EdgeLabelContainer, bool>
       auto ret = edge_label_container.FindConst(edge_label);
-      if (!ret.second)
-        return 0;
+      if (!ret.second) return 0;
       return ret.first.template get_const<kVertexPtrContainerIdx>().size();
     }
 
@@ -1647,8 +1661,8 @@ class Graph {
       typename VertexPtrContainerType::size_type out_vertex_num = 0;
       for (auto it = this->edges_.const_out_edges().cbegin();
            it != this->edges_.const_out_edges().cend(); it++) {
-        const EdgeLabelType edge_label
-          = it.template get_const<InnerVertex_::kEdgeLabelIdx>();
+        const EdgeLabelType edge_label =
+            it.template get_const<InnerVertex_::kEdgeLabelIdx>();
         out_vertex_num += this->CountOutVertex(edge_label);
       }
       return out_vertex_num;
@@ -1695,8 +1709,8 @@ class Graph {
       typename VertexPtrContainerType::size_type in_vertex_num = 0;
       for (auto it = this->edges_.const_in_edges().cbegin();
            it != this->edges_.const_in_edges().cend(); it++) {
-        const EdgeLabelType edge_label
-          = it.template get<InnerVertex_::kEdgeLabelIdx>();
+        const EdgeLabelType edge_label =
+            it.template get<InnerVertex_::kEdgeLabelIdx>();
         in_vertex_num += this->CountInVertex(edge_label);
       }
       return in_vertex_num;
@@ -1740,19 +1754,17 @@ class Graph {
         const EdgeLabelContainerType& edge_label_container,
         const enum EdgeDirection& edge_direction,
         const EdgeIDType& edge_id) const {
-      for (auto edge_label_it  = edge_label_container.cbegin();
-                edge_label_it != edge_label_container.cend();
-              ++edge_label_it) {
-        for (auto vertex_ptr_it  = edge_label_it
-                                  .template get_const<kVertexPtrContainerIdx>()
-                                  .cbegin();
-                  vertex_ptr_it != edge_label_it
-                                  .template get_const<kVertexPtrContainerIdx>()
-                                  .cend();
-                ++vertex_ptr_it) {
-          auto decomposed_edge_ret = vertex_ptr_it
-                                    .template get_const<kDecomposedEdgeContainerIdx>()
-                                    .FindConst(edge_id);
+      for (auto edge_label_it = edge_label_container.cbegin();
+           edge_label_it != edge_label_container.cend(); ++edge_label_it) {
+        for (auto vertex_ptr_it =
+                 edge_label_it.template get_const<kVertexPtrContainerIdx>()
+                     .cbegin();
+             vertex_ptr_it !=
+             edge_label_it.template get_const<kVertexPtrContainerIdx>().cend();
+             ++vertex_ptr_it) {
+          auto decomposed_edge_ret =
+              vertex_ptr_it.template get_const<kDecomposedEdgeContainerIdx>()
+                  .FindConst(edge_id);
           if (!decomposed_edge_ret.second) {
             /// not found
             continue;
@@ -1770,15 +1782,16 @@ class Graph {
     inline EdgePtr FindEdge(EdgeLabelContainerType& edge_label_container,
                             const enum EdgeDirection& edge_direction,
                             const EdgeIDType& edge_id) {
-      for (auto edge_label_it  = edge_label_container.begin();
-                edge_label_it != edge_label_container.end();
-              ++edge_label_it) {
-        for (auto vertex_ptr_it  = edge_label_it.template get<kVertexPtrContainerIdx>().begin();
-                  vertex_ptr_it != edge_label_it.template get<kVertexPtrContainerIdx>().end();
-                ++vertex_ptr_it) {
-          auto decomposed_edge_ret = vertex_ptr_it
-                                    .template get<kDecomposedEdgeContainerIdx>()
-                                    .Find(edge_id);
+      for (auto edge_label_it = edge_label_container.begin();
+           edge_label_it != edge_label_container.end(); ++edge_label_it) {
+        for (auto vertex_ptr_it =
+                 edge_label_it.template get<kVertexPtrContainerIdx>().begin();
+             vertex_ptr_it !=
+             edge_label_it.template get<kVertexPtrContainerIdx>().end();
+             ++vertex_ptr_it) {
+          auto decomposed_edge_ret =
+              vertex_ptr_it.template get<kDecomposedEdgeContainerIdx>().Find(
+                  edge_id);
           if (!decomposed_edge_ret.second) {
             /// not found
             continue;
@@ -1803,15 +1816,15 @@ class Graph {
         return EdgePtr();
       }
       /// found this edge label
-      for (auto vertex_ptr_it  = edge_label_ret.first
-                                               .template get<kVertexPtrContainerIdx>()
-                                               .begin();
-                vertex_ptr_it != edge_label_ret.first
-                                               .template get<kVertexPtrContainerIdx>()
-                                               .end();
-              ++vertex_ptr_it) {
-        auto decomposed_edge_ret
-          = vertex_ptr_it.template get<kDecomposedEdgeContainerIdx>().Find(edge_id);
+      for (auto vertex_ptr_it =
+               edge_label_ret.first.template get<kVertexPtrContainerIdx>()
+                   .begin();
+           vertex_ptr_it !=
+           edge_label_ret.first.template get<kVertexPtrContainerIdx>().end();
+           ++vertex_ptr_it) {
+        auto decomposed_edge_ret =
+            vertex_ptr_it.template get<kDecomposedEdgeContainerIdx>().Find(
+                edge_id);
         if (!decomposed_edge_ret.second) {
           /// not found
           continue;
@@ -1834,15 +1847,15 @@ class Graph {
       if (!edge_label_ret.second)  /// does not have this edge label
         return EdgePtr();
       /// <iterator of VertexContainer, bool>
-      auto vertex_ptr_ret = edge_label_ret.first
-                                          .template get<kVertexPtrContainerIdx>()
-                                          .Find(dst_ptr);
+      auto vertex_ptr_ret =
+          edge_label_ret.first.template get<kVertexPtrContainerIdx>().Find(
+              dst_ptr);
       if (!vertex_ptr_ret.second)  /// does not have this VertexPtr
         return EdgePtr();
       /// <iterator of DecomposedEdgeContainer, bool>
-      auto decomposed_edge_ret = vertex_ptr_ret.first
-                                               .template get<kDecomposedEdgeContainerIdx>()
-                                               .Find(edge_id);
+      auto decomposed_edge_ret =
+          vertex_ptr_ret.first.template get<kDecomposedEdgeContainerIdx>().Find(
+              edge_id);
       if (!decomposed_edge_ret.second)  /// does not find it
         return EdgePtr();
       InnerVertex_* const temp_this_ptr = this;
@@ -1963,11 +1976,11 @@ class Graph {
           static_cast<EdgeContentIteratorSpecifiedEdgeLabel*>(ptr);
       enum EdgeDirection edge_direction = edge_it_ptr->direction();
       auto edge_label_iterator = edge_it_ptr->get_iterator();
-      VertexPtrContainerType& vertex_ptr_container
-        = edge_label_iterator.template get<kVertexPtrContainerIdx>();
+      VertexPtrContainerType& vertex_ptr_container =
+          edge_label_iterator.template get<kVertexPtrContainerIdx>();
       auto vertex_ptr_iterator = edge_it_ptr->vertex_ptr_iterator();
-      DecomposedEdgeContainerType& decomposed_edge_container
-        = vertex_ptr_iterator.template get<kDecomposedEdgeContainerIdx>();
+      DecomposedEdgeContainerType& decomposed_edge_container =
+          vertex_ptr_iterator.template get<kDecomposedEdgeContainerIdx>();
       auto decomposed_edge_iterator = edge_it_ptr->decomposed_edge_iterator();
       // erase dst_ptr iterator
       EdgeLabelType edge_label = edge_iterator->label();
@@ -2020,8 +2033,8 @@ class Graph {
       }
       if ((!vertex_ptr_container.empty()) &&
           (vertex_ptr_iterator != vertex_ptr_container.end())) {
-        auto& decomposed_edge_container_ref
-          = vertex_ptr_iterator.template get<kDecomposedEdgeContainerIdx>();
+        auto& decomposed_edge_container_ref =
+            vertex_ptr_iterator.template get<kDecomposedEdgeContainerIdx>();
         ret_vertex_ptr_iterator = vertex_ptr_iterator;
         ret_decomposed_edge_iterator = decomposed_edge_container_ref.begin();
         return ret_iterator;
@@ -2110,8 +2123,8 @@ class Graph {
       }
       if (!vertex_ptr_container.empty()) {
         if (vertex_ptr_iterator != vertex_ptr_container.end()) {
-          auto& decomposed_edge_container_ref
-            = vertex_ptr_iterator.template get<kDecomposedEdgeContainerIdx>();
+          auto& decomposed_edge_container_ref =
+              vertex_ptr_iterator.template get<kDecomposedEdgeContainerIdx>();
           ret_vertex_ptr_iterator = vertex_ptr_iterator;
           ret_decomposed_edge_iterator = decomposed_edge_container_ref.begin();
           return ret_iterator;
@@ -2122,11 +2135,12 @@ class Graph {
       }
       if (!edge_label_container->empty() &&
           edge_label_iterator != edge_label_container->end()) {
-        vertex_ptr_iterator
-          = (edge_label_iterator.template get<kVertexPtrContainerIdx>()).begin();
-        decomposed_edge_iterator
-          = vertex_ptr_iterator.template get<kDecomposedEdgeContainerIdx>()
-                               .begin();
+        vertex_ptr_iterator =
+            (edge_label_iterator.template get<kVertexPtrContainerIdx>())
+                .begin();
+        decomposed_edge_iterator =
+            vertex_ptr_iterator.template get<kDecomposedEdgeContainerIdx>()
+                .begin();
         ret_edge_label_iterator = edge_label_iterator;
         ret_vertex_ptr_iterator = vertex_ptr_iterator;
         ret_it->template get_iterator<DecomposedEdgeIteratorType, 2>() =
@@ -2369,19 +2383,15 @@ class Graph {
  private:
   static constexpr TupleIdxType kVertexIDIdx = 0;
   static constexpr TupleIdxType kVertexPtrIdx = 1;
-  using VertexIDContainerType
-              = Container<vertex_id_container_type,
-                          vertex_id_container_sort_type,
-                          VertexIDType,
-                          VertexPtr>;
+  using VertexIDContainerType =
+      Container<vertex_id_container_type, vertex_id_container_sort_type,
+                VertexIDType, VertexPtr>;
 
   static constexpr TupleIdxType kVertexLabelIdx = 0;
   static constexpr TupleIdxType kVertexIDContainerIdx = 1;
-  using VertexLabelContainerType
-                 = Container<vertex_label_container_type,
-                             vertex_label_container_sort_type,
-                             VertexLabelType,
-                             VertexIDContainerType>;
+  using VertexLabelContainerType =
+      Container<vertex_label_container_type, vertex_label_container_sort_type,
+                VertexLabelType, VertexIDContainerType>;
 
  public:
   using VertexSizeType = typename VertexIDContainerType::size_type;
@@ -2390,14 +2400,13 @@ class Graph {
   VertexLabelContainerType vertexes_;
 
   inline void Deconstruct() {
-    for (auto vertex_label_it  = this->vertexes_.begin();
-              vertex_label_it != this->vertexes_.end();
-              vertex_label_it++) {
-      for (auto vertex_ptr_it  = vertex_label_it
-                                .template get<kVertexIDContainerIdx>().begin();
-                vertex_ptr_it != vertex_label_it
-                                .template get<kVertexIDContainerIdx>(). end ();
-                vertex_ptr_it++) {
+    for (auto vertex_label_it = this->vertexes_.begin();
+         vertex_label_it != this->vertexes_.end(); vertex_label_it++) {
+      for (auto vertex_ptr_it =
+               vertex_label_it.template get<kVertexIDContainerIdx>().begin();
+           vertex_ptr_it !=
+           vertex_label_it.template get<kVertexIDContainerIdx>().end();
+           vertex_ptr_it++) {
         vertex_ptr_it.template get<kVertexPtrIdx>().Release();
       }
       vertex_label_it.template get<kVertexIDContainerIdx>().clear();
@@ -2476,11 +2485,11 @@ class Graph {
     /// vertex label iterator
     auto vertex_label_it = this->vertexes_.Insert(label).first;
     /// vertex ID iterator
-    auto vertex_id_it
-       = vertex_label_it.template get<kVertexIDContainerIdx>().Insert(id).first;
+    auto vertex_id_it =
+        vertex_label_it.template get<kVertexIDContainerIdx>().Insert(id).first;
     vertex_id_it.template get<kVertexPtrIdx>() = temp_vertex_ptr;
-    return std::pair<VertexPtr, bool>(vertex_id_it.template get<kVertexPtrIdx>(),
-                                      true);
+    return std::pair<VertexPtr, bool>(
+        vertex_id_it.template get<kVertexPtrIdx>(), true);
   }
   /// possible variant:
   ///     AddVertex(id)
@@ -2492,49 +2501,46 @@ class Graph {
   ///     ...
 
   /// return whether has removed that vertex successfully
-  inline bool EraseVertex(const VertexConstPtr& vertex_const_ptr){
+  inline bool EraseVertex(const VertexConstPtr& vertex_const_ptr) {
     /// <iterator, bool>
     auto vertex_label_ret = this->vertexes_.Find(vertex_const_ptr->label());
-    if (!vertex_label_ret.second){
+    if (!vertex_label_ret.second) {
       /// does not have a vertex with that label
       return false;
     }
-    return vertex_label_ret.first
-                           .template get<kVertexIDContainerIdx>()
-                           .Erase(vertex_const_ptr->id());
+    return vertex_label_ret.first.template get<kVertexIDContainerIdx>().Erase(
+        vertex_const_ptr->id());
   }
-
-  inline bool EraseItem(const GraphItem<Graph>& graph_item){
-    switch(graph_item.type()){
-    case ItemType::Vertex:
-      assert(!graph_item.vertex_const_ptr().IsNull());
-      return this->EraseVertex(graph_item.vertex_const_ptr());
-    case ItemType::VertexAttr:
-      assert(!graph_item.vertex_const_ptr().IsNull());
-      return graph_item.vertex_ptr()
-                      ->EraseAttribute(graph_item
-                                      .vertex_attribute_key());
-    default:
-      assert(false);
+  using GraphType = Graph<configures...>;
+  inline bool EraseItem(const GraphItem<Graph>& graph_item) {
+    switch (graph_item.type()) {
+      case ItemType::Vertex:
+        assert(!graph_item.vertex_const_ptr().IsNull());
+        return this->EraseVertex(graph_item.vertex_const_ptr());
+      case ItemType::VertexAttr:
+        assert(!graph_item.vertex_const_ptr().IsNull());
+        return graph_item.vertex_ptr()->EraseAttribute(
+            graph_item.vertex_attribute_key());
+      default:
+        assert(false);
     }
     return false;
   }
 
-  inline bool EraseItem(const GraphItem<const Graph>& graph_item){
+  inline bool EraseItem(const GraphItem<const Graph>& graph_item) {
     VertexPtr vertex_ptr;
-    switch(graph_item.type()){
-    case ItemType::Vertex:
-      assert(!graph_item.vertex_const_ptr().IsNull());
-      return this->EraseVertex(graph_item.vertex_const_ptr());
-    case ItemType::VertexAttr:
-      assert(!graph_item.vertex_const_ptr().IsNull());
-      vertex_ptr = this->FindVertex(graph_item.vertex_const_ptr()->id(),
-                                    graph_item.vertex_const_ptr()->label());
-      assert(!vertex_ptr.IsNull());
-      return vertex_ptr->EraseAttribute(graph_item
-                                       .vertex_attribute_key());
-    default:
-      assert(false);
+    switch (graph_item.type()) {
+      case ItemType::Vertex:
+        assert(!graph_item.vertex_const_ptr().IsNull());
+        return this->EraseVertex(graph_item.vertex_const_ptr());
+      case ItemType::VertexAttr:
+        assert(!graph_item.vertex_const_ptr().IsNull());
+        vertex_ptr = this->FindVertex(graph_item.vertex_const_ptr()->id(),
+                                      graph_item.vertex_const_ptr()->label());
+        assert(!vertex_ptr.IsNull());
+        return vertex_ptr->EraseAttribute(graph_item.vertex_attribute_key());
+      default:
+        assert(false);
     }
     return false;
   }
@@ -2574,15 +2580,15 @@ class Graph {
       /// the src vertex or the dst vertex does not exist
       return std::pair<EdgePtr, bool>(EdgePtr(), false);
     }
-//    for (auto vertex_ptr_it = this->VertexBegin();
-//             !vertex_ptr_it.IsDone();
-//            ++vertex_ptr_it) {
-//      EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
-//      if (!edge_ptr.IsNull()) {
-//        /// the edge with this edge_id has already existed
-//        return std::pair<EdgePtr, bool>(edge_ptr, false);
-//      }
-//    }
+    //    for (auto vertex_ptr_it = this->VertexBegin();
+    //             !vertex_ptr_it.IsDone();
+    //            ++vertex_ptr_it) {
+    //      EdgePtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
+    //      if (!edge_ptr.IsNull()) {
+    //        /// the edge with this edge_id has already existed
+    //        return std::pair<EdgePtr, bool>(edge_ptr, false);
+    //      }
+    //    }
     /// assume that the duplicate edge is allowed
     return src_ptr->AddEdge(dst_ptr, edge_label, edge_id);
   }
@@ -2594,11 +2600,11 @@ class Graph {
   ///     ...
 
   inline VertexPtr FindVertex(const typename VertexType::IDType& id) {
-    for (auto vertex_label_it  = this->vertexes_.begin();
-              vertex_label_it != this->vertexes_.end();
-            ++vertex_label_it) {
+    for (auto vertex_label_it = this->vertexes_.begin();
+         vertex_label_it != this->vertexes_.end(); ++vertex_label_it) {
       /// <iterator of ID container, bool>
-      const auto ret = vertex_label_it.template get<kVertexIDContainerIdx>().Find(id);
+      const auto ret =
+          vertex_label_it.template get<kVertexIDContainerIdx>().Find(id);
       if (ret.second) {
         /// found it
         return ret.first.template get_const<kVertexPtrIdx>();
@@ -2610,11 +2616,12 @@ class Graph {
 
   inline VertexConstPtr FindConstVertex(
       const typename VertexType::IDType& id) const {
-    for (auto vertex_label_cit  = this->vertexes_.cbegin();
-              vertex_label_cit != this->vertexes_.cend();
-            ++vertex_label_cit) {
+    for (auto vertex_label_cit = this->vertexes_.cbegin();
+         vertex_label_cit != this->vertexes_.cend(); ++vertex_label_cit) {
       /// <iterator of ID container, bool>
-      const auto ret = vertex_label_cit.template get_const<kVertexIDContainerIdx>().FindConst(id);
+      const auto ret =
+          vertex_label_cit.template get_const<kVertexIDContainerIdx>()
+              .FindConst(id);
       if (ret.second) {
         /// found it
         return ret.first.template get_const<kVertexPtrIdx>();
@@ -2632,8 +2639,8 @@ class Graph {
       /// not have this vertex label
       return VertexPtr();
     }
-    auto vertex_id_ret
-       = vertex_label_ret.first.template get<kVertexIDContainerIdx>().Find(id);
+    auto vertex_id_ret =
+        vertex_label_ret.first.template get<kVertexIDContainerIdx>().Find(id);
     if (!vertex_id_ret.second) {
       /// not have this vertex id
       return VertexPtr();
@@ -2650,9 +2657,9 @@ class Graph {
       /// not have this vertex label
       return VertexPtr();
     }
-    auto vertex_id_ret
-       = vertex_label_ret.first.template get_const<kVertexIDContainerIdx>()
-                               .FindConst(id);
+    auto vertex_id_ret =
+        vertex_label_ret.first.template get_const<kVertexIDContainerIdx>()
+            .FindConst(id);
     if (!vertex_id_ret.second) {
       /// not have this vertex id
       return VertexConstPtr();
@@ -2685,10 +2692,10 @@ class Graph {
 
   VertexSizeType CountVertex() const {
     VertexSizeType vertex_num = 0;
-    for (auto vertex_label_it  = this->vertexes_.cbegin();
-              vertex_label_it != this->vertexes_.cend();
-              vertex_label_it++) {
-      vertex_num += vertex_label_it.template get_const<kVertexIDContainerIdx>().size();
+    for (auto vertex_label_it = this->vertexes_.cbegin();
+         vertex_label_it != this->vertexes_.cend(); vertex_label_it++) {
+      vertex_num +=
+          vertex_label_it.template get_const<kVertexIDContainerIdx>().size();
     }
     return vertex_num;
   }
@@ -2777,7 +2784,6 @@ class Graph {
   }
   std::string edge_id_type() const { return TypeToString<EdgeIDType>(); }
   std::string edge_label_type() const { return TypeToString<EdgeLabelType>(); }
-
 };
 
 }  // namespace GUNDAM

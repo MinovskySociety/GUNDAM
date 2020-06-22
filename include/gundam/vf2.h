@@ -1209,6 +1209,7 @@ inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
       _vf2::MatchCallbackSaveResult<PatternVertexConstPtr,
                                     DataGraphVertexConstPtr, MatchContainer>,
       std::placeholders::_1, &max_result, &match_result);
+
   _vf2::_VF2<match_semantics, QueryGraph, TargetGraph>(
       candidate_set, match_state, target_matched,
       _vf2::LabelEqual<PatternEdgePtr, DataGraphEdgePtr>(), result_count,
