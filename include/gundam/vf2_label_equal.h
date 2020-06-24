@@ -471,7 +471,7 @@ void UpdateParentSingleDirection(
     QueryVertexPtr update_query_adj_ptr = edge_state == EdgeState::kIn
                                               ? edge_it->const_src_ptr()
                                               : edge_it->const_dst_ptr();
-    parent[update_query_vertex_ptr].insert(update_query_adj_ptr);
+    // parent[update_query_vertex_ptr].insert(update_query_adj_ptr);
     auto &query_parent_set = parent.find(update_query_vertex_ptr)->second;
     for (const auto &it : parent.find(update_query_adj_ptr)->second) {
       query_parent_set.insert(it);
@@ -482,6 +482,7 @@ template <class QueryVertexPtr, class TargetVertexPtr>
 void UpdateParent(const std::map<QueryVertexPtr, TargetVertexPtr> &match_state,
                   const QueryVertexPtr update_query_vertex_ptr,
                   std::map<QueryVertexPtr, std::set<TargetVertexPtr>> &parent) {
+  parent[update_query_vertex_ptr].insert(update_query_vertex_ptr);
   UpdateParentSingleDirection<EdgeState::kIn>(match_state,
                                               update_query_vertex_ptr, parent);
   UpdateParentSingleDirection<EdgeState::kOut>(match_state,
@@ -505,21 +506,46 @@ bool _VF2UsingFailSet(
   }
   QueryVertexPtr next_query_vertex_ptr =
       DetermineMatchOrder(candidate_set, match_state);
-  // cal this vertex ptr's  parent
+  // cal this vertex's  parent
   UpdateParent(match_state, next_query_vertex_ptr, parent);
   std::set<TargetVertexPtr> this_state_fail_set;
   bool find_fail_set_flag = false;
   if (candidate_set.find(next_query_vertex_ptr)->second.size() == 0) {
-    // empty ,so fail set = anc(u)
+    // C(u) is empty ,so fail set = anc(u)
     fail_set = parent.find(next_query_vertex_ptr)->second;
   }
   for (const TargetVertexPtr &next_target_vertex_ptr :
        candidate_set.find(next_query_vertex_ptr)->second) {
-    if (target_matched.count(next_query_vertex_ptr) > 0) {
-      // find u' satisfy that F[u']=next_target_vertex_ptr
+    if (find_fail_set_flag &&
+        this_state_fail_set.count(next_query_vertex_ptr) == 0) {
+      fail_set = this_state_fail_set;
+      return true;
+    }
+    if (!find_fail_set_flag &&
+        target_matched.count(next_target_vertex_ptr) > 0) {
+      // find u' satisfy that match_state[u']=next_target_vertex_ptr
+      // next_state_fail_set = anc[u] union anc[u']
       std::set<TargetVertexPtr> next_state_fail_set;
       for (const auto &it : match_state) {
-        if () }
+        if (it.second == next_target_vertex_ptr) {
+          std::set<TargetVertexPtr> temp_next_state_fail_set;
+          std::set_union(std::begin(parent.find(next_query_vertex_ptr)->second),
+                         std::end(parent.find(next_query_vertex_ptr)->second),
+                         std::begin(parent.find(it.first)->second),
+                         std::end(parent.find(it.first)->second),
+                         inserter(temp_next_state_fail_set,
+                                  temp_next_state_fail_set.begin()));
+          next_state_fail_set = temp_next_state_fail_set;
+          break;
+        }
+      }
+      // update this_state_fail_set
+      std::set<TargetVertexPtr> temp_this_state_fail_set;
+      std::set_union(
+          std::begin(next_state_fail_set), std::end(next_state_fail_set),
+          std::begin(this_state_fail_set), std::end(this_state_fail_set),
+          inserter(temp_this_state_fail_set, temp_this_state_fail_set.begin()));
+      this_state_fail_set = temp_this_state_fail_set;
     }
     if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
             next_query_vertex_ptr, next_target_vertex_ptr, match_state,
@@ -532,17 +558,31 @@ bool _VF2UsingFailSet(
       UpdateCandidateSet<QueryGraph, TargetGraph>(
           next_query_vertex_ptr, next_target_vertex_ptr, temp_candidate_set,
           match_state, target_matched);
-
-      if (!_VF2<match_semantics, QueryGraph, TargetGraph>(
-              temp_candidate_set, match_state, target_matched, result_count,
-              user_callback, prune_callback)) {
+      std::set<TargetVertexPtr> next_state_fail_set;
+      if (!_VF2UsingFailSet<match_semantics, QueryGraph, TargetGraph>(
+              temp_candidate_set, match_state, target_matched, parent,
+              next_state_fail_set, result_count, user_callback)) {
         return false;
       }
+
       RestoreState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
                    target_matched);
+      if (next_state_fail_set.empty()) {
+        find_fail_set_flag = true;
+        this_state_fail_set.clear();
+      } else if (next_state_fail_set.count(next_query_vertex_ptr) == 0) {
+        find_fail_set_flag = true;
+        this_state_fail_set = next_state_fail_set;
+      } else if (!find_fail_set_flag) {
+        std::set<TargetVertexPtr> temp_this_state_fail_set;
+        for (const auto &next_state_fail_set_it : next_state_fail_set) {
+          this_state_fail_set.insert(next_state_fail_set_it);
+        }
+      }
     }
   }
-
+  std::swap(fail_set, this_state_fail_set);
+  // fail_set = this_state_fail_set;
   return true;
 }
 template <class QueryVertexPtr, class TargetVertexPtr>

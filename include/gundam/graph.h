@@ -2511,7 +2511,7 @@ class Graph {
     return vertex_label_ret.first.template get<kVertexIDContainerIdx>().Erase(
         vertex_const_ptr->id());
   }
-  using GraphType = Graph<configures...>;
+
   inline bool EraseItem(const GraphItem<Graph>& graph_item) {
     switch (graph_item.type()) {
       case ItemType::Vertex:
