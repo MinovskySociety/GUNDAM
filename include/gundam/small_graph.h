@@ -203,6 +203,16 @@ class SmallGraph {
       }
       return in_vertex_id_set.size();
     }
+    size_t CountVertex() const {
+      std::set<VertexIDType> vertex_id_set;
+      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
+        vertex_id_set.insert(it->dst_ptr()->id());
+      }
+      for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
+        vertex_id_set.insert(it->src_ptr()->id());
+      }
+      return vertex_id_set.size();
+    }
     EdgeIterator OutEdgeBegin() {
       assert(HasValue());
       auto &data = graph_->vertices_.Find(id_)->second;

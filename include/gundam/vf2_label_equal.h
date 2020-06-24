@@ -58,6 +58,8 @@ inline bool InitCandidateSet(const QueryGraph &query_graph,
          !target_vertex_iter.IsDone(); target_vertex_iter++) {
       TargetVertexPtr target_vertex_ptr = target_vertex_iter;
       int flag = 0;
+      // if (query_vertex_ptr->CountVertex() > target_vertex_ptr->CountVertex())
+      //  continue;
       if (query_vertex_ptr->CountOutVertex() >
           target_vertex_ptr->CountOutVertex())
         continue;
@@ -319,11 +321,11 @@ inline void UpdateCandidateSetOneDirection(
       TargetVertexPtr temp_target_ptr = it;
       temp_adj_vertex[temp_target_ptr->label()].emplace_back(temp_target_ptr);
     }
-    for (auto &it : temp_adj_vertex) {
-      std::sort(it.second.begin(), it.second.end());
-      auto erase_it = std::unique(it.second.begin(), it.second.end());
-      it.second.erase(erase_it, it.second.end());
-    }
+    // for (auto &it : temp_adj_vertex) {
+    //  std::sort(it.second.begin(), it.second.end());
+    //  auto erase_it = std::unique(it.second.begin(), it.second.end());
+    //  it.second.erase(erase_it, it.second.end());
+    //}
     std::set<QueryVertexPtr> used_vertex;
     for (auto vertex_it = ((edge_state == EdgeState::kIn)
                                ? query_vertex_ptr->InEdgeCBegin()
@@ -454,6 +456,133 @@ bool _VF2(const CandidateSetContainer &candidate_set,
     }
   }
 
+  return true;
+}
+template <enum EdgeState edge_state, class QueryVertexPtr,
+          class TargetVertexPtr>
+void UpdateParentSingleDirection(
+    const std::map<QueryVertexPtr, TargetVertexPtr> &match_state,
+    const QueryVertexPtr update_query_vertex_ptr,
+    std::map<QueryVertexPtr, std::set<TargetVertexPtr>> &parent) {
+  for (auto edge_it = (edge_state == EdgeState::kIn
+                           ? update_query_vertex_ptr->InEdgeCBegin()
+                           : update_query_vertex_ptr->OutEdgeCBegin());
+       !edge_it.IsDone(); edge_it++) {
+    QueryVertexPtr update_query_adj_ptr = edge_state == EdgeState::kIn
+                                              ? edge_it->const_src_ptr()
+                                              : edge_it->const_dst_ptr();
+    // parent[update_query_vertex_ptr].insert(update_query_adj_ptr);
+    auto &query_parent_set = parent.find(update_query_vertex_ptr)->second;
+    for (const auto &it : parent.find(update_query_adj_ptr)->second) {
+      query_parent_set.insert(it);
+    }
+  }
+}
+template <class QueryVertexPtr, class TargetVertexPtr>
+void UpdateParent(const std::map<QueryVertexPtr, TargetVertexPtr> &match_state,
+                  const QueryVertexPtr update_query_vertex_ptr,
+                  std::map<QueryVertexPtr, std::set<TargetVertexPtr>> &parent) {
+  parent[update_query_vertex_ptr].insert(update_query_vertex_ptr);
+  UpdateParentSingleDirection<EdgeState::kIn>(match_state,
+                                              update_query_vertex_ptr, parent);
+  UpdateParentSingleDirection<EdgeState::kOut>(match_state,
+                                               update_query_vertex_ptr, parent);
+}
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class CandidateSetContainer, class QueryVertexPtr,
+          class TargetVertexPtr, class MatchCallback, class PruneCallback>
+bool _VF2UsingFailSet(
+    const CandidateSetContainer &candidate_set,
+    std::map<QueryVertexPtr, TargetVertexPtr> &match_state,
+    std::set<TargetVertexPtr> &target_matched,
+    std::map<QueryVertexPtr, std::set<TargetVertexPtr>> &parent,
+    std::set<QueryVertexPtr> &fail_set, size_t &result_count,
+    MatchCallback user_callback) {
+  if (match_state.size() == candidate_set.size()) {
+    // find match ,so fail set is empty
+    fail_set.clear();
+    result_count++;
+    return user_callback(match_state);
+  }
+  QueryVertexPtr next_query_vertex_ptr =
+      DetermineMatchOrder(candidate_set, match_state);
+  // cal this vertex's  parent
+  UpdateParent(match_state, next_query_vertex_ptr, parent);
+  std::set<TargetVertexPtr> this_state_fail_set;
+  bool find_fail_set_flag = false;
+  if (candidate_set.find(next_query_vertex_ptr)->second.size() == 0) {
+    // C(u) is empty ,so fail set = anc(u)
+    fail_set = parent.find(next_query_vertex_ptr)->second;
+  }
+  for (const TargetVertexPtr &next_target_vertex_ptr :
+       candidate_set.find(next_query_vertex_ptr)->second) {
+    if (find_fail_set_flag &&
+        this_state_fail_set.count(next_query_vertex_ptr) == 0) {
+      fail_set = this_state_fail_set;
+      return true;
+    }
+    if (!find_fail_set_flag &&
+        target_matched.count(next_target_vertex_ptr) > 0) {
+      // find u' satisfy that match_state[u']=next_target_vertex_ptr
+      // next_state_fail_set = anc[u] union anc[u']
+      std::set<TargetVertexPtr> next_state_fail_set;
+      for (const auto &it : match_state) {
+        if (it.second == next_target_vertex_ptr) {
+          std::set<TargetVertexPtr> temp_next_state_fail_set;
+          std::set_union(std::begin(parent.find(next_query_vertex_ptr)->second),
+                         std::end(parent.find(next_query_vertex_ptr)->second),
+                         std::begin(parent.find(it.first)->second),
+                         std::end(parent.find(it.first)->second),
+                         inserter(temp_next_state_fail_set,
+                                  temp_next_state_fail_set.begin()));
+          next_state_fail_set = temp_next_state_fail_set;
+          break;
+        }
+      }
+      // update this_state_fail_set
+      std::set<TargetVertexPtr> temp_this_state_fail_set;
+      std::set_union(
+          std::begin(next_state_fail_set), std::end(next_state_fail_set),
+          std::begin(this_state_fail_set), std::end(this_state_fail_set),
+          inserter(temp_this_state_fail_set, temp_this_state_fail_set.begin()));
+      this_state_fail_set = temp_this_state_fail_set;
+    }
+    if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
+            next_query_vertex_ptr, next_target_vertex_ptr, match_state,
+            target_matched)) {
+      std::map<QueryVertexPtr, std::vector<TargetVertexPtr>>
+          temp_candidate_set = candidate_set;
+      UpdateState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
+                  target_matched);
+
+      UpdateCandidateSet<QueryGraph, TargetGraph>(
+          next_query_vertex_ptr, next_target_vertex_ptr, temp_candidate_set,
+          match_state, target_matched);
+      std::set<TargetVertexPtr> next_state_fail_set;
+      if (!_VF2UsingFailSet<match_semantics, QueryGraph, TargetGraph>(
+              temp_candidate_set, match_state, target_matched, parent,
+              next_state_fail_set, result_count, user_callback)) {
+        return false;
+      }
+
+      RestoreState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
+                   target_matched);
+      if (next_state_fail_set.empty()) {
+        find_fail_set_flag = true;
+        this_state_fail_set.clear();
+      } else if (next_state_fail_set.count(next_query_vertex_ptr) == 0) {
+        find_fail_set_flag = true;
+        this_state_fail_set = next_state_fail_set;
+      } else if (!find_fail_set_flag) {
+        std::set<TargetVertexPtr> temp_this_state_fail_set;
+        for (const auto &next_state_fail_set_it : next_state_fail_set) {
+          this_state_fail_set.insert(next_state_fail_set_it);
+        }
+      }
+    }
+  }
+  std::swap(fail_set, this_state_fail_set);
+  // fail_set = this_state_fail_set;
   return true;
 }
 template <class QueryVertexPtr, class TargetVertexPtr>
@@ -825,10 +954,14 @@ inline int VF2_Label_Equal(
   time_t refine_begin = clock();
   size_t tot_size0 = 0, tot_size1 = 0;
   for (auto &it : candidate_set) tot_size0 += it.second.size();
+  auto begin = clock();
   if (!_vf2_label_equal::RefineCandidateSet(query_graph, target_graph,
                                             candidate_set)) {
     return 0;
   }
+  auto end = clock();
+  std::cout << "refine time = " << (1.0 * end - begin) / CLOCKS_PER_SEC
+            << std::endl;
   // std::cout << "after:" << std::endl;
   // for (const auto &it : candidate_set) {
   //  std::cout << it.first->id() << " " << it.second.size() << std::endl;
@@ -914,10 +1047,14 @@ inline int VF2_Label_Equal(
   if (!_vf2_label_equal::InitCandidateSet<match_semantics>(
           query_graph, target_graph, candidate_set))
     return 0;
+  auto begin = clock();
   if (!_vf2_label_equal::RefineCandidateSet(query_graph, target_graph,
                                             candidate_set)) {
     return 0;
   }
+  auto end = clock();
+  std::cout << "refine time = " << (1.0 * end - begin) / CLOCKS_PER_SEC
+            << std::endl;
   QueryVertexPtr query_ptr = query_graph.FindConstVertex(query_id);
   TargetVertexPtr target_ptr = target_graph.FindConstVertex(target_id);
   if (!_vf2_label_equal::CheckIsInCandidateSet(query_ptr, candidate_set,

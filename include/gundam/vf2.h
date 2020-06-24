@@ -181,7 +181,10 @@ inline QueryVertexPtr DetermineMatchOrder(
       }
     }
   }
-
+  assert(next_query_set.size() != 0);
+  QueryVertexPtr res = *(next_query_set.begin());
+  return res;
+  /*
   QueryVertexPtr res;
   size_t min = SIZE_MAX;
   for (const auto &query_vertex_ptr : next_query_set) {
@@ -191,9 +194,9 @@ inline QueryVertexPtr DetermineMatchOrder(
       res = query_vertex_ptr;
       min = candidate_count;
     }
-  }
-  assert(min != SIZE_MAX);
-  return res;
+  }*/
+  // assert(min != SIZE_MAX);
+  // return res;
 }
 
 // template <enum EdgeState edge_state, typename QueryVertexPtr,
@@ -1154,9 +1157,10 @@ inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
 }
 
 //// using GUNDAM::MatchSet
-//template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+// template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
 //          class QueryGraph, class TargetGraph>
-//inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
+// inline int VF2(const QueryGraph &query_graph, const TargetGraph
+// &target_graph,
 //               MatchSet<const QueryGraph, const TargetGraph> &match_set) {
 //  using PatternVertexConstPtr = typename QueryGraph::VertexConstPtr;
 //  using DataGraphVertexConstPtr = typename TargetGraph::VertexConstPtr;
@@ -1211,6 +1215,7 @@ inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
       _vf2::MatchCallbackSaveResult<PatternVertexConstPtr,
                                     DataGraphVertexConstPtr, MatchContainer>,
       std::placeholders::_1, &max_result, &match_result);
+
   _vf2::_VF2<match_semantics, QueryGraph, TargetGraph>(
       candidate_set, match_state, target_matched,
       _vf2::LabelEqual<PatternEdgePtr, DataGraphEdgePtr>(), result_count,

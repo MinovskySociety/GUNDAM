@@ -3,6 +3,7 @@
 
 #include <map>
 #include <set>
+#include <unordered_set>
 #include <vector>
 
 #include "attribute.h"
@@ -116,6 +117,8 @@ class LargeGraph {
       if (it == this->out_vertices_.end()) return 0;
       return it->second.size();
     }
+
+    // size_t CountVertex() const { return this->adj_vertex_.size(); }
     // size_t CountOutVertex() const { return out_vertices_.size(); }
 
     // size_t CountInVertex() const { return in_vertices_.size(); }
@@ -325,6 +328,7 @@ class LargeGraph {
       // out_vertices_.insert(dst);
 
       // out_vertex_labels_[dst->label()].insert(dst);
+      // this->adj_vertex_.insert(dst);
     }
 
     void AddInEdge(EdgeData *e) {
@@ -349,6 +353,7 @@ class LargeGraph {
       // in_vertices_.insert(src);
 
       // in_vertex_labels_[src->label()].insert(src);
+      // this->adj_vertex_.insert(src);
     }
 
     void RemoveOutEdge(EdgeData *e) {
@@ -382,6 +387,9 @@ class LargeGraph {
         //(VertexPtr) empty
         if (it4->second.empty()) {
           out_edge_build_on_vertex_.erase(e->dst_ptr());
+          // if (this->in_edge_build_on_vertex_.count(e->dst_ptr()) == 0) {
+          //  this->adj_vertex_.erase(e->dst_ptr());
+          //}
         }
       }
     }
@@ -413,6 +421,9 @@ class LargeGraph {
         //(VertexPtr) empty
         if (it4->second.empty()) {
           in_edge_build_on_vertex_.erase(e->src_ptr());
+          // if (this->in_edge_build_on_vertex_.count(e->src_ptr()) == 0) {
+          //  this->adj_vertex_.erase(e->src_ptr);
+          //}
         }
       }
     }
@@ -445,6 +456,7 @@ class LargeGraph {
         out_edge_build_on_vertex_;
     std::map<VertexData *, std::map<EdgeLabelType, std::set<EdgeData *>>>
         in_edge_build_on_vertex_;
+    std::set<VertexData *> adj_vertex_;
   };
 
   class EdgeData
@@ -633,12 +645,12 @@ class LargeGraph {
     }
     while (!v->in_edges_.empty()) {
       EraseEdge((*(v->in_edges_.begin()))->id());
-    }    
+    }
     assert(v->out_edges_.empty());
     assert(v->in_edges_.empty());
     assert(v->out_edge_labels_.empty());
-    assert(v->in_edge_labels_.empty());    
-    
+    assert(v->in_edge_labels_.empty());
+
     auto label = v->label();
     auto l_it = vertex_labels_.find(label);
     assert(l_it != vertices_.end());
@@ -649,7 +661,7 @@ class LargeGraph {
 
     delete v;
     vertices_.Erase(v_it);
-        
+
     return true;
   }
 

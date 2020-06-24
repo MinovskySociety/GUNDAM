@@ -43,15 +43,15 @@ target_link_libraries(test_datatype GTest::GTest GTest::Main)
 
 #add_executable (test_container "test_container.cc")
 #target_link_libraries(test_container GTest::GTest GTest::Main)
-#gtest_add_tests(TARGET test_container)
+#add_test(AllTests test_container)
 
 #add_executable (test_iterator "test_iterator.cc")
 #target_link_libraries(test_iterator GTest::GTest GTest::Main)
-#gtest_add_tests(TARGET test_iterator)
+#add_test(AllTests test_iterator)
 
 #add_executable (test_attribute "test_attribute.cc")
 #target_link_libraries(test_attribute GTest::GTest GTest::Main)
-#gtest_add_tests(TARGET test_attribute)
+#add_test(AllTests test_attribute)
 
 add_executable (test_graph "test_graph.cc")
 target_link_libraries(test_graph GTest::GTest GTest::Main)
