@@ -8,12 +8,12 @@
 #include <vector>
 
 #include "gtest/gtest.h"
+#include "gundam/graph.h"
 #include "gundam/label.h"
-#include "gundam/vf2.h"
-//#include "gundam/graph.h"
 #include "gundam/large_graph.h"
 #include "gundam/simple_small_graph.h"
 #include "gundam/small_graph.h"
+#include "gundam/vf2.h"
 
 inline uint64_t GetTime() { return clock() * 1000 / CLOCKS_PER_SEC; }
 
@@ -434,17 +434,17 @@ void TestVF2Speed1(int times_outer, int times_inner) {
 TEST(TestGUNDAM, VF2_Speed_1) {
   using namespace GUNDAM;
 
-  // using QueryGraph1 =
-  //    Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<uint32_t>,
-  //          SetEdgeIDType<uint32_t>, SetEdgeLabelType<uint32_t>,
-  //          SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-  //          SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
+  using QG =
+     Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<uint32_t>,
+           SetEdgeIDType<uint32_t>, SetEdgeLabelType<uint32_t>,
+           SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
+           SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
 
-  // using TargetGraph1 =
-  //    Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<uint32_t>,
-  //          SetEdgeIDType<uint64_t>, SetEdgeLabelType<uint32_t>,
-  //          SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-  //          SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
+  using TG =
+     Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<uint32_t>,
+           SetEdgeIDType<uint64_t>, SetEdgeLabelType<uint32_t>,
+           SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
+           SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
 
   using QLG = LargeGraph<uint32_t, uint32_t, std::string, uint32_t, uint32_t,
                          std::string>;
@@ -456,6 +456,7 @@ TEST(TestGUNDAM, VF2_Speed_1) {
   using TLG = LargeGraph<uint64_t, uint32_t, std::string, uint64_t, uint32_t,
                          std::string>;
 
+  TestVF2Speed1<QG, TG>(1, 10000);
   TestVF2Speed1<QLG, TLG>(1, 10000);
   TestVF2Speed1<QSG, TLG>(1, 10000);
   TestVF2Speed1<QSSG, TLG>(1, 10000);

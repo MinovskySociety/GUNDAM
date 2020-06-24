@@ -434,6 +434,10 @@ class Graph {
    private:
     friend typename InnerVertex_::template VertexPtr_<is_const_>;
 
+    friend typename Graph::VertexIterator
+                    Graph::EraseVertex(
+           typename Graph::VertexIterator& vertex_iterator);
+
     using VertexPtr = typename InnerVertex_::VertexPtr;
     using VertexConstPtr = typename InnerVertex_::VertexConstPtr;
     using VertexPtrType =
@@ -711,6 +715,14 @@ class Graph {
       }
 
       inline bool IsNull() const { return this->ptr_ == nullptr; }
+
+      operator bool() const {
+        return this->ptr_;        
+      }
+
+      bool operator!() const {
+        return !this->ptr_;
+      }
     };
 
     using VertexPtr = VertexPtr_<false>;
@@ -792,7 +804,7 @@ class Graph {
         return *(this->decomposed_edge_iterator_.template get_const<kEdgeAttributePtrIdx>());
       }
 
-      inline bool IsNull() const { return this->vertex_ptr_.IsNull(); }
+      inline bool IsNull() const { return this->vertex_ptr_.IsNull(); }      
 
      public:
       EdgePtrContent_()
@@ -1130,6 +1142,10 @@ class Graph {
         EdgePtrContentTypePtrType const temp_ptr = this;
         return temp_ptr;
       }
+
+      operator bool() const { return !this->IsNull(); }
+
+      bool operator!() const { return this->IsNull(); }
     };
 
     using EdgePtr = EdgePtr_<false>;
@@ -1537,10 +1553,10 @@ class Graph {
       auto edge_label_ret = edge_label_container.FindConst(edge_label);
       if (!edge_label_ret.second)  /// does not have edge_label
         return VertexConstPtr();
-      for (auto vertex_cit  = edge_label_ret.first.template get<kVertexPtrContainerIdx>().cbegin();
-                vertex_cit != edge_label_ret.first.template get<kVertexPtrContainerIdx>(). cend ();
+      for (auto vertex_cit  = edge_label_ret.first.template get_const<kVertexPtrContainerIdx>().cbegin();
+                vertex_cit != edge_label_ret.first.template get_const<kVertexPtrContainerIdx>(). cend ();
                 vertex_cit++) {
-        VertexConstPtr vertex_const_ptr = vertex_cit.template get<kVertexPtrIdx>();
+        VertexConstPtr vertex_const_ptr = vertex_cit.template get_const<kVertexPtrIdx>();
         if (vertex_const_ptr->id() == dst_id)
           return vertex_const_ptr;  /// found it
       }
@@ -1645,8 +1661,8 @@ class Graph {
             erase_multi_result.size());
       }
       typename VertexPtrContainerType::size_type out_vertex_num = 0;
-      for (auto it = this->edges_.const_out_edges().cbegin();
-           it != this->edges_.const_out_edges().cend(); it++) {
+      for (auto it  = this->edges_.const_out_edges().cbegin();
+                it != this->edges_.const_out_edges().cend(); it++) {
         const EdgeLabelType edge_label
           = it.template get_const<InnerVertex_::kEdgeLabelIdx>();
         out_vertex_num += this->CountOutVertex(edge_label);
@@ -1696,7 +1712,7 @@ class Graph {
       for (auto it = this->edges_.const_in_edges().cbegin();
            it != this->edges_.const_in_edges().cend(); it++) {
         const EdgeLabelType edge_label
-          = it.template get<InnerVertex_::kEdgeLabelIdx>();
+          = it.template get_const<InnerVertex_::kEdgeLabelIdx>();
         in_vertex_num += this->CountInVertex(edge_label);
       }
       return in_vertex_num;
@@ -2437,7 +2453,25 @@ class Graph {
     return;
   }
 
+  using VertexContentIterator
+      = VertexContentIterator_<VertexLabelContainerType, false, 2,
+                                       kVertexPtrIdx>;
+  using VertexContentConstIterator
+      = VertexContentIterator_<VertexLabelContainerType,  true, 2,
+                                       kVertexPtrIdx>;
+  using VertexContentIteratorSpecifiedLabel
+      = VertexContentIterator_<VertexIDContainerType, false, 1, kVertexPtrIdx>;
+  using VertexContentConstIteratorSpecifiedLabel
+      = VertexContentIterator_<VertexIDContainerType,  true, 1, kVertexPtrIdx>;
+
  public:
+  using      VertexIterator = Iterator_<VertexContentIterator>;
+  using VertexConstIterator = Iterator_<VertexContentConstIterator>;
+  using      VertexIteratorSpecifiedLabel
+                 = Iterator_<VertexContentIteratorSpecifiedLabel>;
+  using VertexConstIteratorSpecifiedLabel
+                 = Iterator_<VertexContentConstIteratorSpecifiedLabel>;
+
   Graph() = default;
 
   ~Graph() {
@@ -2493,6 +2527,9 @@ class Graph {
 
   /// return whether has removed that vertex successfully
   inline bool EraseVertex(const VertexConstPtr& vertex_const_ptr){
+    /// only support remove isolated vertex now
+    assert(vertex_const_ptr->CountOutVertex() == 0
+        && vertex_const_ptr-> CountInVertex() == 0);
     /// <iterator, bool>
     auto vertex_label_ret = this->vertexes_.Find(vertex_const_ptr->label());
     if (!vertex_label_ret.second){
@@ -2502,6 +2539,64 @@ class Graph {
     return vertex_label_ret.first
                            .template get<kVertexIDContainerIdx>()
                            .Erase(vertex_const_ptr->id());
+  }
+
+  inline VertexIterator EraseVertex(VertexIterator& vertex_iterator) {
+    /// only support remove isolated vertex now
+    assert(vertex_iterator->CountOutVertex() == 0
+        && vertex_iterator-> CountInVertex() == 0);
+    /// depth of each level
+    static constexpr IteratorDepthType vertex_id_container_depth = 0;
+    static constexpr IteratorDepthType vertex_ptr_depth = 1;
+    /// type of each level
+    using VertexLabelIteratorType =
+        typename VertexLabelContainerType::iterator;
+    using VertexIDIteratorType =
+        typename VertexIDContainerType::iterator;
+
+    VertexIterator ret_iterator = vertex_iterator;
+    void* ret_ptr = &ret_iterator;
+    /// upper cast
+    VertexContentIterator* ret_content_it
+      = static_cast<VertexContentIterator*>(ret_ptr);
+    /// reference of the containers
+    VertexLabelContainerType& vertex_label_container_ref = this->vertexes_;
+    VertexIDContainerType& vertex_id_container_ref
+                         = ret_content_it->template get<VertexIDContainerType,
+                                                       kVertexIDContainerIdx,
+                                                        vertex_id_container_depth>();
+    /// reference of the iterators
+    VertexLabelIteratorType& ret_vertex_label_iterator =
+          ret_content_it->template get_iterator<VertexLabelIteratorType,
+                                                vertex_id_container_depth>();
+    VertexIDIteratorType& ret_vertex_id_iterator =
+          ret_content_it->template get_iterator<VertexIDIteratorType,
+                                                vertex_ptr_depth>();
+    ret_vertex_id_iterator = vertex_id_container_ref.Erase(ret_vertex_id_iterator);
+    if (!vertex_id_container_ref.empty()) {
+      /// vertex id container is not empty
+      if (ret_vertex_id_iterator != vertex_id_container_ref.end()) {
+        /// need not move to the next vertex_id_container
+        return ret_iterator;
+      }
+      /// move to the next vertex_id_container
+      ret_vertex_label_iterator++;
+    } else {
+      /// this container is empty, remove this one
+      ret_vertex_label_iterator = vertex_label_container_ref.Erase(ret_vertex_label_iterator);
+    }
+    /// vertex label container is not empty
+    if (!vertex_label_container_ref.empty()
+      &&(vertex_label_container_ref.end() != ret_vertex_label_iterator)) {
+      /// need not move to the next vertex_id_container
+      auto& vertex_id_container_ref
+        = ret_vertex_label_iterator.template get<kVertexIDContainerIdx>();
+      ret_vertex_id_iterator = vertex_id_container_ref.begin();
+      return ret_iterator;
+    }
+    /// reach the end of vertex label container
+    /// return an End iterator
+    return VertexIterator();
   }
 
   inline bool EraseItem(const GraphItem<Graph>& graph_item){
@@ -2693,7 +2788,7 @@ class Graph {
     return vertex_num;
   }
 
-  inline VertexSizeType CountVertex(
+  VertexSizeType CountVertex(
       const typename VertexType::LabelType& label) const {
     /// <iterator of VertexLabelContainer, bool>
     auto ret = this->vertexes_.FindConst(label);
@@ -2703,16 +2798,6 @@ class Graph {
     }
     return ret.first.template get_const<kVertexIDContainerIdx>().size();
   }
-
-  using VertexIterator =
-      Iterator_<VertexContentIterator_<VertexLabelContainerType, false, 2,
-                                       kVertexPtrIdx>>;
-  using VertexConstIterator = Iterator_<
-      VertexContentIterator_<VertexLabelContainerType, true, 2, kVertexPtrIdx>>;
-  using VertexIteratorSpecifiedLabel = Iterator_<
-      VertexContentIterator_<VertexIDContainerType, false, 1, kVertexPtrIdx>>;
-  using VertexConstIteratorSpecifiedLabel = Iterator_<
-      VertexContentIterator_<VertexIDContainerType, true, 1, kVertexPtrIdx>>;
 
   inline VertexIterator VertexBegin() {
     return VertexIterator(this->vertexes_.begin(), this->vertexes_.end());

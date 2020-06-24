@@ -1,6 +1,8 @@
 #ifndef _CONTAINER_H
 #define _CONTAINER_H
 
+#include <cstdint>
+
 #include <assert.h>
 #include <vector>
 #include <map>
@@ -60,7 +62,8 @@ class Container<ContainerType::Vector,
   static_assert(sort_type_ == SortType::Default,
                "other sorting type are not supported yet");
 
-  template<bool is_const_>
+  template<bool is_const_,
+           bool is_reverse_>
   class Iterator_{
    private:
     friend class Container<ContainerType::Vector,
@@ -69,8 +72,13 @@ class Container<ContainerType::Vector,
                                ValueTypes_...>;
 
     using InnerIteratorType = typename std::conditional<is_const_,
-                      typename InnerContainerType::const_iterator,
-                      typename InnerContainerType::      iterator>::type;
+                              typename std::conditional<is_reverse_,
+                        typename InnerContainerType::const_reverse_iterator,
+                        typename InnerContainerType::const_iterator>::type,
+                              typename std::conditional<is_reverse_,
+                        typename InnerContainerType::      reverse_iterator,
+                        typename InnerContainerType::      iterator>::type
+                        >::type;
 
     InnerIteratorType iterator_;
 
@@ -144,8 +152,10 @@ class Container<ContainerType::Vector,
   };
 
  public:
-  using const_iterator = Iterator_< true>;
-  using       iterator = Iterator_<false>;
+  using         const_iterator = Iterator_< true, false>;
+  using               iterator = Iterator_<false, false>;
+  using const_reverse_iterator = Iterator_< true,  true>;
+  using       reverse_iterator = Iterator_<false,  true>;
   using      size_type = typename InnerContainerType::size_type;
 
   inline const_iterator cbegin() const {
@@ -164,6 +174,22 @@ class Container<ContainerType::Vector,
     return
          iterator(this->container_.end());
   }
+  inline const_reverse_iterator crbegin() const {
+    return
+         const_reverse_iterator(this->container_.crbegin());
+  }
+  inline const_reverse_iterator crend() const {
+    return
+         const_reverse_iterator(this->container_.crend());
+  }
+  inline reverse_iterator rbegin() {
+    return
+         reverse_iterator(this->container_.rbegin());
+  }
+  inline reverse_iterator rend() {
+    return
+         reverse_iterator(this->container_.rend());
+  }
   inline size_type size() const {
     return this->container_.size();
   }
@@ -181,8 +207,8 @@ class Container<ContainerType::Vector,
 
   inline std::pair<iterator, bool> Insert(const KeyType_& key) {
     if (sort_type_ == SortType::Default) {
-      for (iterator it  = this->container_.begin();
-                    it != this->container_. end ();++it){
+      for (iterator it  = iterator(this->container_.begin());
+                    it != iterator(this->container_. end ());++it){
         if ((it.template get<kKeyIdx>()) == key)
           return std::pair<iterator, bool>(it, false);
       }
@@ -287,6 +313,10 @@ class Container<ContainerType::Set,
     InnerIteratorType iterator_;
 
    public:
+    Iterator_():iterator_(){
+      return;
+    }
+
     Iterator_(InnerIteratorType iterator)
                      :iterator_(iterator){
       return;
@@ -337,9 +367,10 @@ class Container<ContainerType::Set,
       return temp;
     }
 
-    template<TupleIdxType tuple_idx>
+    template<TupleIdxType tuple_idx,
+             bool judge = is_const_,
+             typename std::enable_if<!judge, bool>::type = false>
     inline typename std::tuple_element<tuple_idx, ElementType>::type& get() const{
-      static_assert(is_const_, "the iterator is constant, illegal all of this method");
       return std::get<tuple_idx>(*(this->iterator_));
     }
 
@@ -350,8 +381,9 @@ class Container<ContainerType::Set,
   };
 
  public:
-  using const_iterator = typename InnerContainerType::const_iterator;
-  using       iterator = typename InnerContainerType::      iterator;
+  using const_iterator = Iterator_<true>;
+  using       iterator = Iterator_<true>; /// is not an error here
+  /// const_iterator and iterator are the same thing in std::set
   using      size_type = typename InnerContainerType::size_type;
 
   inline const_iterator cbegin() const {
@@ -448,7 +480,8 @@ class Container<ContainerType::Map,
   static_assert(sort_type_ == SortType::Default,
                "other sorting type are not supported yet");
 
-  template<bool is_const_>
+  template<bool is_const_,
+           bool is_reverse_>
   class Iterator_{
    private:
     friend class Container<ContainerType::Map,
@@ -458,8 +491,13 @@ class Container<ContainerType::Map,
                                ValueTypes_...>;
 
     using InnerIteratorType = typename std::conditional<is_const_,
-                      typename InnerContainerType::const_iterator,
-                      typename InnerContainerType::      iterator>::type;
+                              typename std::conditional<is_reverse_,
+                        typename InnerContainerType::const_reverse_iterator,
+                        typename InnerContainerType::const_iterator>::type,
+                              typename std::conditional<is_reverse_,
+                        typename InnerContainerType::      reverse_iterator,
+                        typename InnerContainerType::      iterator>::type
+                        >::type;
 
     InnerIteratorType iterator_;
 
@@ -552,8 +590,10 @@ class Container<ContainerType::Map,
   };
 
  public:
-  using const_iterator = Iterator_< true>;
-  using       iterator = Iterator_<false>;
+  using         const_iterator = Iterator_< true, false>;
+  using               iterator = Iterator_<false, false>;
+  using const_reverse_iterator = Iterator_< true,  true>;
+  using       reverse_iterator = Iterator_<false,  true>;
   using      size_type = typename InnerContainerType::size_type;
 
   inline const_iterator cbegin() const {
@@ -567,6 +607,18 @@ class Container<ContainerType::Map,
   }
   inline iterator end() {
     return iterator(this->container_.end());
+  }
+  inline const_reverse_iterator crbegin() const {
+    return const_reverse_iterator(this->container_.crbegin());
+  }
+  inline const_reverse_iterator crend() const {
+    return const_reverse_iterator(this->container_.crend());
+  }
+  inline reverse_iterator rbegin() {
+    return reverse_iterator(this->container_.rbegin());
+  }
+  inline reverse_iterator rend() {
+    return reverse_iterator(this->container_.rend());
   }
   inline size_type size() const {
     return this->container_.size();
