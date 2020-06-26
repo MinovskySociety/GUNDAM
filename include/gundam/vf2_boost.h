@@ -4,7 +4,7 @@
 #include <iterator>
 
 //#include "graph.h"
-#include "vf2_label_equal.h"
+#include "vf2.h"
 namespace GUNDAM {
 namespace _vf2_boost {
 enum EdgeState { kIn, kOut };
