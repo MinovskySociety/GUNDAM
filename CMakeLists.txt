@@ -43,7 +43,8 @@ else ()
 	message(STATUS "${CMAKE_SYSTEM_NAME}")
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
@@ -64,3 +65,4 @@ endif()
 
 # 包含子项目。
 add_subdirectory ("test")
+add_subdirectory ("benchmark")
