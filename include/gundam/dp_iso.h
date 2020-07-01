@@ -11,14 +11,75 @@
 #include <stack>
 #include <type_traits>
 #include <vector>
-//#include "graph.h"
+
 #include "vf2.h"
 namespace GUNDAM {
 namespace _dp_iso {
 enum EdgeState { kIn, kOut };
 // if query.CountEdge()>=large_query_edge, using fail set
+// small query not using fail set
 constexpr size_t large_query_edge = 6;
-// Init Candidate Set
+template <class QueryVertexPtr, class TargetVertexPtr>
+inline bool DegreeFiltering(const QueryVertexPtr query_vertex_ptr,
+                            const TargetVertexPtr target_vertex_ptr) {
+  if (query_vertex_ptr->CountInEdge() > target_vertex_ptr->CountInEdge())
+    return false;
+  if (query_vertex_ptr->CountOutEdge() > target_vertex_ptr->CountOutEdge())
+    return false;
+  if (query_vertex_ptr->CountInVertex() > target_vertex_ptr->CountInVertex())
+    return false;
+  if (query_vertex_ptr->CountOutVertex() > target_vertex_ptr->CountOutVertex())
+    return false;
+  return true;
+}
+template <enum EdgeState edge_state, class QueryVertexPtr,
+          class TargetVertexPtr>
+inline bool NeighborLabelFrequencyFilteringSingleDirection(
+    const QueryVertexPtr query_vertex_ptr,
+    const TargetVertexPtr target_vertex_ptr) {
+  for (auto edge_label_it =
+           (edge_state == EdgeState::kIn ? query_vertex_ptr->InEdgeCBegin()
+                                         : query_vertex_ptr->OutEdgeCBegin());
+       !edge_label_it.IsDone(); edge_label_it++) {
+    auto query_count =
+        (edge_state == EdgeState::kIn
+             ? query_vertex_ptr->CountInVertex(edge_label_it->label())
+             : query_vertex_ptr->CountOutVertex(edge_label_it->label()));
+    auto target_count =
+        (edge_state == EdgeState::kIn
+             ? target_vertex_ptr->CountInVertex(edge_label_it->label())
+             : target_vertex_ptr->CountOutVertex(edge_label_it->label()));
+    if (query_count > target_count) {
+      return false;
+    }
+    query_count =
+        (edge_state == EdgeState::kIn
+             ? query_vertex_ptr->CountInEdge(edge_label_it->label())
+             : query_vertex_ptr->CountOutEdge(edge_label_it->label()));
+    target_count =
+        (edge_state == EdgeState::kIn
+             ? target_vertex_ptr->CountInEdge(edge_label_it->label())
+             : target_vertex_ptr->CountOutEdge(edge_label_it->label()));
+    if (query_count > target_count) {
+      return false;
+    }
+  }
+  return true;
+}
+template <class QueryVertexPtr, class TargetVertexPtr>
+inline bool NeighborLabelFrequencyFiltering(
+    const QueryVertexPtr query_vertex_ptr,
+    const TargetVertexPtr target_vertex_ptr) {
+  if (!NeighborLabelFrequencyFilteringSingleDirection<EdgeState::kIn>(
+          query_vertex_ptr, target_vertex_ptr)) {
+    return false;
+  }
+  if (!NeighborLabelFrequencyFilteringSingleDirection<EdgeState::kOut>(
+          query_vertex_ptr, target_vertex_ptr)) {
+    return false;
+  }
+  return true;
+}
 template <enum MatchSemantics match_semantics, class QueryGraph,
           class TargetGraph, class CandidateSetContainer>
 inline bool InitCandidateSet(const QueryGraph &query_graph,
@@ -35,54 +96,14 @@ inline bool InitCandidateSet(const QueryGraph &query_graph,
              target_graph.VertexCBegin(query_vertex_ptr->label());
          !target_vertex_iter.IsDone(); target_vertex_iter++) {
       TargetVertexPtr target_vertex_ptr = target_vertex_iter;
-      int flag = 0;
-      if (query_vertex_ptr->CountOutVertex() >
-          target_vertex_ptr->CountOutVertex())
+      if (!DegreeFiltering(query_vertex_ptr, target_vertex_ptr)) {
         continue;
-      if (query_vertex_ptr->CountInVertex() >
-          target_vertex_ptr->CountInVertex())
+      }
+      if (!NeighborLabelFrequencyFiltering(query_vertex_ptr,
+                                           target_vertex_ptr)) {
         continue;
-      for (auto edge_label_it = query_vertex_ptr->OutEdgeCBegin();
-           !edge_label_it.IsDone(); edge_label_it++) {
-        auto query_out_count =
-            query_vertex_ptr->CountOutEdge(edge_label_it->label());
-        auto target_out_count =
-            target_vertex_ptr->CountOutEdge(edge_label_it->label());
-        if (query_out_count > target_out_count) {
-          flag = 1;
-          break;
-        }
-        query_out_count =
-            query_vertex_ptr->CountOutVertex(edge_label_it->label());
-        target_out_count =
-            target_vertex_ptr->CountOutVertex(edge_label_it->label());
-        if (query_out_count > target_out_count) {
-          flag = 1;
-          break;
-        }
       }
-      for (auto edge_label_it = query_vertex_ptr->InEdgeCBegin();
-           !edge_label_it.IsDone(); edge_label_it++) {
-        auto query_in_count =
-            query_vertex_ptr->CountInEdge(edge_label_it->label());
-        auto target_in_count =
-            target_vertex_ptr->CountInEdge(edge_label_it->label());
-        if (query_in_count > target_in_count) {
-          flag = 1;
-          break;
-        }
-        query_in_count =
-            query_vertex_ptr->CountInVertex(edge_label_it->label());
-        target_in_count =
-            target_vertex_ptr->CountInVertex(edge_label_it->label());
-        if (query_in_count > target_in_count) {
-          flag = 1;
-          break;
-        }
-      }
-      if (!flag) {
-        l.emplace_back(target_vertex_ptr);
-      }
+      l.emplace_back(target_vertex_ptr);
     }
     if (l.empty()) return false;
   }
@@ -91,27 +112,52 @@ inline bool InitCandidateSet(const QueryGraph &query_graph,
   }
   return true;
 }
-// Check target_id is in C(query_vertex_ptr)
-template <class QueryVertexPtr, class TargetVertexID,
-          class CandidateSetContainer>
-inline bool CheckIsInCandidateSet(QueryVertexPtr query_vertex_ptr,
-                                  const CandidateSetContainer &candidate_set,
-                                  const TargetVertexID &target_id) {
-  for (const auto &v : candidate_set.find(query_vertex_ptr)->second) {
-    if (v->id() == target_id) {
-      return true;
+template <enum EdgeState edge_state, class QueryVertexPtr,
+          class TargetVertexPtr, class CandidateSetContainer>
+inline void GetAdjNotMatchedVertexSingleDirection(
+    const QueryVertexPtr &query_vertex_ptr,
+    const CandidateSetContainer &candidate_set,
+    const std::map<QueryVertexPtr, TargetVertexPtr> &match_state,
+    std::set<QueryVertexPtr> &next_query_set) {
+  for (auto edge_iter =
+           (edge_state == EdgeState::kIn ? query_vertex_ptr->InEdgeCBegin()
+                                         : query_vertex_ptr->OutEdgeCBegin());
+       !edge_iter.IsDone(); edge_iter++) {
+    const QueryVertexPtr &query_opp_vertex_ptr =
+        edge_state == EdgeState::kIn ? edge_iter->const_src_ptr()
+                                     : edge_iter->const_dst_ptr();
+    // std::cout << query_vertex_ptr->id() << " " << query_opp_vertex_ptr->id()
+    //          << std::endl;
+    if (match_state.count(query_opp_vertex_ptr) == 0 &&
+        candidate_set.count(query_opp_vertex_ptr)) {
+      next_query_set.insert(query_opp_vertex_ptr);
     }
   }
-  return false;
 }
-
-//
+template <class QueryVertexPtr, class TargetVertexPtr,
+          class CandidateSetContainer>
+inline void GetAdjNotMatchedVertex(
+    const QueryVertexPtr &query_vertex_ptr,
+    const CandidateSetContainer &candidate_set,
+    const std::map<QueryVertexPtr, TargetVertexPtr> &match_state,
+    std::set<QueryVertexPtr> &next_query_set) {
+  GetAdjNotMatchedVertexSingleDirection<EdgeState::kOut>(
+      query_vertex_ptr, candidate_set, match_state, next_query_set);
+  GetAdjNotMatchedVertexSingleDirection<EdgeState::kIn>(
+      query_vertex_ptr, candidate_set, match_state, next_query_set);
+}
 template <class QueryVertexPtr, class TargetVertexPtr,
           class CandidateSetContainer>
 inline QueryVertexPtr NextMatchVertex(
     const CandidateSetContainer &candidate_set,
     const std::map<QueryVertexPtr, TargetVertexPtr> &match_state) {
   std::set<QueryVertexPtr> next_query_set;
+  for (const auto &match_pair : match_state) {
+    GetAdjNotMatchedVertex(match_pair.first, candidate_set, match_state,
+                           next_query_set);
+    // std::cout << "size = " << next_query_set.size() << std::endl;
+  }
+  /*
   for (const auto &match_pair : match_state) {
     const auto &query_vertex_ptr = match_pair.first;
 
@@ -133,7 +179,7 @@ inline QueryVertexPtr NextMatchVertex(
       }
     }
   }
-
+  */
   if (next_query_set.empty()) {
     for (const auto &candidate_pair : candidate_set) {
       const auto &query_vertex_ptr = candidate_pair.first;
@@ -347,14 +393,17 @@ inline bool PruneCallbackEmpty(
     const std::map<QueryVertexPtr, TargetVertexPtr> &m) {
   return false;
 }
-int func_call = 0;
 template <enum MatchSemantics match_semantics, class QueryGraph,
           class TargetGraph, class CandidateSetContainer, class QueryVertexPtr,
           class TargetVertexPtr, class MatchCallback, class PruneCallback>
 bool _DPISO(const CandidateSetContainer &candidate_set,
             std::map<QueryVertexPtr, TargetVertexPtr> &match_state,
             std::set<TargetVertexPtr> &target_matched, size_t &result_count,
-            MatchCallback user_callback, PruneCallback prune_callback) {
+            MatchCallback user_callback, PruneCallback prune_callback,
+            time_t begin_time, double query_limit_time = 1200) {
+  if (((clock() - begin_time) / CLOCKS_PER_SEC) > query_limit_time) {
+    return false;
+  }
   // for (auto &it : match_state) {
   //  std::cout << it.first->id() << " " << it.second->id() << std::endl;
   //}
@@ -380,14 +429,17 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
           temp_candidate_set = candidate_set;
       UpdateState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
                   target_matched);
-
+      auto t_begin = clock();
       UpdateCandidateSet<QueryGraph, TargetGraph>(
           next_query_vertex_ptr, next_target_vertex_ptr, temp_candidate_set,
           match_state, target_matched);
-
+      auto t_end = clock();
+      // std::cout << "update1 time = " << (1.0 * t_end - t_begin) /
+      // CLOCKS_PER_SEC
+      //          << std::endl;
       if (!_DPISO<match_semantics, QueryGraph, TargetGraph>(
               temp_candidate_set, match_state, target_matched, result_count,
-              user_callback, prune_callback)) {
+              user_callback, prune_callback, begin_time, query_limit_time)) {
         return false;
       }
       RestoreState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
@@ -410,7 +462,6 @@ void UpdateParentSingleDirection(
     QueryVertexPtr update_query_adj_ptr = edge_state == EdgeState::kIn
                                               ? edge_it->const_src_ptr()
                                               : edge_it->const_dst_ptr();
-    // parent[update_query_vertex_ptr].insert(update_query_adj_ptr);
     if (match_state.find(update_query_adj_ptr) == match_state.end()) continue;
     auto &query_parent_set = parent.find(update_query_vertex_ptr)->second;
     for (const auto &it : parent.find(update_query_adj_ptr)->second) {
@@ -433,20 +484,28 @@ void UpdateParent(
   auto erase_it = std::unique(l.begin(), l.end());
   l.erase(erase_it, l.end());
 }
+// using Fail Set
 template <enum MatchSemantics match_semantics, class QueryGraph,
           class TargetGraph, class CandidateSetContainer, class QueryVertexPtr,
-          class TargetVertexPtr, class MatchCallback>
+          class TargetVertexPtr, class MatchCallback, class PruneCallback>
 bool _DPISO(const CandidateSetContainer &candidate_set,
             std::map<QueryVertexPtr, TargetVertexPtr> &match_state,
             std::set<TargetVertexPtr> &target_matched,
             std::map<QueryVertexPtr, std::vector<QueryVertexPtr>> &parent,
             std::vector<QueryVertexPtr> &fail_set, size_t &result_count,
-            MatchCallback user_callback) {
+            MatchCallback user_callback, PruneCallback prune_callback,
+            time_t begin_time, double query_limit_time = 1200) {
+  if (((clock() - begin_time) / CLOCKS_PER_SEC) > query_limit_time) {
+    return false;
+  }
   if (match_state.size() == candidate_set.size()) {
     // find match ,so fail set is empty
     fail_set.clear();
     result_count++;
     return user_callback(match_state);
+  }
+  if (prune_callback(match_state)) {
+    return true;
   }
   QueryVertexPtr next_query_vertex_ptr =
       NextMatchVertex(candidate_set, match_state);
@@ -460,6 +519,9 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
   }
   for (const TargetVertexPtr &next_target_vertex_ptr :
        candidate_set.find(next_query_vertex_ptr)->second) {
+    if (prune_callback(match_state)) {
+      return true;
+    }
     if (find_fail_set_flag &&
         !std::binary_search(this_state_fail_set.begin(),
                             this_state_fail_set.end(), next_query_vertex_ptr)) {
@@ -469,6 +531,7 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
       return true;
     }
     if (!find_fail_set_flag &&
+        match_semantics == MatchSemantics::kIsomorphism &&
         target_matched.count(next_target_vertex_ptr) > 0) {
       // find u' satisfy that match_state[u']=next_target_vertex_ptr
       // next_state_fail_set = anc[u] union anc[u']
@@ -509,7 +572,8 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
       std::vector<QueryVertexPtr> next_state_fail_set;
       if (!_DPISO<match_semantics, QueryGraph, TargetGraph>(
               temp_candidate_set, match_state, target_matched, parent,
-              next_state_fail_set, result_count, user_callback)) {
+              next_state_fail_set, result_count, user_callback, prune_callback,
+              begin_time, query_limit_time)) {
         return false;
       }
 
@@ -563,6 +627,79 @@ bool UpdateCandidateCallback(
   query_vertex_candidate = res_candidate;
   return true;
 }
+
+template <class QueryVertexPtr, class TargetVertexPtr>
+inline bool MatchCallbackLimit(
+    const std::map<QueryVertexPtr, TargetVertexPtr> &, int *max_result) {
+  if (max_result && *max_result > 0) {
+    (*max_result)--;
+    if (*max_result == 0) return false;
+  }
+  return true;
+}
+
+template <class QueryVertexPtr, class TargetVertexPtr, class ResultContainer>
+inline bool MatchCallbackSaveResult1(
+    const std::map<QueryVertexPtr, TargetVertexPtr> &m, int *max_result,
+    ResultContainer *r) {
+  if (r) {
+    r->emplace_back(m);
+  }
+
+  return MatchCallbackLimit(m, max_result);
+}
+
+template <class QueryVertexPtr, class TargetVertexPtr, class ResultContainer>
+inline bool MatchCallbackSaveResult2(
+    const std::map<QueryVertexPtr, TargetVertexPtr> &m, int *max_result,
+    ResultContainer *r) {
+  if (r) {
+    using ResultType = typename ResultContainer::value_type;
+    ResultType tmp;
+    for (const auto &p : m) {
+      tmp.emplace_back(p);
+    }
+    r->emplace_back(std::move(tmp));
+  }
+
+  return MatchCallbackLimit(m, max_result);
+}
+
+template <class A, class B>
+inline void CopyMap(std::map<A, B> &c, const std::map<A, B> &m) {
+  c = m;
+};
+
+template <class A, class B>
+inline void CopyMap(std::list<std::pair<A, B>> &c, const std::map<A, B> &m) {
+  for (const auto &p : m) {
+    c.emplace_back(p);
+  }
+};
+
+template <class A, class B>
+inline void CopyMap(std::vector<std::pair<A, B>> &c, const std::map<A, B> &m) {
+  for (const auto &p : m) {
+    c.emplace_back(p);
+  }
+};
+
+template <class QueryVertexPtr, class TargetVertexPtr, class ResultContainer>
+inline bool MatchCallbackSaveResult(
+    const std::map<QueryVertexPtr, TargetVertexPtr> &m, int *max_result,
+    ResultContainer *r) {
+  if (r) {
+    using ResultType = typename ResultContainer::value_type;
+
+    ResultType tmp;
+    CopyMap(tmp, m);
+    r->emplace_back(std::move(tmp));
+  }
+
+  return MatchCallbackLimit(m, max_result);
+}
+
+namespace _DAGDP {
 template <class QueryGraph, class InDegreeContainer>
 inline void BFS(const QueryGraph &query_graph, InDegreeContainer &in_degree) {
   using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
@@ -662,17 +799,9 @@ inline bool EdgeCheck(const QueryVertexPtr &query_vertex_ptr,
                       const TargetVertexPtr &temp_target_vertex_ptr,
                       const EdgeCountContainer &out_edge_count,
                       const EdgeCountContainer &in_edge_count) {
-  // std::cout << "query pair = " << query_vertex_ptr->id() << " "
-  //          << temp_query_vertex_ptr->id() << std::endl;
-  // std::cout << "target pair = " << target_vertex_ptr->id() << " "
-  //          << temp_target_vertex_ptr->id() << std::endl;
   auto it = out_edge_count.find(temp_query_vertex_ptr);
   if (it != out_edge_count.end()) {
     for (const auto &edge_count : it->second) {
-      // std::cout << "out count = "
-      //           << target_vertex_ptr->CountOutEdge(edge_count.first,
-      //                                              temp_target_vertex_ptr)
-      //           << " " << edge_count.second << std::endl;
       if (target_vertex_ptr->CountOutEdge(
               edge_count.first, temp_target_vertex_ptr) < edge_count.second)
         return false;
@@ -681,10 +810,6 @@ inline bool EdgeCheck(const QueryVertexPtr &query_vertex_ptr,
   it = in_edge_count.find(temp_query_vertex_ptr);
   if (it != in_edge_count.end()) {
     for (const auto &edge_count : it->second) {
-      // std::cout << "in count = "
-      //          << target_vertex_ptr->CountInEdge(edge_count.first,
-      //                                            temp_target_vertex_ptr)
-      //          << " " << edge_count.second << std::endl;
       if (target_vertex_ptr->CountInEdge(
               edge_count.first, temp_target_vertex_ptr) < edge_count.second)
         return false;
@@ -727,6 +852,8 @@ inline bool CheckIsLegal(const QueryVertexPtr query_vertex_ptr,
   }
   return true;
 }
+
+}  // namespace _DAGDP
 template <class QueryGraph, class TargetGraph, class CandidateSetContainer>
 inline bool DAGDP(
     const QueryGraph &query_graph, const TargetGraph &target_graph,
@@ -761,15 +888,15 @@ inline bool DAGDP(
     }
     for (const auto &candidate_it : l) {
       bool candidate_flag = true;
-      candidate_flag =
-          CheckIsLegal<true>(vertex_ptr, candidate_it, used_vertex,
-                             out_edge_count, in_edge_count, candidate_set);
+      candidate_flag = _DAGDP::CheckIsLegal<true>(vertex_ptr, candidate_it,
+                                                  used_vertex, out_edge_count,
+                                                  in_edge_count, candidate_set);
       if (!candidate_flag) {
         continue;
       }
-      candidate_flag =
-          CheckIsLegal<false>(vertex_ptr, candidate_it, used_vertex,
-                              out_edge_count, in_edge_count, candidate_set);
+      candidate_flag = _DAGDP::CheckIsLegal<false>(
+          vertex_ptr, candidate_it, used_vertex, out_edge_count, in_edge_count,
+          candidate_set);
       if (candidate_flag) {
         l1.emplace_back(candidate_it);
       }
@@ -786,13 +913,14 @@ inline bool RefineCandidateSet(const QueryGraph &query_graph,
   using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
   std::vector<QueryVertexPtr> topu_seq;
-  GetTopuSeq(query_graph, topu_seq);
-  // std::cout << "seq size = " << topu_seq.size() << std::endl;
+  _DAGDP::GetTopuSeq(query_graph, topu_seq);
   if (!DAGDP(query_graph, target_graph, topu_seq, candidate_set)) return false;
-  // std::cout << "dag dp end!" << std::endl;
-  std::reverse(topu_seq.begin(), topu_seq.end());
-  if (!DAGDP(query_graph, target_graph, topu_seq, candidate_set)) return false;
-  // std::cout << "dag dp1 end!" << std::endl;
+  constexpr int loop_num = 2;
+  for (int i = 1; i <= loop_num; i++) {
+    std::reverse(topu_seq.begin(), topu_seq.end());
+    if (!DAGDP(query_graph, target_graph, topu_seq, candidate_set))
+      return false;
+  };
   return true;
 }
 
@@ -803,7 +931,8 @@ inline int DPISO_Recurive(const QueryGraph &query_graph,
                           const TargetGraph &target_graph,
                           MatchCallback user_callback,
                           PruneCallback prune_callback,
-                          UpdateCandidateCallback update_candidate_callback) {
+                          UpdateCandidateCallback update_candidate_callback,
+                          double query_limit_time = 1200) {
   using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
 
@@ -824,21 +953,111 @@ inline int DPISO_Recurive(const QueryGraph &query_graph,
   if (query_graph.CountEdge() < large_query_edge) {
     _DPISO<match_semantics, QueryGraph, TargetGraph>(
         candidate_set, match_state, target_matched, result_count, user_callback,
-        prune_callback);
+        prune_callback, clock(), query_limit_time);
   } else {
     std::map<QueryVertexPtr, std::vector<QueryVertexPtr>> parent;
     std::vector<QueryVertexPtr> fail_set;
     _DPISO<match_semantics, QueryGraph, TargetGraph>(
         candidate_set, match_state, target_matched, parent, fail_set,
-        result_count, user_callback);
+        result_count, user_callback, prune_callback, clock(), query_limit_time);
+  }
+  return static_cast<int>(result_count);
+}
+
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class MatchCallback, class PruneCallback>
+inline int DPISO_Recurive(
+    const QueryGraph &query_graph, const TargetGraph &target_graph,
+    std::map<typename QueryGraph::VertexConstPtr,
+             std::vector<typename TargetGraph::VertexConstPtr>> &candidate_set,
+    std::map<typename QueryGraph::VertexConstPtr,
+             typename TargetGraph::VertexConstPtr> &match_state,
+    MatchCallback user_callback, PruneCallback prune_callback,
+    double query_limit_time = 1200) {
+  using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
+  using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
+  std::set<TargetVertexPtr> target_matched;
+  for (const auto &match : match_state) {
+    target_matched.insert(match.second);
+  }
+  for (const auto &match : match_state) {
+    UpdateCandidateSet<QueryGraph, TargetGraph>(
+        match.first, match.second, candidate_set, match_state, target_matched);
+  }
+  size_t result_count = 0;
+  if (query_graph.CountEdge() >= large_query_edge) {
+    std::map<QueryVertexPtr, std::vector<QueryVertexPtr>> parent;
+    for (const auto &match : match_state) {
+      _dp_iso::UpdateParent(match_state, match.first, parent);
+    }
+    std::vector<QueryVertexPtr> fail_set;
+    _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
+        candidate_set, match_state, target_matched, parent, fail_set,
+        result_count, user_callback, prune_callback, clock(), query_limit_time);
+  } else {
+    _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
+        candidate_set, match_state, target_matched, result_count, user_callback,
+        prune_callback, clock(), query_limit_time);
   }
   return static_cast<int>(result_count);
 }
 template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class MatchCallback, class PruneCallback>
+inline int DPISO_Recurive(
+    const QueryGraph &query_graph, const TargetGraph &target_graph,
+    std::map<typename QueryGraph::VertexConstPtr,
+             std::vector<typename TargetGraph::VertexConstPtr>> &candidate_set,
+    MatchCallback user_callback, PruneCallback prune_callback,
+    double query_limit_time = 1200) {
+  using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
+  using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
+  std::map<typename QueryGraph::VertexConstPtr,
+           typename TargetGraph::VertexConstPtr>
+      match_state;
+  return DPISO_Recurive<match_semantics, QueryGraph, TargetGraph>(
+      query_graph, target_graph, candidate_set, match_state, user_callback,
+      prune_callback, query_limit_time);
+}
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class MatchCallback, class PruneCallback,
+          class UpdateCandidateCallback>
+inline int DPISO_Recurive(
+    const QueryGraph &query_graph, const TargetGraph &target_graph,
+    std::map<typename QueryGraph::VertexConstPtr,
+             typename TargetGraph::VertexConstPtr> &match_state,
+    MatchCallback user_callback, PruneCallback prune_callback,
+    UpdateCandidateCallback update_candidate_callback,
+    double query_limit_time = 1200) {
+  using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
+  using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
+  std::map<typename QueryGraph::VertexConstPtr,
+           std::vector<typename TargetGraph::VertexConstPtr>>
+      candidate_set;
+  if (!InitCandidateSet<match_semantics>(query_graph, target_graph,
+                                         candidate_set)) {
+    return 0;
+  }
+  for (const auto &match : match_state) {
+    candidate_set[match.first].clear();
+    candidate_set[match.first].push_back(match.second);
+  }
+  if (!RefineCandidateSet(query_graph, target_graph, candidate_set)) {
+    return 0;
+  }
+  if (!update_candidate_callback(candidate_set)) {
+    return 0;
+  }
+  return DPISO_Recurive<match_semantics>(
+      query_graph, target_graph, candidate_set, match_state, user_callback,
+      prune_callback, query_limit_time);
+}
+
+template <enum MatchSemantics match_semantics, class QueryGraph,
           class TargetGraph, class MatchCallback>
 inline int DPISO_Recurive(const QueryGraph &query_graph,
                           const TargetGraph &target_graph,
-                          MatchCallback user_callback) {
+                          MatchCallback user_callback,
+                          double query_limit_time = 1200) {
   using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
   return DPISO_Recurive<match_semantics>(
@@ -846,44 +1065,47 @@ inline int DPISO_Recurive(const QueryGraph &query_graph,
       std::bind(PruneCallbackEmpty<QueryVertexPtr, TargetVertexPtr>,
                 std::placeholders::_1),
       std::bind(UpdateCandidateCallbackEmpty<QueryVertexPtr, TargetVertexPtr>,
-                std::placeholders::_1));
+                std::placeholders::_1),
+      query_limit_time);
 }
 }  // namespace _dp_iso
 
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
           class QueryGraph, class TargetGraph, class MatchCallback>
 inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
-                 MatchCallback user_callback) {
-  return _dp_iso::DPISO_Recurive<match_semantics>(query_graph, target_graph,
-                                                  user_callback);
+                 MatchCallback user_callback, double query_limit_time = 1200) {
+  return _dp_iso::DPISO_Recurive<match_semantics>(
+      query_graph, target_graph, user_callback, query_limit_time);
 }
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
           class QueryGraph, class TargetGraph>
 inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
-                 int max_result) {
+                 int max_result, double query_limit_time = 1200) {
   using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
 
   return DPISO<match_semantics>(
       query_graph, target_graph,
-      std::bind(_vf2::MatchCallbackLimit<QueryVertexPtr, TargetVertexPtr>,
-                std::placeholders::_1, &max_result));
+      std::bind(_dp_iso::MatchCallbackLimit<QueryVertexPtr, TargetVertexPtr>,
+                std::placeholders::_1, &max_result),
+      query_limit_time);
 }
 
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
           class QueryGraph, class TargetGraph, class ResultContainer>
 inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
-                 int max_result, ResultContainer &match_result) {
+                 int max_result, ResultContainer &match_result,
+                 double query_limit_time = 1200) {
   using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
-
   match_result.clear();
-
   return DPISO<match_semantics>(
       query_graph, target_graph,
-      std::bind(_vf2::MatchCallbackSaveResult<QueryVertexPtr, TargetVertexPtr,
-                                              ResultContainer>,
-                std::placeholders::_1, &max_result, &match_result));
+      std::bind(
+          _dp_iso::MatchCallbackSaveResult<QueryVertexPtr, TargetVertexPtr,
+                                           ResultContainer>,
+          std::placeholders::_1, &max_result, &match_result),
+      query_limit_time);
 }
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
           class QueryGraph, class TargetGraph>
@@ -891,54 +1113,53 @@ inline int DPISO(
     const QueryGraph &query_graph, const TargetGraph &target_graph,
     typename QueryGraph::VertexConstPtr cal_supp_vertex_ptr,
     const std::vector<typename TargetGraph::VertexConstPtr> &possible_supp,
-    std::vector<typename TargetGraph::VertexConstPtr> &supp) {
+    std::vector<typename TargetGraph::VertexConstPtr> &supp,
+    double single_query_limit_time = 100) {
   using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
   std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> candidate_set;
-  time_t t_begin = clock();
   if (!_dp_iso::InitCandidateSet<match_semantics>(query_graph, target_graph,
-                                                  candidate_set))
+                                                  candidate_set)) {
     return 0;
-  time_t t_end = clock();
+  }
   if (!_dp_iso::UpdateCandidateCallback<QueryVertexPtr, TargetVertexPtr>(
-          candidate_set, &cal_supp_vertex_ptr, possible_supp))
+          candidate_set, &cal_supp_vertex_ptr, possible_supp)) {
     return 0;
-  time_t refine_begin = clock();
-  size_t tot_size0 = 0, tot_size1 = 0;
-  for (auto &it : candidate_set) tot_size0 += it.second.size();
-  auto begin = clock();
+  }
   if (!_dp_iso::RefineCandidateSet(query_graph, target_graph, candidate_set)) {
     return 0;
   }
-  auto end = clock();
-  time_t refine_end = clock();
-  int total_call = 0;
   for (const auto &target_ptr :
        candidate_set.find(cal_supp_vertex_ptr)->second) {
     // if (target_ptr->id() != 2425) continue;
-    //_vf2_label_equal::func_call = 0;
     time_t begin = clock();
     int max_result = 1;
     size_t result_count = 0;
     std::map<QueryVertexPtr, TargetVertexPtr> match_state;
-    std::set<TargetVertexPtr> target_matched;
     std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> temp_candidate_set =
         candidate_set;
     auto prune_callback =
         std::bind(_dp_iso::PruneCallbackEmpty<QueryVertexPtr, TargetVertexPtr>,
                   std::placeholders::_1);
     auto user_callback =
-        std::bind(_vf2::MatchCallbackLimit<QueryVertexPtr, TargetVertexPtr>,
+        std::bind(_dp_iso::MatchCallbackLimit<QueryVertexPtr, TargetVertexPtr>,
                   std::placeholders::_1, &max_result);
+    /*
+    match_state.emplace(cal_supp_vertex_ptr, target_ptr);
+    _dp_iso::DPISO_Recurive<match_semantics, QueryGraph, TargetGraph>(
+        query_graph, target_graph, temp_candidate_set, match_state,
+        user_callback, prune_callback, single_query_limit_time);
+    */
+    std::set<TargetVertexPtr> target_matched;
     _dp_iso::UpdateState(cal_supp_vertex_ptr, target_ptr, match_state,
                          target_matched);
-    time_t time_begin = clock();
+    auto t_begin = clock();
     _dp_iso::UpdateCandidateSet<QueryGraph, TargetGraph>(
         cal_supp_vertex_ptr, target_ptr, temp_candidate_set, match_state,
         target_matched);
-    time_t time_end = clock();
-    // std::cout << "update time = "
-    //          << (1.0 * time_end - time_begin) / CLOCKS_PER_SEC << std::endl;
+    auto t_end = clock();
+    // std::cout << "update time = " << (1.0 * t_end - t_begin) / CLOCKS_PER_SEC
+    //          << std::endl;
     if (query_graph.CountEdge() >= _dp_iso::large_query_edge) {
       std::map<QueryVertexPtr, std::vector<QueryVertexPtr>> parent;
       _dp_iso::UpdateParent(match_state, cal_supp_vertex_ptr, parent);
@@ -946,13 +1167,15 @@ inline int DPISO(
 
       _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
           temp_candidate_set, match_state, target_matched, parent, fail_set,
-          result_count, user_callback);
+          result_count, user_callback, prune_callback, clock(),
+          single_query_limit_time);
     } else {
       _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
           temp_candidate_set, match_state, target_matched, result_count,
-          user_callback, prune_callback);
+          user_callback, prune_callback, clock(), single_query_limit_time);
     }
-    if (result_count >= 1) {
+
+    if (max_result == 0) {
       supp.emplace_back(target_ptr);
     }
     time_t end = clock();
@@ -960,7 +1183,6 @@ inline int DPISO(
     //          << "time = " << (1.0 * end - begin) / CLOCKS_PER_SEC <<
     //          std::endl;
   }
-  // std::cout << "total call = " << total_call << std::endl;
   return static_cast<int>(supp.size());
 }
 
@@ -969,54 +1191,50 @@ template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
           class PruneCallBack, class UpdateInitCandidateCallback>
 inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
                  MatchCallback match_callback, PruneCallBack prune_callback,
-                 UpdateInitCandidateCallback update_initcandidate_callback) {
+                 UpdateInitCandidateCallback update_initcandidate_callback,
+                 double query_limit_time = 1200) {
   return _dp_iso::DPISO_Recurive<match_semantics>(
       query_graph, target_graph, match_callback, prune_callback,
-      update_initcandidate_callback);
+      update_initcandidate_callback, query_limit_time);
 }
-
-template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
-          class QueryGraph, class TargetGraph, class ResultContainer>
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class MatchCallback, class PruneCallback>
+inline int DPISO(
+    const QueryGraph &query_graph, const TargetGraph &target_graph,
+    std::map<typename QueryGraph::VertexConstPtr,
+             std::vector<typename TargetGraph::VertexConstPtr>> &candidate_set,
+    std::map<typename QueryGraph::VertexConstPtr,
+             typename TargetGraph::VertexConstPtr> &match_state,
+    MatchCallback user_callback, PruneCallback prune_callback,
+    double query_limit_time = 1200) {
+  return _dp_iso::DPISO_Recurive<match_semantics>(
+      query_graph, target_graph, candidate_set, match_state, user_callback,
+      prune_callback, query_limit_time);
+}
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class MatchCallback, class PruneCallback>
+inline int DPISO(
+    const QueryGraph &query_graph, const TargetGraph &target_graph,
+    std::map<typename QueryGraph::VertexConstPtr,
+             std::vector<typename TargetGraph::VertexConstPtr>> &candidate_set,
+    MatchCallback user_callback, PruneCallback prune_callback,
+    double query_limit_time = 1200) {
+  return _dp_iso::DPISO_Recurive<match_semantics>(
+      query_limit_time, target_graph, candidate_set, user_callback,
+      prune_callback, query_limit_time);
+}
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class MatchCallback, class PruneCallback,
+          class UpdateCandidateCallback>
 inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
-                 const typename QueryGraph::VertexType::IDType query_id,
-                 const typename TargetGraph::VertexType::IDType target_id,
-                 int max_result, ResultContainer &match_result) {
-  using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
-  using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
-  match_result.clear();
-  std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> candidate_set;
-  if (!_dp_iso::InitCandidateSet<match_semantics>(query_graph, target_graph,
-                                                  candidate_set))
-    return 0;
-  auto begin = clock();
-  if (!_dp_iso::RefineCandidateSet(query_graph, target_graph, candidate_set)) {
-    return 0;
-  }
-  auto end = clock();
-  // std::cout << "refine time = " << (1.0 * end - begin) / CLOCKS_PER_SEC
-  //          << std::endl;
-  QueryVertexPtr query_ptr = query_graph.FindConstVertex(query_id);
-  TargetVertexPtr target_ptr = target_graph.FindConstVertex(target_id);
-  if (!_dp_iso::CheckIsInCandidateSet(query_ptr, candidate_set, target_id)) {
-    return 0;
-  }
-  std::map<QueryVertexPtr, TargetVertexPtr> match_state;
-  std::set<TargetVertexPtr> target_matched;
-  std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> temp_candidate_set =
-      candidate_set;
-  _dp_iso::UpdateState(query_ptr, target_ptr, match_state, target_matched);
-  _dp_iso::UpdateCandidateSet<QueryGraph, TargetGraph>(
-      query_ptr, target_ptr, temp_candidate_set, match_state, target_matched);
-  size_t result_count = 0;
-  auto prune_callback =
-      std::bind(_dp_iso::PruneCallbackEmpty<QueryVertexPtr, TargetVertexPtr>,
-                std::placeholders::_1);
-  return _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
-      temp_candidate_set, match_state, target_matched, result_count,
-      std::bind(_vf2::MatchCallbackSaveResult<QueryVertexPtr, TargetVertexPtr,
-                                              ResultContainer>,
-                std::placeholders::_1, &max_result, &match_result),
-      prune_callback);
+                 std::map<typename QueryGraph::VertexConstPtr,
+                          typename TargetGraph::VertexConstPtr> &match_state,
+                 MatchCallback user_callback, PruneCallback prune_callback,
+                 UpdateCandidateCallback update_candidate_callback,
+                 double query_limit_time = 1200) {
+  return _dp_iso::DPISO_Recurive<match_semantics>(
+      query_graph, target_graph, match_state, user_callback, prune_callback,
+      update_candidate_callback, query_limit_time);
 }
 }  // namespace GUNDAM
 #endif
