@@ -17,6 +17,8 @@ class GraphConfigures;
 /// store data type
 template <enum StoreData store_data_type>
 class SetStoreDataType;
+template <enum ContainerType containerType>
+class SetVertexLabelContainerType;
 template <enum ContainerType container_type>
 class SetVertexIDContainerType;
 
@@ -58,8 +60,7 @@ class SetEdgeAttributeContainerType;
 /// container type configurations
 template <enum ContainerType containerType>
 class SetEdgeLabelContainerType;
-template <enum ContainerType containerType>
-class SetVertexesContainerType;
+
 template <enum ContainerType containerType>
 class SetEdgeContainerType;
 /// container sort type configurations
@@ -193,22 +194,39 @@ class GraphConfigures<> {
   using DuplicateNumType = uint32_t;
 };
 
+// Set Vertex Label Container Type
+template <enum ContainerType container_type, typename... other_configures>
+class GraphConfigures<SetVertexLabelContainerType<container_type>,
+                      other_configures...>
+    : public GraphConfigures<other_configures...> {
+ private:
+  static_assert(!GraphConfigures<
+                    other_configures...>::specified_vertex_label_container_type,
+                "Redefination of vertex label container type!\n");
+
+ protected:
+  static constexpr bool specified_vertex_label_container_type = true;
+
+ public:
+  static constexpr enum ContainerType vertex_label_container_type =
+      container_type;
+};
+
 // Set Vertex ID Container Type
-template <enum ContainerType container_type,
-          typename... other_configures>
+template <enum ContainerType container_type, typename... other_configures>
 class GraphConfigures<SetVertexIDContainerType<container_type>,
                       other_configures...>
     : public GraphConfigures<other_configures...> {
  private:
-  static_assert(!GraphConfigures<other_configures...>::specified_vertex_id_container_type,
-                "Redefination of vertex id container type!\n");
+  static_assert(
+      !GraphConfigures<other_configures...>::specified_vertex_id_container_type,
+      "Redefination of vertex id container type!\n");
 
  protected:
   static constexpr bool specified_vertex_id_container_type = true;
 
  public:
-  static constexpr enum ContainerType vertex_id_container_type
-                                              = container_type;
+  static constexpr enum ContainerType vertex_id_container_type = container_type;
 };
 
 // Set Vertex ID

@@ -67,7 +67,7 @@ target_link_libraries(test_iterator2 GTest::GTest GTest::Main)
 
 add_executable (test_container2 "test_container2.cc")
 target_link_libraries(test_container2 GTest::GTest GTest::Main)
-#gtest_add_tests(TARGET test_container2)
+gtest_add_tests(TARGET test_container2)
 
 add_executable (test_pointer "test_pointer.cc")
 target_link_libraries(test_pointer GTest::GTest GTest::Main)

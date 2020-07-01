@@ -16,6 +16,15 @@ template <class VertexIDType, class VertexLabelType,
           class EdgeAttributeKeyType>
 class LargeGraph {
  public:
+  static constexpr bool vertex_has_attribute = true;
+
+  static constexpr bool edge_has_attribute = true;
+
+  static constexpr bool graph_has_vertex_label_index = true;
+
+  static constexpr bool vertex_has_edge_label_index = true;
+
+ public:
   class VertexData;
 
   class EdgeData;
@@ -505,9 +514,9 @@ class LargeGraph {
   };
 
  private:
-  using VertexContainer = MapDict<VertexIDType, VertexData *>;
+  using VertexContainer = TreeDict<VertexIDType, VertexData *>;
 
-  using EdgeContainer = MapDict<EdgeIDType, EdgeData *>;
+  using EdgeContainer = TreeDict<EdgeIDType, EdgeData *>;
 
  public:
   using VertexType = VertexData;
@@ -534,10 +543,6 @@ class LargeGraph {
 
   using EdgeConstIterator = GIterator<typename EdgeContainer::const_iterator,
                                       EdgeData, PairSecondPointerCast>;
-
-  static constexpr bool vertex_has_attribute = true;
-
-  static constexpr bool edge_has_attribute = true;
 
   LargeGraph() = default;
 

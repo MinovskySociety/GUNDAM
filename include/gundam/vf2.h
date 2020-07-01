@@ -11,11 +11,10 @@
 #include <type_traits>
 #include <vector>
 
-//#include "match.h"
+#include "gundam/timer.h"
 
 namespace GUNDAM {
 
-// enum   match tyep bool is_iso,1/// iso or homo
 enum MatchSemantics { kIsomorphism, kHomomorphism };
 
 namespace _vf2 {
@@ -25,71 +24,68 @@ enum EdgeState { kIn, kOut };
 template <typename Ptr1, typename Ptr2>
 class LabelEqual {
  public:
-  constexpr bool operator()(const Ptr1 &a, const Ptr2 &b) const {
+  constexpr bool operator()(const Ptr1 &a, const Ptr2 &b) const {    
     return a->label() == b->label();
   }
 };
 
-template <class GraphType, class Fn, class VertexPtr1>
+template <class GraphType, class Fn, class VertexRef>
 inline bool ForEachVertexIf(
     const GraphType &graph, Fn f,
-    LabelEqual<VertexPtr1,
+    LabelEqual<VertexRef,
                typename GraphType::VertexConstPtr> /* vertex_comp */,
-    const VertexPtr1 &vertex_a_ptr) {
-  for (auto vertex_iter = graph.VertexCBegin(); !vertex_iter.IsDone();
-       vertex_iter++) {
-    if (vertex_iter->label() != vertex_a_ptr->label()) continue;
-    typename GraphType::VertexConstPtr vertex_ptr = vertex_iter;
-    if (!f(vertex_ptr)) return false;
+    const VertexRef &vertex_ref) {
+  for (auto vertex_iter = graph.VertexCBegin(vertex_ref->label()); !vertex_iter.IsDone();
+       ++vertex_iter) {    
+    if (!f(vertex_iter)) return false;
   }
   return true;
 }
 
-template <class GraphType, class Fn, class VertexCompare, class VertexPtr1>
+template <class GraphType, class Fn, class VertexCompare, class VertexRef>
 inline bool ForEachVertexIf(const GraphType &graph, Fn f,
                             VertexCompare vertex_comp,
-                            const VertexPtr1 &vertex_a_ptr) {
+                            const VertexRef &vertex_r) {
   for (auto vertex_iter = graph.VertexCBegin(); !vertex_iter.IsDone();
-       vertex_iter++) {
-    typename GraphType::VertexConstPtr vertex_ptr = vertex_iter;
-    if (vertex_comp(vertex_a_ptr, vertex_ptr)) {
-      if (!f(vertex_ptr)) return false;
+       ++vertex_iter) {    
+    if (vertex_comp(vertex_r, vertex_iter)) {
+      if (!f(vertex_iter)) return false;
     }
   }
   return true;
 }
 
-template <enum EdgeState edge_state, class GraphType, class VertexPtr, class Fn,
-          class EdgePtr1>
-inline bool ForEachEdgeIf(
-    const VertexPtr &vertex_ptr, Fn f,
-    LabelEqual<EdgePtr1, typename GraphType::EdgeConstPtr> /* edge_comp */,
-    const EdgePtr1 &edge_a_ptr) {
-  for (auto edge_iter = (edge_state == EdgeState::kIn)
-                            ? vertex_ptr->InEdgeCBegin(edge_a_ptr->label())
-                            : vertex_ptr->OutEdgeCBegin(edge_a_ptr->label());
-       !edge_iter.IsDone(); edge_iter++) {
-    typename GraphType::EdgeConstPtr edge_ptr = edge_iter;
-    if (!f(edge_ptr)) return false;
-  }
-  return true;
-}
-
-template <enum EdgeState edge_state, class GraphType, class VertexPtr, class Fn,
-          class EdgeCompare, class EdgePtr1>
-inline bool ForEachEdgeIf(const VertexPtr &vertex_ptr, Fn f,
-                          EdgeCompare edge_comp, const EdgePtr1 &edge_a_ptr) {
-  for (auto edge_iter = (edge_state == EdgeState::kIn)
-                            ? vertex_ptr->InEdgeCBegin()
-                            : vertex_ptr->OutEdgeCBegin();
-       !edge_iter.IsDone(); edge_iter++) {
-    typename GraphType::EdgeConstPtr edge_ptr = edge_iter;
-    if (edge_comp(edge_a_ptr, edge_ptr)) {
-      if (!f(edge_ptr)) return false;
-    }
-  }
-  return true;
-}
+//template <enum EdgeState edge_state, class GraphType, class VertexPtr, class Fn,
+//          class EdgePtr1>
+//inline bool ForEachEdgeIf(
+//    const VertexPtr &vertex_ptr, Fn f,
+//    LabelEqual<EdgePtr1, typename GraphType::EdgeConstPtr> /* edge_comp */,
+//    const EdgePtr1 &edge_a_ptr) {
+//  for (auto edge_iter = (edge_state == EdgeState::kIn)
+//                            ? vertex_ptr->InEdgeCBegin(edge_a_ptr->label())
+//                            : vertex_ptr->OutEdgeCBegin(edge_a_ptr->label());
+//       !edge_iter.IsDone(); edge_iter++) {
+//    typename GraphType::EdgeConstPtr edge_ptr = edge_iter;
+//    if (!f(edge_ptr)) return false;
+//  }
+//  return true;
+//}
+//
+//template <enum EdgeState edge_state, class GraphType, class VertexPtr, class Fn,
+//          class EdgeCompare, class EdgePtr1>
+//inline bool ForEachEdgeIf(const VertexPtr &vertex_ptr, Fn f,
+//                          EdgeCompare edge_comp, const EdgePtr1 &edge_a_ptr) {
+//  for (auto edge_iter = (edge_state == EdgeState::kIn)
+//                            ? vertex_ptr->InEdgeCBegin()
+//                            : vertex_ptr->OutEdgeCBegin();
+//       !edge_iter.IsDone(); edge_iter++) {
+//    typename GraphType::EdgeConstPtr edge_ptr = edge_iter;
+//    if (edge_comp(edge_a_ptr, edge_ptr)) {
+//      if (!f(edge_ptr)) return false;
+//    }
+//  }
+//  return true;
+//}
 
 // Init Candidate Set
 template <enum MatchSemantics match_semantics, class QueryGraph,
@@ -104,14 +100,14 @@ inline bool InitCandidateSet(
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
   // std::cout << query_graph.FindConstVertex(1) << std::endl;
   for (auto query_vertex_iter = query_graph.VertexCBegin();
-       !query_vertex_iter.IsDone(); query_vertex_iter++) {
-    QueryVertexPtr query_vertex_ptr = query_vertex_iter;
+       !query_vertex_iter.IsDone(); ++query_vertex_iter) {
+    QueryVertexPtr query_vertex_ptr{query_vertex_iter};
     // std::cout << query_vertex_ptr->id() << " " << query_vertex_ptr <<
     // std::endl;
     auto query_in_count = query_vertex_ptr->CountInEdge();
     auto query_out_count = query_vertex_ptr->CountOutEdge();
 
-    auto &l = candidate_set[query_vertex_iter];
+    auto &l = candidate_set[query_vertex_ptr];
 
     ForEachVertexIf(
         target_graph,
@@ -157,7 +153,7 @@ inline QueryVertexPtr DetermineMatchOrder(
     const auto &query_vertex_ptr = match_pair.first;
 
     for (auto edge_iter = query_vertex_ptr->OutEdgeCBegin();
-         !edge_iter.IsDone(); edge_iter++) {
+         !edge_iter.IsDone(); ++edge_iter) {
       auto query_opp_vertex_ptr = edge_iter->const_dst_ptr();
       if (match_state.count(query_opp_vertex_ptr) == 0) {
         next_query_set.insert(query_opp_vertex_ptr);
@@ -165,7 +161,7 @@ inline QueryVertexPtr DetermineMatchOrder(
     }
 
     for (auto edge_iter = query_vertex_ptr->InEdgeCBegin(); !edge_iter.IsDone();
-         edge_iter++) {
+         ++edge_iter) {
       auto query_opp_vertex_ptr = edge_iter->const_src_ptr();
       if (match_state.count(query_opp_vertex_ptr) == 0) {
         next_query_set.insert(query_opp_vertex_ptr);
@@ -276,107 +272,66 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
   using TargetEdgePtr = typename TargetGraph::EdgeConstPtr;
 
   std::set<typename TargetGraph::EdgeType::IDType> used_edge;
-  for (auto query_edge_iter =
-           ((edge_state == EdgeState::kIn) ? query_vertex_ptr->InEdgeCBegin()
-                                           : query_vertex_ptr->OutEdgeCBegin());
-       !query_edge_iter.IsDone(); query_edge_iter++) {
-    QueryEdgePtr query_edge_ptr = query_edge_iter;
-    QueryVertexPtr query_opp_vertex_ptr = (edge_state == EdgeState::kIn)
-                                              ? query_edge_ptr->const_src_ptr()
-                                              : query_edge_ptr->const_dst_ptr();
+    
+  for (auto query_edge_iter = (edge_state == EdgeState::kIn)
+                                  ? query_vertex_ptr->InEdgeCBegin()
+                                  : query_vertex_ptr->OutEdgeCBegin();
+       !query_edge_iter.IsDone(); ++query_edge_iter) {
+    QueryVertexPtr query_opp_vertex_ptr;
+
+    if constexpr (edge_state == EdgeState::kIn) {
+      query_opp_vertex_ptr = query_edge_iter->const_src_ptr();
+    } else {
+      query_opp_vertex_ptr = query_edge_iter->const_dst_ptr();
+    }
+
     auto match_iter = match_state.find(query_opp_vertex_ptr);
     if (match_iter == match_state.end()) continue;
 
     TargetVertexPtr query_opp_match_vertex_ptr = match_iter->second;
 
     bool find_target_flag = false;
-    for (auto target_edge_iter = ((edge_state == EdgeState::kIn)
-                                      ? target_vertex_ptr->InEdgeCBegin()
-                                      : target_vertex_ptr->OutEdgeCBegin());
-         !target_edge_iter.IsDone(); target_edge_iter++) {
-      if (used_edge.count(target_edge_iter->id())) continue;
-      TargetEdgePtr target_edge_ptr = target_edge_iter;
-      TargetVertexPtr target_opp_vertex_ptr =
-          (edge_state == EdgeState::kIn) ? target_edge_iter->const_src_ptr()
-                                         : target_edge_iter->const_dst_ptr();
-      if (target_opp_vertex_ptr != query_opp_match_vertex_ptr) continue;
-      if (edge_comp(query_edge_ptr, target_edge_ptr)) {
-        find_target_flag = true;
-        used_edge.insert(target_edge_ptr->id());
-        break;
+
+    if constexpr (TargetGraph::vertex_has_edge_label_index &&
+                  std::is_same_v<EdgeCompare,
+                                 LabelEqual<QueryEdgePtr, TargetEdgePtr>>) {
+      for (auto target_edge_iter =
+               (edge_state == EdgeState::kIn)
+                   ? target_vertex_ptr->InEdgeCBegin(query_edge_iter->label())
+                   : target_vertex_ptr->OutEdgeCBegin(query_edge_iter->label());
+           !target_edge_iter.IsDone(); ++target_edge_iter) {
+        if (used_edge.count(target_edge_iter->id()) > 0) continue;
+        TargetVertexPtr target_opp_vertex_ptr =
+            (edge_state == EdgeState::kIn) ? target_edge_iter->const_src_ptr()
+                                           : target_edge_iter->const_dst_ptr();
+        if (target_opp_vertex_ptr == query_opp_match_vertex_ptr) {
+          find_target_flag = true;
+          used_edge.insert(target_edge_iter->id());
+          break;
+        }
+      }
+    } else {
+      for (auto target_edge_iter = (edge_state == EdgeState::kIn)
+                                       ? target_vertex_ptr->InEdgeCBegin()
+                                       : target_vertex_ptr->OutEdgeCBegin();
+           !target_edge_iter.IsDone(); ++target_edge_iter) {
+        if (used_edge.count(target_edge_iter->id()) > 0) continue;
+        TargetVertexPtr target_opp_vertex_ptr =
+            (edge_state == EdgeState::kIn) ? target_edge_iter->const_src_ptr()
+                                           : target_edge_iter->const_dst_ptr();
+        if (target_opp_vertex_ptr != query_opp_match_vertex_ptr) continue;
+        if (edge_comp(query_edge_iter, target_edge_iter)) {
+          find_target_flag = true;
+          used_edge.insert(target_edge_iter->id());
+          break;
+        }
       }
     }
+
     if (!find_target_flag) return false;
   }
+
   return true;
-
-  /*
-  for (auto query_edge_iter =
-           ((edge_state == EdgeState::kIn) ? query_vertex_ptr->InEdgeCBegin()
-                                           : query_vertex_ptr->OutEdgeCBegin());
-       !query_edge_iter.IsDone(); query_edge_iter++) {
-    QueryEdgePtr query_edge_ptr = query_edge_iter;
-    QueryVertexPtr query_opp_vertex_ptr = (edge_state == EdgeState::kIn)
-                                              ? query_edge_ptr->const_src_ptr()
-                                              : query_edge_ptr->const_dst_ptr();
-
-    // if (match_state.count(query_opp_vertex_ptr) == 0) continue;
-    // TargetVertexPtr query_opp_match_vertex_ptr =
-    //    match_state[query_opp_vertex_ptr];
-
-    auto match_iter = match_state.find(query_opp_vertex_ptr);
-    if (match_iter == match_state.end()) continue;
-
-    TargetVertexPtr query_opp_match_vertex_ptr = match_iter->second;
-
-    bool find_target_flag = false;
-    ForEachEdgeIf<edge_state, TargetGraph>(
-        target_vertex_ptr,
-        [&query_opp_match_vertex_ptr,
-         &find_target_flag](const TargetEdgePtr &target_edge_ptr) -> bool {
-          auto target_opp_vertex_ptr = (edge_state == EdgeState::kIn)
-                                           ? target_edge_ptr->const_src_ptr()
-                                           : target_edge_ptr->const_dst_ptr();
-          if (target_opp_vertex_ptr->id() == query_opp_match_vertex_ptr->id()) {
-            find_target_flag = true;
-            return false;
-          }
-          return true;
-        },
-        edge_comp, query_edge_ptr);
-
-    // for (auto target_edge_iter = ((edge_state == EdgeState::kIn)
-    //                                  ? target_vertex_ptr->InEdgeCBegin()
-    //                                  : target_vertex_ptr->OutEdgeCBegin());
-    //     !target_edge_iter.IsDone(); target_edge_iter++) {
-    //  auto target_opp_vertex_ptr = (edge_state == EdgeState::kIn)
-    //                                   ? target_edge_iter->const_src_ptr()
-    //                                   : target_edge_iter->const_dst_ptr();
-    //  if (target_opp_vertex_ptr->id() == query_opp_match_vertex_ptr->id()) {
-    //    // auto query_edge_ptr =
-    //    //     (edge_state == EdgeState::kOut)
-    //    //         ?
-    //    query_vertex_ptr->FindConstOutEdge(query_edge_iter->id())
-    //    //         :
-    //    // query_opp_vertex_ptr->FindConstOutEdge(query_edge_iter->id());
-
-    //    // auto target_edge_ptr =
-    //    //     (edge_state == EdgeState::kOut)
-    //    //         ?
-    //    target_vertex_ptr->FindConstOutEdge(target_edge_iter->id())
-    //    //         : query_opp_match_vertex_ptr->FindConstOutEdge(
-    //    //               target_edge_iter->id());
-
-    //    if (edge_comp(query_edge_iter, target_edge_iter)) {
-    //      find_target_flag = true;
-    //      break;
-    //    }
-    //  }
-    //}
-    if (!find_target_flag) return false;
-  }
-  return true;
-  */
 }
 
 // template <class Key1, class Key2, class Value>
@@ -494,9 +449,10 @@ inline bool IsJoinable(QueryVertexPtr query_vertex_ptr,
                        const MatchStateMap &match_state,
                        const TargetVertexSet &target_matched,
                        EdgeCompare edge_comp) {
-  if (match_semantics == MatchSemantics::kIsomorphism &&
-      target_matched.count(target_vertex_ptr) > 0) {
-    return false;
+  if constexpr (match_semantics == MatchSemantics::kIsomorphism) {
+    if (target_matched.count(target_vertex_ptr) > 0) {
+      return false;
+    }
   }
   if (!JoinableCheck<EdgeState::kIn, QueryGraph, TargetGraph>(
           query_vertex_ptr, target_vertex_ptr, match_state, edge_comp)) {
@@ -573,23 +529,44 @@ bool _VF2(
     std::map<QueryVertexPtr, TargetVertexPtr> &match_state,
     std::set<TargetVertexPtr> &target_matched, EdgeCompare edge_comp,
     size_t &result_count, MatchCallback user_callback) {
+  
+  TimerIntervalReset();
+
   if (match_state.size() == candidate_set.size()) {
-    result_count++;
+    ++result_count;
+
     bool flag = user_callback(match_state);
     // std::cout << "call back end!" << std::endl;
+
+    TimerAddUpInterval(1);    
+    
     return flag;
   }
 
   QueryVertexPtr next_query_vertex_ptr =
       DetermineMatchOrder(candidate_set, match_state);
 
-  for (const TargetVertexPtr &next_target_vertex_ptr :
-       candidate_set.find(next_query_vertex_ptr)->second) {
-    if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
-            next_query_vertex_ptr, next_target_vertex_ptr, match_state,
-            target_matched, edge_comp)) {
+  TimerAddUpInterval(2);
+
+  const auto &candidate = candidate_set.find(next_query_vertex_ptr)->second;
+
+  TimerAddUpInterval(3);
+
+  for (const TargetVertexPtr &next_target_vertex_ptr : candidate) {
+   
+    TimerAddUpInterval(5);
+
+    bool is_joinable = IsJoinable<match_semantics, QueryGraph, TargetGraph>(
+        next_query_vertex_ptr, next_target_vertex_ptr, match_state,
+        target_matched, edge_comp);
+
+    TimerAddUpInterval(4);
+    
+    if (is_joinable) {
       UpdateState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
                   target_matched);
+
+      TimerAddUpInterval(5);
 
       if (!_VF2<match_semantics, QueryGraph, TargetGraph>(
               candidate_set, match_state, target_matched, edge_comp,
@@ -597,10 +574,14 @@ bool _VF2(
         return false;
       }
 
+      TimerIntervalReset();
+
       RestoreState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
                    target_matched);
     }
   }
+
+  TimerAddUpInterval(5);
 
   return true;
 }
@@ -646,7 +627,7 @@ inline bool InitMatch(
       match_stack.push(std::make_pair(query_vertex_ptr, target_vertex_iter));
       return true;
     }
-    target_vertex_iter++;
+    ++target_vertex_iter;
   }
   return false;
 }
@@ -686,14 +667,14 @@ inline bool NextMatch(
   auto &target_vertex_iter = match_stack.top().second;
   auto &target_candidate = candidate_set.find(query_vertex_ptr)->second;
 
-  target_vertex_iter++;
+  ++target_vertex_iter;
   while (target_vertex_iter != target_candidate.end()) {
     if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
             query_vertex_ptr, *target_vertex_iter, match_state, target_matched,
             edge_comp)) {
       return true;
     }
-    target_vertex_iter++;
+    ++target_vertex_iter;
   }
   match_stack.pop();
   return false;
@@ -709,11 +690,15 @@ inline int VF2_Recursive(const QueryGraph &query_graph,
   using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
 
+  TimerStart();
+
   std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> candidate_set;
   if (!InitCandidateSet<match_semantics>(query_graph, target_graph, vertex_comp,
                                          candidate_set)) {
     return 0;
   }
+
+  TimerAddUpInterval(0);
 
   std::map<QueryVertexPtr, TargetVertexPtr> match_state;
   std::set<TargetVertexPtr> target_matched;
@@ -721,6 +706,8 @@ inline int VF2_Recursive(const QueryGraph &query_graph,
   _VF2<match_semantics, QueryGraph, TargetGraph>(candidate_set, match_state,
                                                  target_matched, edge_comp,
                                                  result_count, user_callback);
+
+  TimerFinish();
 
   return static_cast<int>(result_count);
 }
@@ -831,7 +818,7 @@ int VF2_NonRecursive(
       match_stack;
 
   for (auto match_iter = match_part.begin(); match_iter != match_part.end();
-       match_iter++) {
+       ++match_iter) {
     const QueryVertexPtr &query_vertex_ptr = match_iter->first;
     const TargetVertexPtr &target_vertex_ptr = match_iter->second;
 
@@ -842,7 +829,7 @@ int VF2_NonRecursive(
       auto target_vertex_iter =
           candidate_set.find(query_vertex_ptr)->second.cbegin();
       while (*target_vertex_iter != target_vertex_ptr) {
-        target_vertex_iter++;
+        ++target_vertex_iter;
       }
       match_stack.insert(query_vertex_ptr, target_vertex_iter);
     } else {
@@ -1038,7 +1025,7 @@ template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
 inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
                VertexCompare vertex_comp, EdgeCompare edge_comp,
                MatchCallback user_callback) {
-  return _vf2::VF2_NonRecursive<match_semantics>(
+  return _vf2::VF2_Recursive<match_semantics>(
       query_graph, target_graph, vertex_comp, edge_comp, user_callback);
 }
 
