@@ -23,12 +23,18 @@ template <typename... configures>
 class Graph {
  public:
   using Configures = GraphConfigures<configures...>;
+  
   static constexpr bool vertex_has_attribute =
       Configures::vertex_has_static_attribute |
       Configures::vertex_has_dynamic_attribute;
+  
   static constexpr bool edge_has_attribute =
       Configures::edge_has_static_attribute |
       Configures::edge_has_dynamic_attribute;
+
+  static constexpr bool graph_has_vertex_label_index = true;
+
+  static constexpr bool vertex_has_edge_label_index = false;
 
  private:
   /// only used in Graph class
@@ -2822,10 +2828,7 @@ class Graph {
     /// <iterator of VertexLabelContainer, bool>
     auto ret = this->vertexes_.FindConst(label);
     if (!ret.second)  /// does not have this vertex label
-      return VertexConstIteratorSpecifiedLabel();
-    return VertexConstIteratorSpecifiedLabel(
-        std::get<kVertexIDContainerIdx>(*(ret.first)).cbegin(),
-        std::get<kVertexIDContainerIdx>(*(ret.first)).cend());
+      return VertexConstIteratorSpecifiedLabel();    
     return VertexConstIteratorSpecifiedLabel(
         ret.first.template get_const<kVertexIDContainerIdx>().cbegin(),
         ret.first.template get_const<kVertexIDContainerIdx>().cend());

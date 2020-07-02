@@ -8,41 +8,44 @@
 namespace GUNDAM {
 
 template <class IteratorType, class ValueType>
-class DefaultCast {
- public:
-  ValueType &operator()(IteratorType &it) { return *it; }
+struct DefaultCast { 
+  constexpr ValueType &operator()(IteratorType &it) const { return *it; }
 };
 
 template <class IteratorType, class ValueType>
-class ReinterpretCast {
- public:
-  ValueType &operator()(IteratorType &it) {
+struct ReinterpretCast { 
+  constexpr ValueType &operator()(IteratorType &it) const {
     return *reinterpret_cast<ValueType *>(&*it);
   }
 };
 
 template <class IteratorType, class ValueType>
-class PointerCast {
- public:
-  ValueType &operator()(IteratorType &it) { return *(*it); }
+struct PointerCast { 
+  constexpr ValueType &operator()(IteratorType &it) const { return *(*it); }
 };
 
 template <class IteratorType, class ValueType>
-class PairFirstCast {
- public:
-  ValueType &operator()(IteratorType &it) { return it->first; }
+struct PairFirstCast {
+  constexpr ValueType &operator()(IteratorType &it) const { return it->first; }
 };
 
 template <class IteratorType, class ValueType>
-class PairSecondCast {
- public:
-  ValueType &operator()(IteratorType &it) { return it->second; }
+struct PairSecondCast {
+  constexpr ValueType &operator()(IteratorType &it) const { return it->second; }
 };
 
 template <class IteratorType, class ValueType>
-class PairSecondPointerCast {
- public:
-  ValueType &operator()(IteratorType &it) const { return *(it->second); }
+struct PairFirstPointerCast {
+  constexpr ValueType &operator()(IteratorType &it) const {
+    return *(it->first);
+  }
+};
+
+template <class IteratorType, class ValueType>
+struct PairSecondPointerCast {
+  constexpr ValueType &operator()(IteratorType &it) const {
+    return *(it->second);
+  }
 };
 
 template <class IteratorType, class ValueType,
@@ -54,8 +57,8 @@ class GIterator {
 
   template <class Iter, class IterEnd>
   GIterator(Iter &&it, IterEnd &&end)
-      : it_(std::forward<Iter>(it)), end_(std::forward<IterEnd>(end)) {}
-
+      : it_{std::forward<Iter>(it)}, end_{std::forward<IterEnd>(end)} {}
+ 
   ValueType &operator*() { return Cast<IteratorType, ValueType>()(it_); }
 
   const ValueType &operator*() const {
