@@ -288,6 +288,7 @@ inline void UpdateCandidateSetOneDirection(
            std::vector<TargetVertexPtr>>
       temp_adj_vertex;
   std::set<typename QueryGraph::EdgeType::LabelType> used_edge_label;
+  constexpr size_t adj_vertex_limit = 200000;
   for (auto label_it =
            ((edge_state == EdgeState::kIn) ? query_vertex_ptr->InEdgeCBegin()
                                            : query_vertex_ptr->OutEdgeCBegin());
@@ -301,6 +302,11 @@ inline void UpdateCandidateSetOneDirection(
     if (used_edge_label.count(label_it->label())) continue;
     used_edge_label.insert(label_it->label());
     temp_adj_vertex.clear();
+    size_t adj_count =
+        (edge_state == EdgeState::kIn)
+            ? target_vertex_ptr->CountInVertex(label_it->label())
+            : target_vertex_ptr->CountOutVertex(label_it->label());
+    if (adj_count > adj_vertex_limit) return;
     for (auto it =
              ((edge_state == EdgeState::kIn)
                   ? target_vertex_ptr->InVertexCBegin(label_it->label())
@@ -347,6 +353,8 @@ inline void UpdateCandidateSet(QueryVertexPtr query_vertex_ptr,
                                CandidateSetContainer &candidate_set,
                                const MatchStateMap &match_state,
                                const TargetVertexSet &target_matched) {
+  // test liantong data:
+  // if (query_vertex_ptr->label() == 3003) return;
   UpdateCandidateSetOneDirection<EdgeState::kIn, QueryGraph, TargetGraph>(
       query_vertex_ptr, target_vertex_ptr, candidate_set, match_state,
       target_matched);
