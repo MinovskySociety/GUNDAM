@@ -508,7 +508,7 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
   }
   // for (auto &it : match_state) {
   //  std::cout << it.first->id() << " " << it.second->id() << std::endl;
-  //}
+  // }
   // std::cout << std::endl;
   if (match_state.size() == candidate_set.size()) {
     // find match ,so fail set is empty
@@ -1247,6 +1247,77 @@ inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
   return _dp_iso::DPISO_Recurive<match_semantics>(
       query_graph, target_graph, match_state, user_callback, prune_callback,
       update_candidate_callback, query_limit_time);
+}
+template <class CandidateSetContainer, class Pivot>
+inline bool SuppUpdateCallBack(CandidateSetContainer &candidate_set,
+                               Pivot &supp_list) {
+  for (auto &it : candidate_set) {
+    if (std::find(std::begin(supp_list), std::end(supp_list), it.first) ==
+        std::end(supp_list)) {
+      candidate_set.erase(it.first);
+    }
+  }
+  return true;
+}
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class MatchCallback, class SuppContainer>
+inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
+                 SuppContainer &supp_list, MatchCallback user_callback,
+                 double single_query_time = 100) {
+  using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
+  using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
+  using MatchMap = std::map<QueryVertexPtr, TargetVertexPtr>;
+  using MatchResult = std::vector<MatchMap>;
+  using CandidateSetContainerType =
+      std::map<QueryVertexPtr, std::vector<TargetVertexPtr>>;
+  auto update_callback =
+      std::bind(SuppUpdateCallBack<CandidateSetContainerType, SuppContainer>,
+                std::placeholders::_1, std::ref(supp_list));
+
+  MatchResult supp_match;
+  int max_result = -1;
+  auto match_callback =
+      std::bind(_dp_iso::MatchCallbackSaveResult<QueryVertexPtr,
+                                                 TargetVertexPtr, MatchResult>,
+                std::placeholders::_1, &max_result, &supp_match);
+  auto prune_callback =
+      std::bind(_dp_iso::PruneCallbackEmpty<QueryVertexPtr, TargetVertexPtr>,
+                std::placeholders::_1);
+  DPISO<match_semantics>(query_graph, target_graph, match_callback,
+                         prune_callback, update_callback, double(1200));
+  MatchResult match_result;
+  CandidateSetContainerType candidate_set;
+  if (!_dp_iso::InitCandidateSet<match_semantics>(query_graph, target_graph,
+                                                  candidate_set)) {
+    return 0;
+  }
+  if (!_dp_iso::RefineCandidateSet(query_graph, target_graph, candidate_set)) {
+    return 0;
+  }
+  for (auto &single_match : supp_match) {
+    bool flag = 0;
+    for (const auto &it : single_match) {
+      if (!std::binary_search(std::begin(candidate_set[it.first]),
+                              std::end(candidate_set[it.first]), it.second)) {
+        flag = 1;
+        break;
+      }
+    }
+    if (flag) continue;
+    int max_result = 1;
+    auto match_callback = std::bind(
+        _dp_iso::MatchCallbackSaveResult<QueryVertexPtr, TargetVertexPtr,
+                                         MatchResult>,
+        std::placeholders::_1, &max_result, &match_result);
+    auto temp_candidate_set = candidate_set;
+    DPISO<match_semantics>(query_graph, target_graph, temp_candidate_set,
+                           single_match, match_callback, prune_callback,
+                           single_query_time);
+  }
+  for (auto &it : match_result) {
+    user_callback(it);
+  }
+  return match_result.size();
 }
 }  // namespace GUNDAM
 #endif
