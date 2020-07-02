@@ -506,6 +506,10 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
   if (((clock() - begin_time) / CLOCKS_PER_SEC) > query_limit_time) {
     return false;
   }
+  // for (auto &it : match_state) {
+  //  std::cout << it.first->id() << " " << it.second->id() << std::endl;
+  //}
+  // std::cout << std::endl;
   if (match_state.size() == candidate_set.size()) {
     // find match ,so fail set is empty
     fail_set.clear();
@@ -530,10 +534,10 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
     if (prune_callback(match_state)) {
       return true;
     }
-    if (find_fail_set_flag &&
+    if (find_fail_set_flag && !this_state_fail_set.empty() &&
         !std::binary_search(this_state_fail_set.begin(),
                             this_state_fail_set.end(), next_query_vertex_ptr)) {
-      // find fail set and u is not in fail set
+      // find fail set and u is not in fail set and fail set is not empty!
       // so not expand
       fail_set = this_state_fail_set;
       return true;
