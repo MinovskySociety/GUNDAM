@@ -409,7 +409,7 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
             std::set<TargetVertexPtr> &target_matched, size_t &result_count,
             MatchCallback user_callback, PruneCallback prune_callback,
             time_t begin_time, double query_limit_time = 1200) {
-  if (((clock() - begin_time) / CLOCKS_PER_SEC) > query_limit_time) {
+  if (query_limit_time > 0 && ((clock() - begin_time) / CLOCKS_PER_SEC) > query_limit_time) {
     return false;
   }
   // for (auto &it : match_state) {
@@ -503,7 +503,8 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
             std::vector<QueryVertexPtr> &fail_set, size_t &result_count,
             MatchCallback user_callback, PruneCallback prune_callback,
             time_t begin_time, double query_limit_time = 1200) {
-  if (((clock() - begin_time) / CLOCKS_PER_SEC) > query_limit_time) {
+  if (query_limit_time > 0 &&
+      ((clock() - begin_time) / CLOCKS_PER_SEC) > query_limit_time) {
     return false;
   }
   // for (auto &it : match_state) {
@@ -1209,7 +1210,8 @@ inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
       query_graph, target_graph, match_callback, prune_callback,
       update_initcandidate_callback, query_limit_time);
 }
-template <enum MatchSemantics match_semantics, class QueryGraph,
+template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+          class QueryGraph,
           class TargetGraph, class MatchCallback, class PruneCallback>
 inline int DPISO(
     const QueryGraph &query_graph, const TargetGraph &target_graph,
@@ -1223,7 +1225,9 @@ inline int DPISO(
       query_graph, target_graph, candidate_set, match_state, user_callback,
       prune_callback, query_limit_time);
 }
-template <enum MatchSemantics match_semantics, class QueryGraph,
+
+template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+          class QueryGraph,
           class TargetGraph, class MatchCallback, class PruneCallback>
 inline int DPISO(
     const QueryGraph &query_graph, const TargetGraph &target_graph,
@@ -1235,10 +1239,13 @@ inline int DPISO(
       query_limit_time, target_graph, candidate_set, user_callback,
       prune_callback, query_limit_time);
 }
-template <enum MatchSemantics match_semantics, class QueryGraph,
+
+ template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+          class QueryGraph,
           class TargetGraph, class MatchCallback, class PruneCallback,
           class UpdateCandidateCallback>
-inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
+ inline int DPISO(const QueryGraph &query_graph, const TargetGraph
+ &target_graph,
                  std::map<typename QueryGraph::VertexConstPtr,
                           typename TargetGraph::VertexConstPtr> &match_state,
                  MatchCallback user_callback, PruneCallback prune_callback,
@@ -1248,6 +1255,7 @@ inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
       query_graph, target_graph, match_state, user_callback, prune_callback,
       update_candidate_callback, query_limit_time);
 }
+
 template <class CandidateSetContainer, class Pivot>
 inline bool SuppUpdateCallBack(CandidateSetContainer &candidate_set,
                                Pivot &supp_list) {
@@ -1259,7 +1267,9 @@ inline bool SuppUpdateCallBack(CandidateSetContainer &candidate_set,
   }
   return true;
 }
-template <enum MatchSemantics match_semantics, class QueryGraph,
+
+template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+          class QueryGraph,
           class TargetGraph, class MatchCallback, class SuppContainer>
 inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
                  SuppContainer &supp_list, MatchCallback user_callback,
@@ -1319,5 +1329,6 @@ inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
   }
   return match_result.size();
 }
+
 }  // namespace GUNDAM
 #endif
