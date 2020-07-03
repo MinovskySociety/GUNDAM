@@ -558,6 +558,9 @@ class SmallGraph {
     edges_.Clear();
   }
 
+ public:
+  static constexpr bool vertex_has_edge_label_index = false;
+
  private:
   VertexContainer vertices_;
   EdgeContainer edges_;

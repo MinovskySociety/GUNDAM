@@ -19,6 +19,7 @@ enum EdgeState { kIn, kOut };
 // if query.CountEdge()>=large_query_edge, using fail set
 // small query not using fail set
 constexpr size_t large_query_edge = 6;
+constexpr size_t adj_vertex_limit = 200000;
 template <class QueryVertexPtr, class TargetVertexPtr>
 inline bool DegreeFiltering(const QueryVertexPtr query_vertex_ptr,
                             const TargetVertexPtr target_vertex_ptr) {
@@ -288,7 +289,7 @@ inline void UpdateCandidateSetOneDirection(
            std::vector<TargetVertexPtr>>
       temp_adj_vertex;
   std::set<typename QueryGraph::EdgeType::LabelType> used_edge_label;
-  constexpr size_t adj_vertex_limit = 200000;
+
   for (auto label_it =
            ((edge_state == EdgeState::kIn) ? query_vertex_ptr->InEdgeCBegin()
                                            : query_vertex_ptr->OutEdgeCBegin());
@@ -306,7 +307,9 @@ inline void UpdateCandidateSetOneDirection(
         (edge_state == EdgeState::kIn)
             ? target_vertex_ptr->CountInVertex(label_it->label())
             : target_vertex_ptr->CountOutVertex(label_it->label());
-    if (adj_count > adj_vertex_limit) return;
+    if (adj_count > adj_vertex_limit) {
+      continue;
+    }
     for (auto it =
              ((edge_state == EdgeState::kIn)
                   ? target_vertex_ptr->InVertexCBegin(label_it->label())
@@ -409,7 +412,8 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
             std::set<TargetVertexPtr> &target_matched, size_t &result_count,
             MatchCallback user_callback, PruneCallback prune_callback,
             time_t begin_time, double query_limit_time = 1200) {
-  if (query_limit_time > 0 && ((clock() - begin_time) / CLOCKS_PER_SEC) > query_limit_time) {
+  if (query_limit_time > 0 &&
+      ((clock() - begin_time) / CLOCKS_PER_SEC) > query_limit_time) {
     return false;
   }
   // for (auto &it : match_state) {
@@ -528,7 +532,7 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
   bool find_fail_set_flag = false;
   if (candidate_set.find(next_query_vertex_ptr)->second.size() == 0) {
     // C(u) is empty ,so fail set = anc(u)
-    fail_set = parent.find(next_query_vertex_ptr)->second;
+    this_state_fail_set = parent.find(next_query_vertex_ptr)->second;
   }
   for (const TargetVertexPtr &next_target_vertex_ptr :
        candidate_set.find(next_query_vertex_ptr)->second) {
@@ -538,9 +542,9 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
     if (find_fail_set_flag && !this_state_fail_set.empty() &&
         !std::binary_search(this_state_fail_set.begin(),
                             this_state_fail_set.end(), next_query_vertex_ptr)) {
-      // find fail set and u is not in fail set and fail set is not empty!
+      // find fail set , u is not in fail set and fail set is not empty!
       // so not expand
-      fail_set = this_state_fail_set;
+      std::swap(fail_set, this_state_fail_set);
       return true;
     }
     if (!find_fail_set_flag &&
@@ -592,6 +596,7 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
 
       RestoreState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
                    target_matched);
+
       if (next_state_fail_set.empty()) {
         // if ont child node's fail set is empty
         // so this state's fail set is empty
@@ -600,6 +605,8 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
       } else if (!std::binary_search(next_state_fail_set.begin(),
                                      next_state_fail_set.end(),
                                      next_query_vertex_ptr)) {
+        // if one child node's fail set not contain next_query_vertex_ptr
+        // so this state's fail set is next_state_fail_set
         find_fail_set_flag = true;
         this_state_fail_set = next_state_fail_set;
       } else if (!find_fail_set_flag) {
@@ -614,7 +621,6 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
     }
   }
   std::swap(fail_set, this_state_fail_set);
-  // fail_set = this_state_fail_set;
   return true;
 }
 template <class QueryVertexPtr, class TargetVertexPtr>
@@ -1211,8 +1217,8 @@ inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
       update_initcandidate_callback, query_limit_time);
 }
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
-          class QueryGraph,
-          class TargetGraph, class MatchCallback, class PruneCallback>
+          class QueryGraph, class TargetGraph, class MatchCallback,
+          class PruneCallback>
 inline int DPISO(
     const QueryGraph &query_graph, const TargetGraph &target_graph,
     std::map<typename QueryGraph::VertexConstPtr,
@@ -1227,8 +1233,8 @@ inline int DPISO(
 }
 
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
-          class QueryGraph,
-          class TargetGraph, class MatchCallback, class PruneCallback>
+          class QueryGraph, class TargetGraph, class MatchCallback,
+          class PruneCallback>
 inline int DPISO(
     const QueryGraph &query_graph, const TargetGraph &target_graph,
     std::map<typename QueryGraph::VertexConstPtr,
@@ -1240,12 +1246,10 @@ inline int DPISO(
       prune_callback, query_limit_time);
 }
 
- template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
-          class QueryGraph,
-          class TargetGraph, class MatchCallback, class PruneCallback,
-          class UpdateCandidateCallback>
- inline int DPISO(const QueryGraph &query_graph, const TargetGraph
- &target_graph,
+template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+          class QueryGraph, class TargetGraph, class MatchCallback,
+          class PruneCallback, class UpdateCandidateCallback>
+inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
                  std::map<typename QueryGraph::VertexConstPtr,
                           typename TargetGraph::VertexConstPtr> &match_state,
                  MatchCallback user_callback, PruneCallback prune_callback,
@@ -1269,8 +1273,8 @@ inline bool SuppUpdateCallBack(CandidateSetContainer &candidate_set,
 }
 
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
-          class QueryGraph,
-          class TargetGraph, class MatchCallback, class SuppContainer>
+          class QueryGraph, class TargetGraph, class MatchCallback,
+          class SuppContainer>
 inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
                  SuppContainer &supp_list, MatchCallback user_callback,
                  double single_query_time = 100) {

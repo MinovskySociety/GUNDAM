@@ -24,30 +24,30 @@ enum EdgeState { kIn, kOut };
 template <typename Ptr1, typename Ptr2>
 class LabelEqual {
  public:
-  constexpr bool operator()(const Ptr1 &a, const Ptr2 &b) const {    
+  constexpr bool operator()(const Ptr1 &a, const Ptr2 &b) const {
     return a->label() == b->label();
   }
 };
-
+/*
 template <class GraphType, class Fn, class VertexRef>
 inline bool ForEachVertexIf(
     const GraphType &graph, Fn f,
     LabelEqual<VertexRef,
-               typename GraphType::VertexConstPtr> /* vertex_comp */,
+               typename GraphType::VertexConstPtr> ,
     const VertexRef &vertex_ref) {
-  for (auto vertex_iter = graph.VertexCBegin(vertex_ref->label()); !vertex_iter.IsDone();
-       ++vertex_iter) {    
+  for (auto vertex_iter = graph.VertexCBegin(vertex_ref->label());
+       !vertex_iter.IsDone(); ++vertex_iter) {
     if (!f(vertex_iter)) return false;
   }
   return true;
 }
-
+*/
 template <class GraphType, class Fn, class VertexCompare, class VertexRef>
 inline bool ForEachVertexIf(const GraphType &graph, Fn f,
                             VertexCompare vertex_comp,
                             const VertexRef &vertex_r) {
   for (auto vertex_iter = graph.VertexCBegin(); !vertex_iter.IsDone();
-       ++vertex_iter) {    
+       ++vertex_iter) {
     if (vertex_comp(vertex_r, vertex_iter)) {
       if (!f(vertex_iter)) return false;
     }
@@ -55,9 +55,10 @@ inline bool ForEachVertexIf(const GraphType &graph, Fn f,
   return true;
 }
 
-//template <enum EdgeState edge_state, class GraphType, class VertexPtr, class Fn,
+// template <enum EdgeState edge_state, class GraphType, class VertexPtr, class
+// Fn,
 //          class EdgePtr1>
-//inline bool ForEachEdgeIf(
+// inline bool ForEachEdgeIf(
 //    const VertexPtr &vertex_ptr, Fn f,
 //    LabelEqual<EdgePtr1, typename GraphType::EdgeConstPtr> /* edge_comp */,
 //    const EdgePtr1 &edge_a_ptr) {
@@ -71,9 +72,10 @@ inline bool ForEachVertexIf(const GraphType &graph, Fn f,
 //  return true;
 //}
 //
-//template <enum EdgeState edge_state, class GraphType, class VertexPtr, class Fn,
+// template <enum EdgeState edge_state, class GraphType, class VertexPtr, class
+// Fn,
 //          class EdgeCompare, class EdgePtr1>
-//inline bool ForEachEdgeIf(const VertexPtr &vertex_ptr, Fn f,
+// inline bool ForEachEdgeIf(const VertexPtr &vertex_ptr, Fn f,
 //                          EdgeCompare edge_comp, const EdgePtr1 &edge_a_ptr) {
 //  for (auto edge_iter = (edge_state == EdgeState::kIn)
 //                            ? vertex_ptr->InEdgeCBegin()
@@ -272,7 +274,7 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
   using TargetEdgePtr = typename TargetGraph::EdgeConstPtr;
 
   std::set<typename TargetGraph::EdgeType::IDType> used_edge;
-    
+
   for (auto query_edge_iter = (edge_state == EdgeState::kIn)
                                   ? query_vertex_ptr->InEdgeCBegin()
                                   : query_vertex_ptr->OutEdgeCBegin();
@@ -529,7 +531,6 @@ bool _VF2(
     std::map<QueryVertexPtr, TargetVertexPtr> &match_state,
     std::set<TargetVertexPtr> &target_matched, EdgeCompare edge_comp,
     size_t &result_count, MatchCallback user_callback) {
-  
   TimerIntervalReset();
 
   if (match_state.size() == candidate_set.size()) {
@@ -538,8 +539,8 @@ bool _VF2(
     bool flag = user_callback(match_state);
     // std::cout << "call back end!" << std::endl;
 
-    TimerAddUpInterval(1);    
-    
+    TimerAddUpInterval(1);
+
     return flag;
   }
 
@@ -553,7 +554,6 @@ bool _VF2(
   TimerAddUpInterval(3);
 
   for (const TargetVertexPtr &next_target_vertex_ptr : candidate) {
-   
     TimerAddUpInterval(5);
 
     bool is_joinable = IsJoinable<match_semantics, QueryGraph, TargetGraph>(
@@ -561,7 +561,7 @@ bool _VF2(
         target_matched, edge_comp);
 
     TimerAddUpInterval(4);
-    
+
     if (is_joinable) {
       UpdateState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
                   target_matched);
