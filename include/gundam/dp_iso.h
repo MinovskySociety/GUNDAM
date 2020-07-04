@@ -1331,7 +1331,7 @@ inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
   for (auto &it : match_result) {
     user_callback(it);
   }
-  return match_result.size();
+  return static_cast<int>(match_result.size());
 }
 
 }  // namespace GUNDAM

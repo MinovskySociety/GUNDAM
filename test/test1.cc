@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/graph.h"
+//#include "gundam/graph.h"
 #include "gundam/large_graph.h"
 #include "gundam/small_graph.h"
 
@@ -379,28 +379,28 @@ void TestGraph2() {
 TEST(TestGUNDAM, TestGraph1) {
   using namespace GUNDAM;
 
-  using G0 =
-      Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<uint32_t>,
-            SetVertexAttributeKeyType<std::string>, SetEdgeIDType<uint64_t>,
-            SetEdgeLabelType<uint32_t>, SetEdgeAttributeKeyType<std::string>>;
+  //using G0 =
+  //    Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<uint32_t>,
+  //          SetVertexAttributeKeyType<std::string>, SetEdgeIDType<uint64_t>,
+  //          SetEdgeLabelType<uint32_t>, SetEdgeAttributeKeyType<std::string>>;
 
   using G1 = LargeGraph<uint64_t, uint32_t, std::string, uint64_t, uint32_t,
                         std::string>;
 
   using G2 = SmallGraph<uint64_t, uint32_t, uint64_t, uint32_t>;
 
-  TestGraph1<G0>();
-  // TestGraph1<G1>();
+  //TestGraph1<G0>();
+  TestGraph1<G1>();
   // TestGraph1<G2>();
 }
 
 TEST(TestGUNDAM, TestGraph2) {
   using namespace GUNDAM;
 
-  using G0 =
-      Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<uint32_t>,
-            SetVertexAttributeKeyType<std::string>, SetEdgeIDType<uint64_t>,
-            SetEdgeLabelType<uint32_t>, SetEdgeAttributeKeyType<std::string>>;
+  //using G0 =
+  //    Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<uint32_t>,
+  //          SetVertexAttributeKeyType<std::string>, SetEdgeIDType<uint64_t>,
+  //          SetEdgeLabelType<uint32_t>, SetEdgeAttributeKeyType<std::string>>;
 
   using G1 = LargeGraph<uint64_t, uint32_t, std::string, uint64_t, uint32_t,
                         std::string>;
@@ -408,6 +408,6 @@ TEST(TestGUNDAM, TestGraph2) {
   using G2 = SmallGraph<uint64_t, uint32_t, uint64_t, uint32_t>;
 
   // TestGraph1<G0>();
-  // TestGraph2<G1>();
+  TestGraph2<G1>();
   // TestGraph2<G2>();
 }
