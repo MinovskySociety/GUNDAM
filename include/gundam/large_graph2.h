@@ -9,8 +9,8 @@ namespace GUNDAM {
 template <class VertexIDType, class VertexLabelType,
           class VertexAttributeKeyType, class EdgeIDType, class EdgeLabelType,
           class EdgeAttributeKeyType>
-class LargeGraph2 { 
-  public:
+class LargeGraph2 {
+ public:
   static constexpr bool vertex_has_attribute = true;
 
   static constexpr bool edge_has_attribute = true;
@@ -36,15 +36,17 @@ class LargeGraph2 {
    private:
     friend class LargeGraph2;
 
-    using EdgePtrSet = SortedVectorSet<EdgeData *>;    
+    using EdgePtrSet = SortedVectorSet<EdgeData *>;
 
     using EdgeIndexByELabel = SortedVectorDict<EdgeLabelType, EdgePtrSet>;
 
-    using EdgeIndexByVertexELabel = SortedVectorDict<VertexData *, EdgeIndexByELabel>;
+    using EdgeIndexByVertexELabel =
+        SortedVectorDict<VertexData *, EdgeIndexByELabel>;
 
     using EdgeIndexByVertex = SortedVectorDict<VertexData *, EdgePtrSet>;
 
-    using EdgeIndexByELabelVertex = SortedVectorDict<EdgeLabelType, EdgeIndexByVertex>;
+    using EdgeIndexByELabelVertex =
+        SortedVectorDict<EdgeLabelType, EdgeIndexByVertex>;
 
    public:
     using GraphType = LargeGraph2;
@@ -58,23 +60,23 @@ class LargeGraph2 {
     using EdgeIterator =
         GIterator<typename EdgePtrSet::iterator, EdgeData, PointerCast>;
 
-    using EdgeConstIterator = GIterator<typename EdgePtrSet::const_iterator,
-                                        EdgeData, PointerCast>;
+    using EdgeConstIterator =
+        GIterator<typename EdgePtrSet::const_iterator, EdgeData, PointerCast>;
 
     using EdgeLabelConstIterator =
         GIterator<typename EdgeIndexByELabel::const_iterator,
                   const EdgeLabelType, PairFirstCast>;
 
-    using VertexIterator =
-        GIterator<typename EdgeIndexByVertexELabel::iterator, VertexData,
-                  PairFirstPointerCast>;
+    using VertexIterator = GIterator<typename EdgeIndexByVertexELabel::iterator,
+                                     VertexData, PairFirstPointerCast>;
 
     using VertexConstIterator =
-        GIterator<typename EdgeIndexByVertexELabel::const_iterator,
-                  VertexData, PairFirstPointerCast>;
+        GIterator<typename EdgeIndexByVertexELabel::const_iterator, VertexData,
+                  PairFirstPointerCast>;
 
-    using VertexIteratorByELabel = GIterator<typename EdgeIndexByVertex::iterator,
-                                     VertexData, PairFirstPointerCast>;
+    using VertexIteratorByELabel =
+        GIterator<typename EdgeIndexByVertex::iterator, VertexData,
+                  PairFirstPointerCast>;
 
     using VertexConstIteratorByELabel =
         GIterator<typename EdgeIndexByVertex::const_iterator, VertexData,
@@ -92,11 +94,12 @@ class LargeGraph2 {
       auto it = out_edges_by_el_.Find(edge_label);
       if (it == out_edges_by_el_.cend()) return 0;
       return it->second.Count();
-    }    
+    }
 
     size_t CountOutEdge(const EdgeLabelType &edge_label,
                         const VertexData *vertex_ptr) const {
-      auto it1 = out_edges_by_dst_el_.Find(const_cast<VertexData *>(vertex_ptr));
+      auto it1 =
+          out_edges_by_dst_el_.Find(const_cast<VertexData *>(vertex_ptr));
       if (it1 == out_edges_by_dst_el_.cend()) return 0;
 
       auto it2 = it1->second.Find(edge_label);
@@ -133,7 +136,7 @@ class LargeGraph2 {
 
       return it2->second.Count();
     }
-    
+
     size_t CountInVertex() const { return in_edges_by_src_el_.Count(); }
 
     size_t CountInVertex(const EdgeLabelType &edge_label) const {
@@ -169,11 +172,12 @@ class LargeGraph2 {
       if (it == out_edges_by_el_.cend()) return {};
       return {it->second.cbegin(), it->second.cend()};
     }
-    
+
     EdgeIterator OutEdgeBegin(const EdgeLabelType &edge_label,
                               const VertexData *vertex_ptr) {
-      auto it1 = out_edges_by_dst_el_.Find(const_cast<VertexData *>(vertex_ptr));
-      if (it1 == out_edges_by_dst_el_.end()) return {};      
+      auto it1 =
+          out_edges_by_dst_el_.Find(const_cast<VertexData *>(vertex_ptr));
+      if (it1 == out_edges_by_dst_el_.end()) return {};
 
       auto it2 = it1->second.Find(edge_label);
       if (it2 == it1->second.end()) return {};
@@ -183,7 +187,8 @@ class LargeGraph2 {
 
     EdgeConstIterator OutEdgeCBegin(const EdgeLabelType &edge_label,
                                     const VertexData *vertex_ptr) const {
-      auto it1 = out_edges_by_dst_el_.Find(const_cast<VertexData *>(vertex_ptr));
+      auto it1 =
+          out_edges_by_dst_el_.Find(const_cast<VertexData *>(vertex_ptr));
       if (it1 == out_edges_by_dst_el_.cend()) return {};
 
       auto it2 = it1->second.Find(edge_label);
@@ -193,11 +198,11 @@ class LargeGraph2 {
     }
 
     VertexIterator OutVertexBegin() {
-      return {out_edges_by_dst_el_.begin(), out_edges_by_dst_el_.end()};      
+      return {out_edges_by_dst_el_.begin(), out_edges_by_dst_el_.end()};
     }
 
     VertexConstIterator OutVertexCBegin() const {
-      return {out_edges_by_dst_el_.cbegin(), out_edges_by_dst_el_.cend()};            
+      return {out_edges_by_dst_el_.cbegin(), out_edges_by_dst_el_.cend()};
     }
 
     VertexIteratorByELabel OutVertexBegin(const EdgeLabelType &edge_label) {
@@ -259,7 +264,7 @@ class LargeGraph2 {
       if (it2 == it1->second.cend()) return {};
 
       return {it2->second.cbegin(), it2->second.cend()};
-    }    
+    }
 
     VertexIterator InVertexBegin() {
       return {in_edges_by_src_el_.begin(), in_edges_by_src_el_.end()};
@@ -269,7 +274,7 @@ class LargeGraph2 {
       return {in_edges_by_src_el_.cbegin(), in_edges_by_src_el_.cend()};
     }
 
-    VertexIteratorByELabel InVertexBegin(const EdgeLabelType& edge_label) {
+    VertexIteratorByELabel InVertexBegin(const EdgeLabelType &edge_label) {
       auto it = in_edges_by_el_src_.Find(edge_label);
       if (it == in_edges_by_el_src_.end()) return {};
       return {it->second.begin(), it->second.end()};
@@ -288,9 +293,9 @@ class LargeGraph2 {
 
     ~VertexData() {}
 
-    void AddOutEdge(EdgeData *e) {      
+    void AddOutEdge(EdgeData *e) {
       assert(e->src_ptr() == this);
-      
+
       auto ret1 = out_edges_.Insert(e);
       assert(ret1.second);
 
@@ -316,14 +321,14 @@ class LargeGraph2 {
       assert(ret9.second);
     }
 
-    void AddInEdge(EdgeData *e) {      
+    void AddInEdge(EdgeData *e) {
       assert(e->dst_ptr() == this);
-      
+
       auto ret1 = in_edges_.Insert(e);
       assert(ret1.second);
 
       const auto &edge_label = e->label();
-      auto ret2 = in_edges_by_el_.Insert(edge_label);      
+      auto ret2 = in_edges_by_el_.Insert(edge_label);
       assert(ret2.first->first == edge_label);
       auto ret3 = ret2.first->second.Insert(e);
       assert(ret3.second);
@@ -339,12 +344,12 @@ class LargeGraph2 {
       auto ret7 = in_edges_by_el_src_.Insert(edge_label);
       assert(ret7.first->first == edge_label);
       auto ret8 = ret7.first->second.Insert(src);
-      assert(ret8.first->first == dst);
+      assert(ret8.first->first == src);
       auto ret9 = ret8.first->second.Insert(e);
       assert(ret9.second);
     }
 
-    void RemoveOutEdge(EdgeData *e) {      
+    void RemoveOutEdge(EdgeData *e) {
       assert(e->src_ptr() == this);
 
       auto it1 = out_edges_.Find(e);
@@ -358,10 +363,10 @@ class LargeGraph2 {
       assert(it3 != it2->second.end());
       it2->second.Erase(it3);
       if (it2->second.Empty()) out_edges_by_el_.Erase(it2);
-      
+
       auto dst = e->dst_ptr();
       auto it4 = out_edges_by_dst_el_.Find(dst);
-      assert(it4 != out_edges_by_dst_el_.end());      
+      assert(it4 != out_edges_by_dst_el_.end());
       auto it5 = it4->second.Find(edge_label);
       assert(it5 != it4->second.end());
       auto it6 = it5->second.Find(e);
@@ -385,7 +390,7 @@ class LargeGraph2 {
       }
     }
 
-    void RemoveInEdge(EdgeData *e) {      
+    void RemoveInEdge(EdgeData *e) {
       assert(e->dst_ptr() == this);
 
       auto it1 = in_edges_.Find(e);
@@ -428,7 +433,7 @@ class LargeGraph2 {
 
     VertexIDType id_;
     VertexLabelType label_;
-    
+
     EdgePtrSet out_edges_;
     EdgePtrSet in_edges_;
 
@@ -570,7 +575,7 @@ class LargeGraph2 {
     assert(ret2.first != vertex_labels_.end());
     assert(ret2.first->first == label);
     auto &label_vertices = ret2.first->second;
-    
+
     auto ret3 = label_vertices.Insert(id, v);
     assert(ret3.second);
 
@@ -634,8 +639,7 @@ class LargeGraph2 {
     auto l_it = vertex_labels_.Find(label);
     assert(l_it != vertices_.end());
     l_it->second.Erase(id);
-    if (l_it->second.Empty())
-      vertex_labels_.Erase(l_it);
+    if (l_it->second.Empty()) vertex_labels_.Erase(l_it);
 
     delete v;
     vertices_.Erase(v_it);
@@ -656,7 +660,7 @@ class LargeGraph2 {
     }
 
     EdgeData *e = new EdgeData(id, label, src_ptr, dst_ptr);
-    
+
     auto ret1 = edges_.Insert(id, e);
     if (!ret1.second) {
       return std::make_pair(ret1.first->second, false);
@@ -709,13 +713,13 @@ class LargeGraph2 {
     }
 
     vertices_.Clear();
-    vertex_labels_.Clear();    
-    edges_.Clear();    
+    vertex_labels_.Clear();
+    edges_.Clear();
   }
 
  private:
   VertexIndexByID vertices_;
- 
+
   VertexIndexByLabel vertex_labels_;
 
   EdgeIndexByID edges_;
