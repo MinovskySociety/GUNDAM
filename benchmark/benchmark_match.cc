@@ -68,7 +68,8 @@ struct CSVGraphInfo {
 };
 
 struct MatchBenchmarkConfigure1 {
-  CSVGraphInfo target_graph_info;
+  std::string work_dir;
+  CSVGraphInfo target_graph_info;  
   std::vector<CSVGraphInfo> query_graph_info_list;
   int match_times;
 };
@@ -85,68 +86,70 @@ int MatchBenchmark1() {
 
   // Init config;
   config.match_times = 1;
+  config.work_dir = "/mnt/d/work/";
 
   for (int i = 0; i < 1; i++) {
     //config.query_graph_info_list.emplace_back();
     //config.query_graph_info_list.back().vertex_files.emplace_back(
-    //    "/share/work/match_benchmark/q1_v.csv");
+    //    "match_benchmark/q1_v.csv");
     //config.query_graph_info_list.back().edge_files.emplace_back(
-    //    "/share/work/match_benchmark/q1_e.csv");
+    //    "match_benchmark/q1_e.csv");
 
     //config.query_graph_info_list.emplace_back();
     //config.query_graph_info_list.back().vertex_files.emplace_back(
-    //    "/share/work/match_benchmark/q2_v.csv");
+    //    "match_benchmark/q2_v.csv");
     //config.query_graph_info_list.back().edge_files.emplace_back(
-    //    "/share/work/match_benchmark/q2_e.csv");
+    //    "match_benchmark/q2_e.csv");
 
     //config.query_graph_info_list.emplace_back();
     //config.query_graph_info_list.back().vertex_files.emplace_back(
-    //    "/share/work/match_benchmark/q3_v.csv");
+    //    "match_benchmark/q3_v.csv");
     //config.query_graph_info_list.back().edge_files.emplace_back(
-    //    "/share/work/match_benchmark/q3_e.csv");
+    //    "match_benchmark/q3_e.csv");
 
     config.query_graph_info_list.emplace_back();
     config.query_graph_info_list.back().vertex_files.emplace_back(
-        "/share/work/match_benchmark/pattern_1_n.csv");
+        config.work_dir + 
+        "match_benchmark/pattern_1_n.csv");
     config.query_graph_info_list.back().edge_files.emplace_back(
-        "/share/work/match_benchmark/pattern_1_e.csv");
+        config.work_dir + "match_benchmark/pattern_1_e.csv");
 
     config.query_graph_info_list.emplace_back();
     config.query_graph_info_list.back().vertex_files.emplace_back(
-        "/share/work/match_benchmark/pattern_11_n.csv");
+        config.work_dir + "match_benchmark/pattern_11_n.csv");
     config.query_graph_info_list.back().edge_files.emplace_back(
-        "/share/work/match_benchmark/pattern_11_e.csv");
+        config.work_dir + "match_benchmark/pattern_11_e.csv");
 
     config.query_graph_info_list.emplace_back();
     config.query_graph_info_list.back().vertex_files.emplace_back(
-        "/share/work/match_benchmark/pattern_12_n.csv");
+        config.work_dir + "match_benchmark/pattern_12_n.csv");
     config.query_graph_info_list.back().edge_files.emplace_back(
-        "/share/work/match_benchmark/pattern_12_e.csv");
+        config.work_dir + "match_benchmark/pattern_12_e.csv");
 
     config.query_graph_info_list.emplace_back();
     config.query_graph_info_list.back().vertex_files.emplace_back(
-        "/share/work/match_benchmark/pattern_43_n.csv");
+        config.work_dir + "match_benchmark/pattern_43_n.csv");
     config.query_graph_info_list.back().edge_files.emplace_back(
-        "/share/work/match_benchmark/pattern_43_e.csv");
+        config.work_dir + "match_benchmark/pattern_43_e.csv");
 
     config.query_graph_info_list.emplace_back();
     config.query_graph_info_list.back().vertex_files.emplace_back(
-        "/share/work/match_benchmark/pattern_44_n.csv");
+        config.work_dir + "match_benchmark/pattern_44_n.csv");
     config.query_graph_info_list.back().edge_files.emplace_back(
-        "/share/work/match_benchmark/pattern_44_e.csv");
+        config.work_dir + "match_benchmark/pattern_44_e.csv");
 
     config.query_graph_info_list.emplace_back();
     config.query_graph_info_list.back().vertex_files.emplace_back(
-        "/share/work/match_benchmark/pattern_45_n.csv");
+        config.work_dir + "match_benchmark/pattern_45_n.csv");
     config.query_graph_info_list.back().edge_files.emplace_back(
-        "/share/work/match_benchmark/pattern_45_e.csv");
+        config.work_dir + "match_benchmark/pattern_45_e.csv");
 
   }
 
-  config.target_graph_info.vertex_files.emplace_back(
-      "/share/work/cu4999_1/liantong_v.csv");
-  config.target_graph_info.edge_files.emplace_back(
-      "/share/work/cu4999_1/liantong_e.csv");
+  config.target_graph_info.vertex_files.emplace_back(config.work_dir +
+                                                     "cu4999_1/liantong_v.csv");
+  config.target_graph_info.edge_files.emplace_back(config.work_dir +
+                                                   "cu4999_1/liantong_e.csv");
 
   // Loading graphs
   auto begin_time = GetTime();
