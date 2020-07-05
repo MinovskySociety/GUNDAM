@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "container.h"
-#include "iterator.h"
 #include "graph_item.h"
+#include "iterator.h"
 
 namespace GUNDAM {
 
@@ -16,16 +16,14 @@ namespace GUNDAM {
 ///     constant src graph to non-constant dst graph
 /// non-constant src graph to     constant dst graph
 /// non-constant src graph to non-constant dst graph
-template <typename SrcGraphType,
-          typename DstGraphType,
+template <typename SrcGraphType, typename DstGraphType,
           enum ContainerType map_container_type = ContainerType::Vector,
           enum SortType map_container_sort_type = SortType::Default>
 class Match {
  private:
-  template <typename _SrcGraphType,
-            typename _DstGraphType,
+  template <typename _SrcGraphType, typename _DstGraphType,
             enum ContainerType _map_container_type,
-            enum      SortType _map_container_sort_type>
+            enum SortType _map_container_sort_type>
   friend class Match;
 
   static constexpr bool kSrcIsConst_ = std::is_const<SrcGraphType>::value;
@@ -49,16 +47,11 @@ class Match {
   static constexpr TupleIdxType kDstVertexPtrIdx = 1;
 
   using MapContainerType =
-      Container<map_container_type,
-                map_container_sort_type,
-                SrcVertexPtrType,
+      Container<map_container_type, map_container_sort_type, SrcVertexPtrType,
                 DstVertexPtrType>;
 
-  template <typename ContainerType_,
-            bool is_const_,
-            IteratorDepthType depth_,
-            TupleIdxType src_idx_,
-            TupleIdxType dst_idx_>
+  template <typename ContainerType_, bool is_const_, IteratorDepthType depth_,
+            TupleIdxType src_idx_, TupleIdxType dst_idx_>
   class MapContentIterator_
       : protected InnerIterator_<ContainerType_, is_const_, depth_> {
    private:
@@ -66,9 +59,8 @@ class Match {
 
    protected:
     using ContentPtr =
-        typename std::conditional<is_const_,
-                  const MapContentIterator_*,
-                        MapContentIterator_*>::type;
+        typename std::conditional<is_const_, const MapContentIterator_*,
+                                  MapContentIterator_*>::type;
 
     using InnerIteratorType::IsDone;
     using InnerIteratorType::ToNext;
@@ -93,29 +85,29 @@ class Match {
     using InnerIteratorType::InnerIteratorType;
 
     inline SrcVertexConstPtr const_src_ptr() const {
-      return InnerIteratorType::template get_const<
-              SrcVertexPtrType, src_idx_, depth_ - 1>();
+      return InnerIteratorType::template get_const<SrcVertexPtrType, src_idx_,
+                                                   depth_ - 1>();
       auto temp_vertex_ptr =
-          InnerIteratorType::template get_const<
-              SrcVertexPtrType, src_idx_, depth_ - 1>();
+          InnerIteratorType::template get_const<SrcVertexPtrType, src_idx_,
+                                                depth_ - 1>();
       return SrcVertexConstPtr(temp_vertex_ptr);
     }
 
-    inline SrcVertexPtrType& src_ptr(){
-      return InnerIteratorType::template get<
-              SrcVertexPtrType, src_idx_, depth_ - 1>();
+    inline SrcVertexPtrType& src_ptr() {
+      return InnerIteratorType::template get<SrcVertexPtrType, src_idx_,
+                                             depth_ - 1>();
     }
 
     inline DstVertexConstPtr const_dst_ptr() const {
       auto temp_vertex_ptr =
-          InnerIteratorType::template get_const<
-              DstVertexPtrType, dst_idx_, depth_ - 1>();
+          InnerIteratorType::template get_const<DstVertexPtrType, dst_idx_,
+                                                depth_ - 1>();
       return DstVertexConstPtr(temp_vertex_ptr);
     }
 
-    inline DstVertexPtrType& dst_ptr(){
-      return InnerIteratorType::template get<
-              DstVertexPtrType, dst_idx_, depth_ - 1>();
+    inline DstVertexPtrType& dst_ptr() {
+      return InnerIteratorType::template get<DstVertexPtrType, dst_idx_,
+                                             depth_ - 1>();
     }
   };
 
@@ -123,11 +115,11 @@ class Match {
 
  public:
   using MapIterator =
-      Iterator_<MapContentIterator_<MapContainerType, false, 1, kSrcVertexPtrIdx,
-                                                                kDstVertexPtrIdx>>;
+      Iterator_<MapContentIterator_<MapContainerType, false, 1,
+                                    kSrcVertexPtrIdx, kDstVertexPtrIdx>>;
   using MapConstIterator =
-      Iterator_<MapContentIterator_<MapContainerType,  true, 1, kSrcVertexPtrIdx,
-                                                                kDstVertexPtrIdx>>;
+      Iterator_<MapContentIterator_<MapContainerType, true, 1, kSrcVertexPtrIdx,
+                                    kDstVertexPtrIdx>>;
 
   using size_type = typename MapContainerType::size_type;
 
@@ -147,8 +139,7 @@ class Match {
   /// exisited then return false
   inline bool AddMap(const SrcVertexPtrType& src_ptr,
                      const DstVertexPtrType& dst_ptr) {
-    assert(!src_ptr.IsNull()
-        && !dst_ptr.IsNull());
+    assert(!src_ptr.IsNull() && !dst_ptr.IsNull());
     /// <iterator, bool>
     auto ret = this->match_container_.Insert(src_ptr);
     if (!ret.second) {
@@ -189,38 +180,40 @@ class Match {
   }
 
   /// constant dst
-  inline GraphItem<DstGraphType> MapTo(GraphItem<SrcGraphType>& src_item) const {
-    switch(src_item.type()){
-    case ItemType::Vertex:
-      return GraphItem<DstGraphType>(this->MapTo(src_item.vertex_ptr()));
-    case ItemType::VertexAttr:
-      return GraphItem<DstGraphType>(this->MapTo(src_item.vertex_ptr()),
-                                                 src_item.vertex_attribute_key());
-    default:
-      assert(false);
+  inline GraphItem<DstGraphType> MapTo(
+      GraphItem<SrcGraphType>& src_item) const {
+    switch (src_item.type()) {
+      case ItemType::Vertex:
+        return GraphItem<DstGraphType>(this->MapTo(src_item.vertex_ptr()));
+      case ItemType::VertexAttr:
+        return GraphItem<DstGraphType>(this->MapTo(src_item.vertex_ptr()),
+                                       src_item.vertex_attribute_key());
+      default:
+        assert(false);
     }
     assert(false);
     return GraphItem<DstGraphType>(this->MapTo(src_item.vertex_ptr()));
   }
 
   /// constant dst
-  inline GraphItem<const DstGraphType> MapToConst(GraphItem<SrcGraphType>& src_item) const {
-    switch(src_item.type()){
-    case ItemType::Vertex:
-      return GraphItem<DstGraphType>(this->MapToConst(src_item.vertex_ptr()));
-    case ItemType::VertexAttr:
-      return GraphItem<DstGraphType>(this->MapToConst(src_item.vertex_ptr()),
-                                                      src_item.vertex_attribute_key());
-    default:
-      assert(false);
+  inline GraphItem<const DstGraphType> MapToConst(
+      GraphItem<SrcGraphType>& src_item) const {
+    switch (src_item.type()) {
+      case ItemType::Vertex:
+        return GraphItem<DstGraphType>(this->MapToConst(src_item.vertex_ptr()));
+      case ItemType::VertexAttr:
+        return GraphItem<DstGraphType>(this->MapToConst(src_item.vertex_ptr()),
+                                       src_item.vertex_attribute_key());
+      default:
+        assert(false);
     }
     assert(false);
     return GraphItem<DstGraphType>(this->MapToConst(src_item.vertex_ptr()));
   }
 
   bool operator==(const Match& match) const {
-    for (auto cit  = this->match_container_.cbegin();
-              cit != this->match_container_.cend(); cit++) {
+    for (auto cit = this->match_container_.cbegin();
+         cit != this->match_container_.cend(); cit++) {
       if (cit.template get_const<kDstVertexPtrIdx>() !=
           match.MapTo(cit.template get_const<kSrcVertexPtrIdx>())) {
         /// not equal
@@ -230,7 +223,7 @@ class Match {
     return true;
   }
 
-  inline MapIterator MapBegin(){
+  inline MapIterator MapBegin() {
     return MapIterator(this->match_container_.begin(),
                        this->match_container_.end());
   }
@@ -245,16 +238,15 @@ class Match {
   /// match0: SrcSrcGraphType -> SrcGraphType
   /// match1: SrcGraphType    -> DstGraphType
   /// match2: SrcSrcGraphType -> DstGraphType
-  template<typename SrcSrcGraphType>
-  inline Match<SrcSrcGraphType,
-                  DstGraphType> operator()(const Match<SrcSrcGraphType,
-                                                          SrcGraphType>& match0) const{
+  template <typename SrcSrcGraphType>
+  inline Match<SrcSrcGraphType, DstGraphType> operator()(
+      const Match<SrcSrcGraphType, SrcGraphType>& match0) const {
     Match<SrcSrcGraphType, DstGraphType> result;
-    for (auto cit  = match0.match_container_.cbegin();
-              cit != match0.match_container_.cend(); cit++) {
+    for (auto cit = match0.match_container_.cbegin();
+         cit != match0.match_container_.cend(); cit++) {
       const auto src_src_ptr = cit.template get_const<kSrcVertexPtrIdx>();
-      const auto     src_ptr = cit.template get_const<kDstVertexPtrIdx>();
-      const auto     dst_ptr = this->MapTo(src_ptr);
+      const auto src_ptr = cit.template get_const<kDstVertexPtrIdx>();
+      const auto dst_ptr = this->MapTo(src_ptr);
       result.AddMap(src_src_ptr, dst_ptr);
     }
     assert(result.size() == match0.size());
@@ -266,6 +258,9 @@ template <typename SrcGraphType, typename DstGraphType,
           enum ContainerType match_container_type = ContainerType::Vector,
           enum SortType match_container_sort_type = SortType::Default>
 class MatchSet {
+ public:
+  using MatchType = Match<SrcGraphType, DstGraphType>;
+
  private:
   static constexpr bool kSrcIsConst_ = std::is_const<SrcGraphType>::value;
   static constexpr bool kDstIsConst_ = std::is_const<DstGraphType>::value;
@@ -278,8 +273,6 @@ class MatchSet {
       typename std::conditional<kDstIsConst_,
                                 typename DstGraphType ::VertexConstPtr,
                                 typename DstGraphType ::VertexPtr>::type;
-
-  using MatchType = Match<SrcGraphType, DstGraphType>;
 
   static constexpr TupleIdxType kMatchIdx = 0;
 
@@ -294,7 +287,7 @@ class MatchSet {
     using InnerIteratorType = InnerIterator_<ContainerType_, is_const_, depth_>;
 
    protected:
-    using ContentPtr      = MatchType*;
+    using ContentPtr = MatchType*;
     using ContentDataType = MatchType;
     using InnerIteratorType::IsDone;
     using InnerIteratorType::ToNext;
@@ -324,7 +317,7 @@ class MatchSet {
       static_assert(judge == is_const_, "illegal usage of this method");
       assert(!this->IsDone());
       return (InnerIteratorType::template get_const<MatchType, key_idx_,
-                                                     depth_ - 1>());
+                                                    depth_ - 1>());
     }
 
     template <bool judge = is_const_,
@@ -343,10 +336,10 @@ class MatchSet {
   MatchContainerType match_set;
 
  public:
-  using MatchIterator =
-      IteratorWithInstance_<MatchContentIterator_<MatchContainerType, false, 1, kMatchIdx>>;
-  using MatchConstIterator =
-      IteratorWithInstance_<MatchContentIterator_<MatchContainerType, true, 1, kMatchIdx>>;
+  using MatchIterator = IteratorWithInstance_<
+      MatchContentIterator_<MatchContainerType, false, 1, kMatchIdx>>;
+  using MatchConstIterator = IteratorWithInstance_<
+      MatchContentIterator_<MatchContainerType, true, 1, kMatchIdx>>;
 
   using size_type = typename MatchContainerType::size_type;
 

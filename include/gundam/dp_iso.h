@@ -1,5 +1,6 @@
 #ifndef _DPISO_H
 #define _DPISO_H
+#include <cassert>
 #include <cstdint>
 #include <ctime>
 #include <functional>
@@ -1333,6 +1334,91 @@ inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
   }
   return static_cast<int>(match_result.size());
 }
+template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+          class QueryGraph, class TargetGraph, class MatchSet>
+inline int DPISO_UsingMatchSet(const QueryGraph &query_graph,
+                               const TargetGraph &target_graph,
+                               MatchSet &match_set) {
+  using Match = typename MatchSet::MatchType;
+  auto user_callback = [&match_set](const auto &match_state) {
+    Match match;
+    for (const auto &single_match : match_state) {
+      match.AddMap(single_match.first, single_match.second);
+    }
+    match_set.AddMatch(match);
+    return true;
+  };
+  return DPISO<match_semantics>(query_graph, target_graph, user_callback,
+                                (double)-1);
+}
+template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+          class QueryGraph, class TargetGraph, class Match, class MatchSet>
+inline int DPISO_UsingPatricalMatchAndMatchSet(const QueryGraph &query_graph,
+                                               const TargetGraph &target_graph,
+                                               const Match &partical_match,
+                                               MatchSet &match_set) {
+  using PatternVertexConstPtr = typename QueryGraph::VertexConstPtr;
+  using DataGraphVertexConstPtr = typename TargetGraph::VertexConstPtr;
+  using MatchMap = std::map<PatternVertexConstPtr, DataGraphVertexConstPtr>;
+  using MatchContainer = std::vector<MatchMap>;
+  using CandidateSetContainer =
+      std::map<PatternVertexConstPtr, std::vector<DataGraphVertexConstPtr>>;
+  using PatternEdgePtr = typename QueryGraph::EdgeConstPtr;
+  using DataGraphEdgePtr = typename TargetGraph::EdgeConstPtr;
+  CandidateSetContainer candidate_set;
+  if (!_dp_iso::InitCandidateSet<match_semantics>(query_graph, target_graph,
+                                                  candidate_set)) {
+    return 0;
+  }
+  if (!_dp_iso::RefineCandidateSet(query_graph, target_graph, candidate_set)) {
+    return 0;
+  }
+  MatchMap match_state;
+  MatchContainer match_result;
+  std::set<DataGraphVertexConstPtr> target_matched;
+  for (auto vertex_it = query_graph.VertexCBegin(); !vertex_it.IsDone();
+       vertex_it++) {
+    PatternVertexConstPtr vertex_ptr = vertex_it;
+    if (partical_match.HasMap(vertex_ptr)) {
+      DataGraphVertexConstPtr match_vertex_ptr =
+          partical_match.MapTo(vertex_ptr);
+      match_state.insert(std::make_pair(vertex_ptr, match_vertex_ptr));
+      target_matched.insert(match_vertex_ptr);
+    }
+  }
+  int max_result = -1;
+  size_t result_count = 0;
+  auto user_callback = std::bind(
+      _dp_iso::MatchCallbackSaveResult<PatternVertexConstPtr,
+                                       DataGraphVertexConstPtr, MatchContainer>,
+      std::placeholders::_1, &max_result, &match_result);
+  if (query_graph.CountEdge() < _dp_iso::large_query_edge) {
+    _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
+        candidate_set, match_state, target_matched, result_count, user_callback,
+        [](auto &match_state) { return true; }, clock(), -1);
+  } else {
+    using FailSetContainer = std::vector<PatternVertexConstPtr>;
+    using ParentContainer =
+        std::map<PatternVertexConstPtr, std::vector<PatternVertexConstPtr>>;
+    ParentContainer parent;
+    FailSetContainer fail_set;
+    for (const auto &single_match : match_state) {
+      _dp_iso::UpdateParent(match_state, single_match.first, parent);
+    }
+    _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
+        candidate_set, match_state, target_matched, parent, fail_set,
+        result_count, user_callback, [](auto &match_state) { return true; },
+        clock(), -1);
+  }
 
+  for (const auto &single_match : match_result) {
+    Match match;
+    for (const auto &match_pair : single_match) {
+      match.AddMap(match_pair.first, match_pair.second);
+    }
+    match_set.AddMatch(match);
+  }
+  return result_count;
+}
 }  // namespace GUNDAM
 #endif
