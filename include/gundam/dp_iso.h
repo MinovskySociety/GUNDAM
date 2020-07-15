@@ -310,6 +310,7 @@ inline void UpdateCandidateSetOneDirection(
             : target_vertex_ptr->CountOutVertex(label_it->label());
     if (adj_count > adj_vertex_limit) {
       continue;
+      // return;
     }
     for (auto it =
              ((edge_state == EdgeState::kIn)
@@ -497,6 +498,7 @@ void UpdateParent(
   auto erase_it = std::unique(l.begin(), l.end());
   l.erase(erase_it, l.end());
 }
+int call = 0;
 // using Fail Set
 template <enum MatchSemantics match_semantics, class QueryGraph,
           class TargetGraph, class CandidateSetContainer, class QueryVertexPtr,
@@ -512,9 +514,10 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
       ((clock() - begin_time) / CLOCKS_PER_SEC) > query_limit_time) {
     return false;
   }
+  // call++;
   // for (auto &it : match_state) {
   //  std::cout << it.first->id() << " " << it.second->id() << std::endl;
-  // }
+  //}
   // std::cout << std::endl;
   if (match_state.size() == candidate_set.size()) {
     // find match ,so fail set is empty
@@ -583,7 +586,6 @@ bool _DPISO(const CandidateSetContainer &candidate_set,
           temp_candidate_set = candidate_set;
       UpdateState(next_query_vertex_ptr, next_target_vertex_ptr, match_state,
                   target_matched);
-
       UpdateCandidateSet<QueryGraph, TargetGraph>(
           next_query_vertex_ptr, next_target_vertex_ptr, temp_candidate_set,
           match_state, target_matched);
@@ -1149,9 +1151,21 @@ inline int DPISO(
   if (!_dp_iso::RefineCandidateSet(query_graph, target_graph, candidate_set)) {
     return 0;
   }
+
   for (const auto &target_ptr :
        candidate_set.find(cal_supp_vertex_ptr)->second) {
-    // if (target_ptr->id() != 2425) continue;
+    /*
+    if (target_ptr->id() != 715)
+      continue;
+    else {
+      candidate_set[cal_supp_vertex_ptr].clear();
+      candidate_set[cal_supp_vertex_ptr].push_back(target_ptr);
+      _dp_iso::RefineCandidateSet(query_graph, target_graph, candidate_set);
+      for (const auto &it : candidate_set) {
+        std::cout << it.first->id() << " " << it.second.size() << std::endl;
+      }
+    }
+    */
     time_t begin = clock();
     int max_result = 1;
     size_t result_count = 0;
@@ -1199,6 +1213,7 @@ inline int DPISO(
       supp.emplace_back(target_ptr);
     }
     time_t end = clock();
+    // std::cout << "call=" << _dp_iso::call << std::endl;
     // std::cout << "id = " << target_ptr->id() << " "
     //          << "time = " << (1.0 * end - begin) / CLOCKS_PER_SEC <<
     //          std::endl;

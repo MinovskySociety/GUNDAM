@@ -1119,9 +1119,13 @@ inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
 
   match_result.clear();
   std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> candidate_set;
+  auto t_begin = clock();
   if (!_vf2::InitCandidateSet<match_semantics, QueryGraph, TargetGraph>(
           query_graph, target_graph, vertex_comp, candidate_set))
     return 0;
+  auto t_end = clock();
+  // std::cout << "build time is " << (1.0 * t_end - t_begin) / CLOCKS_PER_SEC
+  //          << std::endl;
   QueryVertexPtr query_ptr = query_graph.FindConstVertex(query_id);
   int find_target_flag = 0;
   for (const auto &target_ptr : candidate_set[query_ptr]) {
@@ -1142,17 +1146,50 @@ inline int VF2(const QueryGraph &query_graph, const TargetGraph &target_graph,
                                               ResultContainer>,
                 std::placeholders::_1, &max_result, &match_result));
 }
-
+template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+          class QueryGraph, class TargetGraph, class ResultContainer,
+          class VertexCompare, class EdgeCompare>
+inline int VF2(
+    const QueryGraph &query_graph, const TargetGraph &target_graph,
+    std::map<typename QueryGraph::VertexConstPtr,
+             std::vector<typename TargetGraph::VertexConstPtr>> &candidate_set,
+    const typename QueryGraph::VertexType::IDType query_id,
+    const typename TargetGraph::VertexType::IDType target_id,
+    VertexCompare vertex_comp, EdgeCompare edge_comp, int max_result,
+    ResultContainer &match_result) {
+  using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
+  using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
+  QueryVertexPtr query_ptr = query_graph.FindConstVertex(query_id);
+  int find_target_flag = 0;
+  for (const auto &target_ptr : candidate_set[query_ptr]) {
+    if (target_ptr->id() == target_id) {
+      find_target_flag = 1;
+      break;
+    }
+  }
+  if (!find_target_flag) return 0;
+  std::map<QueryVertexPtr, TargetVertexPtr> match_state;
+  std::set<TargetVertexPtr> target_matched;
+  TargetVertexPtr target_ptr = target_graph.FindConstVertex(target_id);
+  _vf2::UpdateState(query_ptr, target_ptr, match_state, target_matched);
+  size_t result_count = 0;
+  return _vf2::_VF2<match_semantics, QueryGraph, TargetGraph>(
+      candidate_set, match_state, target_matched, edge_comp, result_count,
+      std::bind(_vf2::MatchCallbackSaveResult<QueryVertexPtr, TargetVertexPtr,
+                                              ResultContainer>,
+                std::placeholders::_1, &max_result, &match_result));
+}
 //// using GUNDAM::MatchSet
-// template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+// template <enum MatchSemantics match_semantics =
+// MatchSemantics::kIsomorphism,
 //          class QueryGraph, class TargetGraph>
 // inline int VF2(const QueryGraph &query_graph, const TargetGraph
 // &target_graph,
 //               MatchSet<const QueryGraph, const TargetGraph> &match_set) {
 //  using PatternVertexConstPtr = typename QueryGraph::VertexConstPtr;
 //  using DataGraphVertexConstPtr = typename TargetGraph::VertexConstPtr;
-//  using MatchMap = std::map<PatternVertexConstPtr, DataGraphVertexConstPtr>;
-//  using MatchContainer = std::vector<MatchMap>;
+//  using MatchMap = std::map<PatternVertexConstPtr,
+//  DataGraphVertexConstPtr>; using MatchContainer = std::vector<MatchMap>;
 //  MatchContainer match_result;
 //  size_t result_count = VF2<match_semantics, QueryGraph, TargetGraph>(
 //      query_graph, target_graph, -1, match_result);
