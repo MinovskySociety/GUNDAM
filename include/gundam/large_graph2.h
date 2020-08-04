@@ -386,7 +386,7 @@ class LargeGraph2 {
       it8->second.Erase(it9);
       if (it8->second.Empty()) {
         it7->second.Erase(it8);
-        if (it6->second.Empty()) out_edges_by_el_dst_.Erase(it7);
+        if (it7->second.Empty()) out_edges_by_el_dst_.Erase(it7);
       }
     }
 
@@ -427,7 +427,7 @@ class LargeGraph2 {
       it8->second.Erase(it9);
       if (it8->second.Empty()) {
         it7->second.Erase(it8);
-        if (it6->second.Empty()) in_edges_by_el_src_.Erase(it7);
+        if (it7->second.Empty()) in_edges_by_el_src_.Erase(it7);
       }
     }
 
@@ -630,14 +630,14 @@ class LargeGraph2 {
     while (!v->in_edges_.Empty()) {
       EraseEdge((*(v->in_edges_.begin()))->id());
     }
-    assert(v->out_edges_.empty());
-    assert(v->in_edges_.empty());
-    assert(v->out_edges_by_el_.empty());
-    assert(v->in_edges_by_el_.empty());
+    assert(v->out_edges_.Empty());
+    assert(v->in_edges_.Empty());
+    assert(v->out_edges_by_el_.Empty());
+    assert(v->in_edges_by_el_.Empty());
 
     const auto &label = v->label();
     auto l_it = vertex_labels_.Find(label);
-    assert(l_it != vertices_.end());
+    assert(l_it != vertex_labels_.end());
     l_it->second.Erase(id);
     if (l_it->second.Empty()) vertex_labels_.Erase(l_it);
 

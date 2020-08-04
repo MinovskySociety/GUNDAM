@@ -555,11 +555,13 @@ bool _VF2(
 
   for (const TargetVertexPtr &next_target_vertex_ptr : candidate) {
     TimerAddUpInterval(5);
-
+    auto t_begin = clock();
     bool is_joinable = IsJoinable<match_semantics, QueryGraph, TargetGraph>(
         next_query_vertex_ptr, next_target_vertex_ptr, match_state,
         target_matched, edge_comp);
-
+    auto t_end = clock();
+    // std::cout << "is joinable time is"
+    //          << (1.0 * t_end - t_begin) / CLOCKS_PER_SEC << std::endl;
     TimerAddUpInterval(4);
 
     if (is_joinable) {
@@ -1161,12 +1163,16 @@ inline int VF2(
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
   QueryVertexPtr query_ptr = query_graph.FindConstVertex(query_id);
   int find_target_flag = 0;
+  auto t_begin = clock();
   for (const auto &target_ptr : candidate_set[query_ptr]) {
     if (target_ptr->id() == target_id) {
       find_target_flag = 1;
       break;
     }
   }
+  auto t_end = clock();
+  std::cout << "find time is " << (1.0 * t_end - t_begin) / CLOCKS_PER_SEC
+            << std::endl;
   if (!find_target_flag) return 0;
   std::map<QueryVertexPtr, TargetVertexPtr> match_state;
   std::set<TargetVertexPtr> target_matched;
