@@ -463,9 +463,11 @@ class SmallGraph {
 
   // VertexConstIterator VertexCBegin(const VertexLabelType &label) const;
 
-  bool EraseVertex(const VertexIDType &id) {
+  size_t EraseVertex(const VertexIDType &id) {
     auto it = vertices_.Find(id);
-    if (it == vertices_.end()) return false;
+    if (it == vertices_.end()) return 0;
+
+    size_t count = 0;
 
     auto &v_data = it->second;
 
@@ -476,12 +478,13 @@ class SmallGraph {
 
     for (auto it_r = edges.rbegin(); it_r != edges.rend(); ++it_r) {
       if (it_r != edges.rbegin() && *it_r == *(it_r - 1)) continue;
-      edges_.Erase(*it_r);
+      count += edges_.Erase(*it_r);
     }
 
     vertices_.Erase(it);
+    ++count;
 
-    return true;
+    return count;
   }
 
   size_t CountEdge() const { return edges_.Count(); }
@@ -532,9 +535,9 @@ class SmallGraph {
     return EdgeConstIterator(this, edges_.cbegin(), edges_.cend());
   }
 
-  bool EraseEdge(const EdgeIDType &id) {
+  size_t EraseEdge(const EdgeIDType &id) {
     auto it1 = edges_.Find(id);
-    if (it1 == edges_.end()) return false;
+    if (it1 == edges_.end()) return 0;
 
     auto &e_data = it1->second;
 
@@ -549,8 +552,7 @@ class SmallGraph {
     assert(res);
 
     edges_.Erase(it1);
-
-    return true;
+    return 1;
   }
 
   void Clear() {

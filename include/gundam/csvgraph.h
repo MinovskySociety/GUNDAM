@@ -534,17 +534,15 @@ inline int ReadCSVGraph(GraphType& graph,
   using EdgeLabelType = typename GraphType::EdgeType::LabelType;
 
   return ReadCSVGraphWithCallback(
-      graph, v_list, e_list, [](size_t, VertexIDType, VertexLabelType, bool) {},
-      [](size_t, EdgeIDType, VertexIDType, VertexIDType, EdgeLabelType, bool) {
-      });
+      graph, v_list, e_list, nullptr, nullptr);
 }
 
 template <class GraphType>
 inline int ReadCSVGraph(GraphType& graph, const std::string &v_file,
                         const std::string &e_file) {
   std::vector<std::string> v_list, e_list;
-  v_list.push_back(v_file.string());
-  e_list.push_back(e_file.string());
+  v_list.push_back(v_file);
+  e_list.push_back(e_file);
   return ReadCSVGraph(graph, v_list, e_list);
 }
 
@@ -579,11 +577,14 @@ inline int ReadCSVGraph(GraphType& graph,
 
   return ReadCSVGraphWithCallback(
       graph, v_list, e_list,
-      [&vidgen](size_t, const VertexIDType& vertex_id, const VertexLabelType&,
-                bool) { vidgen.UseID(vertex_id); },
-      [&eidgen](size_t, const EdgeIDType& edge_id, const VertexIDType&,
-                const VertexIDType&, const EdgeLabelType&,
-                bool) { eidgen.UseID(edge_id); });
+      [&vidgen](auto& vertex) -> bool {
+        vidgen.UseID(vertex->id());
+        return true;
+      },
+      [&eidgen](auto& edge) -> bool {
+        eidgen.UseID(edge->id());
+        return true;
+      });
 }
 
 template <class GraphType, class VertexIDGenerator, class EdgeIDGenerator>
@@ -1095,24 +1096,19 @@ int WriteCSVGraph(const GraphType& graph, const std::string& v_file,
   int res;
   int count_v, count_e;
 
-  res = WriteCSVVertexFileWithCallback<write_attr>(
-      graph, v_file,
-      [](VertexIDType, VertexLabelType) -> bool { return true; });
+  res = WriteCSVVertexFileWithCallback<write_attr>(graph, v_file, nullptr);
   if (res < 0) return res;
 
   count_v = res;
 
-  res = WriteCSVEdgeFileWithCallback<write_attr>(
-      graph, e_file,
-      [](EdgeIDType, VertexIDType, VertexIDType, EdgeLabelType) -> bool {
-        return true;
-      });
+  res = WriteCSVEdgeFileWithCallback<write_attr>(graph, e_file, nullptr);
   if (res < 0) return res;
 
   count_e = res;
 
   return count_v + count_e;
 }
+
 template <bool write_attr = true, class GraphType, class VertexSet,
           class EdgeSet>
 int WriteCSVParticalGraph(const GraphType& graph, const std::string& v_file,
@@ -1131,26 +1127,16 @@ int WriteCSVParticalGraph(const GraphType& graph, const std::string& v_file,
   int count_v, count_e;
 
   res = WriteCSVVertexFileWithCallback<write_attr>(
-      graph, v_file,
-      [&vertex_set](VertexIDType id, VertexLabelType label) -> bool {
-        if (vertex_set.find(id) != vertex_set.end()) {
-          return true;
-        } else {
-          return false;
-        }
+      graph, v_file, [&vertex_set](auto& vertex) -> bool {
+        return (vertex_set.find(vertex->id()) != vertex_set.end());
       });
   if (res < 0) return res;
 
   count_v = res;
 
   res = WriteCSVEdgeFileWithCallback<write_attr>(
-      graph, e_file,
-      [&edge_set](EdgeIDType edge_id, VertexIDType src_id, VertexIDType dst_id,
-                  EdgeLabelType edge_label) -> bool {
-        if (edge_set.find(edge_id) != edge_set.end()) {
-          return true;
-        }
-        return false;
+      graph, e_file, [&edge_set](auto& edge) -> bool {
+        return (edge_set.find(edge->id()) != edge_set.end());
       });
   if (res < 0) return res;
 
