@@ -386,7 +386,7 @@ class LargeGraph2 {
       it8->second.Erase(it9);
       if (it8->second.Empty()) {
         it7->second.Erase(it8);
-        if (it6->second.Empty()) out_edges_by_el_dst_.Erase(it7);
+        if (it7->second.Empty()) out_edges_by_el_dst_.Erase(it7);
       }
     }
 
@@ -427,7 +427,7 @@ class LargeGraph2 {
       it8->second.Erase(it9);
       if (it8->second.Empty()) {
         it7->second.Erase(it8);
-        if (it6->second.Empty()) in_edges_by_el_src_.Erase(it7);
+        if (it7->second.Empty()) in_edges_by_el_src_.Erase(it7);
       }
     }
 
@@ -619,32 +619,35 @@ class LargeGraph2 {
     return VertexConstIterator(it->second.cbegin(), it->second.cend());
   }
 
-  bool EraseVertex(const typename VertexType::IDType &id) {
+  size_t EraseVertex(const typename VertexType::IDType &id) {
     auto v_it = vertices_.Find(id);
-    if (v_it == vertices_.end()) return false;
+    if (v_it == vertices_.end()) return 0;
+
+    size_t count = 0;
 
     VertexData *v = v_it->second;
     while (!v->out_edges_.Empty()) {
-      EraseEdge((*(v->out_edges_.begin()))->id());
+      count += EraseEdge((*(v->out_edges_.begin()))->id());
     }
     while (!v->in_edges_.Empty()) {
-      EraseEdge((*(v->in_edges_.begin()))->id());
+      count += EraseEdge((*(v->in_edges_.begin()))->id());
     }
-    assert(v->out_edges_.empty());
-    assert(v->in_edges_.empty());
-    assert(v->out_edges_by_el_.empty());
-    assert(v->in_edges_by_el_.empty());
+    assert(v->out_edges_.Empty());
+    assert(v->in_edges_.Empty());
+    assert(v->out_edges_by_el_.Empty());
+    assert(v->in_edges_by_el_.Empty());
 
     const auto &label = v->label();
     auto l_it = vertex_labels_.Find(label);
-    assert(l_it != vertices_.end());
+    assert(l_it != vertex_labels_.end());
     l_it->second.Erase(id);
     if (l_it->second.Empty()) vertex_labels_.Erase(l_it);
 
     delete v;
     vertices_.Erase(v_it);
+    ++count;
 
-    return true;
+    return count;
   }
 
   size_t CountEdge() const { return edges_.Count(); }
@@ -691,9 +694,9 @@ class LargeGraph2 {
     return EdgeConstIterator(edges_.cbegin(), edges_.cend());
   }
 
-  bool EraseEdge(const typename EdgeType::IDType &id) {
+  size_t EraseEdge(const typename EdgeType::IDType &id) {
     auto it = edges_.Find(id);
-    if (it == edges_.end()) return false;
+    if (it == edges_.end()) return 0;
 
     EdgeData *e = it->second;
     e->src_ptr()->RemoveOutEdge(e);
@@ -701,7 +704,7 @@ class LargeGraph2 {
     delete e;
 
     edges_.Erase(it);
-    return true;
+    return 1;
   }
 
   void Clear() {

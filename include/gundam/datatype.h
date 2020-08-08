@@ -47,7 +47,14 @@ inline BasicDataType StringToEnum(const char* type_str) {
   return BasicDataType::kTypeUnknown;
 }
 
-inline const char* EnumToString(enum BasicDataType data_type) {
+inline std::istream& operator>>(std::istream& in, BasicDataType& data_type) {
+  std::string tmp;
+  in >> tmp;
+  data_type = StringToEnum(tmp.c_str());
+  return in;
+}
+
+inline const char* EnumToString(const BasicDataType &data_type) {
   switch (data_type) {
     case BasicDataType::kTypeString:
       return "string";
@@ -65,6 +72,12 @@ inline const char* EnumToString(enum BasicDataType data_type) {
     default:
       return "unknown";
   }
+}
+
+inline std::ostream& operator<<(std::ostream& out,
+                                const BasicDataType& data_type) {
+  out << EnumToString(data_type);
+  return out;
 }
 
 template <typename DataType,

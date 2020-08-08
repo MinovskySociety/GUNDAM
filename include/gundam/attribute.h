@@ -476,8 +476,8 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
     return AttributeIterator(it, this->attributes_.end());
   }
 
-  bool EraseAttribute(const KeyType_& key) {
-    return this->attributes_.Erase(key);
+  size_t EraseAttribute(const KeyType_& key) {
+    return this->attributes_.Erase(key) ? 1 : 0;
   }
 };
 
