@@ -660,7 +660,7 @@ class LargeGraph {
 
     auto label = v->label();
     auto l_it = vertex_labels_.find(label);
-    assert(l_it != vertices_.end());
+    assert(l_it != vertex_labels_.end());
     l_it->second.Erase(id);
     if (l_it->second.Empty()) {
       vertex_labels_.erase(label);
