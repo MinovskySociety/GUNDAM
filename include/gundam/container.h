@@ -1,9 +1,10 @@
 #ifndef _CONTAINER_H
 #define _CONTAINER_H
 
-#include <cstdint>
-
 #include <assert.h>
+
+#include <cstdint>
+#include <algorithm>
 #include <vector>
 #include <map>
 #include <set>
@@ -28,8 +29,9 @@ enum class SortType:uint8_t{
     /// how the vertexes connected by the same type of edge
     /// are sorted
     Default, /// not sorted
-     Ascend, /// sorted by  ascend order
-    Descend  /// sorted by descend order
+     Sorted
+    //  Ascend, /// sorted by  ascend order
+    // Descend  /// sorted by descend order
 };
 
 template <enum ContainerType container_type_,
@@ -57,10 +59,13 @@ class Container<ContainerType::Vector,
 
  private:
   using InnerContainerType = std::vector<ElementType>;
+  
   InnerContainerType container_;
-
-  static_assert(sort_type_ == SortType::Default,
-               "other sorting type are not supported yet");
+  
+  static bool Compare(const ElementType& element,
+                      const KeyType& key) {
+    return std::get<kKeyIdx>(element) < key;
+  }
 
   template<bool is_const_,
            bool is_reverse_>
@@ -205,73 +210,125 @@ class Container<ContainerType::Vector,
     return;
   }
 
+  template<enum SortType _sort_type_ = sort_type_,
+           typename std::enable_if<_sort_type_ == SortType::Sorted, 
+                                   bool>::type = false>
   inline std::pair<iterator, bool> Insert(const KeyType_& key) {
-    if (sort_type_ == SortType::Default) {
-      for (iterator it  = iterator(this->container_.begin());
-                    it != iterator(this->container_. end ());++it){
-        if ((it.template get<kKeyIdx>()) == key)
-          return std::pair<iterator, bool>(it, false);
-      }
-      this->container_.emplace_back(
-          std::tuple_cat(std::tuple<KeyType_>(key),
-                         std::tuple<ValueTypes_...>()));
-      return std::pair<iterator, bool>(this->container_.end() - 1, true);
+    static_assert(sort_type_ == SortType::Sorted, "illegal usage of this method");
+    auto it = std::lower_bound(this->container_.begin(), 
+                               this->container_.end(), key, Compare);
+    if (it != this->container_.end() && std::get<kKeyIdx>(*it) == key){
+      /// already existed
+      return std::make_pair(it, false);
     }
-    /// other sorting type are not implemented
-    assert(false);
-    return std::pair<iterator, bool>(this->container_.end(), false);
+    return std::make_pair(
+        this->container_.emplace(it, std::tuple_cat(std::tuple<KeyType_>(key),
+                                                    std::tuple<ValueTypes_...>())),
+        true);
   }
 
+  template<enum SortType _sort_type_ = sort_type_,
+           typename std::enable_if<_sort_type_ == SortType::Default, 
+                                   bool>::type = false>
+  inline std::pair<iterator, bool> Insert(const KeyType_& key) {
+    static_assert(sort_type_ == SortType::Default, "illegal usage of this method");
+    for (iterator it  = iterator(this->container_.begin());
+                  it != iterator(this->container_. end ());++it){
+      if ((it.template get<kKeyIdx>()) == key)
+        return std::pair<iterator, bool>(it, false);
+    }
+    return std::make_pair(this->container_.emplace(
+                          this->container_.end(),
+                          std::tuple_cat(std::tuple<KeyType_>(key),
+                                         std::tuple<ValueTypes_...>())), true);
+  }
+
+  template<enum SortType _sort_type_ = sort_type_,
+           typename std::enable_if<_sort_type_ == SortType::Sorted, 
+                                   bool>::type = false>
   inline bool Erase(const KeyType& key) {
-    if (sort_type_ == SortType::Default) {
-      for (iterator it  = this->container_.begin();
-                    it != this->container_. end ();++it){
-        if ((it.template get<kKeyIdx>()) == key){
-          this->container_.erase(it.iterator_);
-          return true;
-        }
-      }
+    static_assert(sort_type_ == SortType::Sorted, "illegal usage of this method");
+    auto it = this->Find(key);
+    if (it == this->container_.end()) {
+      /// does not find this value
       return false;
     }
-    /// other sorting type are not implemented
-    assert(false);
+    this->container_.erase(it);
+    return true;
+  }
+
+  template<enum SortType _sort_type_ = sort_type_,
+           typename std::enable_if<_sort_type_ == SortType::Default, 
+                                   bool>::type = false>
+  inline bool Erase(const KeyType& key) {
+    static_assert(sort_type_ == SortType::Default, "illegal usage of this method");
+    for (iterator it  = this->container_.begin();
+                  it != this->container_. end ();++it){
+      if ((it.template get<kKeyIdx>()) == key){
+        this->container_.erase(it.iterator_);
+        return true;
+      }
+    }
     return false;
   }
 
   inline iterator Erase(const iterator& it) {
-    if (sort_type_ == SortType::Default) {
-      return this->container_.erase(it.iterator_);
-    }
-    /// other sorting type are not implemented
-    assert(false);
-    return this->container_.end();
+    return this->container_.erase(it.iterator_);
   }
 
+  template<enum SortType _sort_type_ = sort_type_,
+           typename std::enable_if<_sort_type_ == SortType::Sorted, 
+                                   bool>::type = false>
   inline std::pair<iterator, bool> Find(const KeyType& key) {
-    if (sort_type_ == SortType::Default) {
-      for (iterator it  = this->container_.begin();
-                    it != this->container_. end ();++it){
-        if (it.template get<kKeyIdx>() == key)
-          return std::pair<iterator, bool>(it, true);
-      }
-      return std::pair<iterator, bool>(this->container_.end(), false);
+    static_assert(sort_type_ == SortType::Sorted, "illegal usage of this method");
+    auto it = std::lower_bound(this->container_.begin(), 
+                               this->container_.end(), key, Compare);
+    if (it == container_.end() || std::get<kKeyIdx>(*it) != key) {
+      /// not found
+      return std::make_pair(this->container_.end(), false);
     }
-    /// other sorting type are not implemented
-    assert(false);
+    /// found 
+    return std::make_pair(it, true);
+  }
+  
+  template<enum SortType _sort_type_ = sort_type_,
+           typename std::enable_if<_sort_type_ == SortType::Sorted, 
+                                   bool>::type = false>
+  inline std::pair<const_iterator, bool> FindConst(const KeyType& key) const {
+    static_assert(sort_type_ == SortType::Sorted, "illegal usage of this method");
+    auto it = std::lower_bound(this->container_.cbegin(), 
+                               this->container_.cend(), key, Compare);
+    if (it == container_.cend() || std::get<kKeyIdx>(*it) != key) {
+      /// not found
+      return std::make_pair(this->container_.cend(), false);
+    }
+    /// found 
+    return std::make_pair(it, true);
+  }
+
+  template<enum SortType _sort_type_ = sort_type_,
+           typename std::enable_if<_sort_type_ == SortType::Default, 
+                                   bool>::type = false>
+  inline std::pair<iterator, bool> Find(const KeyType& key) {
+    static_assert(sort_type_ == SortType::Default, "illegal usage of this method");
+    for (iterator it  = this->container_.begin();
+                  it != this->container_. end ();++it){
+      if (it.template get<kKeyIdx>() == key)
+        return std::pair<iterator, bool>(it, true);
+    }
     return std::pair<iterator, bool>(this->container_.end(), false);
   }
 
+  template<enum SortType _sort_type_ = sort_type_,
+           typename std::enable_if<_sort_type_ == SortType::Default, 
+                                   bool>::type = false>
   inline std::pair<const_iterator, bool> FindConst(const KeyType& key) const {
-    if (sort_type_ == SortType::Default) {
-      for (const_iterator cit  = this->container_.cbegin();
-                          cit != this->container_. cend (); ++cit){
-        if ((cit.template get_const<kKeyIdx>()) == key)
-          return std::pair<const_iterator, bool>(cit, true);
-      }
-      return std::pair<const_iterator, bool>(this->container_.cend(), false);
+    static_assert(sort_type_ == SortType::Default, "illegal usage of this method");
+    for (const_iterator cit  = this->container_.cbegin();
+                        cit != this->container_. cend (); ++cit){
+      if ((cit.template get_const<kKeyIdx>()) == key)
+        return std::pair<const_iterator, bool>(cit, true);
     }
-    /// other sorting type are not implemented
-    assert(false);
     return std::pair<const_iterator, bool>(this->container_.cend(), false);
   }
 };
@@ -288,7 +345,7 @@ class Container<ContainerType::Set,
 
  private:
   struct tuple_compare {
-    bool operator() (const ElementType& lhs, const ElementType& rhs) {
+    bool operator() (const ElementType& lhs, const ElementType& rhs) const {
         return (std::get<kKeyIdx>(lhs)) < (std::get<kKeyIdx>(rhs));
     }
   };
@@ -296,7 +353,8 @@ class Container<ContainerType::Set,
   using InnerContainerType = std::set<ElementType,tuple_compare>;
   InnerContainerType container_;
 
-  static_assert(sort_type_ == SortType::Default,
+  static_assert(sort_type_ == SortType::Default
+             || sort_type_ == SortType::Sorted,
                "other sorting type are not supported yet");
 
   template<bool is_const_>
@@ -477,7 +535,8 @@ class Container<ContainerType::Map,
   using InnerContainerType = std::map<KeyType,ValueType>;
   InnerContainerType container_;
 
-  static_assert(sort_type_ == SortType::Default,
+  static_assert(sort_type_ == SortType::Default
+             || sort_type_ == SortType::Sorted,
                "other sorting type are not supported yet");
 
   template<bool is_const_,
