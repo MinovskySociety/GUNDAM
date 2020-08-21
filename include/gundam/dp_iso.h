@@ -1411,7 +1411,7 @@ inline int DPISO_UsingPatricalMatchAndMatchSet(const QueryGraph &query_graph,
   if (query_graph.CountEdge() < _dp_iso::large_query_edge) {
     _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
         candidate_set, match_state, target_matched, result_count, user_callback,
-        [](auto &match_state) { return true; }, clock(), -1);
+        [](auto &match_state) { return false; }, clock(), -1);
   } else {
     using FailSetContainer = std::vector<PatternVertexConstPtr>;
     using ParentContainer =
@@ -1423,8 +1423,8 @@ inline int DPISO_UsingPatricalMatchAndMatchSet(const QueryGraph &query_graph,
     }
     _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
         candidate_set, match_state, target_matched, parent, fail_set,
-        result_count, user_callback, [](auto &match_state) { return true; },
-        clock(), -1);
+        result_count, user_callback, [](auto &match_state) { return false; },
+        clock(), -1.0);
   }
 
   for (const auto &single_match : match_result) {

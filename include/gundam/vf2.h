@@ -1171,8 +1171,8 @@ inline int VF2(
     }
   }
   auto t_end = clock();
-  std::cout << "find time is " << (1.0 * t_end - t_begin) / CLOCKS_PER_SEC
-            << std::endl;
+  // std::cout << "find time is " << (1.0 * t_end - t_begin) / CLOCKS_PER_SEC
+  //          << std::endl;
   if (!find_target_flag) return 0;
   std::map<QueryVertexPtr, TargetVertexPtr> match_state;
   std::set<TargetVertexPtr> target_matched;
