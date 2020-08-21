@@ -92,7 +92,7 @@ class GraphConfigures<> {
   static constexpr enum ContainerType DefaultContainerType =
       ContainerType::Vector;
 
-  static constexpr enum SortType DefaultSortType = SortType::Default;
+  static constexpr enum SortType DefaultSortType = SortType::Sorted;
 
  protected:
   /// mark whether specified store data type

@@ -11,6 +11,7 @@
 #include <type_traits>
 #include <vector>
 
+#include "gundam/match.h"
 #include "gundam/timer.h"
 
 namespace GUNDAM {
@@ -1185,29 +1186,29 @@ inline int VF2(
                                               ResultContainer>,
                 std::placeholders::_1, &max_result, &match_result));
 }
-//// using GUNDAM::MatchSet
-// template <enum MatchSemantics match_semantics =
-// MatchSemantics::kIsomorphism,
-//          class QueryGraph, class TargetGraph>
-// inline int VF2(const QueryGraph &query_graph, const TargetGraph
-// &target_graph,
-//               MatchSet<const QueryGraph, const TargetGraph> &match_set) {
-//  using PatternVertexConstPtr = typename QueryGraph::VertexConstPtr;
-//  using DataGraphVertexConstPtr = typename TargetGraph::VertexConstPtr;
-//  using MatchMap = std::map<PatternVertexConstPtr,
-//  DataGraphVertexConstPtr>; using MatchContainer = std::vector<MatchMap>;
-//  MatchContainer match_result;
-//  size_t result_count = VF2<match_semantics, QueryGraph, TargetGraph>(
-//      query_graph, target_graph, -1, match_result);
-//  for (const auto &single_match : match_result) {
-//    Match<const QueryGraph, const TargetGraph> match;
-//    for (const auto &match_pair : single_match) {
-//      match.AddMap(match_pair.first, match_pair.second);
-//    }
-//    match_set.AddMatch(match);
-//  }
-//  return result_count;
-//}
+// using GUNDAM::MatchSet
+template <enum MatchSemantics match_semantics =
+MatchSemantics::kIsomorphism,
+         class QueryGraph, class TargetGraph>
+inline int VF2(const QueryGraph &query_graph, const TargetGraph
+&target_graph,
+              MatchSet<const QueryGraph, const TargetGraph> &match_set) {
+ using PatternVertexConstPtr = typename QueryGraph::VertexConstPtr;
+ using DataGraphVertexConstPtr = typename TargetGraph::VertexConstPtr;
+ using MatchMap = std::map<PatternVertexConstPtr,
+ DataGraphVertexConstPtr>; using MatchContainer = std::vector<MatchMap>;
+ MatchContainer match_result;
+ size_t result_count = VF2<match_semantics, QueryGraph, TargetGraph>(
+     query_graph, target_graph, -1, match_result);
+ for (const auto &single_match : match_result) {
+   Match<const QueryGraph, const TargetGraph> match;
+   for (const auto &match_pair : single_match) {
+     match.AddMap(match_pair.first, match_pair.second);
+   }
+   match_set.AddMatch(match);
+ }
+ return result_count;
+}
 
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
           class QueryGraph, class TargetGraph, class Match, class MatchSet>
