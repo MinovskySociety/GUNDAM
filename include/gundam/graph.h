@@ -707,7 +707,7 @@ class Graph {
       using DecomposedEdgeIteratorType =
           typename InnerVertex_::DecomposedEdgeIteratorType;
 
-      inline constexpr enum EdgeDirection const_direction() const {
+      inline enum EdgeDirection const_direction() const {
         return this->direction_;
       }
 
@@ -2737,7 +2737,7 @@ class Graph {
 
       // get direction
       enum EdgeDirection edge_direction =
-          edge_content_iterator_ptr->direction();
+          edge_content_iterator_ptr->const_direction();
       // get container and iterator
       EdgeLabelContainerType* edge_label_container = nullptr;
       if (edge_direction == EdgeDirection::OutputEdge)
@@ -2936,8 +2936,8 @@ class Graph {
       VertexConstPtr temp_this_vertex_ptr(temp_this_ptr);
       return EdgeConstIteratorSpecifiedEdgeLabel(
           ret.first, direction, temp_this_vertex_ptr,
-          ret.first.template get<kVertexPtrContainerIdx>().cbegin(),
-          ret.first.template get<kVertexPtrContainerIdx>().cend());
+          ret.first.template get_const<kVertexPtrContainerIdx>().cbegin(),
+          ret.first.template get_const<kVertexPtrContainerIdx>().cend());
     }
 
     template<bool ptr_is_const_>
@@ -3262,7 +3262,6 @@ class Graph {
 
   /// return whether has removed that vertex successfully
   inline bool EraseVertex(const VertexConstPtr& vertex_const_ptr){
-    /// only support remove isolated vertex now
     assert(vertex_const_ptr->CountOutVertex() == 0
         && vertex_const_ptr-> CountInVertex() == 0);
     /// <iterator, bool>
@@ -3271,6 +3270,11 @@ class Graph {
       /// does not have a vertex with that label
       return false;
     }
+    // /// erase out edge
+    // for (auto edge_it = vertex_label_ret.first->OutEdgeBegin();
+    //          !edge_it.IsDone();){
+    //   edge_it = vertex_label_ret.first->EraseEdge(edge_it);
+    // }
     return vertex_label_ret.first
                            .template get<kVertexIDContainerIdx>()
                            .Erase(vertex_const_ptr->id());
@@ -3288,6 +3292,12 @@ class Graph {
         typename VertexLabelContainerType::iterator;
     using VertexIDIteratorType =
         typename VertexIDContainerType::iterator;
+        
+    // /// erase out edge
+    // for (auto edge_it = vertex_iterator->OutEdgeBegin();
+    //          !edge_it.IsDone();){
+    //   edge_it = vertex_iterator->EraseEdge(edge_it);
+    // }
 
     VertexIterator ret_iterator = vertex_iterator;
     void* ret_ptr = &ret_iterator;
