@@ -491,10 +491,8 @@ class _InnerIterator_<Container<container_type_, sort_type_, KeyType_,
       typename std::enable_if<depth == now_depth_ - 1, bool>::type = false>
   inline const ReturnType& get_const() const {
     static_assert(
-        (!is_const_ &&
-         std::is_same<ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value) ||
-        ( is_const_ &&
-         std::is_same<const ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value),
+          std::is_same<const ReturnType&, 
+                       decltype(this->iterator_.template get_const<return_idx>())>::value,
         "Type mismatch");
 
     return (this->iterator_.template get_const<return_idx>());
@@ -569,10 +567,8 @@ class _InnerIterator_<Container<container_type_, sort_type_, KeyType_>,
             typename std::enable_if<depth == depth_ - 1, bool>::type = false>
   inline const ReturnType& get_const() const {
     static_assert(
-        (!is_const_ &&
-         std::is_same<ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value) ||
-        ( is_const_ &&
-         std::is_same<const ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value),
+         std::is_same<const ReturnType&, 
+                      decltype(this->iterator_.template get_const<return_idx>())>::value,
         "Type mismatch");
     return (this->iterator_.template get_const<return_idx>());
   }
@@ -640,10 +636,8 @@ class _InnerIterator_<Container<container_type_, sort_type_, KeyType_,
             typename std::enable_if<depth == depth_ - 1, bool>::type = false>
   inline const ReturnType& get_const() const {
     static_assert(
-        (!is_const_ &&
-         std::is_same<ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value) ||
-        ( is_const_ &&
-         std::is_same<const ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value),
+         std::is_same<const ReturnType&, 
+                      decltype(this->iterator_.template get_const<return_idx>())>::value,
         "Type mismatch");
     return (this->iterator_.template get_const<return_idx>());
   }

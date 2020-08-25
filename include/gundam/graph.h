@@ -3270,11 +3270,11 @@ class Graph {
       /// does not have a vertex with that label
       return false;
     }
-    // /// erase out edge
-    // for (auto edge_it = vertex_label_ret.first->OutEdgeBegin();
-    //          !edge_it.IsDone();){
-    //   edge_it = vertex_label_ret.first->EraseEdge(edge_it);
-    // }
+    /// erase out edge
+    for (auto edge_it = vertex_label_ret.first->OutEdgeBegin();
+             !edge_it.IsDone();){
+      edge_it = vertex_label_ret.first->EraseEdge(edge_it);
+    }
     return vertex_label_ret.first
                            .template get<kVertexIDContainerIdx>()
                            .Erase(vertex_const_ptr->id());
@@ -3293,11 +3293,11 @@ class Graph {
     using VertexIDIteratorType =
         typename VertexIDContainerType::iterator;
         
-    // /// erase out edge
-    // for (auto edge_it = vertex_iterator->OutEdgeBegin();
-    //          !edge_it.IsDone();){
-    //   edge_it = vertex_iterator->EraseEdge(edge_it);
-    // }
+    /// erase out edge
+    for (auto edge_it = vertex_iterator->OutEdgeBegin();
+             !edge_it.IsDone();){
+      edge_it = vertex_iterator->EraseEdge(edge_it);
+    }
 
     VertexIterator ret_iterator = vertex_iterator;
     void* ret_ptr = &ret_iterator;
