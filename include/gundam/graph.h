@@ -3195,12 +3195,104 @@ class Graph {
 
   template <template <typename...> class GraphType_, typename... configures_>
   inline void Construct(const GraphType_<configures_...>& graph) {
-    for (auto vit = graph.VertexCBegin(); !vit.IsDone(); vit++)
-      this->AddVertex(vit->id(), vit->label());
-    for (auto vit = graph.VertexCBegin(); !vit.IsDone(); vit++) {
-      for (auto eit = vit->OutEdgeCBegin(); !eit.IsDone(); eit++) {
-        this->AddEdge(eit->const_src_ptr()->id(), eit->const_dst_ptr()->id(),
-                      eit->label(), eit->id());
+    using GraphType = GraphType_<configures_...>;
+    for (auto vertex_cit = graph.VertexCBegin(); 
+             !vertex_cit.IsDone(); 
+              vertex_cit++){
+      /// <VertexPtr, bool>
+      auto vertex_ret = this->AddVertex(vertex_cit->id(), 
+                                        vertex_cit->label());
+      assert(vertex_ret.second);
+      for (auto attr_cit = vertex_cit->AttributeCBegin();
+               !attr_cit.IsDone();attr_cit++){
+        switch(attr_cit->value_type()){
+        case BasicDataType::kTypeString:
+          vertex_ret.first->AddAttribute(
+                               attr_cit->key(),
+                               attr_cit->template const_value<std::string>());
+          continue;
+        case BasicDataType::kTypeInt:
+          vertex_ret.first->AddAttribute(
+                               attr_cit->key(),
+                               attr_cit->template const_value<int>());
+          continue;
+        case BasicDataType::kTypeInt64:
+          vertex_ret.first->AddAttribute(attr_cit->key(),
+                               attr_cit->template const_value<int64_t>());
+          continue;
+        case BasicDataType::kTypeFloat:
+          vertex_ret.first->AddAttribute(
+                               attr_cit->key(),
+                               attr_cit->template const_value<float>());
+          continue;
+        case BasicDataType::kTypeDouble:
+          vertex_ret.first->AddAttribute(
+                               attr_cit->key(),
+                               attr_cit->template const_value<double>());
+          continue;
+        case BasicDataType::kTypeDateTime:
+          vertex_ret.first->AddAttribute(
+                               attr_cit->key(),
+                               attr_cit->template const_value<DateTime>());
+          continue;
+        default:
+          /// unknown data type
+          assert(false);
+        }
+      }
+    }
+    for (auto vertex_cit = graph.VertexCBegin(); 
+             !vertex_cit.IsDone(); 
+              vertex_cit++){
+      auto vertex_ptr = this->FindVertex(vertex_cit->id());
+      for (auto edge_cit = vertex_cit->OutEdgeCBegin(); 
+               !edge_cit.IsDone(); 
+                edge_cit++) {
+        assert(vertex_ptr->id() == edge_cit->const_src_ptr()->id());
+        auto dst_ptr = this->FindVertex(edge_cit->const_dst_ptr()->id());
+        /// <EdgePtr, bool>
+        auto edge_ret = vertex_ptr->AddEdge(dst_ptr,
+                                            edge_cit->label(), 
+                                            edge_cit->id());
+        assert(edge_ret.second);
+        for (auto attr_cit = edge_cit->AttributeCBegin();
+                 !attr_cit.IsDone(); attr_cit++){
+          switch(attr_cit->value_type()){
+          case BasicDataType::kTypeString:
+            edge_ret.first->AddAttribute(
+                               attr_cit->key(),
+                               attr_cit->template const_value<std::string>());
+            continue;
+          case BasicDataType::kTypeInt:
+            edge_ret.first->AddAttribute(
+                               attr_cit->key(),
+                               attr_cit->template const_value<int>());
+            continue;
+          case BasicDataType::kTypeInt64:
+            edge_ret.first->AddAttribute(
+                               attr_cit->key(),
+                               attr_cit->template const_value<int64_t>());
+            continue;
+          case BasicDataType::kTypeFloat:
+            edge_ret.first->AddAttribute(
+                               attr_cit->key(),
+                               attr_cit->template const_value<float>());
+            continue;
+          case BasicDataType::kTypeDouble:
+            edge_ret.first->AddAttribute(
+                               attr_cit->key(),
+                               attr_cit->template const_value<double>());
+            continue;
+          case BasicDataType::kTypeDateTime:
+            edge_ret.first->AddAttribute(
+                               attr_cit->key(),
+                               attr_cit->template const_value<DateTime>());
+            continue;
+          default:
+            /// unknown data type
+            assert(false);
+          }
+        }
       }
     }
     return;
@@ -3275,6 +3367,11 @@ class Graph {
              !edge_it.IsDone();){
       edge_it = vertex_label_ret.first->EraseEdge(edge_it);
     }
+    /// erase in edge
+    for (auto edge_it = vertex_label_ret.first->InEdgeBegin();
+             !edge_it.IsDone();){
+      edge_it = vertex_label_ret.first->EraseEdge(edge_it);
+    }
     return vertex_label_ret.first
                            .template get<kVertexIDContainerIdx>()
                            .Erase(vertex_const_ptr->id());
@@ -3295,6 +3392,11 @@ class Graph {
         
     /// erase out edge
     for (auto edge_it = vertex_iterator->OutEdgeBegin();
+             !edge_it.IsDone();){
+      edge_it = vertex_iterator->EraseEdge(edge_it);
+    }
+    /// erase in edge
+    for (auto edge_it = vertex_iterator->InEdgeBegin();
              !edge_it.IsDone();){
       edge_it = vertex_iterator->EraseEdge(edge_it);
     }

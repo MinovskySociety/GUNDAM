@@ -317,9 +317,9 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
   AttributeContainerType attributes_;
 
   using AttributeContentIterator =
-      AttributeContentIterator_<KeyType_, AttributeContainerType, false, 1, 0,
-                                kAttributeKeyIdx, kAttributeValuePtrIdx,
-                                kAttributeValueTypeIdx>;
+        AttributeContentIterator_<KeyType_, AttributeContainerType, false, 1, 0,
+                                  kAttributeKeyIdx, kAttributeValuePtrIdx,
+                                  kAttributeValueTypeIdx>;
 
   std::map<KeyType_, enum BasicDataType> key_to_value_type_map;
   bool SetValueType(const KeyType_& key, enum BasicDataType value_type) {
