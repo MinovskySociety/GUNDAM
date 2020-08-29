@@ -533,6 +533,10 @@ class Graph {
         return;
       }
 
+      inline operator bool() const {
+        return !this->IsNull();
+      }
+
       inline bool operator==(const VertexPtr_& ptr) const {
         assert(this->ptr_ != ptr.ptr_ || this->ptr_->id() == ptr.ptr_->id());
         return this->ptr_ == ptr.ptr_;
@@ -1614,6 +1618,10 @@ class Graph {
                                edge_attribute_ptr_idx_>& edge_iterator) {
         this->Construct(edge_iterator);
         return;
+      }
+
+      inline operator bool() const {
+        return !this->IsNull();
       }
 
       template <typename              ContainerType_,
