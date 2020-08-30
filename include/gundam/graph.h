@@ -166,6 +166,7 @@ class Graph {
                               kVertexPtrIdx>;
 
  public:
+  using   EdgeSizeType = typename InnerVertex_::EdgeSizeType;
   using VertexSizeType = typename VertexIDContainerType::size_type;
   /// non-constant iterator
   using VertexIterator 
@@ -1176,6 +1177,7 @@ class Graph {
                                   EdgeAttributeType*>;
     using DecomposedEdgeIteratorType =
         typename DecomposedEdgeContainerType::iterator;
+    using EdgeSizeType = typename DecomposedEdgeContainerType::size_type;
 
     static constexpr TupleIdxType kVertexPtrIdx = 0;
     static constexpr TupleIdxType kDecomposedEdgeContainerIdx = 1;
@@ -3633,6 +3635,15 @@ class Graph {
   ///                const typename EdgeType::   IDType& edge_id,
   ///                const typename EdgeType::LabelType& edge_label) const;
 
+  EdgeSizeType CountEdge() const {
+    EdgeSizeType edge_num = 0;
+    for (auto vertex_cit = this->VertexCBegin();
+             !vertex_cit.IsDone();vertex_cit++){
+      edge_num += vertex_cit->CountOutEdge();
+    }
+    return edge_num;
+  }
+
   VertexSizeType CountVertex() const {
     VertexSizeType vertex_num = 0;
     for (auto vertex_label_it  = this->vertexes_.cbegin();
@@ -3672,6 +3683,7 @@ class Graph {
         ret.first.template get<kVertexIDContainerIdx>().begin(),
         ret.first.template get<kVertexIDContainerIdx>().end());
   }
+  
   inline VertexConstIteratorSpecifiedLabel VertexCBegin(
       typename VertexType::LabelType label) const {
     /// <iterator of VertexLabelContainer, bool>
