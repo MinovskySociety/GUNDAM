@@ -58,6 +58,8 @@ class Graph {
 
   static constexpr bool vertex_label_is_const =
       Configures::vertex_label_is_const;
+  static constexpr enum AttributeType vertex_attribute_store_type =
+      Configures::vertex_attribute_store_type;
   static constexpr bool vertex_attribute_is_const =
       Configures::vertex_attribute_is_const;
   static constexpr bool vertex_has_static_attribute =
@@ -65,6 +67,8 @@ class Graph {
   static constexpr bool vertex_has_dynamic_attribute =
       Configures::vertex_has_dynamic_attribute;
   static constexpr bool edge_label_is_const = Configures::edge_label_is_const;
+  static constexpr enum AttributeType edge_attribute_store_type =
+      Configures::edge_attribute_store_type;
   static constexpr bool edge_attribute_is_const =
       Configures::edge_attribute_is_const;
   static constexpr bool edge_has_static_attribute =
@@ -357,7 +361,7 @@ class Graph {
       //                       VertexAttributeKeyType,
       //                       vertex_attribute_container_type,
       //                       vertex_attribute_container_sort_type> 
-      public Attribute_    <AttributeType::kGrouped,
+      public Attribute_    <vertex_attribute_store_type,
                             vertex_attribute_is_const,
                             std::pair<VertexLabelType, bool>,
                             VertexAttributeKeyType,
@@ -428,7 +432,7 @@ class Graph {
           //                  VertexAttributeKeyType,
           //                  vertex_attribute_container_type,
           //                  vertex_attribute_container_sort_type>;
-              = Attribute_<AttributeType::kGrouped,
+              = Attribute_<vertex_attribute_store_type,
                            vertex_attribute_is_const,
                            std::pair<VertexLabelType, bool>,
                            VertexAttributeKeyType,
@@ -436,12 +440,25 @@ class Graph {
                            vertex_attribute_container_sort_type>;
                            
 
-    using   EdgeAttributeType =
-            WithAttribute_<EdgeStaticAttributeType, 
-                           edge_attribute_is_const,
-                           edge_has_dynamic_attribute, EdgeAttributeKeyType,
-                           edge_attribute_container_type,
-                           edge_attribute_container_sort_type>;
+    using   EdgeAttributeType
+          // = WithAttribute_<EdgeStaticAttributeType, 
+          //                  edge_attribute_is_const,
+          //                  edge_has_dynamic_attribute, EdgeAttributeKeyType,
+          //                  edge_attribute_container_type,
+          //                  edge_attribute_container_sort_type>;
+          = Attribute_<edge_attribute_store_type,
+                       edge_attribute_is_const,
+                       std::pair<EdgeLabelType, bool>,
+                       EdgeAttributeKeyType,
+                       edge_attribute_container_type,
+                       edge_attribute_container_sort_type>;
+                           
+      // public WithAttribute_<VertexStaticAttributeType, 
+      //                       vertex_attribute_is_const,
+      //                       vertex_has_dynamic_attribute, 
+      //                       VertexAttributeKeyType,
+      //                       vertex_attribute_container_type,
+      //                       vertex_attribute_container_sort_type> 
 
     template <bool is_const_>
     class VertexPtr_ {
@@ -2016,7 +2033,8 @@ class Graph {
         /// this Edge has already been existed
         return std::pair<EdgePtr, bool>(ret, false);
       }
-      EdgeAttributeType* edge_attribute_ptr = new EdgeAttributeType();
+      EdgeAttributeType* edge_attribute_ptr 
+                   = new EdgeAttributeType(std::make_pair(edge_label, false));
       InnerVertex_* const temp_this_ptr = this;
       VertexPtr temp_vertex_ptr = VertexPtr(temp_this_ptr);
       dst_ptr->AddInEdge(temp_vertex_ptr, edge_label, edge_id,
@@ -3383,8 +3401,6 @@ class Graph {
 
   /// return whether has removed that vertex successfully
   inline bool EraseVertex(const VertexConstPtr& vertex_const_ptr){
-    assert(vertex_const_ptr->CountOutVertex() == 0
-        && vertex_const_ptr-> CountInVertex() == 0);
     /// <iterator, bool>
     auto vertex_label_ret = this->vertexes_.Find(vertex_const_ptr->label());
     if (!vertex_label_ret.second){
@@ -3407,9 +3423,6 @@ class Graph {
   }
 
   inline VertexIterator EraseVertex(VertexIterator& vertex_iterator) {
-    /// only support remove isolated vertex now
-    assert(vertex_iterator->CountOutVertex() == 0
-        && vertex_iterator-> CountInVertex() == 0);
     /// depth of each level
     static constexpr IteratorDepthType vertex_id_container_depth = 0;
     static constexpr IteratorDepthType vertex_ptr_depth = 1;

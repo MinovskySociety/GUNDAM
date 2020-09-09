@@ -3,6 +3,7 @@
 
 #include "gundam/container.h"
 #include "gundam/label.h"
+#include "gundam/attribute2.h"
 
 #include <cstdint>
 #include <string>
@@ -31,6 +32,8 @@ template <bool HasAttribute>
 class SetVertexHasAttribute;
 template <typename KeyType>
 class SetVertexAttributeKeyType;
+template <enum AttributeType>
+class SetVertexAttributeStoreType;
 template <typename AttributeType>
 class SetVertexSharedAttributeType;
 template <bool AttributeIsConst>
@@ -49,6 +52,8 @@ template <bool HasAttribute>
 class SetEdgeHasAttribute;
 template <typename KeyType>
 class SetEdgeAttributeKeyType;
+template <enum AttributeType>
+class SetEdgeAttributeStoreType;
 template <typename AttributeType>
 class SetEdgeSharedAttributeType;
 template <bool AttributeIsConst>
@@ -89,8 +94,11 @@ class GraphConfigures<> {
   using DefaultLabelType = unsigned int;
   using DefaultAttributeType = std::string;
 
-  static constexpr enum ContainerType DefaultContainerType =
-      ContainerType::Vector;
+  static constexpr enum ContainerType DefaultContainerType 
+                      = ContainerType::Vector;
+
+  static constexpr enum AttributeType DefaultAttributeStoreType 
+                      = AttributeType::kSeparated;
 
   static constexpr enum SortType DefaultSortType = SortType::Sorted;
 
@@ -103,6 +111,7 @@ class GraphConfigures<> {
   static constexpr bool specified_vertex_label_is_const = false;
   static constexpr bool specified_vertex_has_static_attribute = false;
   static constexpr bool specified_vertex_attribute_type = false;
+  static constexpr bool specified_vertex_attribute_store_type = false;
   static constexpr bool specified_vertex_attribute_is_const = false;
   static constexpr bool specified_vertex_has_dynamic_attribute = false;
   static constexpr bool specified_vertex_attribute_key_type = false;
@@ -114,6 +123,7 @@ class GraphConfigures<> {
   static constexpr bool specified_edge_label_is_const = false;
   static constexpr bool specified_edge_has_static_attribute = false;
   static constexpr bool specified_edge_attribute_type = false;
+  static constexpr bool specified_edge_attribute_store_type = false;
   static constexpr bool specified_edge_attribute_is_const = false;
   static constexpr bool specified_edge_has_dynamic_attribute = false;
   static constexpr bool specified_edge_attribute_key_type = false;
@@ -145,6 +155,8 @@ class GraphConfigures<> {
   static constexpr bool vertex_label_is_const = true;
   static constexpr bool vertex_has_static_attribute = false;
   using VertexStaticAttributeType = DefaultAttributeType;
+  static constexpr enum AttributeType 
+                        vertex_attribute_store_type = DefaultAttributeStoreType;
   static constexpr bool vertex_attribute_is_const = true;
   static constexpr bool vertex_has_dynamic_attribute = true;
   using VertexAttributeKeyType = DefaultKeyType;
@@ -159,6 +171,8 @@ class GraphConfigures<> {
   static constexpr bool edge_label_is_const = true;
   static constexpr bool edge_has_static_attribute = false;
   using EdgeStaticAttributeType = DefaultAttributeType;
+  static constexpr enum AttributeType 
+                        edge_attribute_store_type = DefaultAttributeStoreType;
   static constexpr bool edge_attribute_is_const = true;
   static constexpr bool edge_has_dynamic_attribute = true;
   using EdgeAttributeKeyType = DefaultKeyType;
@@ -299,6 +313,24 @@ class GraphConfigures<SetVertexAttributeKeyType<KeyType>, other_configures...>
   using VertexAttributeKeyType = KeyType;
 };
 
+// Set Node Attribute Key Type
+template <enum AttributeType store_type, 
+          typename... other_configures>
+class GraphConfigures<SetVertexAttributeStoreType<store_type>, 
+                      other_configures...>
+    : public GraphConfigures<other_configures...> {
+ private:
+  static_assert(!GraphConfigures<
+                    other_configures...>::specified_vertex_attribute_store_type,
+                "Redefinition of Vertex Attribute Key Type");
+
+ protected:
+  static constexpr bool specified_vertex_attribute_store_type = true;
+
+ public:
+  static constexpr enum AttributeType vertex_attribute_store_type = store_type;
+};
+
 // set Node attr
 template <typename VertexSharedAttributeType_, typename... other_configures>
 class GraphConfigures<SetVertexSharedAttributeType<VertexSharedAttributeType_>,
@@ -384,6 +416,24 @@ class GraphConfigures<SetEdgeAttributeKeyType<KeyType>, other_configures...>
 
  public:
   using EdgeAttributeKeyType = KeyType;
+};
+
+// Set Node Attribute Key Type
+template <enum AttributeType store_type, 
+          typename... other_configures>
+class GraphConfigures<SetEdgeAttributeStoreType<store_type>, 
+                      other_configures...>
+    : public GraphConfigures<other_configures...> {
+ private:
+  static_assert(!GraphConfigures<
+                    other_configures...>::specified_edge_attribute_store_type,
+                "Redefinition of Vertex Attribute Key Type");
+
+ protected:
+  static constexpr bool specified_edge_attribute_store_type = true;
+
+ public:
+  static constexpr enum AttributeType edge_attribute_store_type = store_type;
 };
 
 // set edge attr
