@@ -1131,7 +1131,7 @@ class Attribute_<AttributeType::kGrouped,
       const bool kAddAttributeRet = ret.first
                                        .template get<kAttributeListPtrIdx>()
                                       ->FindAttributePtr(container_id);
-      if (!kAddAttributeRet){
+      if (kAddAttributeRet){
         /// has found
         return AttributePtr(container_id, ret.first); /// not null
       }
@@ -1153,7 +1153,7 @@ class Attribute_<AttributeType::kGrouped,
       const bool kAddAttributeRet = ret.first
                                        .template get_const<kAttributeListPtrIdx>()
                                       ->FindAttributeConstPtr(container_id);
-      if (!kAddAttributeRet){
+      if (kAddAttributeRet){
         /// has found
         return AttributeConstPtr(container_id, ret.first); /// not null
       }
