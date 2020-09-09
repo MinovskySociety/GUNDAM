@@ -11,6 +11,7 @@
 #include "gundam/iterator.h"
 #include "gundam/label.h"
 #include "gundam/attribute.h"
+#include "gundam/attribute2.h"
 
 #include <iostream>
 #include <set>
@@ -204,7 +205,7 @@ class Graph {
                            vertex_has_dynamic_attribute,
                            VertexAttributeKeyType>;
 
-  using EdgeType   = Type_<EdgeIDType, 
+  using   EdgeType = Type_<EdgeIDType, 
                            EdgeLabelType, 
                            edge_has_static_attribute,
                            EdgeStaticAttributeType, 
@@ -350,12 +351,18 @@ class Graph {
     : public WithID_       <VertexIDType>,
       public WithLabel_    <VertexLabelType, 
                             vertex_label_is_const>,
-      public WithAttribute_<VertexStaticAttributeType, 
+      // public WithAttribute_<VertexStaticAttributeType, 
+      //                       vertex_attribute_is_const,
+      //                       vertex_has_dynamic_attribute, 
+      //                       VertexAttributeKeyType,
+      //                       vertex_attribute_container_type,
+      //                       vertex_attribute_container_sort_type> 
+      public Attribute_    <AttributeType::kGrouped,
                             vertex_attribute_is_const,
-                            vertex_has_dynamic_attribute, 
+                            std::pair<VertexLabelType, bool>,
                             VertexAttributeKeyType,
                             vertex_attribute_container_type,
-                            vertex_attribute_container_sort_type> {
+                            vertex_attribute_container_sort_type>{
    public:   
     template <bool is_const_>
     class VertexPtr_;
@@ -415,12 +422,19 @@ class Graph {
     class VertexContentIterator_;
 
     using VertexAttributeType 
-          = WithAttribute_<VertexStaticAttributeType, 
+          // = WithAttribute_<VertexStaticAttributeType, 
+          //                  vertex_attribute_is_const,
+          //                  vertex_has_dynamic_attribute, 
+          //                  VertexAttributeKeyType,
+          //                  vertex_attribute_container_type,
+          //                  vertex_attribute_container_sort_type>;
+              = Attribute_<AttributeType::kGrouped,
                            vertex_attribute_is_const,
-                           vertex_has_dynamic_attribute, 
+                           std::pair<VertexLabelType, bool>,
                            VertexAttributeKeyType,
                            vertex_attribute_container_type,
                            vertex_attribute_container_sort_type>;
+                           
 
     using   EdgeAttributeType =
             WithAttribute_<EdgeStaticAttributeType, 
@@ -459,17 +473,22 @@ class Graph {
                            const InnerVertex_*,
                                  InnerVertex_*>::type;
 
-      template <typename _ContainerType_, IteratorDepthType _depth_,
+      template <typename      _ContainerType_, 
+                IteratorDepthType     _depth_,
                 TupleIdxType _vertex_ptr_idx_>
       using FriendVertexContentIterator =
-          VertexContentIterator_<_ContainerType_, is_const_, _depth_,
-                                 _vertex_ptr_idx_>;
+                  VertexContentIterator_<_ContainerType_, 
+                                               is_const_, 
+                                                 _depth_,
+                                        _vertex_ptr_idx_>;
 
-      template <typename _ContainerType_, IteratorDepthType _depth_,
+      template <typename      _ContainerType_, 
+                IteratorDepthType     _depth_,
                 TupleIdxType _vertex_ptr_idx_>
-      using FriendVertexIterator =
-          Iterator_<FriendVertexContentIterator<_ContainerType_, _depth_,
-                                                _vertex_ptr_idx_>>;
+      using FriendVertexIterator = Iterator_<
+                FriendVertexContentIterator<_ContainerType_, 
+                                                    _depth_,
+                                           _vertex_ptr_idx_>>;
 
       template <typename _ContainerType_, IteratorDepthType _depth_,
                 TupleIdxType _vertex_ptr_idx_>
@@ -1836,7 +1855,7 @@ class Graph {
                  const VertexLabelType& label)
                      : VertexWithIDType(id),
                        VertexWithLabelType(label),
-                       VertexAttributeType() {
+                       VertexAttributeType(std::make_pair(label, true)) {
       return;
     }
 
