@@ -94,9 +94,15 @@ class WithAttribute_<AttributeType_,
   template <typename ConcreteDataType_>
   class ConcreteValue : public AbstractValue {
    public:
-    ConcreteValue(const ConcreteDataType_& value) : value_(value) {}
+    ConcreteValue(const ConcreteDataType_& value)
+                                : AbstractValue(),
+                                    value_(value) {
+      return;
+    }
 
-    virtual ~ConcreteValue() override {}
+    virtual ~ConcreteValue() override {
+      return;
+    }
 
     virtual std::string value_str() const override {
       std::stringstream ss;
@@ -388,7 +394,7 @@ class WithAttribute_<AttributeType_,
   }
 
   const char* attribute_value_type_name(const KeyType_& key) const {
-    return EnumToString(this->attribute_value_type());
+    return EnumToString(this->attribute_value_type(key));
   }
 
   AttributeIterator AttributeBegin() {

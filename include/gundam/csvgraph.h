@@ -1012,6 +1012,7 @@ int WriteCSVVertexFileWithCallback(const GraphType& graph,
     WriteCSVLine(vertex_file, line);
     ++count;
   }
+
   return count;
 }
 

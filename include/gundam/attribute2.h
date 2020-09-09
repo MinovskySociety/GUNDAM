@@ -348,7 +348,7 @@ class Attribute_<AttributeType::kSeparated,
   }
 
   const char* attribute_value_type_name(const AttributeKeyType_& key) const {
-    return EnumToString(this->attribute_value_type());
+    return EnumToString(this->attribute_value_type(key));
   }
 
   AttributeIterator AttributeBegin() {
@@ -687,12 +687,12 @@ class Attribute_<AttributeType::kGrouped,
       template<bool judge = is_const_,
               typename std::enable_if<!judge, bool>::type = false>
       inline AttributeListPtr attribute_list_ptr() {
-        return this->attribute_list_ptr_iterator_
+        return this->attribute_list_ptr_container_iterator_
                     .template get<attribute_list_ptr_idx_>();
       }
 
       inline AttributeListConstPtr attribute_list_const_ptr() const {
-        return this->attribute_list_ptr_iterator_
+        return this->attribute_list_ptr_container_iterator_
                     .template get_const<attribute_list_ptr_idx_>();
       }
         
@@ -722,7 +722,7 @@ class Attribute_<AttributeType::kGrouped,
       
       inline const AttributeKeyType_& key() const {
         assert(!this->IsNull());
-        return this->attribute_iterator_
+        return this->attribute_list_ptr_container_iterator_
                     .template get_const<attribute_key_idx_>();
       }
 
@@ -1087,45 +1087,13 @@ class Attribute_<AttributeType::kGrouped,
                         kAddAttributeRet);
     }
 
-    inline std::pair<AttributePtr, bool> AddAttribute(
-                      const ContainerIDType& container_id,
-                      const AttributeKeyType_& key, 
-                      const enum BasicDataType& data_type,
-                      const std::string& value_str) {
-      switch (data_type) {
-        case BasicDataType::kTypeString:
-          return this->AddAttribute<std::string>(container_id, key, 
-                                                         value_str);
-        case BasicDataType::kTypeInt:
-          return this->AddAttribute<int>(container_id, key, 
-                                       std::stoi(value_str));
-        case BasicDataType::kTypeInt64:
-          return this->AddAttribute<int64_t>(container_id, key, 
-                                          std::stoll(value_str));
-        case BasicDataType::kTypeFloat:
-          return this->AddAttribute<float>(container_id, key, 
-                                         std::stof(value_str));
-        case BasicDataType::kTypeDouble:
-          return this->AddAttribute<double>(container_id, key, 
-                                          std::stod(value_str));
-        case BasicDataType::kTypeDateTime:
-          return this->AddAttribute<DateTime>(container_id, key, 
-                                             DateTime(value_str));
-        case BasicDataType::kTypeUnknown:
-        default:
-          assert(false);
-          break;
-      }
-      return std::make_pair(AttributePtr(), false);
-    }
-
     inline const BasicDataType attribute_value_type(
            const ContainerIDType& container_id,
            const AttributeKeyType_& key) const {
       /// <iterator, bool>
       auto ret = this->attribute_list_ptr_container_.FindConst(key);
       assert(ret.second); /// should already has such a key
-      return ret.first.template get<kAttributeListPtrIdx>()
+      return ret.first.template get_const<kAttributeListPtrIdx>()
                      ->value_type(container_id);
     }
 
@@ -1397,12 +1365,28 @@ class Attribute_<AttributeType::kGrouped,
   }
 
   inline std::pair<AttributePtr, bool> AddAttribute(
-      const AttributeKeyType_& key, 
-      const enum BasicDataType& data_type,
-      const std::string& value_str) {
-    return this->attribute_container_group_ptr_
-               ->AddAttribute(this->attribute_container_id_, 
-                              data_type, value_str);
+                    const AttributeKeyType_& key, 
+                    const enum BasicDataType& data_type,
+                    const std::string& value_str) {
+    switch (data_type) {
+      case BasicDataType::kTypeString:
+        return this->AddAttribute<std::string>(key, value_str);
+      case BasicDataType::kTypeInt:
+        return this->AddAttribute<int>(key, std::stoi(value_str));
+      case BasicDataType::kTypeInt64:
+        return this->AddAttribute<int64_t>(key, std::stoll(value_str));
+      case BasicDataType::kTypeFloat:
+        return this->AddAttribute<float>(key, std::stof(value_str));
+      case BasicDataType::kTypeDouble:
+        return this->AddAttribute<double>(key, std::stod(value_str));
+      case BasicDataType::kTypeDateTime:
+        return this->AddAttribute<DateTime>(key, DateTime(value_str));
+      case BasicDataType::kTypeUnknown:
+      default:
+        assert(false);
+        break;
+    }
+    return std::make_pair(AttributePtr(), false);
   }
 
   template <typename ConcreteDataType>
