@@ -58,7 +58,16 @@ void TestMultiVF2() {
 TEST(TestGUNDAM, MULTI_VF2) {  
   //using G1 = GUNDAM::Graph<>;
 
-  using G2 = GUNDAM::LargeGraph<uint32_t, uint32_t, std::string, uint32_t, uint32_t, std::string>;
+  using G1 = GUNDAM::Graph<GUNDAM::SetVertexIDType<uint32_t>, 
+                           GUNDAM::SetVertexLabelType<uint32_t>,
+                           GUNDAM::SetVertexAttributeKeyType<std::string>, 
+                           GUNDAM::SetEdgeIDType<uint32_t>,
+                           GUNDAM::SetEdgeLabelType<uint32_t>, 
+                           GUNDAM::
+                           SetEdgeAttributeKeyType<std::string>>;
+  using G2 = GUNDAM::LargeGraph<uint32_t, uint32_t, std::string, 
+                                uint32_t, uint32_t, std::string>;
   
+  TestMultiVF2<G1>();
   TestMultiVF2<G2>();
 }

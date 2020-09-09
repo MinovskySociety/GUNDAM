@@ -49,9 +49,9 @@ target_link_libraries(test_datatype GTest::GTest GTest::Main)
 #target_link_libraries(test_iterator GTest::GTest GTest::Main)
 #add_test(AllTests test_iterator)
 
-#add_executable (test_attribute "test_attribute.cc")
-#target_link_libraries(test_attribute GTest::GTest GTest::Main)
-#add_test(AllTests test_attribute)
+add_executable (test_attribute "test_attribute.cc")
+target_link_libraries(test_attribute GTest::GTest GTest::Main)
+add_test(AllTests test_attribute)
 
 add_executable (test_graph "test_graph.cc")
 target_link_libraries(test_graph GTest::GTest GTest::Main)
