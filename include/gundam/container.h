@@ -244,7 +244,6 @@ class Container<ContainerType::Vector,
   }
 
   inline bool Erase(const KeyType& key) {
-    static_assert(sort_type_ == SortType::Sorted, "illegal usage of this method");
     auto ret = this->Find(key);
     if (!ret.second) {
       /// does not find this value

@@ -2767,12 +2767,14 @@ class Graph {
           (vertex_ptr_iterator != vertex_ptr_container.end())) {
         auto& decomposed_edge_container_ref
           = vertex_ptr_iterator.template get<kDecomposedEdgeContainerIdx>();
+        /// the end iterator might be invalid since an element is erased
+        /// from the vertex ptr container
+        ret_it_ptr->iterator_end() = vertex_ptr_container.end();
         ret_vertex_ptr_iterator = vertex_ptr_iterator;
         ret_decomposed_edge_iterator = decomposed_edge_container_ref.begin();
         return ret_iterator;
-      } else {
-        return EdgeIteratorSpecifiedEdgeLabel();
       }
+      return EdgeIteratorSpecifiedEdgeLabel();
     }
 
     inline EdgeIterator EraseEdge(EdgeIterator& edge_iterator) {
@@ -2783,46 +2785,43 @@ class Graph {
           static_cast<EdgeContentIteratorType*>(ptr);
 
       // get direction
-      enum EdgeDirection edge_direction =
-          edge_content_iterator_ptr->const_direction();
+      enum EdgeDirection edge_direction
+                       = edge_content_iterator_ptr->const_direction();
       // get container and iterator
-      EdgeLabelContainerType* edge_label_container = nullptr;
+      EdgeLabelContainerType* edge_label_container_ptr = nullptr;
       if (edge_direction == EdgeDirection::OutputEdge)
-        edge_label_container = &this->edges_.out_edges();
+        edge_label_container_ptr = &this->edges_.out_edges();
       else
-        edge_label_container = &this->edges_.in_edges();
+        edge_label_container_ptr = &this->edges_.in_edges();
       VertexPtrContainerType& vertex_ptr_container =
           edge_content_iterator_ptr->template get<VertexPtrContainerType,
-                                                  kVertexPtrContainerIdx, 0>();
+                                                 kVertexPtrContainerIdx, 0>();
       DecomposedEdgeContainerType& decomposed_edge_container =
-          edge_content_iterator_ptr->template get<
-              DecomposedEdgeContainerType, kDecomposedEdgeContainerIdx, 1>();
-      auto edge_label_iterator =
-          edge_content_iterator_ptr
-              ->template get_iterator<EdgeLabelIteratorType, 0>();
-      auto vertex_ptr_iterator =
-          edge_content_iterator_ptr
+          edge_content_iterator_ptr->template get<DecomposedEdgeContainerType, 
+                                                 kDecomposedEdgeContainerIdx, 1>();
+      auto edge_label_iterator
+       = edge_content_iterator_ptr
+         ->template get_iterator<EdgeLabelIteratorType, 0>();
+      auto vertex_ptr_iterator
+       = edge_content_iterator_ptr
               ->template get_iterator<VertexPtrIteratorType, 1>();
-      auto decomposed_edge_iterator =
-          edge_content_iterator_ptr
+      auto decomposed_edge_iterator
+            = edge_content_iterator_ptr
               ->template get_iterator<DecomposedEdgeIteratorType, 2>();
 
       // erase dst_ptr iterator
       EdgeLabelType edge_label = edge_iterator->label();
-      EdgeIDType edge_id = edge_iterator->id();
+      EdgeIDType    edge_id    = edge_iterator->id();
       InnerVertex_* temp_this_ptr = this;
       VertexPtr temp_vertex_ptr = VertexPtr(temp_this_ptr);
       VertexPtr dst_ptr;
-      if (edge_direction == EdgeDirection::OutputEdge) {
-        dst_ptr = edge_content_iterator_ptr->dst_ptr();
-      } else {
-        dst_ptr = edge_content_iterator_ptr->src_ptr();
-      }
       enum EdgeDirection reverse_edge_direction;
       if (edge_direction == EdgeDirection::OutputEdge) {
         reverse_edge_direction = EdgeDirection::InputEdge;
+        dst_ptr = edge_content_iterator_ptr->dst_ptr();
       } else {
         reverse_edge_direction = EdgeDirection::OutputEdge;
+        dst_ptr = edge_content_iterator_ptr->src_ptr();
       }
       dst_ptr->EraseEdge(reverse_edge_direction, 
                          edge_label, temp_vertex_ptr,
@@ -2865,10 +2864,10 @@ class Graph {
         }
         edge_label_iterator++;
       } else {
-        edge_label_iterator = edge_label_container->Erase(edge_label_iterator);
+        edge_label_iterator = edge_label_container_ptr->Erase(edge_label_iterator);
       }
-      if (!edge_label_container->empty() &&
-          edge_label_iterator != edge_label_container->end()) {
+      if (!edge_label_container_ptr->empty() &&
+           edge_label_iterator != edge_label_container_ptr->end()) {
         vertex_ptr_iterator
           = (edge_label_iterator.template get<kVertexPtrContainerIdx>()).begin();
         decomposed_edge_iterator
@@ -2876,6 +2875,9 @@ class Graph {
                                .begin();
         ret_edge_label_iterator = edge_label_iterator;
         ret_vertex_ptr_iterator = vertex_ptr_iterator;
+        /// the end iterator might be invalid since an element is erased
+        /// from the edge label container
+        ret_it->iterator_end() = edge_label_container_ptr->end();
         ret_it->template get_iterator<DecomposedEdgeIteratorType, 2>() =
             decomposed_edge_iterator;
         return ret_iterator;
@@ -3408,18 +3410,58 @@ class Graph {
       return false;
     }
     /// erase out edge
-    for (auto edge_it = vertex_label_ret.first->OutEdgeBegin();
+    for (auto edge_it = vertex_label_ret.first
+                       .template get<kVertexPtrIdx>()
+                      ->OutEdgeBegin();
              !edge_it.IsDone();){
-      edge_it = vertex_label_ret.first->EraseEdge(edge_it);
+      edge_it = vertex_label_ret.first
+                                .template get<kVertexPtrIdx>()
+                               ->EraseEdge(edge_it);
     }
     /// erase in edge
-    for (auto edge_it = vertex_label_ret.first->InEdgeBegin();
+    for (auto edge_it = vertex_label_ret.first
+                       .template get<kVertexPtrIdx>()
+                      ->InEdgeBegin();
              !edge_it.IsDone();){
-      edge_it = vertex_label_ret.first->EraseEdge(edge_it);
+      edge_it = vertex_label_ret.first
+                                .template get<kVertexPtrIdx>()
+                               ->EraseEdge(edge_it);
     }
     return vertex_label_ret.first
                            .template get<kVertexIDContainerIdx>()
                            .Erase(vertex_const_ptr->id());
+  }
+  
+  inline size_t EraseVertex(const VertexIDType& vertex_id){
+    for (auto vertex_label_it  = this->vertexes_.begin();
+              vertex_label_it != this->vertexes_.end();
+            ++vertex_label_it) {
+      /// <iterator of ID container, bool>
+      const auto ret = vertex_label_it.template get<kVertexIDContainerIdx>()
+                                      .Find(vertex_id);
+      if (ret.second) {
+        /// erase out edge
+        for (auto edge_it = ret.first.template get<kVertexPtrIdx>()
+                              ->OutEdgeBegin();
+                 !edge_it.IsDone();){
+          edge_it = ret.first.template get<kVertexPtrIdx>()
+                            ->EraseEdge(edge_it);
+        }
+        /// erase in edge
+        for (auto edge_it = ret.first.template get<kVertexPtrIdx>()
+                              ->InEdgeBegin();
+                 !edge_it.IsDone();){
+          edge_it = ret.first.template get<kVertexPtrIdx>()
+                            ->EraseEdge(edge_it);
+        }
+        vertex_label_it.template get<kVertexIDContainerIdx>()
+                       .Erase(ret.first);
+        /// successfully erased vertex
+        return 1;
+      }
+    }
+    /// not found
+    return 0;
   }
 
   inline VertexIterator EraseVertex(VertexIterator& vertex_iterator) {
