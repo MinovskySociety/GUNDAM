@@ -258,7 +258,7 @@ inline bool ReadAttribues(
 //  return true;
 //}
 
-//inline bool IsFileExisted(const std::string file) {
+// inline bool IsFileExisted(const std::string file) {
 //  std::ifstream check(file);
 //  if (!check) return false;
 //  check.close();
@@ -279,8 +279,7 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
   try {
     std::cout << v_file << std::endl;
 
-    rapidcsv::Document vertex_file(v_file,
-                                   rapidcsv::LabelParams(0, -1));
+    rapidcsv::Document vertex_file(v_file, rapidcsv::LabelParams(0, -1));
 
     // phase column names
     std::vector<std::string> col_name = vertex_file.GetColumnNames();
@@ -334,10 +333,9 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
       if (r) {
         if constexpr (!std::is_null_pointer_v<ReadVertexCallback>) {
           if (!callback(vertex_ptr)) return -2;
-        }        
+        }
         ++count_success;
-      }        
-      else {      
+      } else {
         ++count_fail;
       }
     }
@@ -416,7 +414,7 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
 //}
 
 template <bool read_attr = true, class GraphType, class ReadEdgeCallback>
-int ReadCSVEdgeFileWithCallback(const std::string &e_file, GraphType& graph,
+int ReadCSVEdgeFileWithCallback(const std::string& e_file, GraphType& graph,
                                 ReadEdgeCallback callback) {
   // read edge file(csv)
   // file format: (edge_id,source_id,target_id,label_id,......)
@@ -425,7 +423,7 @@ int ReadCSVEdgeFileWithCallback(const std::string &e_file, GraphType& graph,
   using EdgeLabelType = typename GraphType::EdgeType::LabelType;
   using EdgeAttributeKeyType = typename GraphType::EdgeType::AttributeKeyType;
   using EdgePtr = typename GraphType::EdgePtr;
-  
+
   try {
     std::cout << e_file << std::endl;
 
@@ -470,13 +468,13 @@ int ReadCSVEdgeFileWithCallback(const std::string &e_file, GraphType& graph,
       bool r;
       EdgePtr edge_ptr;
       std::tie(edge_ptr, r) = graph.AddEdge(source_id[row], target_id[row],
-                                              label_id[row], edge_id[row]);
+                                            label_id[row], edge_id[row]);
       if (r) {
         if constexpr (read_attr) {
           r = ReadAttribues<GraphType::edge_has_attribute>(
               graph, edge_ptr, edge_file, attr_info, 4, row);
         }
-      }      
+      }
 
       if (r) {
         if constexpr (!std::is_null_pointer_v<ReadEdgeCallback>) {
@@ -533,13 +531,12 @@ inline int ReadCSVGraph(GraphType& graph,
   using EdgeIDType = typename GraphType::EdgeType::IDType;
   using EdgeLabelType = typename GraphType::EdgeType::LabelType;
 
-  return ReadCSVGraphWithCallback(
-      graph, v_list, e_list, nullptr, nullptr);
+  return ReadCSVGraphWithCallback(graph, v_list, e_list, nullptr, nullptr);
 }
 
 template <class GraphType>
-inline int ReadCSVGraph(GraphType& graph, const std::string &v_file,
-                        const std::string &e_file) {
+inline int ReadCSVGraph(GraphType& graph, const std::string& v_file,
+                        const std::string& e_file) {
   std::vector<std::string> v_list, e_list;
   v_list.push_back(v_file);
   e_list.push_back(e_file);
@@ -588,8 +585,8 @@ inline int ReadCSVGraph(GraphType& graph,
 }
 
 template <class GraphType, class VertexIDGenerator, class EdgeIDGenerator>
-inline int ReadCSVGraph(GraphType& graph, const std::string &v_file,
-                        const std::string &e_file, VertexIDGenerator& vidgen,
+inline int ReadCSVGraph(GraphType& graph, const std::string& v_file,
+                        const std::string& e_file, VertexIDGenerator& vidgen,
                         EdgeIDGenerator& eidgen) {
   std::vector<std::string> v_list, e_list;
   v_list.push_back(v_file);
