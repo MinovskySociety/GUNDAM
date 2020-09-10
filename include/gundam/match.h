@@ -171,7 +171,7 @@ class Match {
 
   /// constant dst
   inline DstVertexPtrType MapTo(const SrcVertexPtrType& src_ptr) const {
-    assert(!src_ptr.IsNull());
+    assert(src_ptr);
     /// <iterator, bool>
     auto ret = this->match_container_.FindConst(src_ptr);
     if (!ret.second) {

@@ -6,13 +6,15 @@
 #include "gundam/csvgraph.h"
 #include "gundam/large_graph.h"
 #include "gundam/util.h"
-//#include "gundam/graph.h"
+#include "gundam/graph.h"
 
 inline uint64_t GetTime() { return clock() * 1000 / CLOCKS_PER_SEC; }
 
-template <class GraphType, class VertexFileList, class EdgeFileList>
+template<class      GraphType, 
+         class VertexFileList, 
+         class   EdgeFileList>
 void TestReadCSVGraph(const VertexFileList &v_list,
-                      const EdgeFileList &e_list) {
+                      const   EdgeFileList &e_list) {
   using namespace GUNDAM;
 
   auto begin_time = GetTime();
@@ -35,12 +37,12 @@ void TestReadCSVGraph(const VertexFileList &v_list,
 TEST(TestGUNDAM, ReadCSVGraph) {
   using namespace GUNDAM;
 
-  // using G1 = Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<uint32_t>,
-  //                 SetEdgeIDType<uint32_t>, SetEdgeLabelType<uint32_t>,
-  //                 SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-  //                 SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>,
-  //                 SetVertexAttributeKeyType<std::string>,
-  //                 SetEdgeAttributeKeyType<std::string>>;
+  using G1 = Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<uint32_t>,
+                  SetEdgeIDType<uint32_t>, SetEdgeLabelType<uint32_t>,
+                  SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
+                  SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>,
+                  SetVertexAttributeKeyType<std::string>,
+                  SetEdgeAttributeKeyType<std::string>>;
 
   using G2 = LargeGraph<uint64_t, uint32_t, std::string, uint64_t, uint32_t,
                         std::string>;
@@ -69,7 +71,7 @@ TEST(TestGUNDAM, ReadCSVGraph) {
   // const char *v_list = "D://Work/cu5000/liantong_n.csv";
   // const char *e_list = "D://Work/cu5000/liantong_e.csv";
 
-  // TestReadCSVGraph<G1>(v_list, e_list);
+  TestReadCSVGraph<G1>(v_list, e_list);
   TestReadCSVGraph<G2>(v_list, e_list);
 }
 

@@ -9,267 +9,31 @@
 #include "gundam/iterator.h"
 
 namespace GUNDAM {
-
-// Value
-class AbstractValue {
- public:
-  virtual ~AbstractValue() {}
-
-  virtual std::string value_str() const = 0;
-};
-
-template <typename ConcreteDataType_>
-class ConcreteValue : public AbstractValue {
- public:
-  ConcreteValue(const ConcreteDataType_& value) : value_(value) {}
-
-  virtual ~ConcreteValue() override {}
-
-  virtual std::string value_str() const override {
-    std::stringstream ss;
-    ss << value_;
-    return ss.str();
-  }
-
-  const ConcreteDataType_& const_value() const { return this->value_; }
-
-  ConcreteDataType_& value() { return this->value_; }
-
-  void set_value(const ConcreteDataType_& value) { this->value_ = value; }
-
- private:
-  ConcreteDataType_ value_;
-};
-
-// Attribute
-constexpr TupleIdxType kAttributeKeyIdx = 0;
-constexpr TupleIdxType kAttributeValuePtrIdx = 1;
-constexpr TupleIdxType kAttributeValueTypeIdx = 2;
-
-template <typename KeyType_, enum ContainerType container_type_,
-          enum SortType sort_type_>
-using AttributeContainer = Container<container_type_, sort_type_, KeyType_,
-                                     AbstractValue*, enum BasicDataType>;
-
-template <typename AttributeType_, bool is_const_, bool is_dynamic_,
-          typename KeyType_, enum ContainerType container_type_,
-          enum SortType sort_type_>
+  
+template <typename            AttributeType_, 
+          bool                     is_const_, 
+          bool                   is_dynamic_,
+          typename                  KeyType_, 
+          enum ContainerType container_type_,
+          enum SortType           sort_type_>
 class WithAttribute_;
 
-// This"Ptr" is iterator!
-template <typename AttributeContainerType, bool is_const_>
-class AttributeContentPtr_ {
- private:
-  using IteratorType = typename std::conditional<
-      is_const_, typename AttributeContainerType::const_iterator,
-      typename AttributeContainerType::iterator>::type;
-
- protected:
-  bool is_null_;
-  IteratorType iterator_;
-  bool IsNull() const { return this->is_null_; }
-
- public:
-  AttributeContentPtr_() : is_null_(true), iterator_() { return; }
-  AttributeContentPtr_(const IteratorType& iterator)
-      : is_null_(false), iterator_(iterator) {
-    return;
-  }
-  inline const typename AttributeContainerType::KeyType& key() const {
-    assert(!this->is_null_);
-    return this->iterator_.template get<kAttributeKeyIdx>();
-  }
-  template <typename ConcreteDataType>
-  inline const ConcreteDataType& const_value() const {
-    assert(!this->is_null_);
-    return static_cast<const ConcreteValue<ConcreteDataType>*>(
-              this->iterator_.template get_const<kAttributeValuePtrIdx>())
-        ->const_value();
-  }
-  template <typename ConcreteDataType>
-  inline ConcreteDataType& value() {
-    assert(!this->is_null_);
-    return static_cast<ConcreteValue<ConcreteDataType>*>(
-              this->iterator_.template get<kAttributeValuePtrIdx>())
-        ->value();
-  }
-  inline std::string value_str() const {
-    assert(!this->is_null_);
-    return this->iterator_.template get_const<kAttributeValuePtrIdx>()->value_str();
-  }
-  inline BasicDataType value_type() const {
-    assert(!this->is_null_);
-    return this->iterator_.template get_const<kAttributeValueTypeIdx>();
-  }
-};
-
-template <typename AttributeContainerType, bool is_const_>
-class AttributePtr_
-    : protected AttributeContentPtr_<AttributeContainerType, is_const_> {
- private:
-  friend class AttributePtr_<AttributeContainerType, !is_const_>;
-
-  using AttributeContentPtrType =
-      AttributeContentPtr_<AttributeContainerType, is_const_>;
-
-  using AttributeContentPtr =
-      typename std::conditional<is_const_, const AttributeContentPtrType*,
-                                AttributeContentPtrType*>::type;
-
- public:
-  using AttributeContentPtrType::AttributeContentPtrType;
-
-  bool operator==(const AttributePtr_& attribute_ptr) const {
-    return this->iterator_ == attribute_ptr.iterator_;
-  }
-  bool operator!=(const AttributePtr_& attribute_ptr) const {
-    return this->iterator_ != attribute_ptr.iterator_;
-  }
-  bool operator<(const AttributePtr_& attribute_ptr) const {
-    return this->iterator_ < attribute_ptr.iterator_;
-  }
-  bool operator>(const AttributePtr_& attribute_ptr) const {
-    return this->iterator_ > attribute_ptr.iterator_;
-  }
-  bool operator<=(const AttributePtr_& attribute_ptr) const {
-    return this->iterator_ <= attribute_ptr.iterator_;
-  }
-  bool operator>=(const AttributePtr_& attribute_ptr) const {
-    return this->iterator_ >= attribute_ptr.iterator_;
-  }
-  AttributePtr_& operator=(const AttributePtr_& attribute_ptr) {
-    this->iterator_ = attribute_ptr.iterator_;
-    this->is_null_ = attribute_ptr.is_null_;
-    return *this;
-  }
-
-  template <const bool judge = is_const_,
-            typename std::enable_if<!judge, bool>::type = false>
-  AttributeContentPtr operator->() {
-    static_assert(judge == is_const_, "Illegal usage of this method");
-    AttributeContentPtr const temp_this_ptr = this;
-    return temp_this_ptr;
-  }
-
-  template <const bool judge = is_const_,
-            typename std::enable_if<judge, bool>::type = false>
-  AttributeContentPtr operator->() const {
-    static_assert(judge == is_const_, "Illegal usage of this method");
-    AttributeContentPtr const temp_this_ptr = this;
-    return temp_this_ptr;
-  }
-
-  bool IsNull() const { return AttributeContentPtrType::IsNull(); }
-};
-
-// class InnerVertex_;
-//
-// using VertexAttributeType =
-//    WithAttribute_<VertexStaticAttributeType, vertex_attribute_is_const,
-//                   vertex_has_dynamic_attribute, VertexAttributeKeyType,
-//                   vertex_attribute_container_type,
-//                   vertex_attribute_container_sort_type>;
-//
-// using EdgeAttributeType =
-//    WithAttribute_<EdgeStaticAttributeType, edge_attribute_is_const,
-//                   edge_has_dynamic_attribute, EdgeAttributeKeyType,
-//                   edge_attribute_container_type,
-//                   edge_attribute_container_sort_type>;
-
-/// these ContentIterator classes are transparent to programmers
-template <typename KeyType_, typename ContainerType_, bool is_const_,
-          IteratorDepthType depth_, IteratorDepthType begin_depth_,
-          TupleIdxType key_idx_, TupleIdxType value_ptr_idx_,
-          TupleIdxType value_typex_>
-class AttributeContentIterator_
-    : protected InnerIterator_<ContainerType_, is_const_, depth_> {
- private:
-  using InnerIteratorType = InnerIterator_<ContainerType_, is_const_, depth_>;
-
-  // friend typename VertexAttributeType::AttributeIterator
-  // VertexAttributeType::EraseAttribute(
-  //    const typename VertexAttributeType::AttributeIterator&
-  //        attribute_iterator);
-  // friend typename EdgeAttributeType::AttributeIterator
-  // EdgeAttributeType::EraseAttribute(
-  //    const typename EdgeAttributeType::AttributeIterator&
-  //    attribute_iterator);
-
-  const typename InnerIteratorType::IteratorType& ConstInnerIterator() const {
-    return InnerIteratorType::ConstInnerIterator();
-  }
-
- protected:
-  using InnerIteratorType::IsDone;
-  using InnerIteratorType::ToNext;
-  using ContentPtr =
-      typename std::conditional<is_const_, const AttributeContentIterator_*,
-                                AttributeContentIterator_*>::type;
-  static constexpr bool kIsConst_ = is_const_;
-
-  template <bool judge = is_const_,
-            typename std::enable_if<!judge, bool>::type = false>
-  ContentPtr content_ptr() {
-    ContentPtr const temp_this_ptr = this;
-    return temp_this_ptr;
-  }
-
-  template <bool judge = is_const_,
-            typename std::enable_if<judge, bool>::type = false>
-  ContentPtr content_ptr() const {
-    ContentPtr const temp_this_ptr = this;
-    return temp_this_ptr;
-  }
-
- public:
-  using InnerIteratorType::InnerIteratorType;
-
-  const KeyType_& key() const {
-    assert(!this->IsDone());
-    return InnerIteratorType::template get_const<KeyType_, key_idx_,
-                                                 begin_depth_>();
-  }
-
-  template <typename ConcreteDataType>
-  const ConcreteDataType& const_value() const {
-    assert(!this->IsDone());
-    return static_cast<ConcreteValue<const ConcreteDataType>*>(
-               InnerIteratorType::template get_const<
-                   AbstractValue*, value_ptr_idx_, begin_depth_>())
-        ->const_value();
-  }
-
-  template <typename ConcreteDataType>
-  ConcreteDataType& value() {
-    assert(!this->IsDone());
-    return static_cast<ConcreteValue<ConcreteDataType>*>(
-               InnerIteratorType::template get<AbstractValue*, value_ptr_idx_,
-                                               begin_depth_>())
-        ->value();
-  }
-
-  std::string value_str() const {
-    assert(!this->IsDone());
-    return (InnerIteratorType::template get_const<
-                AbstractValue*, value_ptr_idx_, begin_depth_>())
-        ->value_str();
-  }
-
-  enum BasicDataType value_type() const {
-    assert(!this->IsDone());
-    return InnerIteratorType::template get_const<
-        enum BasicDataType, value_typex_, begin_depth_>();
-  }
-};
-
 // non-dynamic attribute
-template <typename AttributeType_, bool is_const_, typename KeyType_,
-          enum ContainerType container_type_, enum SortType sort_type_>
-class WithAttribute_<AttributeType_, is_const_, false, KeyType_,
-                     container_type_, sort_type_> {
+template <typename            AttributeType_, 
+          bool                     is_const_, 
+          typename                  KeyType_,
+          enum ContainerType container_type_, 
+          enum SortType           sort_type_>
+class WithAttribute_<AttributeType_, 
+                          is_const_, 
+                              false, 
+                           KeyType_,
+                    container_type_, 
+                         sort_type_> {
  private:
-  typename std::conditional<is_const_, const AttributeType_,
-                            AttributeType_>::type attribute_;
+  typename std::conditional<is_const_, 
+                 const AttributeType_,
+                       AttributeType_>::type attribute_;
 
  public:
   WithAttribute_(const AttributeType_& attribute) : attribute_(attribute) {
@@ -307,41 +71,312 @@ class WithAttribute_<AttributeType_, is_const_, false, KeyType_,
 
 /// dynamic attribute, holds a container for the attributes instead of
 /// a single attribute
-template <typename AttributeType_, bool is_const_, typename KeyType_,
-          enum ContainerType container_type_, enum SortType sort_type_>
-class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
-                     sort_type_> {
+template <typename            AttributeType_, 
+          bool                     is_const_, 
+          typename                  KeyType_,
+          enum ContainerType container_type_, 
+          enum      SortType      sort_type_>
+class WithAttribute_<AttributeType_, 
+                          is_const_, 
+                               true, 
+                           KeyType_, 
+                    container_type_,
+                         sort_type_> {
  private:
-  using AttributeContainerType =
-      AttributeContainer<KeyType_, container_type_, sort_type_>;
-  AttributeContainerType attributes_;
+  // Value
+  class AbstractValue {
+  public:
+    virtual ~AbstractValue() {}
 
-  using AttributeContentIterator =
-      AttributeContentIterator_<KeyType_, AttributeContainerType, false, 1, 0,
-                                kAttributeKeyIdx, kAttributeValuePtrIdx,
-                                kAttributeValueTypeIdx>;
+    virtual std::string value_str() const = 0;
+  };
 
-  std::map<KeyType_, enum BasicDataType> key_to_value_type_map;
-  bool SetValueType(const KeyType_& key, enum BasicDataType value_type) {
-    if (key_to_value_type_map.find(key) != key_to_value_type_map.end()) {
-      return false;
+  template <typename ConcreteDataType_>
+  class ConcreteValue : public AbstractValue {
+   public:
+    ConcreteValue(const ConcreteDataType_& value)
+                                : AbstractValue(),
+                                    value_(value) {
+      return;
     }
-    key_to_value_type_map.insert(std::make_pair(key, value_type));
-    return true;
-  }
+
+    virtual ~ConcreteValue() override {
+      return;
+    }
+
+    virtual std::string value_str() const override {
+      std::stringstream ss;
+      ss << value_;
+      return ss.str();
+    }
+
+    const ConcreteDataType_& const_value() const { 
+      return this->value_; 
+    }
+
+    ConcreteDataType_& value() { 
+      return this->value_; 
+    }
+
+    void set_value(const ConcreteDataType_& value) { 
+      this->value_ = value; 
+      return;
+    }
+
+   private:
+    ConcreteDataType_ value_;
+  };
+
+  // Attribute
+  static constexpr TupleIdxType kAttributeKeyIdx = 0;
+  static constexpr TupleIdxType kAttributeValuePtrIdx = 1;
+  static constexpr TupleIdxType kAttributeValueTypeIdx = 2;
+
+  template <typename                  _KeyType_, 
+            enum ContainerType _container_type_,
+            enum SortType           _sort_type_>
+  using AttributeContainer = Container<_container_type_, 
+                                            _sort_type_, 
+                                              _KeyType_,
+                                         AbstractValue*, 
+                                    enum BasicDataType>;
+
+  // This"Ptr" is iterator!
+  template <typename AttributeContainerType, 
+            bool _is_const_>
+  class AttributeContentPtr_ {
+   private:
+    using IteratorType = typename std::conditional<_is_const_, 
+              typename AttributeContainerType::const_iterator,
+              typename AttributeContainerType::      iterator>::type;
+
+   protected:
+    bool is_null_;
+    IteratorType iterator_;
+
+    inline bool IsNull() const { 
+      return this->is_null_; 
+    }
+
+   public:
+    AttributeContentPtr_() : is_null_(true), iterator_() { 
+      return; 
+    }
+
+    AttributeContentPtr_(const IteratorType& iterator)
+                : is_null_(false), iterator_(iterator) {
+      return;
+    }
+
+    inline const typename AttributeContainerType::KeyType& key() const {
+      assert(!this->is_null_);
+      return this->iterator_.template get<kAttributeKeyIdx>();
+    }
+
+    template <typename ConcreteDataType>
+    inline const ConcreteDataType& const_value() const {
+      assert(!this->is_null_);
+      return static_cast<const ConcreteValue<ConcreteDataType>*>(
+                this->iterator_.template get_const<kAttributeValuePtrIdx>())
+          ->const_value();
+    }
+
+    template <typename ConcreteDataType>
+    inline ConcreteDataType& value() {
+      assert(!this->is_null_);
+      return static_cast<ConcreteValue<ConcreteDataType>*>(
+                this->iterator_.template get<kAttributeValuePtrIdx>())
+          ->value();
+    }
+
+    inline std::string value_str() const {
+      assert(!this->is_null_);
+      return this->iterator_.template get_const<kAttributeValuePtrIdx>()->value_str();
+    }
+
+    inline BasicDataType value_type() const {
+      assert(!this->is_null_);
+      return this->iterator_.template get_const<kAttributeValueTypeIdx>();
+    }
+  };
+
+  template <typename AttributeContainerType,
+            bool _is_const_>
+  class AttributePtr_
+      : protected AttributeContentPtr_<AttributeContainerType, _is_const_> {
+   private:
+    friend class AttributePtr_<AttributeContainerType, !_is_const_>;
+
+    using AttributeContentPtrType
+        = AttributeContentPtr_<AttributeContainerType, _is_const_>;
+
+    using AttributeContentPtr = typename std::conditional<_is_const_, 
+                                      const AttributeContentPtrType*,
+                                            AttributeContentPtrType*>::type;
+
+   public:
+    using AttributeContentPtrType::AttributeContentPtrType;
+
+    bool operator==(const AttributePtr_& attribute_ptr) const {
+      return this->iterator_ == attribute_ptr.iterator_;
+    }
+    bool operator!=(const AttributePtr_& attribute_ptr) const {
+      return this->iterator_ != attribute_ptr.iterator_;
+    }
+    bool operator<(const AttributePtr_& attribute_ptr) const {
+      return this->iterator_ < attribute_ptr.iterator_;
+    }
+    bool operator>(const AttributePtr_& attribute_ptr) const {
+      return this->iterator_ > attribute_ptr.iterator_;
+    }
+    bool operator<=(const AttributePtr_& attribute_ptr) const {
+      return this->iterator_ <= attribute_ptr.iterator_;
+    }
+    bool operator>=(const AttributePtr_& attribute_ptr) const {
+      return this->iterator_ >= attribute_ptr.iterator_;
+    }
+    AttributePtr_& operator=(const AttributePtr_& attribute_ptr) {
+      this->iterator_ = attribute_ptr.iterator_;
+      this->is_null_ = attribute_ptr.is_null_;
+      return *this;
+    }
+
+    template <const bool judge = is_const_,
+              typename std::enable_if<!judge, bool>::type = false>
+    AttributeContentPtr operator->() {
+      static_assert(judge == is_const_, "Illegal usage of this method");
+      AttributeContentPtr const temp_this_ptr = this;
+      return temp_this_ptr;
+    }
+
+    template <const bool judge = is_const_,
+              typename std::enable_if<judge, bool>::type = false>
+    AttributeContentPtr operator->() const {
+      static_assert(judge == is_const_, "Illegal usage of this method");
+      AttributeContentPtr const temp_this_ptr = this;
+      return temp_this_ptr;
+    }
+    
+    inline bool IsNull() const { 
+      return AttributeContentPtrType::IsNull(); 
+    }
+  };
+
+  /// these ContentIterator classes are transparent to programmers
+  template <typename             _KeyType_, 
+            typename        ContainerType_, 
+            bool                _is_const_,
+            IteratorDepthType       depth_, 
+            IteratorDepthType begin_depth_,
+            TupleIdxType          key_idx_, 
+            TupleIdxType    value_ptr_idx_,
+            TupleIdxType      value_typex_>
+  class AttributeContentIterator_
+      : protected InnerIterator_<ContainerType_, _is_const_, depth_> {
+   private:
+    using InnerIteratorType = InnerIterator_<ContainerType_, _is_const_, depth_>;
+
+    // friend typename VertexAttributeType::AttributeIterator
+    // VertexAttributeType::EraseAttribute(
+    //    const typename VertexAttributeType::AttributeIterator&
+    //        attribute_iterator);
+    // friend typename EdgeAttributeType::AttributeIterator
+    // EdgeAttributeType::EraseAttribute(
+    //    const typename EdgeAttributeType::AttributeIterator&
+    //    attribute_iterator);
+
+    const typename InnerIteratorType::IteratorType& ConstInnerIterator() const {
+      return InnerIteratorType::ConstInnerIterator();
+    }
+
+   protected:
+    using InnerIteratorType::IsDone;
+    using InnerIteratorType::ToNext;
+    using ContentPtr = typename std::conditional<_is_const_, 
+                            const AttributeContentIterator_*,
+                                  AttributeContentIterator_*>::type;
+    static constexpr bool kIsConst_ = _is_const_;
+
+    template <bool judge = _is_const_,
+              typename std::enable_if<!judge, bool>::type = false>
+    ContentPtr content_ptr() {
+      ContentPtr const temp_this_ptr = this;
+      return temp_this_ptr;
+    }
+
+    template <bool judge = _is_const_,
+              typename std::enable_if<judge, bool>::type = false>
+    ContentPtr content_ptr() const {
+      ContentPtr const temp_this_ptr = this;
+      return temp_this_ptr;
+    }
+
+   public:
+    using InnerIteratorType::InnerIteratorType;
+
+    const _KeyType_& key() const {
+      assert(!this->IsDone());
+      return InnerIteratorType::template get_const<_KeyType_, 
+                                                    key_idx_,
+                                                begin_depth_>();
+    }
+
+    template <typename ConcreteDataType>
+    const ConcreteDataType& const_value() const {
+      assert(!this->IsDone());
+      return static_cast<ConcreteValue<const ConcreteDataType>*>(
+                InnerIteratorType::template get_const<
+                    AbstractValue*, value_ptr_idx_, begin_depth_>())
+          ->const_value();
+    }
+
+    template <typename ConcreteDataType>
+    ConcreteDataType& value() {
+      assert(!this->IsDone());
+      return static_cast<ConcreteValue<ConcreteDataType>*>(
+                InnerIteratorType::template get<AbstractValue*, value_ptr_idx_,
+                                                begin_depth_>())
+          ->value();
+    }
+
+    std::string value_str() const {
+      assert(!this->IsDone());
+      return (InnerIteratorType::template get_const<
+                  AbstractValue*, value_ptr_idx_, begin_depth_>())
+          ->value_str();
+    }
+
+    enum BasicDataType value_type() const {
+      assert(!this->IsDone());
+      return InnerIteratorType::template get_const<
+          enum BasicDataType, value_typex_, begin_depth_>();
+    }
+  };
+
+  using AttributeContainerType
+      = AttributeContainer<KeyType_, container_type_, sort_type_>;
+
+  using AttributeContentIterator 
+      = AttributeContentIterator_<KeyType_, 
+                   AttributeContainerType, false, 1, 0,
+                  kAttributeKeyIdx, 
+                  kAttributeValuePtrIdx,
+                  kAttributeValueTypeIdx>;
 
  public:
-  using AttributePtr = AttributePtr_<AttributeContainerType, false>;
-  using AttributeConstPtr = AttributePtr_<AttributeContainerType, true>;
+  using AttributePtr      = AttributePtr_<AttributeContainerType, false>;
+  using AttributeConstPtr = AttributePtr_<AttributeContainerType,  true>;
 
   using AttributeIterator = Iterator_<AttributeContentIterator>;
 
-  using AttributeConstIterator = Iterator_<AttributeContentIterator_<
-      KeyType_, AttributeContainerType, true, 1, 0, kAttributeKeyIdx,
-      kAttributeValuePtrIdx, kAttributeValueTypeIdx>>;
+  using AttributeConstIterator 
+      = Iterator_<AttributeContentIterator_<KeyType_, 
+                  AttributeContainerType, true, 1, 0,
+                 kAttributeKeyIdx,
+                 kAttributeValuePtrIdx, 
+                 kAttributeValueTypeIdx>>;
 
   WithAttribute_() : attributes_() {
-    key_to_value_type_map.clear();
     return;
   }
 
@@ -349,19 +384,17 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
     for (auto it  = this->attributes_.begin();
               it != this->attributes_.end(); it++)
       delete it.template get<kAttributeValuePtrIdx>();
-    key_to_value_type_map.clear();
     return;
   }
 
   BasicDataType attribute_value_type(const KeyType_& key) const {
-    assert(key_to_value_type_map.find(key) != key_to_value_type_map.end());
-    return key_to_value_type_map.find(key)->second;
+    auto ret = this->attributes_.FindConst(key);
+    assert(ret.second);
+    return ret.first.template get_const<kAttributeValueTypeIdx>();
   }
 
   const char* attribute_value_type_name(const KeyType_& key) const {
-    assert(key_to_value_type_map.find(key) != key_to_value_type_map.end());
-    // return "";
-    return EnumToString(key_to_value_type_map.find(key)->second);
+    return EnumToString(this->attribute_value_type(key));
   }
 
   AttributeIterator AttributeBegin() {
@@ -418,8 +451,7 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
       /// has already existed in the Container
       return std::pair<AttributePtr, bool>(AttributePtr(ret.first), false);
     }
-    enum BasicDataType value_type = TypeToEnum(value);
-    this->SetValueType(key, value_type);
+    const enum BasicDataType value_type = TypeToEnum<ConcreteDataType>();
     ret.first.template get<kAttributeValuePtrIdx>()
       = new ConcreteValue<ConcreteDataType>(value);
     ret.first.template get<kAttributeValueTypeIdx>() = value_type;
@@ -444,8 +476,9 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
         return AddAttribute<DateTime>(key, DateTime(value_str));
       case BasicDataType::kTypeUnknown:
       default:
-        return std::make_pair(AttributePtr(), false);
+        break;
     }
+    return std::make_pair(AttributePtr(), false);
   }
 
   template <typename ConcreteDataType>
@@ -458,10 +491,19 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
       /// not find that attribute key in the container
       return std::pair<AttributePtr, bool>(AttributePtr(), false);
     }
-    static_cast<ConcreteValue<ConcreteDataType>*>(
-        ret.first.template get<kAttributeValuePtrIdx>())
-        ->set_value(value);
-    enum BasicDataType value_type = TypeToEnum(value);
+    const enum BasicDataType value_type = TypeToEnum<ConcreteDataType>();
+    if (ret.first.template get<kAttributeValueTypeIdx>() == value_type){
+      /// the new added value have the same type
+      static_cast<ConcreteValue<ConcreteDataType>*>(
+          ret.first.template get<kAttributeValuePtrIdx>())
+          ->set_value(value);
+      return std::pair<AttributePtr, bool>(AttributePtr(ret.first), true);
+    }
+    /// the new value does not have the same type
+    /// needs to delete the ptr and "new" a new one
+    delete ret.first.template get<kAttributeValuePtrIdx>();
+    ret.first.template get<kAttributeValuePtrIdx>()
+      = new ConcreteValue<ConcreteDataType>(value);
     ret.first.template get<kAttributeValueTypeIdx>() = value_type;
     return std::pair<AttributePtr, bool>(AttributePtr(ret.first), true);
   }
@@ -479,6 +521,9 @@ class WithAttribute_<AttributeType_, is_const_, true, KeyType_, container_type_,
   size_t EraseAttribute(const KeyType_& key) {
     return this->attributes_.Erase(key) ? 1 : 0;
   }
+
+ private:
+  AttributeContainerType attributes_;
 };
 
 }  // namespace GUNDAM

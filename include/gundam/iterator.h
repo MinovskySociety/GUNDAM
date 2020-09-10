@@ -31,7 +31,7 @@ class InnerIterator_<Container<container_type_, sort_type_, KeyType_>,
 
  private:
   IteratorType iterator_;
-  IteratorType kIteratorEnd_;
+  IteratorType iterator_end_;
 
  protected:
   inline const IteratorType& ConstInnerIterator() const {
@@ -39,19 +39,19 @@ class InnerIterator_<Container<container_type_, sort_type_, KeyType_>,
   }
 
  public:
-  InnerIterator_() : iterator_(), kIteratorEnd_(iterator_) {
+  InnerIterator_() : iterator_(), iterator_end_(iterator_) {
     /// default iterator, return an empty iterator
     assert(this->IsDone());
     return;
   }
   InnerIterator_(const IteratorType& iterator_begin,
                  const IteratorType& iterator_end)
-      : iterator_(iterator_begin), kIteratorEnd_(iterator_end) {
+      : iterator_(iterator_begin), iterator_end_(iterator_end) {
     return;
   }
 
  protected:
-  inline bool IsDone() const { return this->iterator_ == this->kIteratorEnd_; }
+  inline bool IsDone() const { return this->iterator_ == this->iterator_end_; }
 
   inline void ToNext() {
     assert(!this->IsDone());
@@ -92,6 +92,10 @@ class InnerIterator_<Container<container_type_, sort_type_, KeyType_>,
         "Type mismatch");
     return (this->iterator_.template get_const<return_idx>());
   }
+  
+  inline IteratorType& iterator_end(){
+    return this->iterator_end_;
+  }
 };
 
 /// the iterator of the container that only has one layer and more valuetype
@@ -114,7 +118,7 @@ class InnerIterator_<Container<container_type_, sort_type_, KeyType_,
 
  private:
   IteratorType iterator_;
-  IteratorType kIteratorEnd_;
+  IteratorType iterator_end_;
 
  protected:
   inline const IteratorType& ConstInnerIterator() const {
@@ -122,19 +126,19 @@ class InnerIterator_<Container<container_type_, sort_type_, KeyType_,
   }
 
  public:
-  InnerIterator_() : iterator_(), kIteratorEnd_(iterator_) {
+  InnerIterator_() : iterator_(), iterator_end_(iterator_) {
     /// default iterator, return an empty iterator
     assert(this->IsDone());
     return;
   }
   InnerIterator_(const IteratorType& iterator_begin,
                  const IteratorType& iterator_end)
-      : iterator_(iterator_begin), kIteratorEnd_(iterator_end) {
+      : iterator_(iterator_begin), iterator_end_(iterator_end) {
     return;
   }
 
   // protected:
-  inline bool IsDone() const { return this->iterator_ == this->kIteratorEnd_; }
+  inline bool IsDone() const { return this->iterator_ == this->iterator_end_; }
 
   inline void ToNext() {
     assert(!this->IsDone());
@@ -179,6 +183,10 @@ class InnerIterator_<Container<container_type_, sort_type_, KeyType_,
         "Type mismatch");
     return (this->iterator_.template get_const<return_idx>());
   }
+
+  inline IteratorType& iterator_end(){
+    return this->iterator_end_;
+  }
 };
 
 /// iterator of the container that has more than one layer
@@ -207,7 +215,7 @@ class InnerIterator_<Container<container_type_, sort_type_, KeyType_,
   static constexpr TupleIdxType kInnerContainerIdx_ = 1;
 
   IteratorType iterator_;
-  IteratorType kIteratorEnd_;
+  IteratorType iterator_end_;
 
  protected:
   inline const IteratorType& ConstInnerIterator() const {
@@ -252,14 +260,14 @@ class InnerIterator_<Container<container_type_, sort_type_, KeyType_,
   }
 
  public:
-  InnerIterator_() : iterator_(), kIteratorEnd_(iterator_) {
+  InnerIterator_() : iterator_(), iterator_end_(iterator_) {
     /// default iterator, return an empty iterator
     assert(this->IsDone());
     return;
   }
   InnerIterator_(const IteratorType& iterator_begin,
                  const IteratorType& iterator_end)
-      : iterator_(iterator_begin), kIteratorEnd_(iterator_end) {
+      : iterator_(iterator_begin), iterator_end_(iterator_end) {
     if (iterator_begin != iterator_end) {
       /// the next layer iterator is not empty
       InnerIteratorType::set_iterator(inner_iterator_begin(iterator_begin));
@@ -269,7 +277,7 @@ class InnerIterator_<Container<container_type_, sort_type_, KeyType_,
   }
 
  public:
-  inline bool IsDone() const { return this->iterator_ == this->kIteratorEnd_; }
+  inline bool IsDone() const { return this->iterator_ == this->iterator_end_; }
 
   inline void ToNext() {
     assert(!this->IsDone());
@@ -346,6 +354,10 @@ class InnerIterator_<Container<container_type_, sort_type_, KeyType_,
   inline const ReturnType& get_const() const {
     return InnerIteratorType::template get_const<ReturnType, return_idx,
                                                  depth>();
+  }
+  
+  inline IteratorType& iterator_end(){
+    return this->iterator_end_;
   }
 };
 
@@ -491,10 +503,8 @@ class _InnerIterator_<Container<container_type_, sort_type_, KeyType_,
       typename std::enable_if<depth == now_depth_ - 1, bool>::type = false>
   inline const ReturnType& get_const() const {
     static_assert(
-        (!is_const_ &&
-         std::is_same<ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value) ||
-        ( is_const_ &&
-         std::is_same<const ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value),
+          std::is_same<const ReturnType&, 
+                       decltype(this->iterator_.template get_const<return_idx>())>::value,
         "Type mismatch");
 
     return (this->iterator_.template get_const<return_idx>());
@@ -569,10 +579,8 @@ class _InnerIterator_<Container<container_type_, sort_type_, KeyType_>,
             typename std::enable_if<depth == depth_ - 1, bool>::type = false>
   inline const ReturnType& get_const() const {
     static_assert(
-        (!is_const_ &&
-         std::is_same<ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value) ||
-        ( is_const_ &&
-         std::is_same<const ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value),
+         std::is_same<const ReturnType&, 
+                      decltype(this->iterator_.template get_const<return_idx>())>::value,
         "Type mismatch");
     return (this->iterator_.template get_const<return_idx>());
   }
@@ -640,10 +648,8 @@ class _InnerIterator_<Container<container_type_, sort_type_, KeyType_,
             typename std::enable_if<depth == depth_ - 1, bool>::type = false>
   inline const ReturnType& get_const() const {
     static_assert(
-        (!is_const_ &&
-         std::is_same<ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value) ||
-        ( is_const_ &&
-         std::is_same<const ReturnType&, decltype(this->iterator_.template get_const<return_idx>())>::value),
+         std::is_same<const ReturnType&, 
+                      decltype(this->iterator_.template get_const<return_idx>())>::value,
         "Type mismatch");
     return (this->iterator_.template get_const<return_idx>());
   }

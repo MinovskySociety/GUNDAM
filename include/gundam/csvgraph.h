@@ -1027,24 +1027,28 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
   // get columns
   std::vector<std::string> key_str, type_str;
   std::map<EdgeAttributeKeyType, size_t> attr_pos;
-  for (auto edge_it = graph.EdgeCBegin(); !edge_it.IsDone(); ++edge_it) {
-    if constexpr (!std::is_null_pointer_v<WriteEdgeCallback>) {
-      if (!we_callback(edge_it)) continue;
-    }
-    if (key_str.empty()) {
-      assert(type_str.empty());
-      key_str.emplace_back("edge_id");
-      key_str.emplace_back("source_id");
-      key_str.emplace_back("target_id");
-      key_str.emplace_back("label_id");
-      type_str.emplace_back(TypeToString<EdgeIDType>());
-      type_str.emplace_back(TypeToString<VertexIDType>());
-      type_str.emplace_back(TypeToString<VertexIDType>());
-      type_str.emplace_back(TypeToString<EdgeLabelType>());
-    }
-    if constexpr (write_attr) {
-      GetWriteAttributeInfo<GraphType::edge_has_attribute>(edge_it, key_str,
-                                                           type_str, attr_pos);
+  // for (auto edge_it = graph.EdgeCBegin(); !edge_it.IsDone(); ++edge_it) {
+  /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in vertex){} }
+  for (auto vertex_cit = graph.VertexCBegin(); !vertex_cit.IsDone(); ++vertex_cit) {
+    for (auto edge_cit = vertex_cit->OutEdgeCBegin(); !edge_cit.IsDone(); ++edge_cit) {
+      if constexpr (!std::is_null_pointer_v<WriteEdgeCallback>) {
+        if (!we_callback(edge_cit)) continue;
+      }
+      if (key_str.empty()) {
+        assert(type_str.empty());
+        key_str.emplace_back("edge_id");
+        key_str.emplace_back("source_id");
+        key_str.emplace_back("target_id");
+        key_str.emplace_back("label_id");
+        type_str.emplace_back(TypeToString<EdgeIDType>());
+        type_str.emplace_back(TypeToString<VertexIDType>());
+        type_str.emplace_back(TypeToString<VertexIDType>());
+        type_str.emplace_back(TypeToString<EdgeLabelType>());
+      }
+      if constexpr (write_attr) {
+        GetWriteAttributeInfo<GraphType::edge_has_attribute>(edge_cit, key_str,
+                                                            type_str, attr_pos);
+      }
     }
   }
   if (key_str.empty()) {
@@ -1059,21 +1063,25 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
 
   // write each edge
   int count = 0;
-  for (auto edge_it = graph.EdgeCBegin(); !edge_it.IsDone(); ++edge_it) {
-    if constexpr (!std::is_null_pointer_v<WriteEdgeCallback>) {
-      if (!we_callback(edge_it)) continue;
+  // for (auto edge_it = graph.EdgeCBegin(); !edge_it.IsDone(); ++edge_it) {
+  /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in vertex){} }
+  for (auto vertex_cit = graph.VertexCBegin(); !vertex_cit.IsDone(); ++vertex_cit) {
+    for (auto edge_cit = vertex_cit->OutEdgeCBegin(); !edge_cit.IsDone(); ++edge_cit) {
+      if constexpr (!std::is_null_pointer_v<WriteEdgeCallback>) {
+        if (!we_callback(edge_cit)) continue;
+      }
+      std::vector<std::string> line;
+      line.resize(key_str.size());
+      line[0] = ToString(edge_cit->id());
+      line[1] = ToString(edge_cit->const_src_ptr()->id());
+      line[2] = ToString(edge_cit->const_dst_ptr()->id());
+      line[3] = ToString(edge_cit->label());
+      if constexpr (write_attr) {
+        WriteAttributes<GraphType::edge_has_attribute>(edge_cit, attr_pos, line);
+      }
+      WriteCSVLine(edge_file, line);
+      ++count;
     }
-    std::vector<std::string> line;
-    line.resize(key_str.size());
-    line[0] = ToString(edge_it->id());
-    line[1] = ToString(edge_it->src_id());
-    line[2] = ToString(edge_it->dst_id());
-    line[3] = ToString(edge_it->label());
-    if constexpr (write_attr) {
-      WriteAttributes<GraphType::edge_has_attribute>(edge_it, attr_pos, line);
-    }
-    WriteCSVLine(edge_file, line);
-    ++count;
   }
 
   return count;
