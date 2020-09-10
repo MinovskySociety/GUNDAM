@@ -620,6 +620,13 @@ class Attribute_<AttributeType::kGrouped,
                                 const   ParameterTypes&... parameters)
                                   : InnerIteratorType(parameters...),
                                         container_id_(container_id) {
+        /// the iterator may point to a nullptr at the beginning
+        while(!this->IsDone()){
+          if (this->HasValue()) {
+            return;
+          }
+          InnerIteratorType::ToNext();
+        }
         return;
       }
       
