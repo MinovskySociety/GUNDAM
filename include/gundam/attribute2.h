@@ -314,6 +314,8 @@ class Attribute_<AttributeType::kSeparated,
                   kAttributeValueTypeIdx>;
 
  public:
+  using AttributeKeyType = AttributeKeyType_;
+
   using AttributePtr      = AttributePtr_<AttributeContainerType, false>;
   using AttributeConstPtr = AttributePtr_<AttributeContainerType,  true>;
 
@@ -990,6 +992,20 @@ class Attribute_<AttributeType::kGrouped,
         return true;
       }
 
+      template<typename ConcreteValueType>
+      inline bool SetAttribute(const ContainerIDType& container_id,
+                               const ConcreteValueType& attribute_value){
+        if (!this->HasValue(container_id)){
+          /// does not have value for that container_id
+          return false;
+        }
+        assert(this->abstract_attr_ptr_list_.at(container_id) != nullptr);
+        delete this->abstract_attr_ptr_list_.at(container_id);
+        this->abstract_attr_ptr_list_.at(container_id)
+          = new ConcreteAttribute_<ConcreteValueType>(attribute_value);
+        return true;
+      }
+
       inline bool EraseAttribute(const ContainerIDType& container_id){
         if (!this->HasValue(container_id)){
           /// does not have this value
@@ -1014,6 +1030,8 @@ class Attribute_<AttributeType::kGrouped,
     };
 
    public:
+    using AttributeKeyType = AttributeKeyType_;
+
     using AttributePtr      = AttributePtr_<false, 
                              kAttributeKeyIdx,
                              kAttributeListPtrIdx>;
@@ -1077,7 +1095,7 @@ class Attribute_<AttributeType::kGrouped,
     template<typename ConcreteValueType>
     inline std::pair<AttributePtr, bool> AddAttribute(
                 const   ContainerIDType&  container_id,
-                const           AttributeKeyType_&          key,
+                const  AttributeKeyType_&          key,
                 const ConcreteValueType&  attribute_value){
       /// <iterator, bool>
       auto ret = this->attribute_list_ptr_container_.Insert(key);
@@ -1175,21 +1193,15 @@ class Attribute_<AttributeType::kGrouped,
                       const ConcreteDataType& value) {
       /// <iterator, bool>
       auto ret = this->attribute_list_ptr_container_.Find(key);
-      assert(ret.second); /// such a attribute list should have existed
-      /// allows the attribute to be set as differet data type
-      ret.first.template get<kAttributeListPtrIdx>()
-                        ->FindAttribute(container_id, key);
       if (!ret.second){
-        /// already has this key, add a new value corresponds to 
-        /// container_id into it
-        return ret.first.template get<kAttributeListPtrIdx>()
-                                  ->AddAttribute(container_id, value);
+        /// does not have attribute list corresponds to that key
+        return std::make_pair(AttributePtr(), false);
       }
-      /// does not have this key, new a new AttributeList for that key
-      ret.first.template get<kAttributeListPtrIdx>() 
-                = new AttributeList_();
-      return ret.first.template get<kAttributeListPtrIdx>()
-                                ->AddAttribute(container_id, value);
+      const bool kSetAttributeRet 
+               = ret.first.template get<kAttributeListPtrIdx>() 
+                         ->SetAttribute(container_id, value);
+      return std::make_pair(AttributePtr(container_id, ret.first),
+                        kSetAttributeRet);
     }
 
     // inline AttributeIterator EraseAttribute(
@@ -1258,6 +1270,8 @@ class Attribute_<AttributeType::kGrouped,
   };
   
  public:
+  using AttributeKeyType = AttributeKeyType_;
+
   /// iterator types
   using AttributeIterator      = typename AttributeContainerGroupType
                                         ::AttributeIterator;

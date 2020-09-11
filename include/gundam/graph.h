@@ -196,25 +196,16 @@ class Graph {
   
   template <typename IDType_, 
             typename LabelType_, 
-            bool has_static_attribtue_,
-            typename StaticAttributeType_, 
-            bool has_dynamic_attribtue_,
-            typename AttributeKeyType_>
+            typename AttributeType_>
   class Type_;
 
   using VertexType = Type_<VertexIDType, 
                            VertexLabelType, 
-                           vertex_has_static_attribute,
-                           VertexStaticAttributeType, 
-                           vertex_has_dynamic_attribute,
-                           VertexAttributeKeyType>;
+                           VertexAttributeType>;
 
   using   EdgeType = Type_<EdgeIDType, 
                            EdgeLabelType, 
-                           edge_has_static_attribute,
-                           EdgeStaticAttributeType, 
-                           edge_has_dynamic_attribute,
-                           EdgeAttributeKeyType>;
+                           EdgeAttributeType>;
 
  private:
   template <typename IDType_>
@@ -297,56 +288,15 @@ class Graph {
  public:
   /// the class that provides the basic information about both vertex and edge
   template <typename IDType_, 
-            typename LabelType_, 
-            bool has_static_attribtue_,
-            typename StaticAttributeType_, 
-            bool has_dynamic_attribtue_,
-            typename AttributeKeyType_>
+            typename LabelType_,
+            typename AttributeType_>
   class Type_ {
-    /// trick compiler, same to static_assert(false);
-    static_assert(has_static_attribtue_, "Unsupported configuration");
-    static_assert(!has_static_attribtue_, "Unsupported configuration");
-  };
-
-  template <typename IDType_, 
-            typename LabelType_,
-            typename StaticAttributeType_, 
-            typename AttributeKeyType_>
-  class Type_<IDType_, LabelType_, false, 
-             StaticAttributeType_, false, 
-                AttributeKeyType_> {
    public:
-    using IDType    = IDType_;
+    using IDType = IDType_;
     using LabelType = LabelType_;
-  };
-  
-  template <typename IDType_, 
-            typename LabelType_,
-            typename StaticAttributeType_, 
-            typename AttributeKeyType_>
-  class Type_<IDType_, LabelType_, true, 
-             StaticAttributeType_, false,
-                AttributeKeyType_>
-      : public Type_<IDType_, LabelType_, false, 
-                    StaticAttributeType_, false,
-                       AttributeKeyType_> {
-   public:
-    using StaticAttributeType = StaticAttributeType_;
-  };
-
-  template <typename IDType_, 
-            typename LabelType_, 
-            bool has_static_attribtue_,
-            typename StaticAttributeType_, 
-            typename AttributeKeyType_>
-  class Type_<IDType_, LabelType_, has_static_attribtue_, 
-             StaticAttributeType_, true, 
-                AttributeKeyType_>
-      : public Type_<IDType_, LabelType_, has_static_attribtue_,
-                    StaticAttributeType_, false, 
-                       AttributeKeyType_> {
-   public:
-    using AttributeKeyType = AttributeKeyType_;
+    using AttributeKeyType  = typename AttributeType_::AttributeKeyType;
+    using AttributePtr      = typename AttributeType_::AttributePtr;
+    using AttributeConstPtr = typename AttributeType_::AttributeConstPtr;
   };
 
  private:
@@ -2286,7 +2236,7 @@ class Graph {
         /// not found this edge label=
         return 0;
       }
-      return this->CountEdge(ret.first.template get_const<kVertexPtrContainerIdx>());
+      return this->CountVertex(ret.first.template get_const<kVertexPtrContainerIdx>());
     }
 
     inline typename VertexPtrContainerType::size_type CountEdge(
