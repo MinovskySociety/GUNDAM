@@ -1275,7 +1275,6 @@ class Attribute_<AttributeType::kGrouped,
         /// there are no container yet
         return false;
       }
-      this->container_id_counter_--;
       // iterator
       auto ge_it = this->free_container_id_ranges_
                         .lower_bound(container_id);
@@ -1283,18 +1282,20 @@ class Attribute_<AttributeType::kGrouped,
         if (this->free_container_id_ranges_.empty()){
           /// does not have any range for free id yet,
           /// add a new range
-          /// all other allocated id should being occupied now
+          /// all other allocated id should be occupied now
           assert(this->container_id_counter_ 
               == this->top_container_id_ - 1);
           this->free_container_id_ranges_.emplace(container_id,
-                                        container_id);
+                                                  container_id);
+          this->container_id_counter_--;
           return true;
         }
-        /// free_container_id_ranges_ is not empty for all range
-        /// [begin_id, end_id] in free_container_id_ranges_,
-        /// there are begin_id < container_id just test whether
-        /// container_id is contained in the last range
-        /// iterator
+        /// free_container_id_ranges_ is not empty
+        /// for all range [begin_id, end_id] in
+        /// free_container_id_ranges_, there are
+        /// begin_id < container_id, just test whether
+        /// container_id is contained in the range pointed
+        /// by lt_it
         auto lt_it = this->free_container_id_ranges_.end();
         --lt_it;
         assert(lt_it->first < container_id);
@@ -1308,6 +1309,7 @@ class Attribute_<AttributeType::kGrouped,
           /// the new freed container_id can be merged into
           /// this range
           lt_it->second++;
+          this->container_id_counter_--;
           return true;
         }
         /// needs to alloc a new range of free ids that
@@ -1315,6 +1317,7 @@ class Attribute_<AttributeType::kGrouped,
         this->free_container_id_ranges_.emplace_hint(lt_it,
                                               container_id,
                                               container_id);
+        this->container_id_counter_--;
         return true;
       }
       if (ge_it->first == container_id){
@@ -1348,6 +1351,7 @@ class Attribute_<AttributeType::kGrouped,
                  .emplace_hint(erase_ge_ret,
                                 kLtBeginIdx,
                                   kGeEndIdx);
+            this->container_id_counter_--;
             return true;
           }
         }
@@ -1363,8 +1367,11 @@ class Attribute_<AttributeType::kGrouped,
              .emplace_hint(erase_ge_ret,
                            container_id,
                                kGeEndIdx);
+        this->container_id_counter_--;
         return true;
       }
+      /// the container_id cannot be merged into the
+      /// range pointed by ge_it
       if (ge_it != this->free_container_id_ranges_.begin()){
         /// there are other free range of container id
         /// ahead of *ge_it
@@ -1375,6 +1382,7 @@ class Attribute_<AttributeType::kGrouped,
           /// the container_id can be merged into the
           /// range pointed by lt_it
           lt_it->second++;
+          this->container_id_counter_--;
           return true;
         }
       }
@@ -1383,6 +1391,7 @@ class Attribute_<AttributeType::kGrouped,
       this->free_container_id_ranges_.emplace_hint(ge_it,
                                             container_id,
                                             container_id);
+      this->container_id_counter_--;
       return true;
     }
     
