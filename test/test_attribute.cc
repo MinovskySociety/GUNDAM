@@ -100,15 +100,34 @@ TEST(TestGUNDAM, TestAttribute) {
                    ContainerType::Vector,
                         SortType::Default>;
 
-  AttributeType1 attr1;
-  AttributeType2 attr2(1);
-  AttributeType3 attr3(1);
-  AttributeType3 attr4(1);
-  AttributeType3 attr5(2);
+  AttributeType1  attr1;
+  AttributeType2  attr2(1);
+  auto attr3_ptr = new AttributeType3(1), // container_id 0
+       attr4_ptr = new AttributeType3(1), // container_id 1
+       attr5_ptr = new AttributeType3(1); // container_id 2
 
   TestAttribute(attr1);
   TestAttribute(attr2);
-  TestAttribute(attr3);
-  TestAttribute(attr4);
-  TestAttribute(attr5);
+  TestAttribute(*attr3_ptr);
+  TestAttribute(*attr4_ptr);
+  TestAttribute(*attr5_ptr);
+  delete attr5_ptr;
+   // container_id 2
+  attr5_ptr = new AttributeType3(1);
+  TestAttribute(*attr5_ptr);
+  delete attr5_ptr;
+  delete attr3_ptr;
+   // container_id 0
+  attr3_ptr = new AttributeType3(1);
+  TestAttribute(*attr3_ptr);
+  delete attr3_ptr;
+  delete attr4_ptr;
+   // container_id 0
+  attr4_ptr = new AttributeType3(1);
+  TestAttribute(*attr4_ptr);
+   // container_id 1
+  attr3_ptr = new AttributeType3(1);
+   // container_id 2
+  attr5_ptr = new AttributeType3(1);
+  return;
 }
