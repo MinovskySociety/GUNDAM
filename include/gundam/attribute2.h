@@ -571,51 +571,48 @@ class Attribute_<AttributeType::kGrouped, attribute_is_const_, GroupKeyType_,
     }
     return;
   }
-  InnerIteratorType::ToNext();
-} return;
-}  // namespace GUNDAM
 
-inline const AttributeKeyType_& key() const {
-  assert(!this->IsDone());
-  return InnerIteratorType::template get_const<
-      const AttributeKeyType_, attribute_key_idx_, depth_ - 1>();
-}
+  inline const AttributeKeyType_& key() const {
+    assert(!this->IsDone());
+    return InnerIteratorType::template get_const<
+        const AttributeKeyType_, attribute_key_idx_, depth_ - 1>();
+  }
 
-template <typename ConcreteDataType>
-inline const ConcreteDataType& const_value() const {
-  assert(!this->IsDone());
-  return this->attribute_list_const_ptr()
-      ->template const_value<ConcreteDataType>(this->container_id_);
-}
+  template <typename ConcreteDataType>
+  inline const ConcreteDataType& const_value() const {
+    assert(!this->IsDone());
+    return this->attribute_list_const_ptr()
+        ->template const_value<ConcreteDataType>(this->container_id_);
+  }
 
-template <typename ConcreteDataType, bool judge = is_const_,
-          typename std::enable_if<!judge, bool>::type = false>
-inline ConcreteDataType& value() {
-  static_assert(judge == is_const_, "illegal usage of this method");
-  assert(!this->IsDone());
-  return this->attribute_list_ptr()->template value<ConcreteDataType>(
-      this->container_id_);
-}
+  template <typename ConcreteDataType, bool judge = is_const_,
+            typename std::enable_if<!judge, bool>::type = false>
+  inline ConcreteDataType& value() {
+    static_assert(judge == is_const_, "illegal usage of this method");
+    assert(!this->IsDone());
+    return this->attribute_list_ptr()->template value<ConcreteDataType>(
+        this->container_id_);
+  }
 
-inline std::string value_str() const {
-  assert(!this->IsDone());
-  return this->attribute_list_const_ptr()->value_str(this->container_id_);
-}
+  inline std::string value_str() const {
+    assert(!this->IsDone());
+    return this->attribute_list_const_ptr()->value_str(this->container_id_);
+  }
 
-inline BasicDataType value_type() const {
-  assert(!this->IsDone());
-  return this->attribute_list_const_ptr()->value_type(this->container_id_);
-}
+  inline BasicDataType value_type() const {
+    assert(!this->IsDone());
+    return this->attribute_list_const_ptr()->value_type(this->container_id_);
+  }
 
-const char* value_type_name() const {
-  assert(!this->IsDone());
-  return this->attribute_list_const_ptr()->value_type_name(this->container_id_);
-}
+  const char* value_type_name() const {
+    assert(!this->IsDone());
+    return this->attribute_list_const_ptr()->value_type_name(
+        this->container_id_);
+  }
 
-private:
-ContainerIDType container_id_;
-}
-;
+ private:
+  ContainerIDType container_id_;
+};
 
 template <bool is_const_, TupleIdxType attribute_key_idx_,
           TupleIdxType attribute_list_ptr_idx_>
@@ -722,30 +719,12 @@ class AttributePtr_
   using AttributeListPtrContainerIteratorType =
       typename AttributeContentPtrType ::AttributeListPtrContainerIteratorType;
 
-  template <typename ConcreteValueType>
-  inline bool SetAttribute(const ContainerIDType& container_id,
-                           const ConcreteValueType& attribute_value) {
-    if (!this->HasValue(container_id)) {
-      /// does not have value for that container_id
-      return false;
-    }
-    assert(this->abstract_attr_ptr_list_.at(container_id) != nullptr);
-    delete this->abstract_attr_ptr_list_.at(container_id);
-    this->abstract_attr_ptr_list_.at(container_id) =
-        new ConcreteAttribute_<ConcreteValueType>(attribute_value);
-    return true;
-  }
-
-  inline bool EraseAttribute(const ContainerIDType& container_id) {
-    if (!this->HasValue(container_id)) {
-      /// does not have this value
-      return false;
-    }
-    assert(this->abstract_attr_ptr_list_.size() > container_id);
-    delete this->abstract_attr_ptr_list_.at(container_id);
-    this->abstract_attr_ptr_list_.at(container_id) = nullptr;
-    return true;
-  }
+ public:
+  // template <typename... ParameterTypes>
+  // AttributePtr_(const ParameterTypes&... parameters)
+  //               : AttributeContentPtrType(parameters...){
+  //   return;
+  // }
 
   AttributePtr_() : AttributeContentPtrType() { return; }
 
@@ -755,25 +734,7 @@ class AttributePtr_
     return;
   }
 
- public:
-  using AttributeKeyType = AttributeKeyType_;
-
-  using AttributePtr =
-      AttributePtr_<false, kAttributeKeyIdx, kAttributeListPtrIdx>;
-  using AttributeConstPtr =
-      AttributePtr_<true, kAttributeKeyIdx, kAttributeListPtrIdx>;
-
-  using AttributeIterator = Iterator_<
-      AttributeContentIterator_<AttributeListPtrContainerType, false, 1,
-                                kAttributeKeyIdx, kAttributeListPtrIdx>>;
-
-  using AttributeConstIterator = Iterator_<
-      AttributeContentIterator_<AttributeListPtrContainerType, true, 1,
-                                kAttributeKeyIdx, kAttributeListPtrIdx>>;
-
-  AttributeContainerGroup_() : container_id_counter_(0), top_container_id_(0) {
-    return;
-  }
+  inline bool IsNull() const { return AttributeContentPtrType::IsNull(); }
 
   template <bool judge = is_const_,
             typename std::enable_if<judge, bool>::type = false>
@@ -795,21 +756,7 @@ class AttributeList_ {
   class AbstractAttribute_;
 
   template <typename ConcreteValueType>
-  inline std::pair<AttributePtr, bool> AddAttribute(
-      const ContainerIDType& container_id, const AttributeKeyType_& key,
-      const ConcreteValueType& attribute_value) {
-    /// <iterator, bool>
-    auto ret = this->attribute_list_ptr_container_.Insert(key);
-    if (ret.second) {
-      /// does not have this key, new a new AttributeList for that key
-      ret.first.template get<kAttributeListPtrIdx>() = new AttributeList_();
-    }
-    const bool kAddAttributeRet =
-        ret.first.template get<kAttributeListPtrIdx>()->AddAttribute(
-            container_id, attribute_value);
-    return std::make_pair(AttributePtr(container_id, ret.first),
-                          kAddAttributeRet);
-  }
+  class ConcreteAttribute_;
 
   class AbstractAttribute_ {
    public:
@@ -836,241 +783,42 @@ class AttributeList_ {
 
     virtual enum BasicDataType value_type() const = 0;
 
-    template <typename ConcreteDataType>
-    std::pair<AttributePtr, bool> SetAttribute(
-        const ContainerIDType& container_id, const AttributeKeyType_& key,
-        const ConcreteDataType& value) {
-      /// <iterator, bool>
-      auto ret = this->attribute_list_ptr_container_.Find(key);
-      if (!ret.second) {
-        /// does not have attribute list corresponds to that key
-        return std::make_pair(AttributePtr(), false);
-      }
-      const bool kSetAttributeRet =
-          ret.first.template get<kAttributeListPtrIdx>()->SetAttribute(
-              container_id, value);
-      return std::make_pair(AttributePtr(container_id, ret.first),
-                            kSetAttributeRet);
+    virtual std::string value_str() const = 0;
+  };
+
+  template <typename ConcreteValueType>
+  class ConcreteAttribute_ : public AbstractAttribute_ {
+   public:
+    ConcreteAttribute_(const ConcreteValueType& value)
+        : AbstractAttribute_(), value_(value) {
+      return;
     }
 
-    // inline AttributeIterator EraseAttribute(
-    //                   const ContainerIDType& container_id,
-    //                   const AttributeIterator& attribute_iterator) {
-    //   assert(container_id == attribute_iterator.container_id_);
-    //   return;
-    // }
+    ~ConcreteAttribute_() { return; }
 
-    /// return 1 if erased successfully, 0 if failed
-    inline size_t EraseAttribute(const ContainerIDType& container_id,
-                                 const AttributeKeyType_& key) {
-      /// <iterator, bool>
-      auto ret = this->attribute_list_ptr_container_.Find(key);
-      if (!ret.second) {
-        /// does not have attribute for this key
-        return 0;
-      }
-      assert(ret.second);  /// such a attribute list should have existed
-      /// allows the attribute to be set as a differet data type
-      ret.first.template get<kAttributeListPtrIdx>()->EraseAttribute(
-          container_id);
-      return 1;
+    inline ConcreteValueType& value() { return this->value_; }
+
+    inline const ConcreteValueType& const_value() const { return this->value_; }
+
+    inline enum BasicDataType value_type() const override {
+      return TypeToEnum<ConcreteValueType>();
     }
 
-    inline const ContainerIDType& ContainerSize() const {
-      // total container in this group
-      return this->container_id_counter_;
-    }
-
-    inline ContainerIDType AllocID() {
-      this->container_id_counter_++;
-      if (this->free_container_id_ranges_.empty()) {
-        /// does not have free id now,
-        /// needs to alloc a new one to the container
-        return this->top_container_id_++;
-      }
-      /// has free id now
-      auto first_free_id_range_it = this->free_container_id_ranges_.begin();
-      const ContainerIDType alloc_id = first_free_id_range_it->second;
-      if (alloc_id > first_free_id_range_it->first) {
-        /// the size of this fragment is bigger than 1
-        /// this fragement would still contains other free
-        /// id after this alloc_id has been allocated
-        first_free_id_range_it->second--;
-        assert(first_free_id_range_it->second >= first_free_id_range_it->first);
-        return alloc_id;
-      }
-      /// this fragment only has one free container_id,
-      /// needs to be removed after this one has been
-      /// allocated
-      assert(first_free_id_range_it->second == first_free_id_range_it->first);
-      this->free_container_id_ranges_.erase(first_free_id_range_it);
-      return alloc_id;
-    }
-
-    inline bool Recycle(const ContainerIDType& container_id) {
-      /// recycle the input id
-      if (container_id >= this->top_container_id_) {
-        // container_id is bigger than top_container_id_,
-        // should not have been alloc before
-        return false;
-      }
-      if (this->container_id_counter_ == 0) {
-        /// this->container_id_counter_ shows that
-        /// there are no container yet
-        return false;
-      }
-      // iterator
-      auto ge_it = this->free_container_id_ranges_.lower_bound(container_id);
-      if (ge_it == this->free_container_id_ranges_.end()) {
-        if (this->free_container_id_ranges_.empty()) {
-          /// does not have any range for free id yet,
-          /// add a new range
-          /// all other allocated id should be occupied now
-          assert(this->container_id_counter_ == this->top_container_id_ - 1);
-          this->free_container_id_ranges_.emplace(container_id, container_id);
-          this->container_id_counter_--;
-          return true;
-        }
-        /// free_container_id_ranges_ is not empty
-        /// for all range [begin_id, end_id] in
-        /// free_container_id_ranges_, there are
-        /// begin_id < container_id, just test whether
-        /// container_id is contained in the range pointed
-        /// by lt_it
-        auto lt_it = this->free_container_id_ranges_.end();
-        --lt_it;
-        assert(lt_it->first < container_id);
-
-        if (lt_it->second == container_id) {
-          /// container_id is not free yet, should not
-          /// be contained in this range for free container id
-          return false;
-        }
-        if (lt_it->second == container_id - 1) {
-          /// the new freed container_id can be merged into
-          /// this range
-          lt_it->second++;
-          this->container_id_counter_--;
-          return true;
-        }
-        /// needs to alloc a new range of free ids that
-        /// only contains this one
-        this->free_container_id_ranges_.emplace_hint(lt_it, container_id,
-                                                     container_id);
-        this->container_id_counter_--;
-        return true;
-      }
-      if (ge_it->first == container_id) {
-        /// container_id is not free yet, should not
-        /// be contained in this range for free container id
-        return false;
-      }
-      if (ge_it->first == container_id + 1) {
-        /// the container_id can be merged into the
-        /// range pointed by ge_it
-        if (ge_it != this->free_container_id_ranges_.begin()) {
-          /// there are other free range of container id
-          /// ahead of *ge_it
-          /// iterator
-          auto lt_it = ge_it;
-          --lt_it;
-          if (lt_it->second == container_id - 1) {
-            /// the container_id can also be merged into
-            /// the range pointed by lt_it
-            /// *lt_it, container_id and *gt_it can be merged
-            /// into one range
-            const ContainerIDType kLtBeginIdx = lt_it->first,
-                                  kGeEndIdx = ge_it->second;
-            /// iterator
-            auto erase_lt_ret = this->free_container_id_ranges_.erase(lt_it);
-            assert(erase_lt_ret == ge_it);
-            auto erase_ge_ret = this->free_container_id_ranges_.erase(ge_it);
-            this->free_container_id_ranges_.emplace_hint(
-                erase_ge_ret, kLtBeginIdx, kGeEndIdx);
-            this->container_id_counter_--;
-            return true;
-          }
-        }
-        /// cannot be merged into the range pointed by lt_it
-        /// or ge_it is the first free range of container id
-        /// only needs to merge it with the range pointed by
-        /// ge_it
-        const ContainerIDType kGeEndIdx = ge_it->second;
-        /// iterator
-        auto erase_ge_ret = this->free_container_id_ranges_.erase(ge_it);
-        this->free_container_id_ranges_.emplace_hint(erase_ge_ret, container_id,
-                                                     kGeEndIdx);
-        this->container_id_counter_--;
-        return true;
-      }
-      /// the container_id cannot be merged into the
-      /// range pointed by ge_it
-      if (ge_it != this->free_container_id_ranges_.begin()) {
-        /// there are other free range of container id
-        /// ahead of *ge_it
-        /// iterator
-        auto lt_it = ge_it;  /// less than
-        --lt_it;
-        if (lt_it->second == container_id - 1) {
-          /// the container_id can be merged into the
-          /// range pointed by lt_it
-          lt_it->second++;
-          this->container_id_counter_--;
-          return true;
-        }
-      }
-      /// container_id cannot be merged into any
-      /// adjacent ranges, alloc a new range for it
-      this->free_container_id_ranges_.emplace_hint(ge_it, container_id,
-                                                   container_id);
-      this->container_id_counter_--;
-      return true;
-    }
-
-    /// retun 1 if erase successfully, 0 if not
-    inline size_t EraseContainer(const ContainerIDType& container_id) {
-      // recycle the container_id
-      if (!this->Recycle(container_id)) {
-        /// recycle fail, such a container_id does not exist
-        return 0;
-      }
-      // erase all attribute correspond to that container
-      for (auto it = this->attribute_list_ptr_container_.begin();
-           it != this->attribute_list_ptr_container_.end(); it++) {
-        /// erase the container_id from each attribute list
-        it.template get<kAttributeListPtrIdx>()->EraseAttribute(container_id);
-      }
-      return 1;
+    inline std::string value_str() const override {
+      std::stringstream ss;
+      ss << this->value_;
+      return ss.str();
     }
 
    private:
-    AttributeListPtrContainerType attribute_list_ptr_container_;
-
-    /// holds the totoal id currently in this group
-    ContainerIDType container_id_counter_;
-
-    /// similar to the heap memory mangement in OS
-    std::map<ContainerIDType, ContainerIDType> free_container_id_ranges_;
-
-    /// holds the maximum id that has ever allocated
-    ContainerIDType top_container_id_;
+    ConcreteValueType value_;
   };
 
   using AbstractAttributePtrContainerType = std::vector<AbstractAttribute_*>;
 
  public:
-  using AttributeKeyType = AttributeKeyType_;
-
-  /// iterator types
-  using AttributeIterator =
-      typename AttributeContainerGroupType ::AttributeIterator;
-  using AttributeConstIterator =
-      typename AttributeContainerGroupType ::AttributeConstIterator;
-
-  /// pointer types
-  using AttributePtr = typename AttributeContainerGroupType ::AttributePtr;
-  using AttributeConstPtr =
-      typename AttributeContainerGroupType ::AttributeConstPtr;
+  using ContainerIDType =
+      typename AbstractAttributePtrContainerType ::size_type;
 
  private:
   inline void ExtendTo(const ContainerIDType& container_id) {
@@ -1079,12 +827,6 @@ class AttributeList_ {
     while (this->abstract_attr_ptr_list_.size() <= container_id) {
       this->abstract_attr_ptr_list_.emplace_back(nullptr);
     }
-    this->attribute_container_group_ptr_ =
-        ret.first.template get<kAttributeContainerGroupPtrIdx>();
-    /// alloc a new id for this container
-    this->attribute_container_id_ =
-        this->attribute_container_group_ptr_->AllocID();
-    // std::cout<<"allocated id: "<<this->attribute_container_id_<<std::endl;
     return;
   }
 
@@ -1140,37 +882,32 @@ class AttributeList_ {
     return this->abstract_attr_ptr_list_.at(container_id)->value_str();
   }
 
-  template <typename ConcreteDataType>
-  inline std::pair<AttributePtr, bool> AddAttribute(
-      const AttributeKeyType_& key, const ConcreteDataType& value) {
-    return this->attribute_container_group_ptr_->AddAttribute(
-        this->attribute_container_id_, key, value);
-  }
-
-  inline std::pair<AttributePtr, bool> AddAttribute(
-      const AttributeKeyType_& key, const enum BasicDataType& data_type,
-      const std::string& value_str) {
-    switch (data_type) {
-      case BasicDataType::kTypeString:
-        return this->AddAttribute<std::string>(key, value_str);
-      case BasicDataType::kTypeInt:
-        return this->AddAttribute<int>(key, std::stoi(value_str));
-      case BasicDataType::kTypeInt64:
-        return this->AddAttribute<int64_t>(key, std::stoll(value_str));
-      case BasicDataType::kTypeFloat:
-        return this->AddAttribute<float>(key, std::stof(value_str));
-      case BasicDataType::kTypeDouble:
-        return this->AddAttribute<double>(key, std::stod(value_str));
-      case BasicDataType::kTypeDateTime:
-        return this->AddAttribute<DateTime>(key, DateTime(value_str));
-      case BasicDataType::kTypeUnknown:
-      default:
-        break;
+  /// return true if successfully added, false if not
+  template <typename ConcreteValueType>
+  inline bool AddAttribute(const ContainerIDType& container_id,
+                           const ConcreteValueType& attribute_value) {
+    if (this->HasValue(container_id)) {
+      /// already have value for that container_id
+      return false;
     }
     /// does not have value corresponds for that container_id
     /// add a new one to it
     this->ExtendTo(container_id);  /// ensure the attribute list is big enough
     assert(this->abstract_attr_ptr_list_.at(container_id) == nullptr);
+    this->abstract_attr_ptr_list_.at(container_id) =
+        new ConcreteAttribute_<ConcreteValueType>(attribute_value);
+    return true;
+  }
+
+  template <typename ConcreteValueType>
+  inline bool SetAttribute(const ContainerIDType& container_id,
+                           const ConcreteValueType& attribute_value) {
+    if (!this->HasValue(container_id)) {
+      /// does not have value for that container_id
+      return false;
+    }
+    assert(this->abstract_attr_ptr_list_.at(container_id) != nullptr);
+    delete this->abstract_attr_ptr_list_.at(container_id);
     this->abstract_attr_ptr_list_.at(container_id) =
         new ConcreteAttribute_<ConcreteValueType>(attribute_value);
     return true;
@@ -1200,6 +937,8 @@ class AttributeList_ {
 };
 
 public:
+using AttributeKeyType = AttributeKeyType_;
+
 using AttributePtr =
     AttributePtr_<false, kAttributeKeyIdx, kAttributeListPtrIdx>;
 using AttributeConstPtr =
@@ -1213,8 +952,7 @@ using AttributeConstIterator = Iterator_<
     AttributeContentIterator_<AttributeListPtrContainerType, true, 1,
                               kAttributeKeyIdx, kAttributeListPtrIdx>>;
 
-AttributeContainerGroup_()
-    : container_id_allocater_(0), container_id_counter_(0) {
+AttributeContainerGroup_() : container_id_counter_(0), top_container_id_(0) {
   return;
 }
 
@@ -1344,20 +1082,15 @@ std::pair<AttributePtr, bool> SetAttribute(const ContainerIDType& container_id,
                                            const ConcreteDataType& value) {
   /// <iterator, bool>
   auto ret = this->attribute_list_ptr_container_.Find(key);
-  assert(ret.second);  /// such a attribute list should have existed
-  /// allows the attribute to be set as differet data type
-  ret.first.template get<kAttributeListPtrIdx>()->FindAttribute(container_id,
-                                                                key);
   if (!ret.second) {
-    /// already has this key, add a new value corresponds to
-    /// container_id into it
-    return ret.first.template get<kAttributeListPtrIdx>()->AddAttribute(
-        container_id, value);
+    /// does not have attribute list corresponds to that key
+    return std::make_pair(AttributePtr(), false);
   }
-  /// does not have this key, new a new AttributeList for that key
-  ret.first.template get<kAttributeListPtrIdx>() = new AttributeList_();
-  return ret.first.template get<kAttributeListPtrIdx>()->AddAttribute(
-      container_id, value);
+  const bool kSetAttributeRet =
+      ret.first.template get<kAttributeListPtrIdx>()->SetAttribute(container_id,
+                                                                   value);
+  return std::make_pair(AttributePtr(container_id, ret.first),
+                        kSetAttributeRet);
 }
 
 // inline AttributeIterator EraseAttribute(
@@ -1377,52 +1110,194 @@ inline size_t EraseAttribute(const ContainerIDType& container_id,
     return 0;
   }
   assert(ret.second);  /// such a attribute list should have existed
-  /// allows the attribute to be set as differet data type
+  /// allows the attribute to be set as a differet data type
   ret.first.template get<kAttributeListPtrIdx>()->EraseAttribute(container_id);
   return 1;
 }
 
-inline const ContainerIDType& AllocID() {
-  this->container_id_counter_++;
-  this->container_id_allocater_++;
-  return this->container_id_allocater_;
+inline const ContainerIDType& ContainerSize() const {
+  // total container in this group
+  return this->container_id_counter_;
 }
 
-inline const ContainerIDType& ContainerSize() const {
-  return this->container_id_counter_;
+inline ContainerIDType AllocID() {
+  this->container_id_counter_++;
+  if (this->free_container_id_ranges_.empty()) {
+    /// does not have free id now,
+    /// needs to alloc a new one to the container
+    return this->top_container_id_++;
+  }
+  /// has free id now
+  auto first_free_id_range_it = this->free_container_id_ranges_.begin();
+  const ContainerIDType alloc_id = first_free_id_range_it->second;
+  if (alloc_id > first_free_id_range_it->first) {
+    /// the size of this fragment is bigger than 1
+    /// this fragement would still contains other free
+    /// id after this alloc_id has been allocated
+    first_free_id_range_it->second--;
+    assert(first_free_id_range_it->second >= first_free_id_range_it->first);
+    return alloc_id;
+  }
+  /// this fragment only has one free container_id,
+  /// needs to be removed after this one has been
+  /// allocated
+  assert(first_free_id_range_it->second == first_free_id_range_it->first);
+  this->free_container_id_ranges_.erase(first_free_id_range_it);
+  return alloc_id;
+}
+
+inline bool Recycle(const ContainerIDType& container_id) {
+  /// recycle the input id
+  if (container_id >= this->top_container_id_) {
+    // container_id is bigger than top_container_id_,
+    // should not have been alloc before
+    return false;
+  }
+  if (this->container_id_counter_ == 0) {
+    /// this->container_id_counter_ shows that
+    /// there are no container yet
+    return false;
+  }
+  // iterator
+  auto ge_it = this->free_container_id_ranges_.lower_bound(container_id);
+  if (ge_it == this->free_container_id_ranges_.end()) {
+    if (this->free_container_id_ranges_.empty()) {
+      /// does not have any range for free id yet,
+      /// add a new range
+      /// all other allocated id should be occupied now
+      assert(this->container_id_counter_ == this->top_container_id_ - 1);
+      this->free_container_id_ranges_.emplace(container_id, container_id);
+      this->container_id_counter_--;
+      return true;
+    }
+    /// free_container_id_ranges_ is not empty
+    /// for all range [begin_id, end_id] in
+    /// free_container_id_ranges_, there are
+    /// begin_id < container_id, just test whether
+    /// container_id is contained in the range pointed
+    /// by lt_it
+    auto lt_it = this->free_container_id_ranges_.end();
+    --lt_it;
+    assert(lt_it->first < container_id);
+
+    if (lt_it->second == container_id) {
+      /// container_id is not free yet, should not
+      /// be contained in this range for free container id
+      return false;
+    }
+    if (lt_it->second == container_id - 1) {
+      /// the new freed container_id can be merged into
+      /// this range
+      lt_it->second++;
+      this->container_id_counter_--;
+      return true;
+    }
+    /// needs to alloc a new range of free ids that
+    /// only contains this one
+    this->free_container_id_ranges_.emplace_hint(lt_it, container_id,
+                                                 container_id);
+    this->container_id_counter_--;
+    return true;
+  }
+  if (ge_it->first == container_id) {
+    /// container_id is not free yet, should not
+    /// be contained in this range for free container id
+    return false;
+  }
+  if (ge_it->first == container_id + 1) {
+    /// the container_id can be merged into the
+    /// range pointed by ge_it
+    if (ge_it != this->free_container_id_ranges_.begin()) {
+      /// there are other free range of container id
+      /// ahead of *ge_it
+      /// iterator
+      auto lt_it = ge_it;
+      --lt_it;
+      if (lt_it->second == container_id - 1) {
+        /// the container_id can also be merged into
+        /// the range pointed by lt_it
+        /// *lt_it, container_id and *gt_it can be merged
+        /// into one range
+        const ContainerIDType kLtBeginIdx = lt_it->first,
+                              kGeEndIdx = ge_it->second;
+        /// iterator
+        auto erase_lt_ret = this->free_container_id_ranges_.erase(lt_it);
+        assert(erase_lt_ret == ge_it);
+        auto erase_ge_ret = this->free_container_id_ranges_.erase(ge_it);
+        this->free_container_id_ranges_.emplace_hint(erase_ge_ret, kLtBeginIdx,
+                                                     kGeEndIdx);
+        this->container_id_counter_--;
+        return true;
+      }
+    }
+    /// cannot be merged into the range pointed by lt_it
+    /// or ge_it is the first free range of container id
+    /// only needs to merge it with the range pointed by
+    /// ge_it
+    const ContainerIDType kGeEndIdx = ge_it->second;
+    /// iterator
+    auto erase_ge_ret = this->free_container_id_ranges_.erase(ge_it);
+    this->free_container_id_ranges_.emplace_hint(erase_ge_ret, container_id,
+                                                 kGeEndIdx);
+    this->container_id_counter_--;
+    return true;
+  }
+  /// the container_id cannot be merged into the
+  /// range pointed by ge_it
+  if (ge_it != this->free_container_id_ranges_.begin()) {
+    /// there are other free range of container id
+    /// ahead of *ge_it
+    /// iterator
+    auto lt_it = ge_it;  /// less than
+    --lt_it;
+    if (lt_it->second == container_id - 1) {
+      /// the container_id can be merged into the
+      /// range pointed by lt_it
+      lt_it->second++;
+      this->container_id_counter_--;
+      return true;
+    }
+  }
+  /// container_id cannot be merged into any
+  /// adjacent ranges, alloc a new range for it
+  this->free_container_id_ranges_.emplace_hint(ge_it, container_id,
+                                               container_id);
+  this->container_id_counter_--;
+  return true;
 }
 
 /// retun 1 if erase successfully, 0 if not
 inline size_t EraseContainer(const ContainerIDType& container_id) {
-  bool has_erased = false;
+  // recycle the container_id
+  if (!this->Recycle(container_id)) {
+    /// recycle fail, such a container_id does not exist
+    return 0;
+  }
+  // erase all attribute correspond to that container
   for (auto it = this->attribute_list_ptr_container_.begin();
        it != this->attribute_list_ptr_container_.end(); it++) {
     /// erase the container_id from each attribute list
-    const bool ret =
-        it.template get<kAttributeListPtrIdx>()->EraseAttribute(container_id);
-    if (!ret) {
-      /// has not erased successfully
-      continue;
-    }
-    /// successfully erased
-    has_erased = true;
+    it.template get<kAttributeListPtrIdx>()->EraseAttribute(container_id);
   }
-  /// maintain the counter
-  this->container_id_counter_--;
-  if (has_erased) return 1;
-  return 0;
+  return 1;
 }
 
 private:
 AttributeListPtrContainerType attribute_list_ptr_container_;
 
-ContainerIDType container_id_allocater_;
 /// holds the totoal id currently in this group
 ContainerIDType container_id_counter_;
-}
-;  // namespace GUNDAM
+
+/// similar to the heap memory mangement in OS
+std::map<ContainerIDType, ContainerIDType> free_container_id_ranges_;
+
+/// holds the maximum id that has ever allocated
+ContainerIDType top_container_id_;
+};  // namespace GUNDAM
 
 public:
+using AttributeKeyType = AttributeKeyType_;
+
 /// iterator types
 using AttributeIterator =
     typename AttributeContainerGroupType ::AttributeIterator;
@@ -1449,6 +1324,7 @@ Attribute_(const GroupKeyType_& group_key) {
   /// alloc a new id for this container
   this->attribute_container_id_ =
       this->attribute_container_group_ptr_->AllocID();
+  // std::cout<<"allocated id: "<<this->attribute_container_id_<<std::endl;
   return;
 }
 
@@ -1555,7 +1431,6 @@ inline std::pair<AttributePtr, bool> AddAttribute(
       return this->AddAttribute<DateTime>(key, DateTime(value_str));
     case BasicDataType::kTypeUnknown:
     default:
-      assert(false);
       break;
   }
   return std::make_pair(AttributePtr(), false);
