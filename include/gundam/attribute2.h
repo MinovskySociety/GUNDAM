@@ -1284,7 +1284,7 @@ class Attribute_<AttributeType::kGrouped,
           /// add a new range
           /// all other allocated id should be occupied now
           assert(this->container_id_counter_ 
-              == this->top_container_id_ - 1);
+              == this->top_container_id_);
           this->free_container_id_ranges_.emplace(container_id,
                                                   container_id);
           this->container_id_counter_--;
