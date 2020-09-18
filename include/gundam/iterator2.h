@@ -2,25 +2,26 @@
 #define _ITERATOR2_H
 
 #include <cassert>
+#include <iostream>
 #include <type_traits>
+#include <typeinfo>
 #include <utility>
-
 namespace GUNDAM {
 
 template <class IteratorType, class ValueType>
-struct DefaultCast { 
+struct DefaultCast {
   constexpr ValueType &operator()(IteratorType &it) const { return *it; }
 };
 
 template <class IteratorType, class ValueType>
-struct ReinterpretCast { 
+struct ReinterpretCast {
   constexpr ValueType &operator()(IteratorType &it) const {
     return *reinterpret_cast<ValueType *>(&*it);
   }
 };
 
 template <class IteratorType, class ValueType>
-struct PointerCast { 
+struct PointerCast {
   constexpr ValueType &operator()(IteratorType &it) const { return *(*it); }
 };
 
@@ -58,7 +59,7 @@ class GIterator {
   template <class Iter, class IterEnd>
   GIterator(Iter &&it, IterEnd &&end)
       : it_{std::forward<Iter>(it)}, end_{std::forward<IterEnd>(end)} {}
- 
+
   ValueType &operator*() { return Cast<IteratorType, ValueType>()(it_); }
 
   const ValueType &operator*() const {
