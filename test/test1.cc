@@ -6,6 +6,7 @@
 
 #include "gundam/graph.h"
 #include "gundam/large_graph.h"
+#include "gundam/large_graph2.h"
 #include "gundam/small_graph.h"
 
 template <class GraphType>
@@ -371,9 +372,14 @@ void TestGraph2() {
 
   TestBuildGraph<GraphType>(g);
 
-  PrintGraph1(g);
-  PrintGraph2(g);
-  PrintGraph3(g);
+  PrintGraph1(g);    
+
+  GraphType g1{g};
+  PrintGraph2(g1);
+
+  GraphType g2;
+  g2 = g1;
+  PrintGraph3(g2);
 }
 
 TEST(TestGUNDAM, TestGraph1) {
@@ -402,12 +408,16 @@ TEST(TestGUNDAM, TestGraph2) {
            SetVertexAttributeKeyType<std::string>, SetEdgeIDType<uint64_t>,
            SetEdgeLabelType<uint32_t>, SetEdgeAttributeKeyType<std::string>>;
 
-  using G1 = LargeGraph<uint64_t, uint32_t, std::string, uint64_t, uint32_t,
+  using G1 = LargeGraph2<uint64_t, uint32_t, std::string, uint64_t, uint32_t,
                         std::string>;
 
-  using G2 = SmallGraph<uint64_t, uint32_t, uint64_t, uint32_t>;
+  using G2 = LargeGraph2<uint64_t, uint32_t, std::string, uint64_t, uint32_t,
+                         std::string>;
 
-  // TestGraph2<G0>();
+  using G3 = SmallGraph<uint64_t, uint32_t, uint64_t, uint32_t>;
+
+  //TestGraph2<G0>();
   TestGraph2<G1>();
-  // TestGraph2<G2>();
+  TestGraph2<G2>();
+  //TestGraph2<G2>();
 }

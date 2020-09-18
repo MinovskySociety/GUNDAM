@@ -547,12 +547,14 @@ class LargeGraph {
   LargeGraph() = default;
 
   LargeGraph(const LargeGraph &other) {
-    for (auto v_it = other.VertexCBegin(); !v_it.IsDone(); ++v_it) {
-      AddVertex(v_it->id(), v_it->label());
+    for (auto it_v = other.VertexCBegin(); !it_v.IsDone(); ++it_v) {
+      auto [v, r] = AddVertex(it_v->id(), it_v->label());
+      CopyAllAttributes(it_v, v);
     }
-    for (auto e_it = other.EdgeCBegin(); !e_it.IsDone(); ++e_it) {
-      AddEdge(e_it->const_src_ptr()->id(), e_it->const_dst_ptr()->id(),
-              e_it->label(), e_it->id());
+    for (auto it_e = other.EdgeCBegin(); !it_e.IsDone(); ++it_e) {
+      auto [e, r] = AddEdge(it_e->src_id(), it_e->dst_id(),
+              it_e->label(), it_e->id());
+      CopyAllAttributes(it_e, e);
     }
   }
 
@@ -561,12 +563,14 @@ class LargeGraph {
   LargeGraph &operator=(const LargeGraph &other) {
     Clear();
 
-    for (auto v_it = other.VertexCBegin(); !v_it.IsDone(); ++v_it) {
-      AddVertex(v_it->id(), v_it->label());
+    for (auto it_v = other.VertexCBegin(); !it_v.IsDone(); ++it_v) {
+      auto [v, r] = AddVertex(it_v->id(), it_v->label());
+      CopyAllAttributes(it_v, v);
     }
-    for (auto e_it = other.EdgeCBegin(); !e_it.IsDone(); ++e_it) {
-      AddEdge(e_it->const_src_ptr()->id(), e_it->const_dst_ptr()->id(),
-              e_it->label(), e_it->id());
+    for (auto it_e = other.EdgeCBegin(); !it_e.IsDone(); ++it_e) {
+      auto [e, r] =
+          AddEdge(it_e->src_id(), it_e->dst_id(), it_e->label(), it_e->id());
+      CopyAllAttributes(it_e, e);
     }
 
     return *this;
@@ -641,12 +645,12 @@ class LargeGraph {
   }
 
   size_t EraseVertex(const typename VertexType::IDType &id) {   
-    auto v_it = vertices_.Find(id);
-    if (v_it == vertices_.end()) return 0;
+    auto it_v = vertices_.Find(id);
+    if (it_v == vertices_.end()) return 0;
 
     size_t count = 0;
 
-    VertexData *v = v_it->second;
+    VertexData *v = it_v->second;
     while (!v->out_edges_.empty()) {
       count += EraseEdge((*(v->out_edges_.begin()))->id());
     }
@@ -667,7 +671,7 @@ class LargeGraph {
     }
 
     delete v;
-    vertices_.Erase(v_it);
+    vertices_.Erase(it_v);
     ++count;
 
     return count;

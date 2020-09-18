@@ -86,7 +86,7 @@ int MatchBenchmark1() {
 
   // Init config;
   config.match_times = 1;
-  config.work_dir = "/mnt/d/work/";
+  config.work_dir = "/share/work/";
 
   for (int i = 0; i < 1; i++) {
     //config.query_graph_info_list.emplace_back();

@@ -526,5 +526,54 @@ class WithAttribute_<AttributeType_,
   AttributeContainerType attributes_;
 };
 
+template <class A, class B>
+inline int CopyAllAttributes(A& from, B& to) {
+  int count = 0;
+  for (auto it_a = from->AttributeCBegin(); !it_a.IsDone(); ++it_a) {
+    switch (it_a->value_type()) {
+      case GUNDAM::BasicDataType::kTypeInt:
+        if (!to->template AddAttribute<int>(it_a->key(),
+                                            it_a->template const_value<int>())
+                 .second) {
+          return -1;
+        }
+        break;
+      case GUNDAM::BasicDataType::kTypeInt64:
+        if (!to->template AddAttribute<int64_t>(
+                   it_a->key(), it_a->template const_value<int64_t>())
+                 .second) {
+          return -1;
+        }
+        break;
+      case GUNDAM::BasicDataType::kTypeDouble:
+        if (!to->template AddAttribute<double>(
+                   it_a->key(), it_a->template const_value<double>())
+                 .second) {
+          return -1;
+        }
+        break;
+      case GUNDAM::BasicDataType::kTypeString:
+        if (!to->template AddAttribute<std::string>(
+                   it_a->key(), it_a->template const_value<std::string>())
+                 .second) {
+          return -1;
+        }
+        break;
+      case GUNDAM::BasicDataType::kTypeDateTime:
+        if (!to->template AddAttribute<GUNDAM::DateTime>(
+                   it_a->key(), it_a->template const_value<GUNDAM::DateTime>())
+                 .second) {
+          return -1;
+        }
+        break;
+      case GUNDAM::BasicDataType::kTypeUnknown:
+      default:
+        return -2;
+    }
+    ++count;
+  }
+  return count;
+}
+
 }  // namespace GUNDAM
 #endif  // _GRAPH_H
