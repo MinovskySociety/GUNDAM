@@ -1066,25 +1066,25 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
 
   // write each edge
   int count = 0;
-  // for (auto edge_it = graph.EdgeCBegin(); !edge_it.IsDone(); ++edge_it) {
+   for (auto edge_it = graph.EdgeCBegin(); !edge_it.IsDone(); ++edge_it) {
   /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in vertex){} }
-  for (auto vertex_cit = graph.VertexCBegin(); !vertex_cit.IsDone(); ++vertex_cit) {
-    for (auto edge_cit = vertex_cit->OutEdgeCBegin(); !edge_cit.IsDone(); ++edge_cit) {
+  //for (auto vertex_cit = graph.VertexCBegin(); !vertex_cit.IsDone(); ++vertex_cit) {
+   // for (auto edge_cit = vertex_cit->OutEdgeCBegin(); !edge_cit.IsDone(); ++edge_cit) {
       if constexpr (!std::is_null_pointer_v<WriteEdgeCallback>) {
-        if (!we_callback(edge_cit)) continue;
+        if (!we_callback(edge_it)) continue;
       }
       std::vector<std::string> line;
       line.resize(key_str.size());
-      line[0] = ToString(edge_cit->id());
-      line[1] = ToString(edge_cit->const_src_ptr()->id());
-      line[2] = ToString(edge_cit->const_dst_ptr()->id());
-      line[3] = ToString(edge_cit->label());
+      line[0] = ToString(edge_it->id());
+      line[1] = ToString(edge_it->const_src_ptr()->id());
+      line[2] = ToString(edge_it->const_dst_ptr()->id());
+      line[3] = ToString(edge_it->label());
       if constexpr (write_attr) {
-        WriteAttributes<GraphType::edge_has_attribute>(edge_cit, attr_pos, line);
+        WriteAttributes<GraphType::edge_has_attribute>(edge_it, attr_pos, line);
       }
       WriteCSVLine(edge_file, line);
       ++count;
-    }
+    //}
   }
 
   return count;
