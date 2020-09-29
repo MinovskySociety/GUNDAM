@@ -22,6 +22,12 @@ template <enum ContainerType containerType>
 class SetVertexLabelContainerType;
 template <enum ContainerType container_type>
 class SetVertexIDContainerType;
+template <enum ContainerType container_type>
+class SetVertexPtrContainerType;
+template <enum ContainerType container_type>
+class SetEdgeLabelContainerType;
+template <enum ContainerType container_type>
+class SetDecomposedEdgeContainerType;
 
 /// node configurations
 template <typename LabelType>
@@ -130,13 +136,13 @@ class GraphConfigures<> {
   static constexpr bool specified_edge_attribute_container_type = false;
   static constexpr bool specified_edge_attribute_container_sort_type = false;
   /// mark whether specified containers type
-  static constexpr bool specified_vertex_label_container_type = false;
-  static constexpr bool specified_vertex_id_container_type    = false;
-  static constexpr bool specified_edge_label_container_type   = false;
-  static constexpr bool specified_vertex_ptr_container_type   = false;
-  static constexpr bool specified_edge_container_type         = false;
+  static constexpr bool specified_vertex_label_container_type    = false;
+  static constexpr bool specified_vertex_id_container_type       = false;
+  static constexpr bool specified_edge_label_container_type      = false;
+  static constexpr bool specified_vertex_ptr_container_type      = false;
+  static constexpr bool specified_decomposed_edge_container_type = false;
   /// mark whether specified containers sort types
-  static constexpr bool specified_edgeLabel_container_sort_type = false;
+  static constexpr bool specified_edge_label_container_sort_type = false;
   static constexpr bool specified_vertex_ptr_container_sort_type = false;
   static constexpr bool specified_edge_container_sort_type = false;
   /// default setting of miscellaneous
@@ -241,6 +247,58 @@ class GraphConfigures<SetVertexIDContainerType<container_type>,
 
  public:
   static constexpr enum ContainerType vertex_id_container_type = container_type;
+};
+
+// Set Edge Label Container Type
+template <enum ContainerType container_type, typename... other_configures>
+class GraphConfigures<SetEdgeLabelContainerType<container_type>,
+                      other_configures...>
+    : public GraphConfigures<other_configures...> {
+ private:
+  static_assert(
+      !GraphConfigures<other_configures...>::specified_edge_label_container_type,
+      "Redefination of vertex id container type!\n");
+
+ protected:
+  static constexpr bool specified_edge_label_container_type = true;
+
+ public:
+  static constexpr enum ContainerType edge_label_container_type = container_type;
+};
+
+// Set Vertex Ptr Container Type
+template <enum ContainerType container_type, typename... other_configures>
+class GraphConfigures<SetVertexPtrContainerType<container_type>,
+                      other_configures...>
+    : public GraphConfigures<other_configures...> {
+ private:
+  static_assert(
+      !GraphConfigures<other_configures...>::specified_vertex_ptr_container_type,
+      "Redefination of vertex id container type!\n");
+
+ protected:
+  static constexpr bool specified_vertex_ptr_container_type = true;
+
+ public:
+  static constexpr enum ContainerType vertex_ptr_container_type = container_type;
+};
+
+
+// Set Decomposed Edge Container Type
+template <enum ContainerType container_type, typename... other_configures>
+class GraphConfigures<SetDecomposedEdgeContainerType<container_type>,
+                      other_configures...>
+    : public GraphConfigures<other_configures...> {
+ private:
+  static_assert(
+      !GraphConfigures<other_configures...>::specified_decomposed_edge_container_type,
+      "Redefination of vertex id container type!\n");
+
+ protected:
+  static constexpr bool specified_decomposed_edge_container_type = true;
+
+ public:
+  static constexpr enum ContainerType decomposed_edge_container_type = container_type;
 };
 
 // Set Vertex ID

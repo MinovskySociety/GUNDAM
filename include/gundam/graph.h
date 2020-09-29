@@ -725,10 +725,12 @@ class Graph {
                                                   begin_depth_ + 2>());
       }
 
-      inline VertexPtrType& VertexPtrContainerElement() {
+      inline VertexPtrType VertexPtrContainerElement() {
         assert(!this->IsDone());
-        return InnerIteratorType::template get<VertexPtr, dst_ptr_idx_,
-                                              begin_depth_ + 1>();
+        return InnerIteratorType
+             ::template get_const<VertexPtr, 
+                                dst_ptr_idx_,
+                                begin_depth_ + 1>();
       }
 
       inline VertexConstPtr VertexPtrContainerConstElement() const {
@@ -792,7 +794,7 @@ class Graph {
                                            begin_depth_ + 2>();
       }
 
-      inline VertexPtrType& src_ptr() {
+      inline VertexPtrType src_ptr() {
         assert(!this->IsDone());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return this->vertex_ptr_;
@@ -1065,9 +1067,9 @@ class Graph {
         return this->vertex_ptr_iterator_;
       }
 
-      inline VertexPtrType& VertexPtrContainerElement() {
+      inline VertexPtrType VertexPtrContainerElement() {
         assert(!this->IsDone());
-        return this->vertex_ptr_iterator_.template get<InnerVertex_::kVertexPtrIdx>();
+        return this->vertex_ptr_iterator_.template get_const<InnerVertex_::kVertexPtrIdx>();
       }
 
       inline VertexConstPtr VertexPtrContainerConstElement() const {
@@ -1117,7 +1119,7 @@ class Graph {
         return;
       }
 
-      inline VertexPtrType& src_ptr() {
+      inline VertexPtrType src_ptr() {
         assert(!this->IsDone());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return InnerIteratorType::vertex_ptr();
@@ -1374,10 +1376,10 @@ class Graph {
      private:
       using EdgePtrContent = EdgePtrContent_<false, false, meaning_less_>;
 
-      inline VertexPtr& VertexPtrContainerElement() {
+      inline VertexPtr VertexPtrContainerElement() {
         assert(!this->IsNull());
         return EdgePtrContent::vertex_ptr_iterator_
-                              .template get<kVertexPtrIdx>();
+                              .template get_const<kVertexPtrIdx>();
       }
 
       inline EdgeAttributeType& _attribute() {
@@ -1389,13 +1391,13 @@ class Graph {
      public:
       using EdgePtrContent::EdgePtrContent;
 
-      inline VertexPtr& src_ptr() {
+      inline VertexPtr src_ptr() {
         if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
           return EdgePtrContent::vertex_ptr_;
         return this->VertexPtrContainerElement();
       }
 
-      inline VertexPtr& dst_ptr() {
+      inline VertexPtr dst_ptr() {
         if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
           return this->VertexPtrContainerElement();
         return EdgePtrContent::vertex_ptr_;
@@ -2081,7 +2083,7 @@ class Graph {
       if (!this->FindVertexExceptEdgeLabel(
                 *edge_label_container_ptr,
                  vertex_ptr_ret.first
-                               .template get<kVertexPtrIdx>(),
+                               .template get_const<kVertexPtrIdx>(),
                  edge_label)){
         /// does not have other edges connect to vertex_ptr
         /// maintain the vertex counter for in/out vertex
@@ -2292,7 +2294,7 @@ class Graph {
                   .Find(dst_ptr);
         if (ret.second) {
           /// found it
-          return ret.first.template get<kVertexPtrIdx>();
+          return ret.first.template get_const<kVertexPtrIdx>();
         }
       }
       return VertexPtr();
