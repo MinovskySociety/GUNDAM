@@ -479,8 +479,11 @@ void UpdateParentSingleDirection(
                                               : edge_it->const_dst_ptr();
     if (match_state.find(update_query_adj_ptr) == match_state.end()) continue;
     auto &query_parent_set = parent.find(update_query_vertex_ptr)->second;
-    for (const auto &it : parent.find(update_query_adj_ptr)->second) {
-      query_parent_set.push_back(it);
+    auto find_it = parent.find(update_query_adj_ptr);
+    if (find_it != parent.end()) {
+      for (const auto &it : find_it->second) {
+        query_parent_set.push_back(it);
+      }
     }
   }
 }
@@ -966,6 +969,10 @@ inline int DPISO_Recurive(const QueryGraph &query_graph,
   }
   if (!RefineCandidateSet(query_graph, target_graph, candidate_set)) {
     return 0;
+  }
+  std::cout << "candidate set:" << std::endl;
+  for (const auto &it : candidate_set) {
+    std::cout << it.first->id() << "  " << it.second.size() << std::endl;
   }
   if (!update_candidate_callback(candidate_set)) {
     return 0;
