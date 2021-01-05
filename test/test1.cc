@@ -416,7 +416,7 @@ TEST(TestGUNDAM, TestGraph2) {
 
   using G3 = SmallGraph<uint64_t, uint32_t, uint64_t, uint32_t>;
 
-  //TestGraph2<G0>();
+  // TestGraph2<G0>();
   TestGraph2<G1>();
   TestGraph2<G2>();
   //TestGraph2<G2>();

@@ -3,6 +3,10 @@
 
 #include "gtest/gtest.h"
 
+#include "gundam/graph.h"
+#include "gundam/large_graph.h"
+#include "gundam/large_graph2.h"
+
 #include "gundam/attribute.h"
 #include "gundam/attribute2.h"
 
@@ -147,4 +151,157 @@ TEST(TestGUNDAM, TestAttribute) {
    // container_id 2
   attr5_ptr = new AttributeType3(1);
   return;
+}
+
+template <typename GraphType>
+void TestGraphAttribute() {
+  using namespace GUNDAM;       
+
+  GraphType g;
+  bool res;
+
+  typename GraphType::VertexPtr v1, v2;
+  std::tie(v1, res) = g.AddVertex(1, "1");
+  ASSERT_TRUE(res);
+  ASSERT_TRUE(v1);
+
+  std::tie(v2, res) = g.AddVertex(2, "1");
+  ASSERT_TRUE(res);
+  ASSERT_TRUE(v2);
+
+  typename GraphType::EdgePtr e1, e2;
+  std::tie(e1, res) = g.AddEdge(1, 2, "a", 1);
+  ASSERT_TRUE(res);
+  ASSERT_TRUE(e1);
+
+  std::tie(e2, res) = g.AddEdge(2, 1, "b", 2);
+  ASSERT_TRUE(res);
+  ASSERT_TRUE(e1);
+
+  typename GraphType::VertexType::AttributePtr va1;
+  std::tie(va1, res) = v1->AddAttribute(1, 1);
+  ASSERT_TRUE(res);
+  ASSERT_FALSE(va1.IsNull());
+
+  typename GraphType::VertexType::AttributePtr va2;
+  std::tie(va2, res) = g.FindVertex(1)->template AddAttribute<double>(2, 2.1);
+  ASSERT_TRUE(res);
+  ASSERT_FALSE(va2.IsNull());
+
+  typename GraphType::VertexType::AttributePtr va3;
+  const char *str = "33";
+  std::tie(va3, res) = v1->template AddAttribute<std::string>(3, str);
+  ASSERT_TRUE(res);
+  ASSERT_FALSE(va3.IsNull());
+  int count = 0;
+
+  auto res_pair = v1->AddAttribute(4, std::string{"44"});
+  ASSERT_TRUE(res_pair.second);
+  ASSERT_FALSE(res_pair.first.IsNull());
+  ASSERT_EQ(std::string{"44"}, res_pair.first->template const_value<std::string>());
+
+  res_pair = v1->AddAttribute(1, 5);
+  ASSERT_FALSE(res_pair.second);
+  ASSERT_FALSE(res_pair.first.IsNull());
+  ASSERT_EQ(1, res_pair.first->template const_value<int>());
+
+  for (auto it = v1->AttributeBegin(); !it.IsDone(); it++) {
+    std::cout << "key = " << it->key() << std::endl
+              << "value type = " << EnumToString(it->value_type()) << std::endl;
+    ++count;
+  }
+  ASSERT_EQ(4, count);
+
+  for (const auto &key : {1, 2, 3}) {
+    typename GraphType::VertexType::AttributePtr va = v1->FindAttributePtr(key);
+
+    std::cout << "key = " << va->key() << std::endl
+              << "value type = " << EnumToString(va->value_type()) << std::endl;
+  }
+
+  // Attributes
+  ASSERT_TRUE(v1->AddAttribute(5, std::string("abc")).second);
+
+  auto v_attr = v1->FindAttributePtr(5);
+  ASSERT_FALSE(v_attr.IsNull());
+  ASSERT_EQ(v_attr->template value<std::string>(), "abc");
+
+  ASSERT_FALSE(v1->template AddAttribute<std::string>(5, "abcd").second);
+
+  ASSERT_TRUE(v1->template SetAttribute<std::string>(5, "abcd").second);
+
+  auto v_cattr = v1->FindConstAttributePtr(5);
+  ASSERT_FALSE(v_cattr.IsNull());
+  ASSERT_EQ(v_cattr->template const_value<std::string>(), "abcd");
+
+  ASSERT_FALSE(v1->template SetAttribute<std::string>(6, "abcde").second);
+
+  ASSERT_TRUE(e1->template AddAttribute<std::string>(5, "abc").second);
+
+  auto e_attr = e1->FindAttributePtr(5);
+  ASSERT_FALSE(e_attr.IsNull());
+  ASSERT_EQ(e_attr->template value<std::string>(), "abc");
+
+  ASSERT_FALSE(e1->template AddAttribute<std::string>(5, "abcd").second);
+
+  ASSERT_TRUE(e1->template SetAttribute<std::string>(5, "abcd").second);
+
+  auto e_cattr = e1->FindConstAttributePtr(5);
+  ASSERT_FALSE(e_cattr.IsNull());
+  ASSERT_EQ(e_cattr->template const_value<std::string>(), "abcd");
+
+  ASSERT_FALSE(e1->template SetAttribute<std::string>(6, "abcde").second);
+}
+
+TEST(TestGUNDAM, TestGraphAttribute) {
+  using namespace GUNDAM;
+
+  using G1 = LargeGraph<uint32_t, std::string, int, 
+                        uint64_t, std::string, int>;
+                        
+  using G2 = LargeGraph2<uint32_t, std::string, int, 
+                         uint64_t, std::string, int>;
+                         
+  using G3 = Graph<SetVertexIDType<uint32_t>, 
+                   SetVertexLabelType<std::string>,
+                   SetVertexAttributeKeyType<int>, 
+                   SetVertexAttributeStoreType<AttributeType::kSeparated>,
+                   SetEdgeIDType<uint64_t>,
+                   SetEdgeLabelType<std::string>, 
+                   SetEdgeAttributeKeyType<int>,
+                   SetEdgeAttributeStoreType<AttributeType::kSeparated>>;
+                         
+  using G4 = Graph<SetVertexIDType<uint32_t>, 
+                   SetVertexLabelType<std::string>,
+                   SetVertexAttributeKeyType<int>, 
+                   SetVertexAttributeStoreType<AttributeType::kGrouped>,
+                   SetEdgeIDType<uint64_t>,
+                   SetEdgeLabelType<std::string>, 
+                   SetEdgeAttributeKeyType<int>,
+                   SetEdgeAttributeStoreType<AttributeType::kSeparated>>;
+                         
+  using G5 = Graph<SetVertexIDType<uint32_t>, 
+                   SetVertexLabelType<std::string>,
+                   SetVertexAttributeKeyType<int>, 
+                   SetVertexAttributeStoreType<AttributeType::kSeparated>,
+                   SetEdgeIDType<uint64_t>,
+                   SetEdgeLabelType<std::string>, 
+                   SetEdgeAttributeKeyType<int>,
+                   SetEdgeAttributeStoreType<AttributeType::kGrouped>>;
+                         
+  using G6 = Graph<SetVertexIDType<uint32_t>, 
+                   SetVertexLabelType<std::string>,
+                   SetVertexAttributeKeyType<int>, 
+                   SetVertexAttributeStoreType<AttributeType::kGrouped>,
+                   SetEdgeIDType<uint64_t>,
+                   SetEdgeLabelType<std::string>, 
+                   SetEdgeAttributeKeyType<int>,
+                   SetEdgeAttributeStoreType<AttributeType::kGrouped>>;
+
+  TestGraphAttribute<G1>();
+  TestGraphAttribute<G2>();
+  TestGraphAttribute<G3>();
+  TestGraphAttribute<G4>();
+  TestGraphAttribute<G5>();
+  TestGraphAttribute<G6>();
 }

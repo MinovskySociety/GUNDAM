@@ -63,8 +63,8 @@ TEST(TestGUNDAM, MULTI_VF2) {
                            GUNDAM::SetVertexAttributeKeyType<std::string>, 
                            GUNDAM::SetEdgeIDType<uint32_t>,
                            GUNDAM::SetEdgeLabelType<uint32_t>, 
-                           GUNDAM::
-                           SetEdgeAttributeKeyType<std::string>>;
+                           GUNDAM::SetEdgeAttributeKeyType<std::string>>;
+
   using G2 = GUNDAM::LargeGraph<uint32_t, uint32_t, std::string, 
                                 uint32_t, uint32_t, std::string>;
   

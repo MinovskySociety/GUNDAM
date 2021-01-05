@@ -2,7 +2,10 @@
 #include <string>
 
 #include "gtest/gtest.h"
+#include "gundam/small_graph.h"
 #include "gundam/large_graph.h"
+#include "gundam/large_graph2.h"
+#include "gundam/graph.h"
 
 //TEST(TestGUNDAM, TestGraph) {
 //  using namespace GUNDAM;
@@ -37,13 +40,11 @@
 //  ASSERT_TRUE(true);
 //}
 
-TEST(TestGUNDAM, TestGraphVertexEdge) {
-  using namespace GUNDAM;
+template <class GraphType>
+void TestGraphVertexEdge() {
+  using namespace GUNDAM;                 
 
-  using G1 = LargeGraph<uint32_t, std::string, std::string, uint64_t,
-                        std::string, std::string>;                   
-
-  G1 g1;
+  GraphType g1;
 
   // AddVertex
   auto res1 = g1.AddVertex(1, "AAA");
@@ -195,105 +196,28 @@ TEST(TestGUNDAM, TestGraphVertexEdge) {
   ASSERT_EQ(count, 3);
 }
 
-TEST(TestGUNDAM, TestGraphAttribute) {
+TEST(TestGUNDAM, TestGraphVertexEdge) {
   using namespace GUNDAM;
 
-  using G1 = LargeGraph<uint32_t, std::string, int, uint64_t,
-                        std::string, int>;                   
+  using G0 = Graph<SetVertexIDType<uint32_t>, 
+                   SetVertexLabelType<std::string>,
+                   SetVertexAttributeKeyType<std::string>, 
+                   SetEdgeIDType<uint64_t>,
+                   SetEdgeLabelType<std::string>, 
+                   SetEdgeAttributeKeyType<std::string>>;
 
-  G1 g;
-  bool res;
+  using G1 = LargeGraph<uint32_t, std::string, std::string, 
+                        uint64_t, std::string, std::string>;
 
-  G1::VertexPtr v1, v2;
-  std::tie(v1, res) = g.AddVertex(1, "1");
-  ASSERT_TRUE(res);
-  ASSERT_TRUE(v1);
+  using G2 = LargeGraph2<uint32_t, std::string, std::string, 
+                         uint64_t, std::string, std::string>;  
 
-  std::tie(v2, res) = g.AddVertex(2, "1");
-  ASSERT_TRUE(res);
-  ASSERT_TRUE(v2);
+  using G3 = SmallGraph<uint32_t, std::string, 
+                        uint64_t, std::string>;
 
-  G1::EdgePtr e1, e2;
-  std::tie(e1, res) = g.AddEdge(1, 2, "a", 1);
-  ASSERT_TRUE(res);
-  ASSERT_TRUE(e1);
+  TestGraphVertexEdge<G0>();
+  TestGraphVertexEdge<G1>();
+  TestGraphVertexEdge<G2>();
+  TestGraphVertexEdge<G3>();
 
-  std::tie(e2, res) = g.AddEdge(2, 1, "b", 2);
-  ASSERT_TRUE(res);
-  ASSERT_TRUE(e1);
-
-  
-  G1::VertexType::AttributePtr va1;
-  std::tie(va1, res) = v1->AddAttribute(1, 1);
-  ASSERT_TRUE(res);
-  ASSERT_FALSE(va1.IsNull());
-
-  G1::VertexType::AttributePtr va2;
-  std::tie(va2, res) = g.FindVertex(1)->template AddAttribute<double>(2, 2.1);
-  ASSERT_TRUE(res);
-  ASSERT_FALSE(va2.IsNull());
-
-  G1::VertexType::AttributePtr va3;
-  const char *str = "33";
-  std::tie(va3, res) = v1->AddAttribute<std::string>(3, str);
-  ASSERT_TRUE(res);
-  ASSERT_FALSE(va3.IsNull());
-  int count = 0;
-
-  auto res_pair = v1->AddAttribute(4, std::string{"44"});
-  ASSERT_TRUE(res_pair.second);
-  ASSERT_FALSE(res_pair.first.IsNull());
-
-  res_pair = v1->AddAttribute(1, 5);
-  ASSERT_FALSE(res_pair.second);
-  ASSERT_FALSE(res_pair.first.IsNull());
-  ASSERT_EQ(1, res_pair.first->const_value<int>());
-
-  for (G1::EdgeType::AttributeIterator it = v1->AttributeBegin(); !it.IsDone();
-       it++) {
-    std::cout << "key = " << it->key() << std::endl
-              << "value type = " << EnumToString(it->value_type()) << std::endl;
-    ++count;
-  }
-  ASSERT_EQ(4, count);
-
-  for (const auto &key : {1, 2, 3}) {
-    G1::VertexType::AttributePtr va = v1->FindAttributePtr(key);
-
-    std::cout << "key = " << va->key() << std::endl
-              << "value type = " << EnumToString(va->value_type()) << std::endl;
-  }
-
-  // Attributes
-  ASSERT_TRUE(v1->AddAttribute(5, std::string("abc")).second);
-
-  auto v_attr = v1->FindAttributePtr(5);
-  ASSERT_FALSE(v_attr.IsNull());
-  ASSERT_EQ(v_attr->template value<std::string>(), "abc");
-
-  ASSERT_FALSE(v1->AddAttribute<std::string>(5, "abcd").second);
-
-  ASSERT_TRUE(v1->SetAttribute<std::string>(5, "abcd").second);
-
-  auto v_cattr = v1->FindConstAttributePtr(5);
-  ASSERT_FALSE(v_cattr.IsNull());
-  ASSERT_EQ(v_cattr->template const_value<std::string>(), "abcd");
-
-  ASSERT_FALSE(v1->SetAttribute<std::string>(6, "abcde").second);
-
-  ASSERT_TRUE(e1->AddAttribute<std::string>(5, "abc").second);
-
-  auto e_attr = e1->FindAttributePtr(5);
-  ASSERT_FALSE(e_attr.IsNull());
-  ASSERT_EQ(e_attr->template value<std::string>(), "abc");
-
-  ASSERT_FALSE(e1->template AddAttribute<std::string>(5, "abcd").second);
-
-  ASSERT_TRUE(e1->SetAttribute<std::string>(5, "abcd").second);
-
-  auto e_cattr = e1->FindConstAttributePtr(5);
-  ASSERT_FALSE(e_cattr.IsNull());
-  ASSERT_EQ(e_cattr->template const_value<std::string>(), "abcd");
-
-  ASSERT_FALSE(e1->SetAttribute<std::string>(6, "abcde").second);
 }

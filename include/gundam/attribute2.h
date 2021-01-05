@@ -162,7 +162,7 @@ class Attribute_<AttributeType::kSeparated,
 
     using AttributeContentPtrType
         = AttributeContentPtr_<AttributeContainerType, _is_const_>;
-
+        
     using AttributeContentPtr = typename std::conditional<_is_const_, 
                                       const AttributeContentPtrType*,
                                             AttributeContentPtrType*>::type;
@@ -194,21 +194,37 @@ class Attribute_<AttributeType::kSeparated,
       return *this;
     }
 
-    template <const bool judge = is_const_,
+    template <const bool judge = _is_const_,
               typename std::enable_if<!judge, bool>::type = false>
     AttributeContentPtr operator->() {
-      static_assert(judge == is_const_, "Illegal usage of this method");
+      static_assert(judge == _is_const_, "Illegal usage of this method");
       AttributeContentPtr const temp_this_ptr = this;
       return temp_this_ptr;
     }
 
-    template <const bool judge = is_const_,
+    template <const bool judge = _is_const_,
               typename std::enable_if<judge, bool>::type = false>
     AttributeContentPtr operator->() const {
-      static_assert(judge == is_const_, "Illegal usage of this method");
-      AttributeContentPtr const temp_this_ptr = this;
+      static_assert(judge == _is_const_, "Illegal usage of this method");
+      const AttributeContentPtr temp_this_ptr = this;
       return temp_this_ptr;
     }
+
+    // template <const bool judge = _is_const_,
+    //           typename std::enable_if<!judge, bool>::type = false>
+    // AttributeContentPtrType* operator->() {
+    //   static_assert(judge == _is_const_, "Illegal usage of this method");
+    //   void* temp_ptr = static_cast<void*>(this);
+    //   return static_cast<AttributeContentPtrType*>(temp_ptr);
+    // }
+
+    // template <const bool judge = _is_const_,
+    //           typename std::enable_if<judge, bool>::type = false>
+    // const AttributeContentPtrType* operator->() {
+    //   static_assert(judge == _is_const_, "Illegal usage of this method");
+    //   const void* const temp_ptr = static_cast<const void*>(this);
+    //   return static_cast<const AttributeContentPtrType*>(temp_ptr);
+    // }
     
     inline bool IsNull() const { 
       return AttributeContentPtrType::IsNull(); 
@@ -345,7 +361,6 @@ class Attribute_<AttributeType::kSeparated,
       delete it.template get<kAttributeValuePtrIdx>();
     return;
   }
-
 
   BasicDataType attribute_value_type(const AttributeKeyType_& key) const {
     auto ret = this->attributes_.FindConst(key);
