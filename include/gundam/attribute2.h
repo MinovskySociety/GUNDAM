@@ -54,9 +54,13 @@ class Attribute_<AttributeType::kSeparated,
     virtual ~ConcreteValue() override {}
 
     virtual std::string value_str() const override {
-      std::stringstream ss;
-      ss << value_;
-      return ss.str();
+      if constexpr (TypeToEnum<ConcreteDataType_>() 
+                  != BasicDataType::kTypeUnknown){
+        std::stringstream ss;
+        ss << this->value_;
+        return ss.str();
+      }
+      return "unknown value type";
     }
 
     const ConcreteDataType_& const_value() const { 
@@ -894,9 +898,13 @@ class Attribute_<AttributeType::kGrouped,
         }
 
         inline std::string value_str() const override{
-          std::stringstream ss;
-          ss << this->value_;
-          return ss.str();
+          if constexpr (TypeToEnum<ConcreteValueType>() 
+                      != BasicDataType::kTypeUnknown){
+            std::stringstream ss;
+            ss << this->value_;
+            return ss.str();
+          }
+          return "unknown value type";
         }
 
        private:

@@ -51,7 +51,7 @@ void TestAttribute(TestAttributeType& attr) {
 
   int count = 0;
   for (auto iter = attr.AttributeCBegin(); !iter.IsDone(); iter++) {
-    std::cout << iter->key() << " " << iter->value_str() << std::endl;        
+    std::cout << iter->key() << " " << iter->value_str() << std::endl;
     count++;
   }
   ASSERT_EQ(2, count);
@@ -76,6 +76,23 @@ void TestAttribute(TestAttributeType& attr) {
                   .second);
   ASSERT_FALSE(
       attr.AddAttribute("XXX6", BasicDataType::kTypeUnknown, "abc").second);
+
+
+  class TestUnknownType{
+   public:
+    TestUnknownType(){
+      return;
+    }
+  };
+
+  TestUnknownType unknown_type_value;
+  
+  ASSERT_TRUE(
+      attr.AddAttribute("XXX7", unknown_type_value).second);
+
+  ASSERT_EQ(BasicDataType::kTypeUnknown, attr.attribute_value_type("XXX7"));
+  
+  ASSERT_EQ("unknown value type", attr.FindAttributePtr("XXX7")->value_str());
 }
 
 
