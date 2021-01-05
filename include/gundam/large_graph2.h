@@ -591,6 +591,11 @@ class LargeGraph2 {
     if (it == vertices_.end()) return nullptr;
     return it->second;
   }
+  
+  inline VertexConstPtr FindVertex(const typename VertexType
+                                                    ::IDType& id) const{
+    return this->FindConstVertex(id);
+  }
 
   VertexConstPtr FindConstVertex(const typename VertexType::IDType &id) const {
     auto it = vertices_.Find(id);

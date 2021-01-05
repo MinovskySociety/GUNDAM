@@ -444,6 +444,11 @@ class SmallGraph {
     if (it == vertices_.end()) return VertexPtr();
     return VertexPtr(Vertex(this, *it));
   }
+  
+  inline VertexConstPtr FindVertex(const typename VertexType
+                                                    ::IDType& id) const{
+    return this->FindConstVertex(id);
+  }
 
   VertexConstPtr FindConstVertex(const VertexIDType &id) const {
     auto it = vertices_.Find(id);

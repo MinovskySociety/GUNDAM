@@ -3971,6 +3971,11 @@ class Graph {
     /// not found
     return VertexPtr();
   }
+  
+  inline VertexConstPtr FindVertex(const typename VertexType
+                                                    ::IDType& id) const{
+    return this->FindConstVertex(id);
+  }
 
   inline VertexConstPtr FindConstVertex(
       const typename VertexType::IDType& id) const {

@@ -15,7 +15,7 @@ gtest_add_tests(TARGET test1)
 
 add_executable (test2 "test2.cc")
 target_link_libraries(test2 GTest::GTest GTest::Main)
-#gtest_add_tests(TARGET test2)
+gtest_add_tests(TARGET test2)
 
 add_executable (test_csvgraph "test_csvgraph.cc")
 target_link_libraries(test_csvgraph GTest::GTest GTest::Main)
@@ -23,11 +23,11 @@ target_link_libraries(test_csvgraph GTest::GTest GTest::Main)
 
 add_executable (test_vf2 "test_vf2.cc")
 target_link_libraries(test_vf2 GTest::GTest GTest::Main)
-#gtest_add_tests(TARGET test_vf2)
+gtest_add_tests(TARGET test_vf2)
 
 add_executable (test_multi_vf2 "test_multi_vf2.cc")
 target_link_libraries(test_multi_vf2 GTest::GTest GTest::Main)
-#gtest_add_tests(TARGET test_multi_vf2)
+gtest_add_tests(TARGET test_multi_vf2)
 
 add_executable (test_idgen "test_idgen.cc")
 target_link_libraries(test_idgen GTest::GTest GTest::Main)
