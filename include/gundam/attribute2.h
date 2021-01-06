@@ -244,6 +244,8 @@ class Attribute_<AttributeType::kSeparated,
       : protected InnerIterator_<ContainerType_, _is_const_, depth_> {
    private:
     using InnerIteratorType = InnerIterator_<ContainerType_, _is_const_, depth_>;
+    
+    friend class Attribute_;
 
     // friend typename VertexAttributeType::AttributeIterator
     // VertexAttributeType::EraseAttribute(
@@ -332,6 +334,14 @@ class Attribute_<AttributeType::kSeparated,
                   kAttributeKeyIdx, 
                   kAttributeValuePtrIdx,
                   kAttributeValueTypeIdx>;
+                  
+  using AttributeContentConstIterator 
+      = AttributeContentIterator_<
+                   AttributeKeyType_, 
+                   AttributeContainerType,  true, 1, 0,
+                  kAttributeKeyIdx, 
+                  kAttributeValuePtrIdx,
+                  kAttributeValueTypeIdx>;
 
  public:
   using AttributeKeyType = AttributeKeyType_;
@@ -339,15 +349,11 @@ class Attribute_<AttributeType::kSeparated,
   using AttributePtr      = AttributePtr_<AttributeContainerType, false>;
   using AttributeConstPtr = AttributePtr_<AttributeContainerType,  true>;
 
-  using AttributeIterator = Iterator_<AttributeContentIterator>;
+  using AttributeIterator 
+      = Iterator_<AttributeContentIterator>;
 
   using AttributeConstIterator 
-      = Iterator_<AttributeContentIterator_<
-                  AttributeKeyType_, 
-                  AttributeContainerType, true, 1, 0,
-                 kAttributeKeyIdx,
-                 kAttributeValuePtrIdx, 
-                 kAttributeValueTypeIdx>>;
+      = Iterator_<AttributeContentConstIterator>;
   
   Attribute_(const GroupKeyType_& group_key){
     /// since the each vertex/edge holds a seperated container, 
@@ -566,6 +572,9 @@ class Attribute_<AttributeType::kGrouped,
                                          is_const_,
                                             depth_> {
      private:
+
+      friend class AttributeContainerGroup_;
+
       using AttributeListPtr      =       AttributeListType*;
       using AttributeListConstPtr = const AttributeListType*;
 
@@ -1052,6 +1061,18 @@ class Attribute_<AttributeType::kGrouped,
       AbstractAttributePtrContainerType abstract_attr_ptr_list_;
     };
 
+    using AttributeContentIterator 
+        = AttributeContentIterator_<
+          AttributeListPtrContainerType, false, 1, 
+         kAttributeKeyIdx,
+         kAttributeListPtrIdx>;
+                    
+    using AttributeContentConstIterator 
+        = AttributeContentIterator_<
+          AttributeListPtrContainerType,  true, 1, 
+         kAttributeKeyIdx,
+         kAttributeListPtrIdx>;;
+
    public:
     using AttributeKeyType = AttributeKeyType_;
 
@@ -1063,16 +1084,10 @@ class Attribute_<AttributeType::kGrouped,
                              kAttributeListPtrIdx>;
 
     using AttributeIterator
-                 = Iterator_<AttributeContentIterator_<
-                             AttributeListPtrContainerType, false, 1, 
-                            kAttributeKeyIdx,
-                            kAttributeListPtrIdx>>;
+        = Iterator_<AttributeContentIterator>;
 
     using AttributeConstIterator
-                 = Iterator_<AttributeContentIterator_<
-                             AttributeListPtrContainerType,  true, 1, 
-                            kAttributeKeyIdx,
-                            kAttributeListPtrIdx>>;
+        = Iterator_<AttributeContentConstIterator>;
 
     AttributeContainerGroup_()
            : container_id_counter_(0),
@@ -1227,12 +1242,20 @@ class Attribute_<AttributeType::kGrouped,
                         kSetAttributeRet);
     }
 
-    // inline AttributeIterator EraseAttribute(
-    //                   const ContainerIDType& container_id,
-    //                   const AttributeIterator& attribute_iterator) {
-    //   assert(container_id == attribute_iterator.container_id_);
-    //   return;
-    // }
+    inline AttributeIterator EraseAttribute(
+                      const ContainerIDType& container_id,
+                      const AttributeIterator& attribute_iterator) {
+      const void* const ptr = &attribute_iterator;
+      const AttributeContentIterator* attr_it_ptr 
+        = static_cast<const AttributeContentIterator*>(ptr);
+      assert(container_id == attr_it_ptr->container_id_);
+      /// iterator of AttributeContainer
+      auto it = this->attribute_list_ptr_container_.Erase(
+                      attr_it_ptr->ConstInnerIterator());
+
+      return AttributeIterator(container_id, it,
+                         this->attribute_list_ptr_container_.end());
+    }
 
     /// return 1 if erased successfully, 0 if failed
     inline size_t EraseAttribute(

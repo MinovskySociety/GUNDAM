@@ -280,6 +280,8 @@ class WithAttribute_<AttributeType_,
    private:
     using InnerIteratorType = InnerIterator_<ContainerType_, _is_const_, depth_>;
 
+    friend class WithAttribute_;
+
     // friend typename VertexAttributeType::AttributeIterator
     // VertexAttributeType::EraseAttribute(
     //    const typename VertexAttributeType::AttributeIterator&

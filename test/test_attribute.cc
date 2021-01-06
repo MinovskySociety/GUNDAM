@@ -254,7 +254,26 @@ void TestGraphAttribute() {
 
   ASSERT_FALSE(e1->template SetAttribute<std::string>("6", "abcde").second);
 
+  for (auto attr_it = v1->AttributeBegin();
+           !attr_it.IsDone();){
+    attr_it = v1->EraseAttribute(attr_it);
+  }
+  count = 0;
+  for (auto it = v1->AttributeBegin(); !it.IsDone(); it++) {
+    ++count;
+  }
+  ASSERT_EQ(0, count);
   TestAttribute(v1);
+  
+  for (auto attr_it = e1->AttributeBegin();
+           !attr_it.IsDone();){
+    attr_it = e1->EraseAttribute(attr_it);
+  }
+  count = 0;
+  for (auto it = e1->AttributeBegin(); !it.IsDone(); it++) {
+    ++count;
+  }
+  ASSERT_EQ(0, count);
   TestAttribute(e1);
 }
 
