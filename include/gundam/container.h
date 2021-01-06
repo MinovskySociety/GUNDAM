@@ -142,16 +142,13 @@ class Container<ContainerType::Vector,
       return temp;
     }
 
-    template<TupleIdxType tuple_idx,
-             bool judge = is_const_,
-             typename std::enable_if<!judge, bool>::type = false>
-    inline typename std::tuple_element<tuple_idx, ElementType>::type& get() const{
-      static_assert(!is_const_, "the iterator is constant, illegal call of this method");
+    template<TupleIdxType tuple_idx>
+    inline auto& get() const{ 
       return std::get<tuple_idx>(*(this->iterator_));
     }
 
     template<TupleIdxType tuple_idx>
-    inline const typename std::tuple_element<tuple_idx, ElementType>::type& get_const() const{
+    inline const auto& get_const() const{
       return std::get<tuple_idx>(*(this->iterator_));
     }
   };
@@ -164,36 +161,40 @@ class Container<ContainerType::Vector,
   using      size_type = typename InnerContainerType::size_type;
 
   inline const_iterator cbegin() const {
-    return
-         const_iterator(this->container_.cbegin());
+    return const_iterator(this->container_.cbegin());
   }
   inline const_iterator cend() const {
-    return
-         const_iterator(this->container_.cend());
+    return const_iterator(this->container_.cend());
   }
   inline iterator begin() {
-    return
-         iterator(this->container_.begin());
+    return iterator(this->container_.begin());
   }
   inline iterator end() {
-    return
-         iterator(this->container_.end());
+    return iterator(this->container_.end());
+  }
+  inline const_iterator begin() const {
+    return this->cbegin();
+  }
+  inline const_iterator end() const {
+    return this->cbegin();
   }
   inline const_reverse_iterator crbegin() const {
-    return
-         const_reverse_iterator(this->container_.crbegin());
+    return const_reverse_iterator(this->container_.crbegin());
   }
   inline const_reverse_iterator crend() const {
-    return
-         const_reverse_iterator(this->container_.crend());
+    return const_reverse_iterator(this->container_.crend());
   }
   inline reverse_iterator rbegin() {
-    return
-         reverse_iterator(this->container_.rbegin());
+    return reverse_iterator(this->container_.rbegin());
   }
   inline reverse_iterator rend() {
-    return
-         reverse_iterator(this->container_.rend());
+    return reverse_iterator(this->container_.rend());
+  }
+  inline const_reverse_iterator rbegin() const {
+    return this->crbegin();
+  }
+  inline const_reverse_iterator rend() const {
+    return this->crend();
   }
   inline size_type size() const {
     return this->container_.size();
@@ -211,8 +212,8 @@ class Container<ContainerType::Vector,
   }
 
   template<enum SortType _sort_type_ = sort_type_,
-           typename std::enable_if<_sort_type_ == SortType::Sorted, 
-                                   bool>::type = false>
+           std::enable_if_t<_sort_type_ == SortType::Sorted, 
+                            bool> = false>
   inline std::pair<iterator, bool> Insert(const KeyType_& key) {
     static_assert(sort_type_ == SortType::Sorted, "illegal usage of this method");
     auto it = std::lower_bound(this->container_.begin(), 
@@ -228,8 +229,8 @@ class Container<ContainerType::Vector,
   }
 
   template<enum SortType _sort_type_ = sort_type_,
-           typename std::enable_if<_sort_type_ == SortType::Default, 
-                                   bool>::type = false>
+           std::enable_if_t<_sort_type_ == SortType::Default, 
+                             bool> = false>
   inline std::pair<iterator, bool> Insert(const KeyType_& key) {
     static_assert(sort_type_ == SortType::Default, "illegal usage of this method");
     for (iterator it  = iterator(this->container_.begin());
@@ -258,8 +259,8 @@ class Container<ContainerType::Vector,
   }
 
   template<enum SortType _sort_type_ = sort_type_,
-           typename std::enable_if<_sort_type_ == SortType::Sorted, 
-                                   bool>::type = false>
+           std::enable_if_t<_sort_type_ == SortType::Sorted, 
+                             bool> = false>
   inline std::pair<iterator, bool> Find(const KeyType& key) {
     static_assert(sort_type_ == SortType::Sorted, "illegal usage of this method");
     auto it = std::lower_bound(this->container_.begin(), 
@@ -273,8 +274,8 @@ class Container<ContainerType::Vector,
   }
 
   template<enum SortType _sort_type_ = sort_type_,
-           typename std::enable_if<_sort_type_ == SortType::Default, 
-                                   bool>::type = false>
+           std::enable_if_t<_sort_type_ == SortType::Default, 
+                             bool> = false>
   inline std::pair<iterator, bool> Find(const KeyType& key) {
     static_assert(sort_type_ == SortType::Default, "illegal usage of this method");
     for (iterator it  = this->container_.begin();
@@ -284,10 +285,14 @@ class Container<ContainerType::Vector,
     }
     return std::pair<iterator, bool>(this->container_.end(), false);
   }
+
+  inline std::pair<const_iterator, bool> Find(const KeyType& key) const{
+    return this->FindConst(key);
+  }
   
   template<enum SortType _sort_type_ = sort_type_,
-           typename std::enable_if<_sort_type_ == SortType::Sorted, 
-                                   bool>::type = false>
+           std::enable_if_t<_sort_type_ == SortType::Sorted, 
+                             bool> = false>
   inline std::pair<const_iterator, bool> FindConst(const KeyType& key) const {
     static_assert(sort_type_ == SortType::Sorted, "illegal usage of this method");
     auto it = std::lower_bound(this->container_.cbegin(), 
@@ -301,8 +306,8 @@ class Container<ContainerType::Vector,
   }
 
   template<enum SortType _sort_type_ = sort_type_,
-           typename std::enable_if<_sort_type_ == SortType::Default, 
-                                   bool>::type = false>
+           std::enable_if_t<_sort_type_ == SortType::Default, 
+                             bool> = false>
   inline std::pair<const_iterator, bool> FindConst(const KeyType& key) const {
     static_assert(sort_type_ == SortType::Default, "illegal usage of this method");
     for (const_iterator cit  = this->container_.cbegin();
@@ -406,15 +411,13 @@ class Container<ContainerType::Set,
       return temp;
     }
 
-    template<TupleIdxType tuple_idx,
-             bool judge = is_const_,
-             typename std::enable_if<!judge, bool>::type = false>
-    inline typename std::tuple_element<tuple_idx, ElementType>::type& get() const{
+    template<TupleIdxType tuple_idx>
+    inline auto& get() const{ 
       return std::get<tuple_idx>(*(this->iterator_));
     }
 
     template<TupleIdxType tuple_idx>
-    inline const typename std::tuple_element<tuple_idx, ElementType>::type& get_const() const{
+    inline const auto& get_const() const{
       return std::get<tuple_idx>(*(this->iterator_));
     }
   };
@@ -426,20 +429,22 @@ class Container<ContainerType::Set,
   using      size_type = typename InnerContainerType::size_type;
 
   inline const_iterator cbegin() const {
-    return
-         const_iterator(this->container_.cbegin());
+    return const_iterator(this->container_.cbegin());
   }
   inline const_iterator cend() const {
-    return
-         const_iterator(this->container_.cend());
+    return const_iterator(this->container_.cend());
   }
   inline iterator begin() {
-    return
-         iterator(this->container_.begin());
+    return iterator(this->container_.begin());
   }
   inline iterator end() {
-    return
-         iterator(this->container_.end());
+    return iterator(this->container_.end());
+  }
+  inline const_iterator begin() const {
+    return this->cbegin();
+  }
+  inline const_iterator end() const {
+    return this->cend();
   }
   inline size_type size() const {
     return this->container_.size();
@@ -480,6 +485,10 @@ class Container<ContainerType::Set,
     return std::pair<iterator, bool>(
                      iterator(ret),
                      ret != this->container_.end());
+  }
+
+  inline std::pair<const_iterator, bool> Find(const KeyType& key) const {
+    return this->FindConst(key);
   }
 
   inline std::pair<const_iterator, bool> FindConst(const KeyType& key) const {
@@ -597,34 +606,26 @@ class Container<ContainerType::Map,
     }
 
     template<TupleIdxType tuple_idx,
-             bool judge0 =  is_const_,
-             bool judge1 = (tuple_idx == 0),
-             typename std::enable_if<!judge0 && judge1, bool>::type = false>
-    inline KeyType& get() const{
-      static_assert(judge0 == is_const_, "illegal usage of this method");
-      static_assert(judge1 == (tuple_idx == 0), "illegal usage of this method");
+             std::enable_if_t<tuple_idx == 0, bool> = false>
+    inline auto& get() const{
       return this->iterator_->first;
     }
 
     template<TupleIdxType tuple_idx,
-             bool judge0 =  is_const_,
-             bool judge1 = (tuple_idx == 0),
-             typename std::enable_if<!judge0 &&!judge1, bool>::type = false>
-    inline typename std::tuple_element<tuple_idx, AbstractElementType>::type& get() const{
-      static_assert(judge0 == is_const_, "illegal usage of this method");
-      static_assert(judge1 == (tuple_idx == 0), "illegal usage of this method");
+             std::enable_if_t<tuple_idx != 0, bool> = false>
+    inline auto& get() const{
       return std::get<tuple_idx - 1>(this->iterator_->second);
     }
 
     template<TupleIdxType  tuple_idx,
-             typename std::enable_if<tuple_idx == 0, bool>::type = false>
-    inline const KeyType& get_const() const{
+             std::enable_if_t<tuple_idx == 0, bool> = false>
+    inline const auto& get_const() const{
       return this->iterator_->first;
     }
 
     template<TupleIdxType tuple_idx,
-             typename std::enable_if<tuple_idx != 0, bool>::type = false>
-    inline const typename std::tuple_element<tuple_idx, AbstractElementType>::type& get_const() const{
+             std::enable_if_t<tuple_idx != 0, bool> = false>
+    inline const auto& get_const() const{
       return std::get<tuple_idx - 1>(this->iterator_->second);
     }
   };
@@ -648,6 +649,12 @@ class Container<ContainerType::Map,
   inline iterator end() {
     return iterator(this->container_.end());
   }
+  inline const_iterator begin() const {
+    return this->cbegin();
+  }
+  inline const_iterator end() const {
+    return this->cend();
+  }
   inline const_reverse_iterator crbegin() const {
     return const_reverse_iterator(this->container_.crbegin());
   }
@@ -659,6 +666,12 @@ class Container<ContainerType::Map,
   }
   inline reverse_iterator rend() {
     return reverse_iterator(this->container_.rend());
+  }
+  inline const_reverse_iterator rbegin() const {
+    return this->crbegin();
+  }
+  inline const_reverse_iterator rend() const {
+    return this->crend();
   }
   inline size_type size() const {
     return this->container_.size();
@@ -699,6 +712,10 @@ class Container<ContainerType::Map,
     return std::pair<iterator, bool>(
                      iterator(ret),
                      ret != this->container_.end());
+  }
+
+  inline std::pair<const_iterator, bool> Find(const KeyType& key) const {
+    return this->FindConst(key);
   }
 
   inline std::pair<const_iterator, bool> FindConst(const KeyType& key) const {

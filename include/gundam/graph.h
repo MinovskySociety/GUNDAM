@@ -2750,41 +2750,30 @@ class Graph {
     ///                       const VertexLabelType& vertex_label) const;
 
    private:
-    /// constant methods:
-    inline EdgeConstPtr FindConstEdge(
-        const EdgeLabelContainerType& edge_label_container,
-        const enum EdgeDirection& edge_direction,
-        const EdgeIDType& edge_id) const {
-      for (auto edge_label_it  = edge_label_container.cbegin();
-                edge_label_it != edge_label_container.cend();
-              ++edge_label_it) {
-        for (auto vertex_ptr_it  = edge_label_it
-                                  .template get_const<kVertexPtrContainerIdx>()
-                                  .cbegin();
-                  vertex_ptr_it != edge_label_it
-                                  .template get_const<kVertexPtrContainerIdx>()
-                                  .cend();
-                ++vertex_ptr_it) {
-          auto decomposed_edge_ret = vertex_ptr_it
-                                    .template get_const<kDecomposedEdgeContainerIdx>()
-                                    .FindConst(edge_id);
-          if (!decomposed_edge_ret.second) {
-            /// not found
-            continue;
-          }
-          const InnerVertex_* const temp_this_ptr = this;
-          const VertexConstPtr temp_vertex_ptr = VertexConstPtr(temp_this_ptr);
-          return EdgeConstPtr(edge_direction, temp_vertex_ptr, edge_label_it,
-                              vertex_ptr_it, decomposed_edge_ret.first);
-        }
-      }
-      return EdgeConstPtr();
-    }
-
-    /// non-constant methods:
-    inline EdgePtr FindEdge(EdgeLabelContainerType& edge_label_container,
+    /// Find Edge methods:
+    template<typename _EdgeLabelContainerType,
+             typename _VertexPtrType>
+    inline auto FindEdge(_EdgeLabelContainerType& edge_label_container,
+                            const _VertexPtrType& this_vertex_ptr,
                             const enum EdgeDirection& edge_direction,
-                            const EdgeIDType& edge_id) {
+                            const EdgeIDType& edge_id) const {
+      static_assert(// non-constant method
+                    (std::is_same_v<_EdgeLabelContainerType, 
+                                     EdgeLabelContainerType>
+                  && std::is_same_v<_VertexPtrType, 
+                                     VertexPtr>)
+                    // constant method
+                  ||(std::is_same_v<_EdgeLabelContainerType, 
+                               const EdgeLabelContainerType>
+                  && std::is_same_v<_VertexPtrType, 
+                                     VertexConstPtr>),
+                          "illegal type!");
+      
+      using EdgePtrType = typename std::conditional<
+                                   std::is_const_v<_EdgeLabelContainerType>,
+                                   EdgeConstPtr,
+                                   EdgePtr>::type;
+
       for (auto edge_label_it  = edge_label_container.begin();
                 edge_label_it != edge_label_container.end();
               ++edge_label_it) {
@@ -2798,24 +2787,45 @@ class Graph {
             /// not found
             continue;
           }
-          InnerVertex_* const temp_this_ptr = this;
-          VertexPtr temp_vertex_ptr = VertexPtr(temp_this_ptr);
-          return EdgePtr(edge_direction, temp_vertex_ptr, edge_label_it,
-                         vertex_ptr_it, decomposed_edge_ret.first);
+          return EdgePtrType(edge_direction, 
+                             this_vertex_ptr, 
+                             edge_label_it,
+                             vertex_ptr_it, 
+                             decomposed_edge_ret.first);
         }
       }
-      return EdgePtr();
+      return EdgePtrType();
     }
 
-    inline EdgePtr FindEdge(EdgeLabelContainerType& edge_label_container,
-                            const enum EdgeDirection& edge_direction,
-                            const EdgeLabelType& edge_label,
-                            const EdgeIDType& edge_id) {
+    template<typename _EdgeLabelContainerType,
+             typename _VertexPtrType>
+    inline auto FindEdge(_EdgeLabelContainerType& edge_label_container,
+                            const _VertexPtrType& this_vertex_ptr,
+                        const enum EdgeDirection& edge_direction,
+                        const EdgeLabelType& edge_label,
+                        const EdgeIDType& edge_id) const {
+      static_assert(// non-constant method
+                    (std::is_same_v<_EdgeLabelContainerType, 
+                                     EdgeLabelContainerType>
+                  && std::is_same_v<_VertexPtrType, 
+                                     VertexPtr>)
+                    // constant method
+                  ||(std::is_same_v<_EdgeLabelContainerType, 
+                               const EdgeLabelContainerType>
+                  && std::is_same_v<_VertexPtrType, 
+                                     VertexConstPtr>),
+                          "illegal type!");
+      
+      using EdgePtrType = typename std::conditional<
+                                   std::is_const_v<_EdgeLabelContainerType>,
+                                   EdgeConstPtr,
+                                   EdgePtr>::type;
+
       /// <iterator of EdgeLabelContainer, bool>
       auto edge_label_ret = edge_label_container.Find(edge_label);
       if (!edge_label_ret.second) {
         /// not found this edge label
-        return EdgePtr();
+        return EdgePtrType();
       }
       /// found this edge label
       for (auto vertex_ptr_it  = edge_label_ret.first
@@ -2832,61 +2842,140 @@ class Graph {
           /// not found
           continue;
         }
-        InnerVertex_* const temp_this_ptr = this;
-        VertexPtr temp_vertex_ptr = VertexPtr(temp_this_ptr);
-        return EdgePtr(edge_direction, temp_vertex_ptr, edge_label_ret.first,
-                       vertex_ptr_it, decomposed_edge_ret.first);
+        return EdgePtrType(edge_direction, 
+                           this_vertex_ptr, 
+                           edge_label_ret.first,
+                           vertex_ptr_it, 
+                decomposed_edge_ret.first);
       }
-      return EdgePtr();
+      return EdgePtrType();
     }
 
-    inline EdgePtr FindEdge(EdgeLabelContainerType& edge_label_container,
-                            const enum EdgeDirection& edge_direction,
-                            const EdgeLabelType& edge_label,
-                            const VertexPtr& dst_ptr,
-                            const EdgeIDType& edge_id) {
+    template<typename _EdgeLabelContainerType,
+             typename _VertexPtrType>
+    inline auto FindEdge(_EdgeLabelContainerType& edge_label_container,
+                            const _VertexPtrType& this_vertex_ptr,
+                        const enum EdgeDirection& edge_direction,
+                        const EdgeLabelType& edge_label,
+                        const VertexPtr& dst_ptr,
+                        const EdgeIDType& edge_id) const {
+      static_assert(// non-constant method
+                    (std::is_same_v<_EdgeLabelContainerType, 
+                                     EdgeLabelContainerType>
+                  && std::is_same_v<_VertexPtrType, 
+                                     VertexPtr>)
+                    // constant method
+                  ||(std::is_same_v<_EdgeLabelContainerType, 
+                               const EdgeLabelContainerType>
+                  && std::is_same_v<_VertexPtrType, 
+                                     VertexConstPtr>),
+                          "illegal type!");
+      
+      using EdgePtrType = typename std::conditional<
+                                   std::is_const_v<_EdgeLabelContainerType>,
+                                   EdgeConstPtr,
+                                   EdgePtr>::type;
+
       /// <iterator of EdgeLabelContainer, bool>
       auto edge_label_ret = edge_label_container.Find(edge_label);
       if (!edge_label_ret.second)  /// does not have this edge label
-        return EdgePtr();
+        return EdgePtrType();
       /// <iterator of VertexContainer, bool>
       auto vertex_ptr_ret = edge_label_ret.first
                                           .template get<kVertexPtrContainerIdx>()
                                           .Find(dst_ptr);
       if (!vertex_ptr_ret.second)  /// does not have this VertexPtr
-        return EdgePtr();
+        return EdgePtrType();
       /// <iterator of DecomposedEdgeContainer, bool>
       auto decomposed_edge_ret = vertex_ptr_ret.first
                                                .template get<kDecomposedEdgeContainerIdx>()
                                                .Find(edge_id);
       if (!decomposed_edge_ret.second)  /// does not find it
-        return EdgePtr();
+        return EdgePtrType();
+      return EdgePtrType(edge_direction, 
+                         this_vertex_ptr, 
+                         edge_label_ret.first,
+                       vertex_ptr_ret.first, 
+              decomposed_edge_ret.first);
+    }
+
+    inline VertexPtr this_vertex_ptr(){
       InnerVertex_* const temp_this_ptr = this;
-      VertexPtr temp_vertex_ptr = VertexPtr(temp_this_ptr);
-      return EdgePtr(edge_direction, temp_vertex_ptr, edge_label_ret.first,
-                     vertex_ptr_ret.first, decomposed_edge_ret.first);
+      return VertexPtr(temp_this_ptr);
+    }
+    
+    inline VertexConstPtr this_vertex_ptr() const {
+      const InnerVertex_* const temp_this_ptr = this;
+      return VertexConstPtr(temp_this_ptr);
     }
 
    public:
+    // find out edge methods
     inline EdgePtr FindOutEdge(const EdgeIDType& edge_id) {
-      return this->FindEdge(this->edges_.out_edges(), EdgeDirection::OutputEdge,
+      return this->FindEdge(this->edges_.out_edges(), 
+                            this->this_vertex_ptr(),
+                            EdgeDirection::OutputEdge,
                             edge_id);
-    }
-    inline EdgeConstPtr FindConstOutEdge(const EdgeIDType& edge_id) const {
-      return this->FindConstEdge(this->edges_.const_out_edges(),
-                                 EdgeDirection::OutputEdge, edge_id);
     }
     inline EdgePtr FindOutEdge(const EdgeLabelType& edge_label,
                                const EdgeIDType& edge_id) {
-      return this->FindEdge(this->edges_.out_edges(), EdgeDirection::OutputEdge,
+      return this->FindEdge(this->edges_.out_edges(), 
+                            this->this_vertex_ptr(),
+                            EdgeDirection::OutputEdge,
                             edge_label, edge_id);
     }
     inline EdgePtr FindOutEdge(const EdgeLabelType& edge_label,
                                const VertexPtr& dst_ptr,
                                const EdgeIDType& edge_id) {
-      return this->FindEdge(this->edges_.out_edges(), EdgeDirection::OutputEdge,
+      return this->FindEdge(this->edges_.out_edges(), 
+                            this->this_vertex_ptr(),
+                            EdgeDirection::OutputEdge,
                             edge_label, dst_ptr, edge_id);
     }
+    
+    // find out edge methods constant override
+    inline EdgeConstPtr FindOutEdge(const EdgeIDType& edge_id) const  {
+      return this->FindConstOutEdge(edge_id);
+    }
+    inline EdgeConstPtr FindOutEdge(const EdgeLabelType& edge_label,
+                                    const EdgeIDType& edge_id) const {
+      return this->FindConstOutEdge(edge_label, 
+                                    edge_id);
+    }
+    inline EdgeConstPtr FindOutEdge(const EdgeLabelType& edge_label,
+                                    const VertexPtr& dst_ptr,
+                                    const EdgeIDType& edge_id) const {
+      return this->FindConstOutEdge(edge_label, 
+                                     dst_ptr,
+                                    edge_id);
+    }
+
+    // find const out edge methods
+    inline EdgeConstPtr FindConstOutEdge(const EdgeIDType& edge_id) const {
+      return this->FindEdge(this->edges_.const_out_edges(),
+                            this->this_vertex_ptr(),
+                            EdgeDirection::OutputEdge, 
+                            edge_id);
+    }
+    inline EdgeConstPtr FindConstOutEdge(const EdgeLabelType& edge_label,
+                                         const EdgeIDType& edge_id) const {
+      return this->FindEdge(this->edges_.const_out_edges(), 
+                            this->this_vertex_ptr(),
+                            EdgeDirection::OutputEdge,
+                            edge_label, 
+                            edge_id);
+    }
+    inline EdgeConstPtr FindConstOutEdge(const EdgeLabelType& edge_label,
+                                         const VertexPtr& dst_ptr,
+                                         const EdgeIDType& edge_id) const {
+      return this->FindEdge(this->edges_.const_out_edges(), 
+                            this->this_vertex_ptr(),
+                            EdgeDirection::OutputEdge,
+                            edge_label, 
+                            dst_ptr, 
+                            edge_id);
+    }
+
     ///    unimplemented:
     ///    inline EdgeConstPtr FindConstOutEdge(const EdgeIDType& edge_id);
     ///    inline EdgeConstPtr FindConstOutEdge(const EdgeLabelType&
@@ -2903,21 +2992,75 @@ class Graph {
     ///         when there are not duplicate edge
     ///         and only has one edge label type
 
+    // find in edge methods
     inline EdgePtr FindInEdge(const EdgeIDType& edge_id) {
-      return this->FindEdge(this->edges_.in_edges(), EdgeDirection::InputEdge,
+      return this->FindEdge(this->edges_.in_edges(), 
+                            this->this_vertex_ptr(),
+                            EdgeDirection::InputEdge,
                             edge_id);
     }
     inline EdgePtr FindInEdge(const EdgeLabelType& edge_label,
                               const EdgeIDType& edge_id) {
-      return this->FindEdge(this->edges_.in_edges(), EdgeDirection::InputEdge,
-                            edge_label, edge_id);
+      return this->FindEdge(this->edges_.in_edges(), 
+                            this->this_vertex_ptr(),
+                            EdgeDirection::InputEdge,
+                            edge_label, 
+                            edge_id);
     }
     inline EdgePtr FindInEdge(const EdgeLabelType& edge_label,
                               const VertexPtr& src_ptr,
                               const EdgeIDType& edge_id) {
-      return this->FindEdge(this->edges_.in_edges(), EdgeDirection::InputEdge,
-                            edge_label, src_ptr, edge_id);
+      return this->FindEdge(this->edges_.in_edges(), 
+                            this->this_vertex_ptr(),
+                            EdgeDirection::InputEdge,
+                            edge_label, 
+                            src_ptr, 
+                            edge_id);
     }
+    
+    // find in edge methods constant override
+    inline EdgeConstPtr FindInEdge(const EdgeIDType& edge_id) const {
+      return this->FindConstInEdge(edge_id);
+    }
+    inline EdgeConstPtr FindInEdge(const EdgeLabelType& edge_label,
+                                   const EdgeIDType& edge_id) const {
+      return this->FindConstInEdge(edge_label, 
+                                   edge_id);
+    }
+    inline EdgeConstPtr FindInEdge(const EdgeLabelType& edge_label,
+                                   const VertexPtr& src_ptr,
+                                   const EdgeIDType& edge_id) const {
+      return this->FindConstInEdge(edge_label, 
+                                   src_ptr, 
+                                   edge_id);
+    }
+    
+    // find const in edge methods
+    inline EdgeConstPtr FindConstInEdge(const EdgeIDType& edge_id) const {
+      return this->FindEdge(this->edges_.const_in_edges(), 
+                            this->this_vertex_ptr(),
+                            EdgeDirection::InputEdge,
+                            edge_id);
+    }
+    inline EdgeConstPtr FindConstInEdge(const EdgeLabelType& edge_label,
+                                        const EdgeIDType& edge_id) const {
+      return this->FindEdge(this->edges_.const_in_edges(), 
+                            this->this_vertex_ptr(),
+                            EdgeDirection::InputEdge,
+                            edge_label, 
+                            edge_id);
+    }
+    inline EdgeConstPtr FindConstInEdge(const EdgeLabelType& edge_label,
+                                        const VertexPtr& src_ptr,
+                                        const EdgeIDType& edge_id) const {
+      return this->FindEdge(this->edges_.const_in_edges(), 
+                            this->this_vertex_ptr(),
+                            EdgeDirection::InputEdge,
+                            edge_label, 
+                            src_ptr, 
+                            edge_id);
+    }
+
     ///    unimplemented:
     ///    inline EdgeConstPtr FindConstInEdge(const EdgeIDType& edge_id);
     ///    inline EdgeConstPtr FindConstInEdge(const EdgeLabelType&
