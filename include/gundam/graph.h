@@ -2445,6 +2445,21 @@ class Graph {
                                    const VertexIDType& dst_id) {
       return this->FindVertex(this->edges_.out_edges(), edge_label, dst_id);
     }
+    /// out vertex const method overload 
+    inline VertexConstPtr FindOutVertex(const VertexPtr& dst_ptr) const {
+      return this->FindConstVertex(dst_ptr);
+    }
+    inline VertexConstPtr FindOutVertex(const VertexIDType& dst_id) const {
+      return this->FindConstVertex(dst_id);
+    }
+    inline VertexConstPtr FindOutVertex(const EdgeLabelType& edge_label,
+                                        const VertexPtr& dst_ptr)  const{
+      return this->FindConstVertex(edge_label, dst_ptr);
+    }
+    inline VertexConstPtr FindOutVertex(const EdgeLabelType& edge_label,
+                                        const VertexIDType& dst_id) const {
+      return this->FindConstVertex(edge_label, dst_id);
+    }
     /// const out vertex
     inline VertexConstPtr FindConstOutVertex(const VertexPtr& dst_ptr) const {
       return this->FindConstVertex(this->edges_.const_out_edges(), dst_ptr);
@@ -2458,9 +2473,10 @@ class Graph {
                                    dst_ptr);
     }
     inline VertexConstPtr FindConstOutVertex(const EdgeLabelType& edge_label,
-                                             const VertexIDType& dst_id) const {
-      return this->FindConstVertex(this->edges_.const_out_edges(), edge_label,
-                                   dst_id);
+                                             const  VertexIDType& dst_id) const {
+      return this->FindConstVertex(this->edges_.const_out_edges(), 
+                                         edge_label,
+                                         dst_id);
     }
     /// in vertex
     inline VertexPtr FindInVertex(const VertexPtr& dst_ptr) {
@@ -2476,6 +2492,40 @@ class Graph {
     inline VertexPtr FindInVertex(const EdgeLabelType& edge_label,
                                   const VertexIDType& dst_id) {
       return this->FindVertex(this->edges_.in_edges(), edge_label, dst_id);
+    }
+    /// in vertex const method overload 
+    inline VertexConstPtr FindInVertex(const VertexPtr& dst_ptr) const {
+      return this->FindConstInVertex(dst_ptr);
+    }
+    inline VertexConstPtr FindInVertex(const VertexIDType& dst_id) const {
+      return this->FindConstInVertex(dst_id);
+    }
+    inline VertexConstPtr FindInVertex(const EdgeLabelType& edge_label,
+                                  const VertexPtr& dst_ptr) const {
+      return this->FindConstInVertex(edge_label, dst_ptr);
+    }
+    inline VertexConstPtr FindInVertex(const EdgeLabelType& edge_label,
+                                  const VertexIDType& dst_id) const {
+      return this->FindConstInVertex(edge_label, dst_id);
+    }
+    /// const in vertex
+    inline VertexConstPtr FindConstInVertex(const VertexPtr& dst_ptr) const {
+      return this->FindConstVertex(this->edges_.const_in_edges(), dst_ptr);
+    }
+    inline VertexConstPtr FindConstInVertex(const VertexIDType& dst_id) const {
+      return this->FindConstVertex(this->edges_.const_in_edges(), dst_id);
+    }
+    inline VertexConstPtr FindConstInVertex(const EdgeLabelType& edge_label,
+                                            const VertexPtr& dst_ptr) const {
+      return this->FindConstVertex(this->edges_.const_in_edges(), 
+                                         edge_label,
+                                         dst_ptr);
+    }
+    inline VertexConstPtr FindConstInVertex(const EdgeLabelType& edge_label,
+                                            const  VertexIDType& dst_id) const {
+      return this->FindConstVertex(this->edges_.const_in_edges(), 
+                                         edge_label,
+                                         dst_id);
     }
     /// const in vertex:
     ///    unimplemented:
@@ -4041,6 +4091,7 @@ class Graph {
     }
     return EdgePtr();
   }
+
   ///  unimplemented:
   ///  inline EdgeConstPtr FindConstEdge(
   ///           const typename EdgeType::IDType& edge_id) const;
