@@ -893,6 +893,16 @@ class Graph {
         assert(!this->IsDone());
         return this->_attribute().AddAttribute(key, value);
       }
+      
+      inline std::pair<EdgeAttributePtr, bool> AddAttribute(
+          const EdgeAttributeKeyType& key, 
+          const enum BasicDataType& data_type,
+          const std::string& value_str) {
+        assert(!this->IsDone());
+        return this->_attribute().AddAttribute(key, 
+                                               data_type, 
+                                               value_str);
+      }
 
       template <typename ConcreteDataType>
       inline std::pair<EdgeAttributePtr, bool> SetAttribute(
@@ -1392,12 +1402,14 @@ class Graph {
       using EdgePtrContent::EdgePtrContent;
 
       inline VertexPtr src_ptr() {
+        assert(!this->IsNull());
         if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
           return EdgePtrContent::vertex_ptr_;
         return this->VertexPtrContainerElement();
       }
 
       inline VertexPtr dst_ptr() {
+        assert(!this->IsNull());
         if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
           return this->VertexPtrContainerElement();
         return EdgePtrContent::vertex_ptr_;
@@ -1405,15 +1417,18 @@ class Graph {
 
       template <typename ConcreteDataType>
       inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key) {
+        assert(!this->IsNull());
         return this->_attribute().template attribute<ConcreteDataType>(key);
       }
 
       inline EdgeAttributeIterator AttributeBegin() {
+        assert(!this->IsNull());
         return this->_attribute().AttributeBegin();
       }
 
       inline EdgeAttributePtr FindAttributePtr(
           const EdgeAttributeKeyType& key) {
+        assert(!this->IsNull());
         return this->_attribute().FindAttributePtr(key);
       }
 
@@ -1421,21 +1436,35 @@ class Graph {
       inline std::pair<EdgeAttributePtr, bool> AddAttribute(
           const EdgeAttributeKeyType& key, 
           const     ConcreteDataType& value) {
+        assert(!this->IsNull());
         return this->_attribute().AddAttribute(key, value);
+      }
+      
+      inline std::pair<EdgeAttributePtr, bool> AddAttribute(
+          const EdgeAttributeKeyType& key, 
+          const enum BasicDataType& data_type,
+          const std::string& value_str) {
+        assert(!this->IsNull());
+        return this->_attribute().AddAttribute(key, 
+                                               data_type, 
+                                               value_str);
       }
 
       template <typename ConcreteDataType>
       inline std::pair<EdgeAttributePtr, bool> SetAttribute(
           const EdgeAttributeKeyType& key, const ConcreteDataType& value) {
+        assert(!this->IsNull());
         return this->_attribute().SetAttribute(key, value);
       }
 
       inline EdgeAttributeIterator EraseAttribute(
           const EdgeAttributeIterator& attribute_iterator) {
+        assert(!this->IsNull());
         return this->_attribute().EraseAttribute(attribute_iterator);
       }
 
       inline bool EraseAttribute(const EdgeAttributeKeyType& key) {
+        assert(!this->IsNull());
         return this->_attribute().EraseAttribute(key);
       }
     };
