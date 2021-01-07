@@ -5,7 +5,8 @@
 
 namespace GUNDAM {
 
-template <bool is_const, class ContentType, class ConstContentType>
+template <bool is_const, class ContentType, 
+                    class ConstContentType>
 class GPointer {
  public:
   GPointer() = default;
@@ -45,27 +46,29 @@ class GPointer {
 
   ~GPointer() = default;
 
-  typename std::conditional<is_const, ConstContentType &, ContentType &>::type
+  typename std::conditional<is_const, const ConstContentType &, 
+                                                 ContentType &>::type
   operator*() {
     assert(!IsNull());
     return v_;
   }
 
   typename std::conditional<is_const, const ConstContentType &,
-                            const ContentType &>::type &
+                                           const ContentType &>::type &
   operator*() const {
     assert(!IsNull());
     return v_;
   }
 
-  typename std::conditional<is_const, ConstContentType *, ContentType *>::type
+  typename std::conditional<is_const, const ConstContentType *,  
+                                                 ContentType *>::type
   operator->() {
     assert(!IsNull());
     return &v_;
   }
 
   typename std::conditional<is_const, const ConstContentType *,
-                            const ContentType *>::type
+                                      const ContentType *>::type
   operator->() const {
     assert(!IsNull());
     return &v_;

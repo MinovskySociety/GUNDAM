@@ -57,9 +57,9 @@ class SmallGraph {
   using ConstEdge = _Edge<true>;
 
  public:
-  using VertexPtr = GPointer<false, Vertex, ConstVertex>;
+  using VertexPtr      = GPointer<false, Vertex, ConstVertex>;
 
-  using VertexConstPtr = GPointer<true, Vertex, ConstVertex>;
+  using VertexConstPtr = GPointer< true, Vertex, ConstVertex>;
 
   using EdgePtr = GPointer<false, Edge, ConstEdge>;
 
@@ -213,11 +213,17 @@ class SmallGraph {
       }
       return vertex_id_set.size();
     }
+
     EdgeIterator OutEdgeBegin() {
       assert(HasValue());
       auto &data = graph_->vertices_.Find(id_)->second;
-      return EdgeIterator(graph_, data.out_edges_.begin(),
+      return EdgeIterator(graph_, 
+                          data.out_edges_.begin(),
                           data.out_edges_.end());
+    }
+
+    EdgeConstIterator OutEdgeBegin() const {
+      return this->OutEdgeCBegin();
     }
 
     EdgeConstIterator OutEdgeCBegin() const {
@@ -231,6 +237,10 @@ class SmallGraph {
       assert(HasValue());
       auto &data = graph_->vertices_.Find(id_)->second;
       return EdgeIterator(graph_, data.in_edges_.begin(), data.in_edges_.end());
+    }
+
+    EdgeConstIterator InEdgeBegin() const {
+      return this->InEdgeCBegin();
     }
 
     EdgeConstIterator InEdgeCBegin() const {
@@ -445,8 +455,8 @@ class SmallGraph {
     return VertexPtr(Vertex(this, *it));
   }
   
-  inline VertexConstPtr FindVertex(const typename VertexType
-                                                    ::IDType& id) const{
+  VertexConstPtr FindVertex(const typename VertexType
+                                             ::IDType& id) const{
     return this->FindConstVertex(id);
   }
 
@@ -458,6 +468,10 @@ class SmallGraph {
 
   VertexIterator VertexBegin() {
     return VertexIterator(this, vertices_.begin(), vertices_.end());
+  }
+
+  VertexConstIterator VertexBegin() const {
+    return this->VertexCBegin();
   }
 
   VertexConstIterator VertexCBegin() const {
