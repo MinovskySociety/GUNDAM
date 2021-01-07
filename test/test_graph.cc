@@ -155,8 +155,8 @@ void TestConstGraph(const GraphType& g){
   for (auto v_it = g.VertexCBegin(); 
            !v_it.IsDone(); 
           ++v_it) {
-    // VertexConstPtr vertex_const_ptr = v_it;
-    // ASSERT_EQ(vertex_const_ptr->id(), v_it->id());
+    VertexConstPtr vertex_const_ptr = v_it;
+    ASSERT_EQ(vertex_const_ptr->id(), v_it->id());
     ++count;
   }
   ASSERT_EQ(count, 4);
@@ -165,8 +165,8 @@ void TestConstGraph(const GraphType& g){
   for (auto v_it = g.VertexBegin(); 
            !v_it.IsDone(); 
           ++v_it) {
-    // VertexConstPtr vertex_const_ptr = v_it;
-    // ASSERT_EQ(vertex_const_ptr->id(), v_it->id());
+    VertexConstPtr vertex_const_ptr = v_it;
+    ASSERT_EQ(vertex_const_ptr->id(), v_it->id());
     ++count;
   }
   ASSERT_EQ(count, 4);
@@ -253,8 +253,8 @@ void TestGraphVertexEdge() {
   for (auto v_it = g1.VertexCBegin(); 
            !v_it.IsDone(); 
           ++v_it) {
-    // VertexConstPtr vertex_const_ptr = v_it;
-    // ASSERT_EQ(vertex_const_ptr->id(), v_it->id());
+    VertexConstPtr vertex_const_ptr = v_it;
+    ASSERT_EQ(vertex_const_ptr->id(), v_it->id());
     ++count;
   }
   ASSERT_EQ(count, 4);
@@ -263,8 +263,8 @@ void TestGraphVertexEdge() {
   for (auto v_it = g1.VertexBegin(); 
            !v_it.IsDone(); 
           ++v_it) {
-    // VertexPtr vertex_ptr = v_it;
-    // ASSERT_EQ(vertex_ptr->id(), v_it->id());
+    VertexPtr vertex_ptr = v_it;
+    ASSERT_EQ(vertex_ptr->id(), v_it->id());
     // VertexConstPtr vertex_const_ptr = v_it;
     // ASSERT_EQ(vertex_const_ptr->id(), v_it->id());
     ++count;
