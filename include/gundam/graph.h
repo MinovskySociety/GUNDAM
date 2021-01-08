@@ -413,7 +413,8 @@ class Graph {
     template <bool is_const_>
     class VertexPtr_ {
      private:
-      friend class VertexPtr_<!is_const_>;
+     // const pointer can convert from non-constant pointer
+      friend class VertexPtr_<true>; 
 
       friend class Graph;
       // more precisely, it should be:
@@ -441,33 +442,42 @@ class Graph {
                                  InnerVertex_*>::type;
 
       template <typename      _ContainerType_, 
+                bool      _iterator_is_const_, 
                 IteratorDepthType     _depth_,
                 TupleIdxType _vertex_ptr_idx_>
       using FriendVertexContentIterator =
                   VertexContentIterator_<_ContainerType_, 
-                                               is_const_, 
+                                     _iterator_is_const_, 
                                                  _depth_,
                                         _vertex_ptr_idx_>;
 
       template <typename      _ContainerType_, 
+                bool      _iterator_is_const_, 
                 IteratorDepthType     _depth_,
                 TupleIdxType _vertex_ptr_idx_>
       using FriendVertexIterator = Iterator_<
                 FriendVertexContentIterator<_ContainerType_, 
+                                        _iterator_is_const_, 
                                                     _depth_,
                                            _vertex_ptr_idx_>>;
 
-      template <typename _ContainerType_, IteratorDepthType _depth_,
+      template <typename      _ContainerType_, 
+                bool      _iterator_is_const_, 
+                IteratorDepthType     _depth_,
                 TupleIdxType _vertex_ptr_idx_>
       inline void Construct(
-          const FriendVertexIterator<_ContainerType_, _depth_,
-                                     _vertex_ptr_idx_>& vertex_ptr_iterator) {
+          const FriendVertexIterator<_ContainerType_, 
+                                 _iterator_is_const_,
+                                             _depth_,
+                                    _vertex_ptr_idx_>& vertex_ptr_iterator) {
         const void* const ptr = &vertex_ptr_iterator;
 
         this->ptr_ = (static_cast<const FriendVertexContentIterator<
-                          _ContainerType_, _depth_, _vertex_ptr_idx_>*>(ptr))
-                         ->const_vertex_ptr()
-                         .ptr_;
+                              _ContainerType_, 
+                          _iterator_is_const_, 
+                                      _depth_, 
+                             _vertex_ptr_idx_>*>(ptr)
+                     )->const_vertex_ptr().ptr_;
         return;
       }
 
@@ -481,43 +491,64 @@ class Graph {
         return; 
       }
 
-      VertexPtr_(VertexPtrType const ptr) : ptr_(ptr) { 
+      VertexPtr_(VertexPtrType const ptr) 
+                              : ptr_(ptr) { 
         return; 
       }
 
       template <typename      _ContainerType_,
+                bool      _iterator_is_const_, 
                 IteratorDepthType     _depth_,
-                TupleIdxType _vertex_ptr_idx_>
+                TupleIdxType _vertex_ptr_idx_,
+                std::enable_if_t<_iterator_is_const_  // can convert from iterator with same cv qualifier
+                                        == is_const_
+                             || !_iterator_is_const_, // or can convert from non-constant iterator
+                                 bool> = false>
       VertexPtr_(
           const FriendVertexIterator<_ContainerType_, 
+                                 _iterator_is_const_,
                                              _depth_,
                                     _vertex_ptr_idx_>& vertex_ptr_iterator) {
         this->Construct(vertex_ptr_iterator);
         return;
       }
 
-      template <typename _ContainerType_, IteratorDepthType _depth_,
-                TupleIdxType _vertex_ptr_idx_>
+      template <typename      _ContainerType_, 
+                bool      _iterator_is_const_, 
+                IteratorDepthType     _depth_,
+                TupleIdxType _vertex_ptr_idx_,
+                std::enable_if_t<_iterator_is_const_  // can convert from iterator with same cv qualifier
+                                        == is_const_
+                             || !_iterator_is_const_, // or can convert from non-constant iterator
+                                 bool> = false>
       inline VertexPtr_& operator=(
-          const FriendVertexIterator<_ContainerType_,
+          const FriendVertexIterator<_ContainerType_, 
+                                 _iterator_is_const_,
                                              _depth_,
                                     _vertex_ptr_idx_>& vertex_ptr_iterator) {
         this->Construct(vertex_ptr_iterator);
         return *this;
       }
 
-      template <bool input_is_const_, bool judge = is_const_,
-                typename std::enable_if<judge, bool>::type = false>
+      template <bool input_is_const_, 
+                std::enable_if_t<input_is_const_  // can convert from pointer with same cv qualifier
+                                    == is_const_
+                             || !input_is_const_, // or can convert from non-constant pointer
+                                 bool> = false>
       VertexPtr_(const VertexPtr_<input_is_const_>& vertex_ptr)
           : ptr_(vertex_ptr.ptr_) {
         return;
       }
 
-      template <bool input_is_const_, bool judge = is_const_,
-                typename std::enable_if<!judge, bool>::type = false>
-      VertexPtr_(VertexPtr_<input_is_const_>& vertex_ptr)
-          : ptr_(vertex_ptr.ptr_) {
-        return;
+      template <bool input_is_const_, 
+                std::enable_if_t<input_is_const_  // can convert from pointer with same cv qualifier
+                                    == is_const_
+                             || !input_is_const_, // or can convert from non-constant pointer
+                                 bool> = false>
+      inline VertexPtr_& operator=(
+          const VertexPtr_<input_is_const_>& vertex_ptr) {
+        this->ptr_ = vertex_ptr.ptr_;
+        return *this;
       }
 
       inline operator bool() const {
@@ -588,6 +619,9 @@ class Graph {
       using VertexIterator = typename Graph::VertexIterator;
 
       friend typename InnerVertex_::template VertexPtr_<is_const_>;
+      // const pointer can convert from non-constant iterator
+      friend typename InnerVertex_::template VertexPtr_<true>;
+
       friend VertexIterator Graph::EraseVertex(VertexIterator& vertex_iterator);
 
       using VertexPtr      = typename InnerVertex_::VertexPtr;

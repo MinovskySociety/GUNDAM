@@ -66,12 +66,14 @@ class SmallGraph {
   using EdgeConstPtr = GPointer<true, Edge, ConstEdge>;
 
   using VertexIterator =
-      GIterator2<false, SmallGraph, typename VertexContainer::iterator, Vertex,
+      GIterator2<false, SmallGraph, typename VertexContainer::iterator, 
+                 Vertex,
                  VertexPtr>;
 
   using VertexConstIterator =
-      GIterator2<true, SmallGraph, typename VertexContainer::const_iterator,
-                 ConstVertex, VertexConstPtr>;
+      GIterator2< true, SmallGraph, typename VertexContainer::const_iterator,
+                 ConstVertex, 
+                 VertexConstPtr>;
 
   using EdgeIterator =
       GIterator2<false, SmallGraph, typename EdgeContainer::iterator, Edge,
