@@ -175,8 +175,8 @@ void TestConstGraph(const GraphType& g){
   for (auto e_out_it = v1->OutEdgeCBegin(); 
            !e_out_it.IsDone(); 
           ++e_out_it) {
-    // EdgeConstPtr edge_const_ptr = e_out_it;
-    // ASSERT_EQ(edge_const_ptr->const_src_ptr(), v1);
+    EdgeConstPtr edge_const_ptr = e_out_it;
+    ASSERT_EQ(edge_const_ptr->const_src_ptr(), v1);
     ++count;
   }
   ASSERT_EQ(count, 3);
@@ -185,8 +185,8 @@ void TestConstGraph(const GraphType& g){
   for (auto e_out_it = v1->OutEdgeBegin(); 
            !e_out_it.IsDone(); 
           ++e_out_it) {
-    // EdgeConstPtr edge_const_ptr = e_out_it;
-    // ASSERT_EQ(edge_const_ptr->const_src_ptr(), v1);
+    EdgeConstPtr edge_const_ptr = e_out_it;
+    ASSERT_EQ(edge_const_ptr->const_src_ptr(), v1);
     ++count;
   }
   ASSERT_EQ(count, 3);
@@ -195,8 +195,8 @@ void TestConstGraph(const GraphType& g){
   for (auto e_in_it = v1->InEdgeCBegin(); 
            !e_in_it.IsDone(); 
           ++e_in_it) {
-    // EdgeConstPtr edge_const_ptr = e_in_it;
-    // ASSERT_EQ(edge_const_ptr->const_dst_ptr(), v1);
+    EdgeConstPtr edge_const_ptr = e_in_it;
+    ASSERT_EQ(edge_const_ptr->const_dst_ptr(), v1);
     ++count;
   }
   ASSERT_EQ(count, 3);
@@ -205,8 +205,8 @@ void TestConstGraph(const GraphType& g){
   for (auto e_in_it = v1->InEdgeBegin(); 
            !e_in_it.IsDone(); 
           ++e_in_it) {
-    // EdgeConstPtr edge_const_ptr = e_in_it;
-    // ASSERT_EQ(edge_const_ptr->const_dst_ptr(), v1);
+    EdgeConstPtr edge_const_ptr = e_in_it;
+    ASSERT_EQ(edge_const_ptr->const_dst_ptr(), v1);
     ++count;
   }
   ASSERT_EQ(count, 3);
@@ -275,8 +275,8 @@ void TestGraphVertexEdge() {
   for (auto e_out_it = v1->OutEdgeCBegin(); 
            !e_out_it.IsDone(); 
           ++e_out_it) {
-    // EdgeConstPtr edge_const_ptr = e_out_it;
-    // ASSERT_EQ(edge_const_ptr->const_src_ptr(), v1);
+    EdgeConstPtr edge_const_ptr = e_out_it;
+    ASSERT_EQ(edge_const_ptr->const_src_ptr(), v1);
     ++count;
   }
   ASSERT_EQ(count, 3);
@@ -285,8 +285,8 @@ void TestGraphVertexEdge() {
   for (auto e_out_it = v1->OutEdgeBegin(); 
            !e_out_it.IsDone(); 
           ++e_out_it) {
-    // EdgePtr edge_ptr = e_out_it;
-    // ASSERT_EQ(edge_ptr->src_ptr(), v1);
+    EdgePtr edge_ptr = e_out_it;
+    ASSERT_EQ(edge_ptr->src_ptr(), v1);
     // EdgeConstPtr edge_const_ptr = e_out_it;
     // ASSERT_EQ(edge_const_ptr->const_src_ptr(), v1);
     ++count;
@@ -307,8 +307,8 @@ void TestGraphVertexEdge() {
   for (auto e_in_it = v1->InEdgeBegin(); 
            !e_in_it.IsDone(); 
           ++e_in_it) {
-    // EdgePtr edge_ptr = e_in_it;
-    // ASSERT_EQ(edge_ptr->dst_ptr(), v1);
+    EdgePtr edge_ptr = e_in_it;
+    ASSERT_EQ(edge_ptr->dst_ptr(), v1);
     // EdgeConstPtr edge_const_ptr = e_in_it;
     // ASSERT_EQ(edge_const_ptr->const_dst_ptr(), v1);
     ++count;
