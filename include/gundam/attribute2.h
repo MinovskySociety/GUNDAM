@@ -287,17 +287,16 @@ class Attribute_<AttributeType::kSeparated,
 
     const _KeyType_& key() const {
       assert(!this->IsDone());
-      return InnerIteratorType::template get_const<_KeyType_, 
-                                                    key_idx_,
-                                                begin_depth_>();
+      return InnerIteratorType::template get_const<key_idx_,
+                                                 begin_depth_>();
     }
 
     template <typename ConcreteDataType>
     const ConcreteDataType& const_value() const {
       assert(!this->IsDone());
       return static_cast<ConcreteValue<const ConcreteDataType>*>(
-                InnerIteratorType::template get_const<
-                    AbstractValue*, value_ptr_idx_, begin_depth_>())
+                InnerIteratorType::template get_const<value_ptr_idx_, 
+                                                      begin_depth_>())
           ->const_value();
     }
 
@@ -305,22 +304,22 @@ class Attribute_<AttributeType::kSeparated,
     ConcreteDataType& value() {
       assert(!this->IsDone());
       return static_cast<ConcreteValue<ConcreteDataType>*>(
-                InnerIteratorType::template get<AbstractValue*, value_ptr_idx_,
+                InnerIteratorType::template get<value_ptr_idx_,
                                                 begin_depth_>())
           ->value();
     }
 
     std::string value_str() const {
       assert(!this->IsDone());
-      return (InnerIteratorType::template get_const<
-                  AbstractValue*, value_ptr_idx_, begin_depth_>())
+      return (InnerIteratorType::template get_const<value_ptr_idx_, 
+                                                    begin_depth_>())
           ->value_str();
     }
 
     enum BasicDataType value_type() const {
       assert(!this->IsDone());
-      return InnerIteratorType::template get_const<
-          enum BasicDataType, value_typex_, begin_depth_>();
+      return InnerIteratorType::template get_const<value_typex_, 
+                                                   begin_depth_>();
     }
   };
 
@@ -586,15 +585,13 @@ class Attribute_<AttributeType::kGrouped,
                typename std::enable_if<!judge, bool>::type = false>
       inline AttributeListPtr attribute_list_ptr() {
         static_assert(judge == is_const_, "illegal usage of this method");
-        return InnerIteratorType::template get<AttributeListPtr, 
-                                        attribute_list_ptr_idx_,
-                                                         depth_ - 1>();
+        return InnerIteratorType::template get<attribute_list_ptr_idx_,
+                                               depth_ - 1>();
       }
 
       inline AttributeListConstPtr attribute_list_const_ptr() const {
-        return InnerIteratorType::template get_const<AttributeListPtr,  
-                                              attribute_list_ptr_idx_,
-                                                               depth_ - 1>();
+        return InnerIteratorType::template get_const<attribute_list_ptr_idx_,
+                                                     depth_ - 1>();
       }
       
       inline bool HasValue() const {
@@ -662,9 +659,8 @@ class Attribute_<AttributeType::kGrouped,
       
       inline const AttributeKeyType_& key() const {
         assert(!this->IsDone());
-        return InnerIteratorType::template get_const<const AttributeKeyType_,  
-                                                           attribute_key_idx_,
-                                                                       depth_ - 1>();
+        return InnerIteratorType::template get_const<attribute_key_idx_,
+                                                     depth_ - 1>();
       }
 
       template <typename ConcreteDataType>

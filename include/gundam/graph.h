@@ -281,7 +281,7 @@ class Graph {
     const EdgeLabelType& operator*() const {
       assert(!this->IsDone());
       return InnerIteratorType::template get_const<
-          EdgeLabelType, edge_label_idx_, depth_ - 1>();
+           edge_label_idx_, depth_ - 1>();
     }
   };
 
@@ -637,7 +637,7 @@ class Graph {
       template <bool judge = is_const_,
                 typename std::enable_if<!judge, bool>::type = false>
       inline VertexPtr& vertex_ptr() {
-        return InnerIteratorType::template get<ContentPtr, vertex_ptr_idx_,
+        return InnerIteratorType::template get<vertex_ptr_idx_,
                                                depth_ - 1>();
       }
 
@@ -645,8 +645,7 @@ class Graph {
                 typename std::enable_if<judge, bool>::type = false>
       inline VertexConstPtr vertex_ptr() const {
         auto temp_vertex_ptr =
-            InnerIteratorType::template get_const<VertexPtr, 
-                                                  vertex_ptr_idx_,
+            InnerIteratorType::template get_const<vertex_ptr_idx_,
                                                   depth_ - 1>();
         return ContentPtr(temp_vertex_ptr);
       }
@@ -654,15 +653,15 @@ class Graph {
       template <bool judge = is_const_,
                 typename std::enable_if<!judge, bool>::type = false>
       inline const VertexPtr& const_vertex_ptr() const {
-        return InnerIteratorType::template get_const<VertexPtr, vertex_ptr_idx_,
-                                                    depth_ - 1>();
+        return InnerIteratorType::template get_const<vertex_ptr_idx_,
+                                                     depth_ - 1>();
       }
 
       template <bool judge = is_const_,
                 typename std::enable_if<judge, bool>::type = false>
       inline VertexConstPtr const_vertex_ptr() const {
         auto temp_vertex_ptr =
-            InnerIteratorType::template get_const<VertexPtr, vertex_ptr_idx_,
+            InnerIteratorType::template get_const<vertex_ptr_idx_,
                                                   depth_ - 1>();
         return VertexConstPtr(temp_vertex_ptr);
       }
@@ -746,31 +745,28 @@ class Graph {
       inline EdgeAttributeType& _attribute() {
         assert(!this->IsDone());
         return *(
-            InnerIteratorType::template get<EdgeAttributeType*, 
-                                            edge_attribute_ptr_idx_, 
+            InnerIteratorType::template get<edge_attribute_ptr_idx_, 
                                             begin_depth_ + 2>());
       }
 
       inline const EdgeAttributeType& _const_attribute() const {
         assert(!this->IsDone());
         return *(
-            InnerIteratorType::template get_const<EdgeAttributeType*, 
-                                                  edge_attribute_ptr_idx_, 
+            InnerIteratorType::template get_const<edge_attribute_ptr_idx_, 
                                                   begin_depth_ + 2>());
       }
 
       inline VertexPtrType VertexPtrContainerElement() {
         assert(!this->IsDone());
         return InnerIteratorType
-             ::template get_const<VertexPtr, 
-                                dst_ptr_idx_,
-                                begin_depth_ + 1>();
+             ::template get_const<dst_ptr_idx_,
+                                  begin_depth_ + 1>();
       }
 
       inline VertexConstPtr VertexPtrContainerConstElement() const {
         assert(!this->IsDone());
         VertexPtr temp_vertex_ptr =
-            InnerIteratorType::template get_const<VertexPtr, dst_ptr_idx_,
+            InnerIteratorType::template get_const<dst_ptr_idx_,
                                                   begin_depth_ + 1>();
         return VertexConstPtr(temp_vertex_ptr);
       }
@@ -818,14 +814,12 @@ class Graph {
       
       inline VertexPtrIteratorType& vertex_ptr_iterator() {
         assert(!this->IsDone());
-        return this->template get_iterator<VertexPtrIteratorType, 
-                                           begin_depth_ + 1>();
+        return this->template get_iterator<begin_depth_ + 1>();
       }
 
       inline DecomposedEdgeIteratorType& decomposed_edge_iterator() {
         assert(!this->IsDone());
-        return this->template get_iterator<DecomposedEdgeIteratorType,
-                                           begin_depth_ + 2>();
+        return this->template get_iterator<begin_depth_ + 2>();
       }
 
       inline VertexPtrType src_ptr() {
@@ -862,15 +856,13 @@ class Graph {
 
       inline const EdgeLabelType& label() const {
         assert(!this->IsDone());
-        return InnerIteratorType::template get_const<EdgeLabelType, 
-                                                     edge_label_idx_, 
+        return InnerIteratorType::template get_const<edge_label_idx_, 
                                                      begin_depth_>();
       }
 
       inline const EdgeIDType& id() const {
         assert(!this->IsDone());
-        return InnerIteratorType::template get_const<EdgeIDType, 
-                                                     edge_id_idx_,
+        return InnerIteratorType::template get_const<edge_id_idx_,
                                                      begin_depth_ + 2>();
       }
 
@@ -1583,16 +1575,13 @@ class Graph {
         this->vertex_ptr_ = edge_content_iter.const_vertex_ptr();
 
         this->edge_label_iterator_ =
-            edge_content_iter.template get_const_iterator<
-                typename EdgePtrContentType::EdgeLabelIteratorType, 0>();
+            edge_content_iter.template get_const_iterator<0>();
 
         this->vertex_ptr_iterator_ =
-            edge_content_iter.template get_const_iterator<
-                typename EdgePtrContentType::VertexPtrIteratorType, 1>();
+            edge_content_iter.template get_const_iterator<1>();
 
         this->decomposed_edge_iterator_ =
-            edge_content_iter.template get_const_iterator<
-                typename EdgePtrContentType::DecomposedEdgeIteratorType, 2>();
+            edge_content_iter.template get_const_iterator<2>();
 
         return;
       }
@@ -1671,12 +1660,10 @@ class Graph {
         this->edge_label_iterator_ = edge_content_iter.const_edge_label_iterator();
 
         this->vertex_ptr_iterator_ =
-            edge_content_iter.template get_const_iterator<
-                typename EdgePtrContentType::VertexPtrIteratorType, 0>();
+            edge_content_iter.template get_const_iterator<0>();
 
         this->decomposed_edge_iterator_ =
-                 edge_content_iter.template get_const_iterator<
-                typename EdgePtrContentType::DecomposedEdgeIteratorType, 1>();
+                 edge_content_iter.template get_const_iterator<1>();
 
         return;
       }
@@ -3319,20 +3306,18 @@ class Graph {
       else
         edge_label_container_ptr = &this->edges_.in_edges();
       VertexPtrContainerType& vertex_ptr_container =
-          edge_content_iterator_ptr->template get<VertexPtrContainerType,
-                                                 kVertexPtrContainerIdx, 0>();
+          edge_content_iterator_ptr->template get<kVertexPtrContainerIdx, 0>();
       DecomposedEdgeContainerType& decomposed_edge_container =
-          edge_content_iterator_ptr->template get<DecomposedEdgeContainerType, 
-                                                 kDecomposedEdgeContainerIdx, 1>();
+          edge_content_iterator_ptr->template get<kDecomposedEdgeContainerIdx, 1>();
       auto edge_label_iterator
        = edge_content_iterator_ptr
-         ->template get_iterator<EdgeLabelIteratorType, 0>();
+         ->template get_iterator<0>();
       auto vertex_ptr_iterator
        = edge_content_iterator_ptr
-              ->template get_iterator<VertexPtrIteratorType, 1>();
+              ->template get_iterator<1>();
       auto decomposed_edge_iterator
             = edge_content_iterator_ptr
-              ->template get_iterator<DecomposedEdgeIteratorType, 2>();
+              ->template get_iterator<2>();
 
       // erase dst_ptr iterator
       EdgeLabelType edge_label = edge_iterator->label();
@@ -3358,11 +3343,11 @@ class Graph {
       EdgeContentIteratorType* ret_it
        = static_cast<EdgeContentIteratorType*>(ret_ptr);
       auto& ret_edge_label_iterator 
-          = ret_it->template get_iterator<EdgeLabelIteratorType, 0>();
+          = ret_it->template get_iterator<0>();
       auto& ret_vertex_ptr_iterator 
-          = ret_it->template get_iterator<VertexPtrIteratorType, 1>();
+          = ret_it->template get_iterator<1>();
       auto& ret_decomposed_edge_iterator 
-          = ret_it->template get_iterator<DecomposedEdgeIteratorType, 2>();
+          = ret_it->template get_iterator<2>();
       // erase decomposed edge
       decomposed_edge_iterator =
       decomposed_edge_container.Erase(decomposed_edge_iterator);
@@ -3409,7 +3394,7 @@ class Graph {
                                .begin();
         ret_edge_label_iterator = edge_label_iterator;
         ret_vertex_ptr_iterator = vertex_ptr_iterator;
-        ret_it->template get_iterator<DecomposedEdgeIteratorType, 2>() =
+        ret_it->template get_iterator<2>() =
             decomposed_edge_iterator;
         /// the end iterator might be invalid since an element is erased
         /// from the edge label container
@@ -4110,16 +4095,13 @@ class Graph {
     /// reference of the containers
     VertexLabelContainerType& vertex_label_container_ref = this->vertexes_;
     VertexIDContainerType& vertex_id_container_ref
-                         = ret_content_it->template get<VertexIDContainerType,
-                                                       kVertexIDContainerIdx,
-                                                        vertex_id_container_depth>();
+                         = ret_content_it->template get<kVertexIDContainerIdx,
+                                                         vertex_id_container_depth>();
     /// reference of the iterators
     VertexLabelIteratorType& ret_vertex_label_iterator =
-           ret_content_it->template get_iterator<VertexLabelIteratorType,
-                                                 vertex_id_container_depth>();
+           ret_content_it->template get_iterator<vertex_id_container_depth>();
     VertexIDIteratorType& ret_vertex_id_iterator =
-           ret_content_it->template get_iterator<VertexIDIteratorType,
-                                                 vertex_ptr_depth>();
+           ret_content_it->template get_iterator<vertex_ptr_depth>();
     ret_vertex_id_iterator = vertex_id_container_ref.Erase(ret_vertex_id_iterator);
     if (!vertex_id_container_ref.empty()) {
       /// vertex id container is not empty
