@@ -210,6 +210,85 @@ void TestConstGraph(const GraphType& g){
     ++count;
   }
   ASSERT_EQ(count, 3);
+  return;
+}
+
+template<typename GraphType>
+bool TestGraphSame(const GraphType& g1,
+                   const GraphType& g2){
+  using VertexLabelType = typename GraphType
+                                ::VertexType
+                                 ::LabelType;
+  using VertexIDType = typename GraphType
+                             ::VertexType
+                                 ::IDType;
+  using EdgeLabelType = typename GraphType
+                                ::EdgeType
+                               ::LabelType;
+  using EdgeIDType = typename GraphType
+                             ::EdgeType
+                               ::IDType;
+  if (g1.CountVertex() != g2.CountVertex()){
+    return false;
+  }
+  // test vertex is same
+  for (auto vertex_it = g1.VertexBegin();
+           !vertex_it.IsDone();
+            vertex_it++){
+    auto vertex_ptr = g2.FindVertex(vertex_it->id());
+    if (vertex_ptr.IsNull()){
+      return false;
+    }
+    vertex_ptr->label() == vertex_it->label();
+  }
+
+  std::set<std::tuple<VertexIDType, //  src_id
+                      VertexIDType, //  dst_id
+                     EdgeLabelType, // edge_label
+                        EdgeIDType>> g1_edge_set;
+
+  // test edge is same 
+  for (auto vertex_it = g1.VertexBegin();
+           !vertex_it.IsDone();
+            vertex_it++){
+    for (auto edge_it = vertex_it->OutEdgeBegin();
+             !edge_it.IsDone();
+              edge_it++) {
+      auto ret = g1_edge_set.emplace(edge_it->const_src_ptr()->id(),
+                                  edge_it->const_dst_ptr()->id(),
+                                  edge_it->label(),
+                                  edge_it->id());
+      // should have been added successfully
+      // e.g. should not have duplicated edge
+      assert(ret.second);
+    }
+  }
+
+  for (auto vertex_it = g2.VertexBegin();
+           !vertex_it.IsDone();
+            vertex_it++){
+    for (auto edge_it = vertex_it->OutEdgeBegin();
+             !edge_it.IsDone();
+              edge_it++) {
+      auto temp_edge = std::make_tuple(
+                              edge_it->const_src_ptr()->id(),
+                              edge_it->const_dst_ptr()->id(),
+                              edge_it->label(),
+                              edge_it->id()); 
+      auto it = g1_edge_set.find(temp_edge);
+      if (it == g1_edge_set.cend()){
+        // g1 does not have this edge
+        return false;
+      }
+      // g1 has this edge
+      g1_edge_set.erase(it);
+    }
+  }
+  if (!g1_edge_set.empty()){
+    // g1 has edge that is not contained in g2
+    return false;
+  }
+  return true;
 }
 
 template <class GraphType>
@@ -318,6 +397,22 @@ void TestGraphVertexEdge() {
   TestConstGraph(g1);
 }
 
+template <class GraphType>
+void TestSerialize() {
+
+  GraphType g1;
+
+  TestAddVertexAddEdge(g1);
+
+  std::string out_str;
+  out_str<<g1;
+  
+  GraphType g2;
+  out_str>>g2;
+
+  ASSERT_TRUE(TestGraphSame(g1, g2));
+}
+
 TEST(TestGUNDAM, TestGraphVertexEdge) {
   using namespace GUNDAM;
 
@@ -373,4 +468,6 @@ TEST(TestGUNDAM, TestGraphVertexEdge) {
   TestGraphVertexEdge<G5>();
   TestGraphVertexEdge<G6>();
   TestGraphVertexEdge<G7>();
+
+  TestSerialize<G3>();
 }

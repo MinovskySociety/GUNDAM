@@ -3,14 +3,109 @@
 
 #include <algorithm>
 #include <iterator>
+#include <iostream>
 #include <string>
 #include <vector>
 
 #include "gundam/container2.h"
 #include "gundam/iterator2.h"
 #include "gundam/pointer.h"
+#include "gundam/datatype.h"
 
 namespace GUNDAM {
+
+template <class VertexIDType, class VertexLabelType, 
+          class   EdgeIDType, class   EdgeLabelType>
+class SmallGraph;
+  
+template <class VertexIDType, class VertexLabelType, 
+          class   EdgeIDType, class   EdgeLabelType>
+std::string& operator<<(std::string& out_string, 
+            SmallGraph<VertexIDType, 
+                    VertexLabelType,
+                         EdgeIDType,   
+                      EdgeLabelType>& small_graph) {
+
+  out_string += "vertex";
+  for (auto vertex_it = small_graph.VertexCBegin(); 
+            !vertex_it.IsDone();
+            vertex_it++) {
+    out_string += " " + ToString(vertex_it->id()) 
+                + " " + ToString(vertex_it->label());
+  }
+  out_string += " edge";
+  for (auto vertex_it = small_graph.VertexCBegin(); 
+            !vertex_it.IsDone();
+            vertex_it++) {
+    for (auto edge_it = vertex_it->OutEdgeCBegin(); 
+              !edge_it.IsDone();
+              edge_it++) {
+      out_string += " " + ToString(edge_it->id())
+                  + " " + ToString(edge_it->src_id()) 
+                  + " " + ToString(edge_it->dst_id())
+                  + " " + ToString(edge_it->label());
+    }
+  }
+  return out_string;
+}
+  
+template <class VertexIDType, class VertexLabelType, 
+          class   EdgeIDType, class   EdgeLabelType>
+SmallGraph<VertexIDType, 
+        VertexLabelType,
+             EdgeIDType,   
+          EdgeLabelType>& 
+               operator>>(std::string& in_string, 
+              SmallGraph<VertexIDType, 
+                      VertexLabelType,
+                           EdgeIDType,   
+                        EdgeLabelType>& small_graph) {
+  
+  using namespace GUNDAM;
+
+  std::stringstream ss;
+  ss << in_string;
+
+  std::string str;
+
+  ss>>str;
+
+  assert(str == "vertex");
+
+  small_graph.Clear();
+
+  while (ss>>str){
+    if (str == "edge")
+      break;
+    VertexIDType vertex_id
+      = StringToDataType<VertexIDType>(str);
+    ss>>str;
+    VertexLabelType vertex_label 
+      = StringToDataType<VertexLabelType>(str);
+    small_graph.AddVertex(vertex_id,
+                          vertex_label);
+  }
+
+  while (ss>>str){
+    VertexIDType src_id
+      = StringToDataType<VertexIDType>(str);
+    ss>>str;
+    VertexIDType dst_id
+      = StringToDataType<VertexIDType>(str);
+    ss>>str;
+    EdgeIDType edge_id
+      = StringToDataType<EdgeIDType>(str);
+    ss>>str;
+    EdgeLabelType edge_label
+      = StringToDataType<EdgeLabelType>(str);
+ 
+    small_graph.AddEdge(src_id,
+                        dst_id,
+                       edge_label,
+                       edge_id);
+  }
+  return small_graph;
+}
 
 template <class VertexIDType, class VertexLabelType, class EdgeIDType,
           class EdgeLabelType>
@@ -575,6 +670,31 @@ class SmallGraph {
     edges_.Erase(it1);
     return 1;
   }
+
+  // void Deserialize(const std::sting& data_in) const {
+  //   data_out.clear();
+  //   data_out += "vertex";
+  //   for (auto vertex_it = this->pattern.VertexCBegin(); 
+  //            !vertex_it.IsDone();
+  //             vertex_it++) {
+  //     data_out += " " + std::to_string(vertex_it->id()) 
+  //               + " " + std::to_string(vertex_it->label());
+  //   }
+  //   data_out += " edge";
+  //   for (auto vertex_it = this->pattern.VertexCBegin(); 
+  //            !vertex_it.IsDone();
+  //             vertex_it++) {
+  //     for (auto edge_it = vertex_it->OutEdgeCBegin(); 
+  //              !edge_it.IsDone();
+  //               edge_it++) {
+  //       data_out += " " + std::to_string(edge_it->id())
+  //                 + " " + std::to_string(edge_it->src_id()) 
+  //                 + " " + std::to_string(edge_it->dst_id())
+  //                 + " " + std::to_string(edge_it->label());
+  //     }
+  //   }
+  //   return data_out;
+  // }
 
   void Clear() {
     vertices_.Clear();

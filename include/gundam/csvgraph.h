@@ -599,16 +599,6 @@ inline int ReadCSVGraph(GraphType& graph, const std::string &v_file,
 
 // Write CSV
 
-// ToString
-template <typename ElementType>
-inline std::string ToString(ElementType element) {
-  std::stringstream ss;
-  ss << element;
-  std::string ret;
-  ss >> ret;
-  return ret;
-}
-
 // Write CSV columns
 template <typename StreamType>
 inline void WriteCSVColumns(StreamType& s, std::vector<std::string>& key_str,
