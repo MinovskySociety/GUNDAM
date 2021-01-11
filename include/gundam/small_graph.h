@@ -26,9 +26,11 @@ std::string& operator<<(std::string& out_string,
                          EdgeIDType,   
                       EdgeLabelType>& small_graph) {
 
+  out_string += "<Graph ";
+
   out_string += "vertex";
   for (auto vertex_it = small_graph.VertexCBegin(); 
-            !vertex_it.IsDone();
+           !vertex_it.IsDone();
             vertex_it++) {
     out_string += " " + ToString(vertex_it->id()) 
                 + " " + ToString(vertex_it->label());
@@ -46,6 +48,7 @@ std::string& operator<<(std::string& out_string,
                   + " " + ToString(edge_it->label());
     }
   }
+  out_string += " >";
   return out_string;
 }
   
@@ -67,9 +70,11 @@ SmallGraph<VertexIDType,
   ss << in_string;
 
   std::string str;
+  
+  ss>>str;
+  assert(str == "<Graph");
 
   ss>>str;
-
   assert(str == "vertex");
 
   small_graph.Clear();
@@ -87,6 +92,10 @@ SmallGraph<VertexIDType,
   }
 
   while (ss>>str){
+    if (str == ">"){
+      // end symbol
+      break;
+    }
     VertexIDType src_id
       = StringToDataType<VertexIDType>(str);
     ss>>str;
