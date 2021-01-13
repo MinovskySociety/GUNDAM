@@ -54,15 +54,11 @@ std::string& operator<<(std::string& out_string,
   
 template <class VertexIDType, class VertexLabelType, 
           class   EdgeIDType, class   EdgeLabelType>
-SmallGraph<VertexIDType,
-        VertexLabelType,
-             EdgeIDType,
-          EdgeLabelType>& 
-               operator>>(std::string& in_string, 
-              SmallGraph<VertexIDType, 
-                      VertexLabelType,
-                           EdgeIDType,   
-                        EdgeLabelType>& small_graph) {
+std::string& operator>>(std::string& in_string, 
+            SmallGraph<VertexIDType, 
+                    VertexLabelType,
+                         EdgeIDType,   
+                      EdgeLabelType>& small_graph) {
   
   using namespace GUNDAM;
 
@@ -113,7 +109,9 @@ SmallGraph<VertexIDType,
                        edge_label,
                        edge_id);
   }
-  return small_graph;
+  getline(ss, in_string);
+  std::cout<<"inputed string: "<<in_string<<std::endl;
+  return in_string;
 }
 
 template <class VertexIDType, class VertexLabelType, class EdgeIDType,
@@ -597,12 +595,29 @@ class SmallGraph {
     auto &v_data = it->second;
 
     std::vector<VertexIDType> edges;
-    std::merge(v_data.out_edges_.begin(), v_data.out_edges_.end(),
-               v_data.in_edges_.begin(), v_data.in_edges_.end(),
+    std::merge(v_data.out_edges_.begin(), 
+               v_data.out_edges_. end (),
+               v_data. in_edges_.begin(), 
+               v_data. in_edges_. end (),
                std::back_inserter(edges));
 
-    for (auto it_r = edges.rbegin(); it_r != edges.rend(); ++it_r) {
-      if (it_r != edges.rbegin() && *it_r == *(it_r - 1)) continue;
+    for (auto it  = v_data.out_edges_.begin();
+              it != v_data.out_edges_.end(); it++){
+      auto ret = vertices_.Find(this->edges_.Find(*it)->second.dst_);
+      ret->second.in_edges_.Erase(*it);
+    }
+
+    for (auto it  = v_data.in_edges_.begin();
+              it != v_data.in_edges_.end(); it++){
+      auto ret = vertices_.Find(this->edges_.Find(*it)->second.src_);
+      ret->second.out_edges_.Erase(*it);
+    }
+
+    for (auto it_r  = edges.rbegin(); 
+              it_r != edges.rend(); 
+            ++it_r) {
+      if (it_r != edges.rbegin() && *it_r == *(it_r - 1)) 
+        continue;
       count += edges_.Erase(*it_r);
     }
 

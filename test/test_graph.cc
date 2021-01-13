@@ -420,9 +420,14 @@ void TestSerialize() {
   GraphType g1;
 
   TestAddVertexAddEdge(g1);
+  
+  GraphType g12 = g1;
+  auto vertex_id = g12.VertexBegin()->id();
+  auto ret = g12.EraseVertex(vertex_id);
+  ASSERT_TRUE(ret);
 
   std::string out_str;
-  out_str<<g1<<g1;
+  out_str<<g1<<g12;
 
   std::cout<<"#Serialized graph#"<<std::endl;
   std::cout<<out_str<<std::endl;
@@ -432,9 +437,11 @@ void TestSerialize() {
 
   ASSERT_TRUE(TestGraphSame(g1, g2));
   
-  GraphType g3;
-  out_str>>g3;
-  ASSERT_TRUE(TestGraphSame(g1, g3));
+  GraphType g22;
+  std::cout<<"#Serialized graph#"<<std::endl;
+  std::cout<<out_str<<std::endl;
+  out_str>>g22;
+  ASSERT_TRUE(TestGraphSame(g12, g22));
 }
 
 TEST(TestGUNDAM, TestGraphVertexEdge) {
