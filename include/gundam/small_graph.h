@@ -695,31 +695,6 @@ class SmallGraph {
     return 1;
   }
 
-  // void Deserialize(const std::sting& data_in) const {
-  //   data_out.clear();
-  //   data_out += "vertex";
-  //   for (auto vertex_it = this->pattern.VertexCBegin(); 
-  //            !vertex_it.IsDone();
-  //             vertex_it++) {
-  //     data_out += " " + std::to_string(vertex_it->id()) 
-  //               + " " + std::to_string(vertex_it->label());
-  //   }
-  //   data_out += " edge";
-  //   for (auto vertex_it = this->pattern.VertexCBegin(); 
-  //            !vertex_it.IsDone();
-  //             vertex_it++) {
-  //     for (auto edge_it = vertex_it->OutEdgeCBegin(); 
-  //              !edge_it.IsDone();
-  //               edge_it++) {
-  //       data_out += " " + std::to_string(edge_it->id())
-  //                 + " " + std::to_string(edge_it->src_id()) 
-  //                 + " " + std::to_string(edge_it->dst_id())
-  //                 + " " + std::to_string(edge_it->label());
-  //     }
-  //   }
-  //   return data_out;
-  // }
-
   void Clear() {
     vertices_.Clear();
     edges_.Clear();
