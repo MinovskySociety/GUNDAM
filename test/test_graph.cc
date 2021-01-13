@@ -229,6 +229,7 @@ bool TestGraphSame(const GraphType& g1,
                              ::EdgeType
                                ::IDType;
   if (g1.CountVertex() != g2.CountVertex()){
+    std::cout<<"in-equivalent vertex number not same"<<std::endl;
     return false;
   }
   // test vertex is same
@@ -237,6 +238,8 @@ bool TestGraphSame(const GraphType& g1,
             vertex_it++){
     auto vertex_ptr = g2.FindVertex(vertex_it->id());
     if (vertex_ptr.IsNull()){
+      std::cout<<"vertex: "<<vertex_ptr->id()
+               <<" cannot be found in g2"<<std::endl;
       return false;
     }
     vertex_ptr->label() == vertex_it->label();
@@ -255,9 +258,9 @@ bool TestGraphSame(const GraphType& g1,
              !edge_it.IsDone();
               edge_it++) {
       auto ret = g1_edge_set.emplace(edge_it->const_src_ptr()->id(),
-                                  edge_it->const_dst_ptr()->id(),
-                                  edge_it->label(),
-                                  edge_it->id());
+                                     edge_it->const_dst_ptr()->id(),
+                                     edge_it->label(),
+                                     edge_it->id());
       // should have been added successfully
       // e.g. should not have duplicated edge
       assert(ret.second);
@@ -271,13 +274,19 @@ bool TestGraphSame(const GraphType& g1,
              !edge_it.IsDone();
               edge_it++) {
       auto temp_edge = std::make_tuple(
-                              edge_it->const_src_ptr()->id(),
-                              edge_it->const_dst_ptr()->id(),
-                              edge_it->label(),
-                              edge_it->id()); 
+                            edge_it->const_src_ptr()->id(),
+                            edge_it->const_dst_ptr()->id(),
+                            edge_it->label(),
+                            edge_it->id()); 
       auto it = g1_edge_set.find(temp_edge);
       if (it == g1_edge_set.cend()){
         // g1 does not have this edge
+        std::cout<<"edge: "<<std::endl
+                 <<"src_id: "<<edge_it->const_src_ptr()->id()<<std::endl
+                 <<"dst_id: "<<edge_it->const_dst_ptr()->id()<<std::endl
+                 <<"edge_label: "<<edge_it->label()<<std::endl
+                 <<"edge_id: "<<edge_it->id()<<std::endl
+                 <<" cannot be found in g1"<<std::endl;
         return false;
       }
       // g1 has this edge
@@ -286,6 +295,14 @@ bool TestGraphSame(const GraphType& g1,
   }
   if (!g1_edge_set.empty()){
     // g1 has edge that is not contained in g2
+    for (const auto& remained_g1_edge : g1_edge_set){
+      std::cout<<"edge: "<<std::endl
+               <<"src_id: "<<std::get<0>(remained_g1_edge)<<std::endl
+               <<"dst_id: "<<std::get<1>(remained_g1_edge)<<std::endl
+               <<"edge_label: "<<std::get<2>(remained_g1_edge)<<std::endl
+               <<"edge_id: "<<std::get<3>(remained_g1_edge)<<std::endl
+               <<" cannot be found in g2"<<std::endl;
+    }
     return false;
   }
   return true;
@@ -405,12 +422,19 @@ void TestSerialize() {
   TestAddVertexAddEdge(g1);
 
   std::string out_str;
-  out_str<<g1;
+  out_str<<g1<<g1;
+
+  std::cout<<"#Serialized graph#"<<std::endl;
+  std::cout<<out_str<<std::endl;
   
   GraphType g2;
   out_str>>g2;
 
   ASSERT_TRUE(TestGraphSame(g1, g2));
+  
+  GraphType g3;
+  out_str>>g3;
+  ASSERT_TRUE(TestGraphSame(g1, g3));
 }
 
 TEST(TestGUNDAM, TestGraphVertexEdge) {

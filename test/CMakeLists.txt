@@ -55,7 +55,7 @@ add_test(AllTests test_attribute)
 
 add_executable (test_graph "test_graph.cc")
 target_link_libraries(test_graph GTest::GTest GTest::Main)
-#gtest_add_tests(TARGET test_graph)
+gtest_add_tests(TARGET test_graph)
 
 add_executable (test_simple_graph "test_simple_graph.cc")
 target_link_libraries(test_simple_graph GTest::GTest GTest::Main)

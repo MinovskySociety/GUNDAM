@@ -176,7 +176,7 @@ inline DataType StringToDataType(std::string str){
   }
   else if constexpr (TypeToEnum<DataType>() 
                 == GUNDAM::BasicDataType::kTypeInt64){
-    return std::stoi(str);
+    return std::stoll(str);
   }
   else if constexpr (TypeToEnum<DataType>() 
                 == GUNDAM::BasicDataType::kTypeFloat){
