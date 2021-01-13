@@ -22,7 +22,7 @@ template <class VertexIDType,
           class EdgeLabelType,
           class EdgeAttributeKeyType>
 std::string& operator<<(std::string& out_string, 
-           LargeGraph2<VertexIDType, 
+     const LargeGraph2<VertexIDType, 
                     VertexLabelType,
              VertexAttributeKeyType,
                          EdgeIDType,   

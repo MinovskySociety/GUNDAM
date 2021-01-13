@@ -21,7 +21,7 @@ class SmallGraph;
 template <class VertexIDType, class VertexLabelType, 
           class   EdgeIDType, class   EdgeLabelType>
 std::string& operator<<(std::string& out_string, 
-            SmallGraph<VertexIDType, 
+      const SmallGraph<VertexIDType, 
                     VertexLabelType,
                          EdgeIDType,   
                       EdgeLabelType>& small_graph) {

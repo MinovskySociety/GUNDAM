@@ -426,8 +426,10 @@ void TestSerialize() {
   auto ret = g12.EraseVertex(vertex_id);
   ASSERT_TRUE(ret);
 
+  const GraphType& g12_const_ref = g12;
+
   std::string out_str;
-  out_str<<g1<<g12;
+  out_str<<g1<<g12_const_ref;
 
   std::cout<<"#Serialized graph#"<<std::endl;
   std::cout<<out_str<<std::endl;
