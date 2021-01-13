@@ -237,7 +237,7 @@ bool TestGraphSame(const GraphType& g1,
            !vertex_it.IsDone();
             vertex_it++){
     auto vertex_ptr = g2.FindVertex(vertex_it->id());
-    if (vertex_ptr.IsNull()){
+    if (!vertex_ptr){
       std::cout<<"vertex: "<<vertex_ptr->id()
                <<" cannot be found in g2"<<std::endl;
       return false;
@@ -500,5 +500,7 @@ TEST(TestGUNDAM, TestGraphVertexEdge) {
   TestGraphVertexEdge<G6>();
   TestGraphVertexEdge<G7>();
 
+  TestSerialize<G1>();
+  TestSerialize<G2>();
   TestSerialize<G3>();
 }

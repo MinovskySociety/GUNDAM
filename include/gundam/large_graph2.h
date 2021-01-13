@@ -6,6 +6,222 @@
 #include "iterator2.h"
 
 namespace GUNDAM {
+
+template <class VertexIDType, 
+          class VertexLabelType,
+          class VertexAttributeKeyType, 
+          class EdgeIDType, 
+          class EdgeLabelType,
+          class EdgeAttributeKeyType>
+class LargeGraph2;
+
+template <class VertexIDType, 
+          class VertexLabelType,
+          class VertexAttributeKeyType, 
+          class EdgeIDType, 
+          class EdgeLabelType,
+          class EdgeAttributeKeyType>
+std::string& operator<<(std::string& out_string, 
+           LargeGraph2<VertexIDType, 
+                    VertexLabelType,
+             VertexAttributeKeyType,
+                         EdgeIDType,   
+                      EdgeLabelType,   
+               EdgeAttributeKeyType>& large_graph) {
+
+  out_string += " <Graph";
+
+  out_string += " vertex";
+  for (auto vertex_it = large_graph.VertexCBegin(); 
+           !vertex_it.IsDone();
+            vertex_it++) {
+    out_string += " " + ToString(vertex_it->id()) 
+                + " " + ToString(vertex_it->label());
+    auto attr_it = vertex_it->AttributeCBegin();
+    if (attr_it.IsDone()){
+      continue;
+    }
+    // has attribtue
+    out_string += " <attr";
+    for (;!attr_it.IsDone(); attr_it++) {
+      out_string += " " + ToString(attr_it->key())
+                  + " " + ToString(attr_it->value_type())
+                  + " " + ToString(attr_it->value_str());
+    }
+    out_string += " >";
+  }
+  out_string += " edge";
+  for (auto vertex_it = large_graph.VertexCBegin(); 
+           !vertex_it.IsDone();
+            vertex_it++) {
+    for (auto edge_it = vertex_it->OutEdgeCBegin(); 
+             !edge_it.IsDone();
+              edge_it++) {
+      out_string += " " + ToString(edge_it->src_id()) 
+                  + " " + ToString(edge_it->dst_id())
+                  + " " + ToString(edge_it->label())
+                  + " " + ToString(edge_it->id());
+      auto attr_it = edge_it->AttributeCBegin();
+      if (attr_it.IsDone()){
+        continue;
+      }
+      out_string += " <attr";
+      for (;!attr_it.IsDone(); attr_it++) {
+        out_string += " " + ToString(attr_it->key())
+                    + " " + ToString(attr_it->value_type())
+                    + " " + ToString(attr_it->value_str());
+      }
+      out_string += " >";
+    }
+  }
+  out_string += " >";
+  return out_string;
+}
+  
+template <class VertexIDType, 
+          class VertexLabelType,
+          class VertexAttributeKeyType, 
+          class EdgeIDType, 
+          class EdgeLabelType,
+          class EdgeAttributeKeyType>
+std::string& operator>>(std::string& in_string, 
+           LargeGraph2<VertexIDType, 
+                    VertexLabelType,
+             VertexAttributeKeyType,
+                         EdgeIDType,   
+                      EdgeLabelType,   
+               EdgeAttributeKeyType>& large_graph) {
+  
+  using namespace GUNDAM;
+
+  using GraphType = LargeGraph2<VertexIDType,
+                             VertexLabelType,
+                      VertexAttributeKeyType,
+                                  EdgeIDType,
+                               EdgeLabelType,
+                        EdgeAttributeKeyType>;
+
+  using VertexPtr = typename GraphType::VertexPtr;
+  using   EdgePtr = typename GraphType::  EdgePtr;
+
+  std::stringstream ss;
+  ss << in_string;
+
+  std::string str;
+  
+  ss>>str;
+  assert(str == "<Graph");
+
+  ss>>str;
+  assert(str == "vertex");
+
+  large_graph.Clear();
+
+  VertexPtr last_vertex_ptr;
+  // assert(!last_vertex_ptr);
+
+  while (ss>>str) {
+    if (str == "edge")
+      break;
+    if (str == "<attr"){
+      // add attribute to last vertex ptr
+      assert(last_vertex_ptr);
+      while (ss>>str) {
+        if (str == ">") {
+          break;
+        }
+
+        VertexAttributeKeyType vertex_attr_key 
+          = GUNDAM::StringToDataType<VertexAttributeKeyType>(str);
+        ss>>str;
+
+        BasicDataType vertex_attr_value_type
+          = GUNDAM::StringToEnum(str.c_str());
+        ss>>str;
+
+        auto ret = last_vertex_ptr->AddAttribute(
+                        vertex_attr_key,
+                        vertex_attr_value_type,
+                        str);
+
+        assert(ret.second);
+      }
+      continue;
+    }
+    VertexIDType vertex_id
+      = StringToDataType<VertexIDType>(str);
+    ss>>str;
+    VertexLabelType vertex_label 
+      = StringToDataType<VertexLabelType>(str);
+      
+    bool succ_added = false;
+
+    std::tie(last_vertex_ptr, succ_added) 
+      = large_graph.AddVertex(vertex_id,
+                              vertex_label);
+                      
+    assert(succ_added);
+  }
+
+  EdgePtr last_edge_ptr;
+  // assert(!last_edge_ptr);
+
+  while (ss>>str){
+    if (str == ">"){
+      // end symbol
+      break;
+    }
+    if (str == "<attr"){
+      // add attribute to last edge ptr
+      assert(last_edge_ptr);
+      while (ss>>str) {
+        if (str == ">") {
+          break;
+        }
+
+        EdgeAttributeKeyType edge_attr_key 
+          = GUNDAM::StringToDataType<EdgeAttributeKeyType>(str);
+        ss>>str;
+
+        BasicDataType edge_attr_value_type
+          = GUNDAM::StringToEnum(str.c_str());
+        ss>>str;
+
+        auto ret = last_edge_ptr->AddAttribute(
+                        edge_attr_key,
+                        edge_attr_value_type,
+                        str);
+
+        assert(ret.second);
+      }
+      continue;
+    }
+    VertexIDType src_id
+      = StringToDataType<VertexIDType>(str);
+    ss>>str;
+    VertexIDType dst_id
+      = StringToDataType<VertexIDType>(str);
+    ss>>str;
+    EdgeLabelType edge_label
+      = StringToDataType<EdgeLabelType>(str);
+    ss>>str;
+    EdgeIDType edge_id
+      = StringToDataType<EdgeIDType>(str);
+ 
+    bool succ_added = false;
+
+    std::tie(last_edge_ptr, succ_added) 
+      = large_graph.AddEdge(src_id,
+                            dst_id,
+                           edge_label,
+                           edge_id);
+                      
+    assert(succ_added);
+  }
+  getline(ss, in_string);
+  return in_string;
+}
+
 template <class VertexIDType, class VertexLabelType,
           class VertexAttributeKeyType, class EdgeIDType, class EdgeLabelType,
           class EdgeAttributeKeyType>
