@@ -225,6 +225,8 @@ std::string& operator>>(std::string& in_string,
     assert(succ_added);
   }
   getline(ss, in_string);
+  if (ss.fail())
+    in_string.clear();
   return in_string;
 }
 

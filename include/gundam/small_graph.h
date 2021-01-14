@@ -110,6 +110,8 @@ std::string& operator>>(std::string& in_string,
                        edge_id);
   }
   getline(ss, in_string);
+  if (ss.fail())
+    in_string.clear();
   return in_string;
 }
 

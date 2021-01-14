@@ -49,7 +49,7 @@ inline BasicDataType StringToEnum(const char* type_str) {
 
 // ToString
 template <typename ElementType>
-inline std::string ToString(ElementType element) {
+inline std::string ToString(const ElementType& element) {
   std::stringstream ss;
   ss << element;
   std::string ret;

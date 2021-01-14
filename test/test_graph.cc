@@ -443,6 +443,7 @@ void TestSerialize() {
   std::cout<<"#Serialized graph#"<<std::endl;
   std::cout<<out_str<<std::endl;
   out_str>>g22;
+  ASSERT_EQ(out_str, "");
   ASSERT_TRUE(TestGraphSame(g12, g22));
 }
 

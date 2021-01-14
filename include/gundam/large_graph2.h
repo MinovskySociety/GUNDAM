@@ -163,6 +163,8 @@ std::string& operator>>(std::string& in_string,
     assert(succ_added);
   }
 
+  assert(str == "edge");
+
   EdgePtr last_edge_ptr;
   // assert(!last_edge_ptr);
 
@@ -219,6 +221,8 @@ std::string& operator>>(std::string& in_string,
     assert(succ_added);
   }
   getline(ss, in_string);
+  if (ss.fail())
+    in_string.clear();
   return in_string;
 }
 
