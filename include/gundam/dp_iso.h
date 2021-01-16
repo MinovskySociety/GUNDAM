@@ -1283,11 +1283,14 @@ inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
 template <class CandidateSetContainer, class Pivot>
 inline bool SuppUpdateCallBack(CandidateSetContainer &candidate_set,
                                Pivot &supp_list) {
-  for (auto &it : candidate_set) {
-    if (std::find(std::begin(supp_list), std::end(supp_list), it.first) ==
-        std::end(supp_list)) {
-      candidate_set.erase(it.first);
+  for (auto it  = candidate_set.begin();
+            it != candidate_set.end();) {
+    if (std::find(std::begin(supp_list), 
+                  std:: end (supp_list), it->first) == std::end(supp_list)) {
+      it = candidate_set.erase(it);
+      continue;
     }
+    it++;
   }
   return true;
 }
