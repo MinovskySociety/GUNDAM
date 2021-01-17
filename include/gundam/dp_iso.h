@@ -1264,7 +1264,6 @@ inline bool SuppUpdateCallBack(CandidateSetContainer &candidate_set,
     } else {
       it++;
     }
-    it++;
   }
   return true;
 }
