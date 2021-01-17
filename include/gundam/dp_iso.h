@@ -129,8 +129,6 @@ inline void GetAdjNotMatchedVertexSingleDirection(
     const QueryVertexPtr &query_opp_vertex_ptr =
         edge_state == EdgeState::kIn ? edge_iter->const_src_ptr()
                                      : edge_iter->const_dst_ptr();
-    // std::cout << query_vertex_ptr->id() << " " << query_opp_vertex_ptr->id()
-    //          << std::endl;
     if (match_state.count(query_opp_vertex_ptr) == 0 &&
         candidate_set.count(query_opp_vertex_ptr)) {
       next_query_set.insert(query_opp_vertex_ptr);
@@ -158,31 +156,7 @@ inline QueryVertexPtr NextMatchVertex(
   for (const auto &match_pair : match_state) {
     GetAdjNotMatchedVertex(match_pair.first, candidate_set, match_state,
                            next_query_set);
-    // std::cout << "size = " << next_query_set.size() << std::endl;
   }
-  /*
-  for (const auto &match_pair : match_state) {
-    const auto &query_vertex_ptr = match_pair.first;
-
-    for (auto edge_iter = query_vertex_ptr->OutEdgeCBegin();
-         !edge_iter.IsDone(); edge_iter++) {
-      auto query_opp_vertex_ptr = edge_iter->const_dst_ptr();
-      if (match_state.count(query_opp_vertex_ptr) == 0 &&
-          candidate_set.count(query_opp_vertex_ptr)) {
-        next_query_set.emplace(query_opp_vertex_ptr);
-      }
-    }
-
-    for (auto edge_iter = query_vertex_ptr->InEdgeCBegin(); !edge_iter.IsDone();
-         edge_iter++) {
-      auto query_opp_vertex_ptr = edge_iter->const_src_ptr();
-      if (match_state.count(query_opp_vertex_ptr) == 0 &&
-          candidate_set.count(query_opp_vertex_ptr)) {
-        next_query_set.emplace(query_opp_vertex_ptr);
-      }
-    }
-  }
-  */
   if (next_query_set.empty()) {
     for (const auto &candidate_pair : candidate_set) {
       const auto &query_vertex_ptr = candidate_pair.first;
@@ -311,7 +285,6 @@ inline void UpdateCandidateSetOneDirection(
             : target_vertex_ptr->CountOutVertex(label_it->label());
     if (adj_count > adj_vertex_limit) {
       continue;
-      // return;
     }
     for (auto it =
              ((edge_state == EdgeState::kIn)
@@ -360,7 +333,6 @@ inline void UpdateCandidateSet(QueryVertexPtr query_vertex_ptr,
                                const MatchStateMap &match_state,
                                const TargetVertexSet &target_matched) {
   // test liantong data:
-  // if (query_vertex_ptr->label() == 3003) return;
   UpdateCandidateSetOneDirection<EdgeState::kIn, QueryGraph, TargetGraph>(
       query_vertex_ptr, target_vertex_ptr, candidate_set, match_state,
       target_matched);
@@ -970,10 +942,10 @@ inline int DPISO_Recurive(const QueryGraph &query_graph,
   if (!RefineCandidateSet(query_graph, target_graph, candidate_set)) {
     return 0;
   }
-  std::cout << "candidate set:" << std::endl;
-  for (const auto &it : candidate_set) {
-    std::cout << it.first->id() << "  " << it.second.size() << std::endl;
-  }
+  // std::cout << "candidate set:" << std::endl;
+  // for (const auto &it : candidate_set) {
+  //  std::cout << it.first->id() << "  " << it.second.size() << std::endl;
+  //}
   if (!update_candidate_callback(candidate_set)) {
     return 0;
   }
@@ -1063,10 +1035,12 @@ inline int DPISO_Recurive(
   std::map<typename QueryGraph::VertexConstPtr,
            std::vector<typename TargetGraph::VertexConstPtr>>
       candidate_set;
+  // std::cout << "begin" << std::endl;
   if (!InitCandidateSet<match_semantics>(query_graph, target_graph,
                                          candidate_set)) {
     return 0;
   }
+  // std::cout << "init" << std::endl;
   for (const auto &match : match_state) {
     candidate_set[match.first].clear();
     candidate_set[match.first].push_back(match.second);
@@ -1287,10 +1261,12 @@ inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
 template <class CandidateSetContainer, class Pivot>
 inline bool SuppUpdateCallBack(CandidateSetContainer &candidate_set,
                                Pivot &supp_list) {
-  for (auto &it : candidate_set) {
-    if (std::find(std::begin(supp_list), std::end(supp_list), it.first) ==
+  for (auto it = candidate_set.begin(); it != candidate_set.end();) {
+    if (std::find(std::begin(supp_list), std::end(supp_list), it->first) ==
         std::end(supp_list)) {
-      candidate_set.erase(it.first);
+      it = candidate_set.erase(it);
+    } else {
+      it++;
     }
   }
   return true;

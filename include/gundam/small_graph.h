@@ -518,13 +518,13 @@ class SmallGraph {
   EdgePtr FindEdge(const EdgeIDType &id) {
     auto it = edges_.Find(id);
     if (it == edges_.end()) return EdgePtr();
-    return EdgePtr(this, *it);
+    return EdgePtr(Edge(this, *it));
   }
 
   EdgeConstPtr FindConstEdge(const EdgeIDType &id) const {
     auto it = edges_.Find(id);
     if (it == edges_.end()) return EdgeConstPtr();
-    return EdgeConstPtr(this, *it);
+    return EdgeConstPtr(Edge(this, *it));
   }
 
   EdgeIterator EdgeBegin() {
