@@ -78,7 +78,7 @@ Graph的可调用接口表如下所示:<br>
 |AddVertex|pair\<VertexPtr,bool\> AddVertex(vertex_id,vertex_label)<br>vertex_id:点的id<br>vertex_label:点的label<br>返回值:若当前Graph中已有ID为vertex_id的vertex，则返回的pair为：<指向已有节点的指针, false>；否则加入新的节点，并返回<指向新加入节点的指针, true>。|往Graph中新加入一个ID为vertex_id,Label为vertex_label的节点|
 |AddEdge|pair\<EdgePtr, bool\> AddEdge(src_id,dst_id,edge_label,edge_id)<br>src_id:起点的id<br>dst_id:终点的id<br>edge_label:边的label<br>edge_id:边的id<br>返回值：若当前Graph中已有相同ID的edge，则返回的pair为：<指向已有边的指针, false>；否则加入新的边，并返回<指向新加入边的指针, true>；若Graph中不存在ID为src_id的vertex、或Graph中不存在ID为dst_id的vertex，则返回<Null指针, false>。|往Graph中加入一条从src_id到dst_id,EdgeLabel为edge_label,EdgeID为edge_id的有向边|
 |CountVertex|size_t CountVertex()<br>size_t CountVertex(vertex_label)<br>vertex_label:点的label|计算这个图的节点数量/满足VertexLabel为vertex_label的节点数量|
-|FindVertex|VertexPtr FindVertex(vertex_id)<br>vertex_id:点的id<br>返回值：若图中存在vertex_id对应的节点，则返回其指针，否则返回Null指针|找到Graph中VertexID为vertex_id的节点的指针|
+|FindVertex|VertexPtr FindVertex(vertex_id)<br>VertexConstPtr FindVertex(vertex_id) const<br>vertex_id:点的id<br>返回值：若图中存在vertex_id对应的节点，则返回其指针，否则返回Null指针|找到Graph中VertexID为vertex_id的节点的指针|
 |FindConstVertex|VertexConstPtr FindConstVedrtex(vertex_id)<br>vertex_id:点的id<br>返回值：若图中存在vertex_id对应的节点，则返回其Const指针，否则返回Null指针|找到Graph中VertexID为vertex_id的节点的Const指针|
 |FindEdge|EdgePtr FindEdge(edge_id)<br>edge_id:边的id<br>返回值：若图中存在edge_id对应的边，则返回其指针，否则返回Null指针|找到Graph中EdgeID为edge_id的边的指针|
 |EraseEdge|bool EraseEdge(edge_id)<br>edge_id:边的id<br>返回值：若成功删除返回true,否则返回false|删除Graph中EdgeID为edge_id的边的指针|

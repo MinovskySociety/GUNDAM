@@ -6,6 +6,226 @@
 #include "iterator2.h"
 
 namespace GUNDAM {
+
+template <class VertexIDType, 
+          class VertexLabelType,
+          class VertexAttributeKeyType, 
+          class EdgeIDType, 
+          class EdgeLabelType,
+          class EdgeAttributeKeyType>
+class LargeGraph2;
+
+template <class VertexIDType, 
+          class VertexLabelType,
+          class VertexAttributeKeyType, 
+          class EdgeIDType, 
+          class EdgeLabelType,
+          class EdgeAttributeKeyType>
+std::string& operator<<(std::string& out_string, 
+     const LargeGraph2<VertexIDType, 
+                    VertexLabelType,
+             VertexAttributeKeyType,
+                         EdgeIDType,   
+                      EdgeLabelType,   
+               EdgeAttributeKeyType>& large_graph) {
+
+  out_string += " <Graph";
+
+  out_string += " vertex";
+  for (auto vertex_it = large_graph.VertexCBegin(); 
+           !vertex_it.IsDone();
+            vertex_it++) {
+    out_string += " " + ToString(vertex_it->id()) 
+                + " " + ToString(vertex_it->label());
+    auto attr_it = vertex_it->AttributeCBegin();
+    if (attr_it.IsDone()){
+      continue;
+    }
+    // has attribtue
+    out_string += " <attr";
+    for (;!attr_it.IsDone(); attr_it++) {
+      out_string += " " + ToString(attr_it->key())
+                  + " " + ToString(attr_it->value_type())
+                  + " " + ToString(attr_it->value_str());
+    }
+    out_string += " >";
+  }
+  out_string += " edge";
+  for (auto vertex_it = large_graph.VertexCBegin(); 
+           !vertex_it.IsDone();
+            vertex_it++) {
+    for (auto edge_it = vertex_it->OutEdgeCBegin(); 
+             !edge_it.IsDone();
+              edge_it++) {
+      out_string += " " + ToString(edge_it->src_id()) 
+                  + " " + ToString(edge_it->dst_id())
+                  + " " + ToString(edge_it->label())
+                  + " " + ToString(edge_it->id());
+      auto attr_it = edge_it->AttributeCBegin();
+      if (attr_it.IsDone()){
+        continue;
+      }
+      out_string += " <attr";
+      for (;!attr_it.IsDone(); attr_it++) {
+        out_string += " " + ToString(attr_it->key())
+                    + " " + ToString(attr_it->value_type())
+                    + " " + ToString(attr_it->value_str());
+      }
+      out_string += " >";
+    }
+  }
+  out_string += " >";
+  return out_string;
+}
+  
+template <class VertexIDType, 
+          class VertexLabelType,
+          class VertexAttributeKeyType, 
+          class EdgeIDType, 
+          class EdgeLabelType,
+          class EdgeAttributeKeyType>
+std::string& operator>>(std::string& in_string, 
+           LargeGraph2<VertexIDType, 
+                    VertexLabelType,
+             VertexAttributeKeyType,
+                         EdgeIDType,   
+                      EdgeLabelType,   
+               EdgeAttributeKeyType>& large_graph) {
+  
+  using namespace GUNDAM;
+
+  using GraphType = LargeGraph2<VertexIDType,
+                             VertexLabelType,
+                      VertexAttributeKeyType,
+                                  EdgeIDType,
+                               EdgeLabelType,
+                        EdgeAttributeKeyType>;
+
+  using VertexPtr = typename GraphType::VertexPtr;
+  using   EdgePtr = typename GraphType::  EdgePtr;
+
+  std::stringstream ss;
+  ss << in_string;
+
+  std::string str;
+  
+  ss>>str;
+  assert(str == "<Graph");
+
+  ss>>str;
+  assert(str == "vertex");
+
+  large_graph.Clear();
+
+  VertexPtr last_vertex_ptr;
+  // assert(!last_vertex_ptr);
+
+  while (ss>>str) {
+    if (str == "edge")
+      break;
+    if (str == "<attr"){
+      // add attribute to last vertex ptr
+      assert(last_vertex_ptr);
+      while (ss>>str) {
+        if (str == ">") {
+          break;
+        }
+
+        VertexAttributeKeyType vertex_attr_key 
+          = GUNDAM::StringToDataType<VertexAttributeKeyType>(str);
+        ss>>str;
+
+        BasicDataType vertex_attr_value_type
+          = GUNDAM::StringToEnum(str.c_str());
+        ss>>str;
+
+        auto ret = last_vertex_ptr->AddAttribute(
+                        vertex_attr_key,
+                        vertex_attr_value_type,
+                        str);
+
+        assert(ret.second);
+      }
+      continue;
+    }
+    VertexIDType vertex_id
+      = StringToDataType<VertexIDType>(str);
+    ss>>str;
+    VertexLabelType vertex_label 
+      = StringToDataType<VertexLabelType>(str);
+      
+    bool succ_added = false;
+
+    std::tie(last_vertex_ptr, succ_added) 
+      = large_graph.AddVertex(vertex_id,
+                              vertex_label);
+                      
+    assert(succ_added);
+  }
+
+  assert(str == "edge");
+
+  EdgePtr last_edge_ptr;
+  // assert(!last_edge_ptr);
+
+  while (ss>>str){
+    if (str == ">"){
+      // end symbol
+      break;
+    }
+    if (str == "<attr"){
+      // add attribute to last edge ptr
+      assert(last_edge_ptr);
+      while (ss>>str) {
+        if (str == ">") {
+          break;
+        }
+
+        EdgeAttributeKeyType edge_attr_key 
+          = GUNDAM::StringToDataType<EdgeAttributeKeyType>(str);
+        ss>>str;
+
+        BasicDataType edge_attr_value_type
+          = GUNDAM::StringToEnum(str.c_str());
+        ss>>str;
+
+        auto ret = last_edge_ptr->AddAttribute(
+                        edge_attr_key,
+                        edge_attr_value_type,
+                        str);
+
+        assert(ret.second);
+      }
+      continue;
+    }
+    VertexIDType src_id
+      = StringToDataType<VertexIDType>(str);
+    ss>>str;
+    VertexIDType dst_id
+      = StringToDataType<VertexIDType>(str);
+    ss>>str;
+    EdgeLabelType edge_label
+      = StringToDataType<EdgeLabelType>(str);
+    ss>>str;
+    EdgeIDType edge_id
+      = StringToDataType<EdgeIDType>(str);
+ 
+    bool succ_added = false;
+
+    std::tie(last_edge_ptr, succ_added) 
+      = large_graph.AddEdge(src_id,
+                            dst_id,
+                           edge_label,
+                           edge_id);
+                      
+    assert(succ_added);
+  }
+  getline(ss, in_string);
+  if (ss.fail())
+    in_string.clear();
+  return in_string;
+}
+
 template <class VertexIDType, class VertexLabelType,
           class VertexAttributeKeyType, class EdgeIDType, class EdgeLabelType,
           class EdgeAttributeKeyType>
@@ -149,6 +369,10 @@ class LargeGraph2 {
       return {out_edges_.begin(), out_edges_.end()};
     }
 
+    EdgeConstIterator OutEdgeBegin() const {
+      return this->OutEdgeCBegin();
+    }
+
     EdgeConstIterator OutEdgeCBegin() const {
       return {out_edges_.cbegin(), out_edges_.cend()};
     }
@@ -165,6 +389,10 @@ class LargeGraph2 {
       auto it = out_edges_by_el_.Find(edge_label);
       if (it == out_edges_by_el_.end()) return {};
       return {it->second.begin(), it->second.end()};
+    }
+
+    EdgeConstIterator OutEdgeBegin(const EdgeLabelType &edge_label) const {
+      return this->OutEdgeCBegin(edge_label);
     }
 
     EdgeConstIterator OutEdgeCBegin(const EdgeLabelType &edge_label) const {
@@ -185,6 +413,12 @@ class LargeGraph2 {
       return {it2->second.begin(), it2->second.end()};
     }
 
+    EdgeConstIterator OutEdgeBegin(const EdgeLabelType &edge_label,
+                                   const VertexData *vertex_ptr) const {
+      return this->OutEdgeCBegin(edge_label,
+                                 vertex_ptr);
+    }
+
     EdgeConstIterator OutEdgeCBegin(const EdgeLabelType &edge_label,
                                     const VertexData *vertex_ptr) const {
       auto it1 =
@@ -198,17 +432,27 @@ class LargeGraph2 {
     }
 
     VertexIterator OutVertexBegin() {
-      return {out_edges_by_dst_el_.begin(), out_edges_by_dst_el_.end()};
+      return {out_edges_by_dst_el_.begin(), 
+              out_edges_by_dst_el_.end()};
+    }
+
+    VertexConstIterator OutVertexBegin() const {
+      return this->OutVertexCBegin();
     }
 
     VertexConstIterator OutVertexCBegin() const {
-      return {out_edges_by_dst_el_.cbegin(), out_edges_by_dst_el_.cend()};
+      return {out_edges_by_dst_el_.cbegin(), 
+              out_edges_by_dst_el_.cend()};
     }
 
     VertexIteratorByELabel OutVertexBegin(const EdgeLabelType &edge_label) {
       auto it = out_edges_by_el_dst_.Find(edge_label);
       if (it == out_edges_by_el_dst_.end()) return {};
       return {it->second.begin(), it->second.end()};
+    }
+
+    VertexConstIteratorByELabel OutVertexBegin(const EdgeLabelType &edge_label) const {
+      return this->OutVertexCBegin(edge_label);
     }
 
     VertexConstIteratorByELabel OutVertexCBegin(
@@ -218,7 +462,13 @@ class LargeGraph2 {
       return {it->second.cbegin(), it->second.cend()};
     }
 
-    EdgeIterator InEdgeBegin() { return {in_edges_.begin(), in_edges_.end()}; }
+    EdgeIterator InEdgeBegin() { 
+      return {in_edges_.begin(), in_edges_.end()}; 
+    }
+
+    EdgeConstIterator InEdgeBegin() const { 
+      return this->InEdgeCBegin(); 
+    }
 
     EdgeConstIterator InEdgeCBegin() const {
       return {in_edges_.cbegin(), in_edges_.cend()};
@@ -238,6 +488,10 @@ class LargeGraph2 {
       return {it->second.begin(), it->second.end()};
     }
 
+    EdgeConstIterator InEdgeBegin(const EdgeLabelType &edge_label) const {
+      return this->InEdgeCBegin(edge_label);
+    }
+
     EdgeConstIterator InEdgeCBegin(const EdgeLabelType &edge_label) const {
       auto it = in_edges_by_el_.Find(edge_label);
       if (it == in_edges_by_el_.cend()) return {};
@@ -255,6 +509,11 @@ class LargeGraph2 {
       return {it2->second.begin(), it2->second.end()};
     }
 
+    EdgeConstIterator InEdgeBegin(const EdgeLabelType &edge_label,
+                                  const VertexData *vertex_ptr) const {
+      return this->InEdgeCBegin(edge_label, vertex_ptr);
+    }
+
     EdgeConstIterator InEdgeCBegin(const EdgeLabelType &edge_label,
                                    const VertexData *vertex_ptr) const {
       auto it1 = in_edges_by_src_el_.Find(const_cast<VertexData *>(vertex_ptr));
@@ -267,17 +526,27 @@ class LargeGraph2 {
     }
 
     VertexIterator InVertexBegin() {
-      return {in_edges_by_src_el_.begin(), in_edges_by_src_el_.end()};
+      return {in_edges_by_src_el_.begin(), 
+              in_edges_by_src_el_.end()};
+    }
+
+    VertexConstIterator InVertexBegin() const {
+      return this->InVertexCBegin();
     }
 
     VertexConstIterator InVertexCBegin() const {
-      return {in_edges_by_src_el_.cbegin(), in_edges_by_src_el_.cend()};
+      return {in_edges_by_src_el_.cbegin(), 
+              in_edges_by_src_el_.cend()};
     }
 
     VertexIteratorByELabel InVertexBegin(const EdgeLabelType &edge_label) {
       auto it = in_edges_by_el_src_.Find(edge_label);
       if (it == in_edges_by_el_src_.end()) return {};
       return {it->second.begin(), it->second.end()};
+    }
+
+    VertexConstIteratorByELabel InVertexBegin(const EdgeLabelType &edge_label) const {
+      return this->InVertexCBegin(edge_label);
     }
 
     VertexConstIteratorByELabel InVertexCBegin(
@@ -591,6 +860,11 @@ class LargeGraph2 {
     if (it == vertices_.end()) return nullptr;
     return it->second;
   }
+  
+  inline VertexConstPtr FindVertex(const typename VertexType
+                                                    ::IDType& id) const{
+    return this->FindConstVertex(id);
+  }
 
   VertexConstPtr FindConstVertex(const typename VertexType::IDType &id) const {
     auto it = vertices_.Find(id);
@@ -600,6 +874,10 @@ class LargeGraph2 {
 
   VertexIterator VertexBegin() {
     return VertexIterator(vertices_.begin(), vertices_.end());
+  }
+
+  VertexConstIterator VertexBegin() const {
+    return this->VertexCBegin();
   }
 
   VertexConstIterator VertexCBegin() const {
@@ -612,7 +890,11 @@ class LargeGraph2 {
       return VertexIterator();
     }
     return VertexIterator(it->second.begin(), it->second.end());
-  };
+  }
+
+  VertexConstIterator VertexBegin(const typename VertexType::LabelType &label) const {
+    return this->VertexCBegin(label);
+  }
 
   VertexConstIterator VertexCBegin(
       const typename VertexType::LabelType &label) const {

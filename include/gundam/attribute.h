@@ -105,9 +105,13 @@ class WithAttribute_<AttributeType_,
     }
 
     virtual std::string value_str() const override {
-      std::stringstream ss;
-      ss << value_;
-      return ss.str();
+      if constexpr (TypeToEnum<ConcreteDataType_>() 
+                  != BasicDataType::kTypeUnknown){
+        std::stringstream ss;
+        ss << this->value_;
+        return ss.str();
+      }
+      return "unknown value type";
     }
 
     const ConcreteDataType_& const_value() const { 
@@ -276,6 +280,8 @@ class WithAttribute_<AttributeType_,
    private:
     using InnerIteratorType = InnerIterator_<ContainerType_, _is_const_, depth_>;
 
+    friend class WithAttribute_;
+
     // friend typename VertexAttributeType::AttributeIterator
     // VertexAttributeType::EraseAttribute(
     //    const typename VertexAttributeType::AttributeIterator&
@@ -316,17 +322,16 @@ class WithAttribute_<AttributeType_,
 
     const _KeyType_& key() const {
       assert(!this->IsDone());
-      return InnerIteratorType::template get_const<_KeyType_, 
-                                                    key_idx_,
-                                                begin_depth_>();
+      return InnerIteratorType::template get_const<key_idx_,
+                                                 begin_depth_>();
     }
 
     template <typename ConcreteDataType>
     const ConcreteDataType& const_value() const {
       assert(!this->IsDone());
       return static_cast<ConcreteValue<const ConcreteDataType>*>(
-                InnerIteratorType::template get_const<
-                    AbstractValue*, value_ptr_idx_, begin_depth_>())
+                InnerIteratorType::template get_const<value_ptr_idx_, 
+                                                        begin_depth_>())
           ->const_value();
     }
 
@@ -334,22 +339,22 @@ class WithAttribute_<AttributeType_,
     ConcreteDataType& value() {
       assert(!this->IsDone());
       return static_cast<ConcreteValue<ConcreteDataType>*>(
-                InnerIteratorType::template get<AbstractValue*, value_ptr_idx_,
+                InnerIteratorType::template get<value_ptr_idx_,
                                                 begin_depth_>())
           ->value();
     }
 
     std::string value_str() const {
       assert(!this->IsDone());
-      return (InnerIteratorType::template get_const<
-                  AbstractValue*, value_ptr_idx_, begin_depth_>())
+      return (InnerIteratorType::template get_const<value_ptr_idx_, 
+                                                    begin_depth_>())
           ->value_str();
     }
 
     enum BasicDataType value_type() const {
       assert(!this->IsDone());
-      return InnerIteratorType::template get_const<
-          enum BasicDataType, value_typex_, begin_depth_>();
+      return InnerIteratorType::template get_const<value_typex_, 
+                                                   begin_depth_>();
     }
   };
 

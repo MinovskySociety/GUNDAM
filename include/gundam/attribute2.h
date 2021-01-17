@@ -54,9 +54,13 @@ class Attribute_<AttributeType::kSeparated,
     virtual ~ConcreteValue() override {}
 
     virtual std::string value_str() const override {
-      std::stringstream ss;
-      ss << value_;
-      return ss.str();
+      if constexpr (TypeToEnum<ConcreteDataType_>() 
+                  != BasicDataType::kTypeUnknown){
+        std::stringstream ss;
+        ss << this->value_;
+        return ss.str();
+      }
+      return "unknown value type";
     }
 
     const ConcreteDataType_& const_value() const { 
@@ -158,7 +162,7 @@ class Attribute_<AttributeType::kSeparated,
 
     using AttributeContentPtrType
         = AttributeContentPtr_<AttributeContainerType, _is_const_>;
-
+        
     using AttributeContentPtr = typename std::conditional<_is_const_, 
                                       const AttributeContentPtrType*,
                                             AttributeContentPtrType*>::type;
@@ -190,21 +194,37 @@ class Attribute_<AttributeType::kSeparated,
       return *this;
     }
 
-    template <const bool judge = is_const_,
+    template <const bool judge = _is_const_,
               typename std::enable_if<!judge, bool>::type = false>
     AttributeContentPtr operator->() {
-      static_assert(judge == is_const_, "Illegal usage of this method");
+      static_assert(judge == _is_const_, "Illegal usage of this method");
       AttributeContentPtr const temp_this_ptr = this;
       return temp_this_ptr;
     }
 
-    template <const bool judge = is_const_,
+    template <const bool judge = _is_const_,
               typename std::enable_if<judge, bool>::type = false>
     AttributeContentPtr operator->() const {
-      static_assert(judge == is_const_, "Illegal usage of this method");
-      AttributeContentPtr const temp_this_ptr = this;
+      static_assert(judge == _is_const_, "Illegal usage of this method");
+      const AttributeContentPtr temp_this_ptr = this;
       return temp_this_ptr;
     }
+
+    // template <const bool judge = _is_const_,
+    //           typename std::enable_if<!judge, bool>::type = false>
+    // AttributeContentPtrType* operator->() {
+    //   static_assert(judge == _is_const_, "Illegal usage of this method");
+    //   void* temp_ptr = static_cast<void*>(this);
+    //   return static_cast<AttributeContentPtrType*>(temp_ptr);
+    // }
+
+    // template <const bool judge = _is_const_,
+    //           typename std::enable_if<judge, bool>::type = false>
+    // const AttributeContentPtrType* operator->() {
+    //   static_assert(judge == _is_const_, "Illegal usage of this method");
+    //   const void* const temp_ptr = static_cast<const void*>(this);
+    //   return static_cast<const AttributeContentPtrType*>(temp_ptr);
+    // }
     
     inline bool IsNull() const { 
       return AttributeContentPtrType::IsNull(); 
@@ -224,6 +244,8 @@ class Attribute_<AttributeType::kSeparated,
       : protected InnerIterator_<ContainerType_, _is_const_, depth_> {
    private:
     using InnerIteratorType = InnerIterator_<ContainerType_, _is_const_, depth_>;
+    
+    friend class Attribute_;
 
     // friend typename VertexAttributeType::AttributeIterator
     // VertexAttributeType::EraseAttribute(
@@ -265,17 +287,16 @@ class Attribute_<AttributeType::kSeparated,
 
     const _KeyType_& key() const {
       assert(!this->IsDone());
-      return InnerIteratorType::template get_const<_KeyType_, 
-                                                    key_idx_,
-                                                begin_depth_>();
+      return InnerIteratorType::template get_const<key_idx_,
+                                                 begin_depth_>();
     }
 
     template <typename ConcreteDataType>
     const ConcreteDataType& const_value() const {
       assert(!this->IsDone());
       return static_cast<ConcreteValue<const ConcreteDataType>*>(
-                InnerIteratorType::template get_const<
-                    AbstractValue*, value_ptr_idx_, begin_depth_>())
+                InnerIteratorType::template get_const<value_ptr_idx_, 
+                                                      begin_depth_>())
           ->const_value();
     }
 
@@ -283,22 +304,22 @@ class Attribute_<AttributeType::kSeparated,
     ConcreteDataType& value() {
       assert(!this->IsDone());
       return static_cast<ConcreteValue<ConcreteDataType>*>(
-                InnerIteratorType::template get<AbstractValue*, value_ptr_idx_,
+                InnerIteratorType::template get<value_ptr_idx_,
                                                 begin_depth_>())
           ->value();
     }
 
     std::string value_str() const {
       assert(!this->IsDone());
-      return (InnerIteratorType::template get_const<
-                  AbstractValue*, value_ptr_idx_, begin_depth_>())
+      return (InnerIteratorType::template get_const<value_ptr_idx_, 
+                                                    begin_depth_>())
           ->value_str();
     }
 
     enum BasicDataType value_type() const {
       assert(!this->IsDone());
-      return InnerIteratorType::template get_const<
-          enum BasicDataType, value_typex_, begin_depth_>();
+      return InnerIteratorType::template get_const<value_typex_, 
+                                                   begin_depth_>();
     }
   };
 
@@ -312,6 +333,14 @@ class Attribute_<AttributeType::kSeparated,
                   kAttributeKeyIdx, 
                   kAttributeValuePtrIdx,
                   kAttributeValueTypeIdx>;
+                  
+  using AttributeContentConstIterator 
+      = AttributeContentIterator_<
+                   AttributeKeyType_, 
+                   AttributeContainerType,  true, 1, 0,
+                  kAttributeKeyIdx, 
+                  kAttributeValuePtrIdx,
+                  kAttributeValueTypeIdx>;
 
  public:
   using AttributeKeyType = AttributeKeyType_;
@@ -319,15 +348,11 @@ class Attribute_<AttributeType::kSeparated,
   using AttributePtr      = AttributePtr_<AttributeContainerType, false>;
   using AttributeConstPtr = AttributePtr_<AttributeContainerType,  true>;
 
-  using AttributeIterator = Iterator_<AttributeContentIterator>;
+  using AttributeIterator 
+      = Iterator_<AttributeContentIterator>;
 
   using AttributeConstIterator 
-      = Iterator_<AttributeContentIterator_<
-                  AttributeKeyType_, 
-                  AttributeContainerType, true, 1, 0,
-                 kAttributeKeyIdx,
-                 kAttributeValuePtrIdx, 
-                 kAttributeValueTypeIdx>>;
+      = Iterator_<AttributeContentConstIterator>;
   
   Attribute_(const GroupKeyType_& group_key){
     /// since the each vertex/edge holds a seperated container, 
@@ -341,7 +366,6 @@ class Attribute_<AttributeType::kSeparated,
       delete it.template get<kAttributeValuePtrIdx>();
     return;
   }
-
 
   BasicDataType attribute_value_type(const AttributeKeyType_& key) const {
     auto ret = this->attributes_.FindConst(key);
@@ -547,6 +571,9 @@ class Attribute_<AttributeType::kGrouped,
                                          is_const_,
                                             depth_> {
      private:
+
+      friend class AttributeContainerGroup_;
+
       using AttributeListPtr      =       AttributeListType*;
       using AttributeListConstPtr = const AttributeListType*;
 
@@ -558,15 +585,13 @@ class Attribute_<AttributeType::kGrouped,
                typename std::enable_if<!judge, bool>::type = false>
       inline AttributeListPtr attribute_list_ptr() {
         static_assert(judge == is_const_, "illegal usage of this method");
-        return InnerIteratorType::template get<AttributeListPtr, 
-                                        attribute_list_ptr_idx_,
-                                                         depth_ - 1>();
+        return InnerIteratorType::template get<attribute_list_ptr_idx_,
+                                               depth_ - 1>();
       }
 
       inline AttributeListConstPtr attribute_list_const_ptr() const {
-        return InnerIteratorType::template get_const<AttributeListPtr,  
-                                              attribute_list_ptr_idx_,
-                                                               depth_ - 1>();
+        return InnerIteratorType::template get_const<attribute_list_ptr_idx_,
+                                                     depth_ - 1>();
       }
       
       inline bool HasValue() const {
@@ -634,9 +659,8 @@ class Attribute_<AttributeType::kGrouped,
       
       inline const AttributeKeyType_& key() const {
         assert(!this->IsDone());
-        return InnerIteratorType::template get_const<const AttributeKeyType_,  
-                                                           attribute_key_idx_,
-                                                                       depth_ - 1>();
+        return InnerIteratorType::template get_const<attribute_key_idx_,
+                                                     depth_ - 1>();
       }
 
       template <typename ConcreteDataType>
@@ -894,9 +918,13 @@ class Attribute_<AttributeType::kGrouped,
         }
 
         inline std::string value_str() const override{
-          std::stringstream ss;
-          ss << this->value_;
-          return ss.str();
+          if constexpr (TypeToEnum<ConcreteValueType>() 
+                      != BasicDataType::kTypeUnknown){
+            std::stringstream ss;
+            ss << this->value_;
+            return ss.str();
+          }
+          return "unknown value type";
         }
 
        private:
@@ -1029,6 +1057,18 @@ class Attribute_<AttributeType::kGrouped,
       AbstractAttributePtrContainerType abstract_attr_ptr_list_;
     };
 
+    using AttributeContentIterator 
+        = AttributeContentIterator_<
+          AttributeListPtrContainerType, false, 1, 
+         kAttributeKeyIdx,
+         kAttributeListPtrIdx>;
+                    
+    using AttributeContentConstIterator 
+        = AttributeContentIterator_<
+          AttributeListPtrContainerType,  true, 1, 
+         kAttributeKeyIdx,
+         kAttributeListPtrIdx>;;
+
    public:
     using AttributeKeyType = AttributeKeyType_;
 
@@ -1040,16 +1080,10 @@ class Attribute_<AttributeType::kGrouped,
                              kAttributeListPtrIdx>;
 
     using AttributeIterator
-                 = Iterator_<AttributeContentIterator_<
-                             AttributeListPtrContainerType, false, 1, 
-                            kAttributeKeyIdx,
-                            kAttributeListPtrIdx>>;
+        = Iterator_<AttributeContentIterator>;
 
     using AttributeConstIterator
-                 = Iterator_<AttributeContentIterator_<
-                             AttributeListPtrContainerType,  true, 1, 
-                            kAttributeKeyIdx,
-                            kAttributeListPtrIdx>>;
+        = Iterator_<AttributeContentConstIterator>;
 
     AttributeContainerGroup_()
            : container_id_counter_(0),
@@ -1204,12 +1238,20 @@ class Attribute_<AttributeType::kGrouped,
                         kSetAttributeRet);
     }
 
-    // inline AttributeIterator EraseAttribute(
-    //                   const ContainerIDType& container_id,
-    //                   const AttributeIterator& attribute_iterator) {
-    //   assert(container_id == attribute_iterator.container_id_);
-    //   return;
-    // }
+    inline AttributeIterator EraseAttribute(
+                      const ContainerIDType& container_id,
+                      const AttributeIterator& attribute_iterator) {
+      const void* const ptr = &attribute_iterator;
+      const AttributeContentIterator* attr_it_ptr 
+        = static_cast<const AttributeContentIterator*>(ptr);
+      assert(container_id == attr_it_ptr->container_id_);
+      /// iterator of AttributeContainer
+      auto it = this->attribute_list_ptr_container_.Erase(
+                      attr_it_ptr->ConstInnerIterator());
+
+      return AttributeIterator(container_id, it,
+                         this->attribute_list_ptr_container_.end());
+    }
 
     /// return 1 if erased successfully, 0 if failed
     inline size_t EraseAttribute(

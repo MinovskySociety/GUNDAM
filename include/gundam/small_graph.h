@@ -3,14 +3,117 @@
 
 #include <algorithm>
 #include <iterator>
+#include <iostream>
 #include <string>
 #include <vector>
 
 #include "gundam/container2.h"
 #include "gundam/iterator2.h"
 #include "gundam/pointer.h"
+#include "gundam/datatype.h"
 
 namespace GUNDAM {
+
+template <class VertexIDType, class VertexLabelType, 
+          class   EdgeIDType, class   EdgeLabelType>
+class SmallGraph;
+  
+template <class VertexIDType, class VertexLabelType, 
+          class   EdgeIDType, class   EdgeLabelType>
+std::string& operator<<(std::string& out_string, 
+      const SmallGraph<VertexIDType, 
+                    VertexLabelType,
+                         EdgeIDType,   
+                      EdgeLabelType>& small_graph) {
+
+  out_string += " <Graph ";
+
+  out_string += "vertex";
+  for (auto vertex_it = small_graph.VertexCBegin(); 
+           !vertex_it.IsDone();
+            vertex_it++) {
+    out_string += " " + ToString(vertex_it->id()) 
+                + " " + ToString(vertex_it->label());
+  }
+  out_string += " edge";
+  for (auto vertex_it = small_graph.VertexCBegin(); 
+            !vertex_it.IsDone();
+            vertex_it++) {
+    for (auto edge_it = vertex_it->OutEdgeCBegin(); 
+              !edge_it.IsDone();
+              edge_it++) {
+      out_string += " " + ToString(edge_it->src_id()) 
+                  + " " + ToString(edge_it->dst_id())
+                  + " " + ToString(edge_it->label())
+                  + " " + ToString(edge_it->id());
+    }
+  }
+  out_string += " >";
+  return out_string;
+}
+  
+template <class VertexIDType, class VertexLabelType, 
+          class   EdgeIDType, class   EdgeLabelType>
+std::string& operator>>(std::string& in_string, 
+            SmallGraph<VertexIDType, 
+                    VertexLabelType,
+                         EdgeIDType,   
+                      EdgeLabelType>& small_graph) {
+  
+  using namespace GUNDAM;
+
+  std::stringstream ss;
+  ss << in_string;
+
+  std::string str;
+  
+  ss>>str;
+  assert(str == "<Graph");
+
+  ss>>str;
+  assert(str == "vertex");
+
+  small_graph.Clear();
+
+  while (ss>>str){
+    if (str == "edge")
+      break;
+    VertexIDType vertex_id
+      = StringToDataType<VertexIDType>(str);
+    ss>>str;
+    VertexLabelType vertex_label 
+      = StringToDataType<VertexLabelType>(str);
+    small_graph.AddVertex(vertex_id,
+                          vertex_label);
+  }
+
+  while (ss>>str){
+    if (str == ">"){
+      // end symbol
+      break;
+    }
+    VertexIDType src_id
+      = StringToDataType<VertexIDType>(str);
+    ss>>str;
+    VertexIDType dst_id
+      = StringToDataType<VertexIDType>(str);
+    ss>>str;
+    EdgeLabelType edge_label
+      = StringToDataType<EdgeLabelType>(str);
+    ss>>str;
+    EdgeIDType edge_id
+      = StringToDataType<EdgeIDType>(str);
+ 
+    small_graph.AddEdge(src_id,
+                        dst_id,
+                       edge_label,
+                       edge_id);
+  }
+  getline(ss, in_string);
+  if (ss.fail())
+    in_string.clear();
+  return in_string;
+}
 
 template <class VertexIDType, class VertexLabelType, class EdgeIDType,
           class EdgeLabelType>
@@ -57,21 +160,23 @@ class SmallGraph {
   using ConstEdge = _Edge<true>;
 
  public:
-  using VertexPtr = GPointer<false, Vertex, ConstVertex>;
+  using VertexPtr      = GPointer<false, Vertex, ConstVertex>;
 
-  using VertexConstPtr = GPointer<true, Vertex, ConstVertex>;
+  using VertexConstPtr = GPointer< true, Vertex, ConstVertex>;
 
   using EdgePtr = GPointer<false, Edge, ConstEdge>;
 
   using EdgeConstPtr = GPointer<true, Edge, ConstEdge>;
 
   using VertexIterator =
-      GIterator2<false, SmallGraph, typename VertexContainer::iterator, Vertex,
+      GIterator2<false, SmallGraph, typename VertexContainer::iterator, 
+                 Vertex,
                  VertexPtr>;
 
   using VertexConstIterator =
-      GIterator2<true, SmallGraph, typename VertexContainer::const_iterator,
-                 ConstVertex, VertexConstPtr>;
+      GIterator2< true, SmallGraph, typename VertexContainer::const_iterator,
+                 ConstVertex, 
+                 VertexConstPtr>;
 
   using EdgeIterator =
       GIterator2<false, SmallGraph, typename EdgeContainer::iterator, Edge,
@@ -213,11 +318,17 @@ class SmallGraph {
       }
       return vertex_id_set.size();
     }
+
     EdgeIterator OutEdgeBegin() {
       assert(HasValue());
       auto &data = graph_->vertices_.Find(id_)->second;
-      return EdgeIterator(graph_, data.out_edges_.begin(),
+      return EdgeIterator(graph_, 
+                          data.out_edges_.begin(),
                           data.out_edges_.end());
+    }
+
+    EdgeConstIterator OutEdgeBegin() const {
+      return this->OutEdgeCBegin();
     }
 
     EdgeConstIterator OutEdgeCBegin() const {
@@ -231,6 +342,10 @@ class SmallGraph {
       assert(HasValue());
       auto &data = graph_->vertices_.Find(id_)->second;
       return EdgeIterator(graph_, data.in_edges_.begin(), data.in_edges_.end());
+    }
+
+    EdgeConstIterator InEdgeBegin() const {
+      return this->InEdgeCBegin();
     }
 
     EdgeConstIterator InEdgeCBegin() const {
@@ -444,6 +559,11 @@ class SmallGraph {
     if (it == vertices_.end()) return VertexPtr();
     return VertexPtr(Vertex(this, *it));
   }
+  
+  VertexConstPtr FindVertex(const typename VertexType
+                                             ::IDType& id) const{
+    return this->FindConstVertex(id);
+  }
 
   VertexConstPtr FindConstVertex(const VertexIDType &id) const {
     auto it = vertices_.Find(id);
@@ -453,6 +573,10 @@ class SmallGraph {
 
   VertexIterator VertexBegin() {
     return VertexIterator(this, vertices_.begin(), vertices_.end());
+  }
+
+  VertexConstIterator VertexBegin() const {
+    return this->VertexCBegin();
   }
 
   VertexConstIterator VertexCBegin() const {
@@ -472,12 +596,29 @@ class SmallGraph {
     auto &v_data = it->second;
 
     std::vector<VertexIDType> edges;
-    std::merge(v_data.out_edges_.begin(), v_data.out_edges_.end(),
-               v_data.in_edges_.begin(), v_data.in_edges_.end(),
+    std::merge(v_data.out_edges_.begin(), 
+               v_data.out_edges_. end (),
+               v_data. in_edges_.begin(), 
+               v_data. in_edges_. end (),
                std::back_inserter(edges));
 
-    for (auto it_r = edges.rbegin(); it_r != edges.rend(); ++it_r) {
-      if (it_r != edges.rbegin() && *it_r == *(it_r - 1)) continue;
+    for (auto it  = v_data.out_edges_.begin();
+              it != v_data.out_edges_.end(); it++){
+      auto ret = vertices_.Find(this->edges_.Find(*it)->second.dst_);
+      ret->second.in_edges_.Erase(*it);
+    }
+
+    for (auto it  = v_data.in_edges_.begin();
+              it != v_data.in_edges_.end(); it++){
+      auto ret = vertices_.Find(this->edges_.Find(*it)->second.src_);
+      ret->second.out_edges_.Erase(*it);
+    }
+
+    for (auto it_r  = edges.rbegin(); 
+              it_r != edges.rend(); 
+            ++it_r) {
+      if (it_r != edges.rbegin() && *it_r == *(it_r - 1)) 
+        continue;
       count += edges_.Erase(*it_r);
     }
 

@@ -74,47 +74,49 @@ class InnerIterator_<Container<container_type_,
     return;
   }
 
-  template <typename ReturnIteratorType, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth == 0, 
-                                    bool>::type = false>
-  inline ReturnIteratorType& get_iterator() {
-    /// static_assert check Type
+  template <IteratorDepthType depth,
+            std::enable_if_t<depth == 0, 
+                             bool> = false>
+  inline auto& get_iterator() {
     return this->iterator_;
   }
 
-  template <typename ReturnIteratorType, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth == 0, 
-                                    bool>::type = false>
-  inline const ReturnIteratorType& get_const_iterator() const {
-    /// static_assert check Type
+  template <IteratorDepthType depth,
+            std::enable_if_t<depth == 0, 
+                             bool> = false>
+  inline const auto& get_iterator() const {
+    return this->template get_const_iterator<depth>();
+  }
+
+  template <IteratorDepthType depth,
+            std::enable_if_t<depth == 0, 
+                             bool> = false>
+  inline const auto& get_const_iterator() const {
     return this->iterator_;
   }
 
-  template <typename ReturnType, 
-            TupleIdxType return_idx,
+  template <TupleIdxType return_idx,
             IteratorDepthType depth,
-            typename std::enable_if<depth == 0, 
-                                    bool>::type = false>
-  inline ReturnType& get() {
-    static_assert(
-        std::is_same<ReturnType&,
-                     decltype(this->iterator_.template get<return_idx>())>::value,
-        "Type mismatch");
+            std::enable_if_t<depth == 0, 
+                             bool> = false>
+  inline auto& get() {
     return (this->iterator_.template get<return_idx>());
   }
-
-  template <typename ReturnType, 
-            TupleIdxType return_idx,
+  
+  template <TupleIdxType return_idx,
             IteratorDepthType depth,
-            typename std::enable_if<depth == 0, 
-                                    bool>::type = false>
-  inline const ReturnType& get_const() const {
-    static_assert(
-        std::is_same<const ReturnType&,
-                     decltype(this->iterator_.template get_const<return_idx>())>::value,
-        "Type mismatch");
+            std::enable_if_t<depth == 0, 
+                             bool> = false>
+  inline const auto& get() const {
+    return this->template get_const<return_idx,
+                                        depth>();
+  }
+
+  template <TupleIdxType return_idx,
+            IteratorDepthType depth,
+            std::enable_if_t<depth == 0, 
+                             bool> = false>
+  inline const auto& get_const() const {
     return (this->iterator_.template get_const<return_idx>());
   }
   
@@ -185,47 +187,49 @@ class InnerIterator_<Container<container_type_,
     return;
   }
 
-  template <typename ReturnIteratorType,
-            IteratorDepthType depth,
-            typename std::enable_if<depth == 0, 
-                                    bool>::type = false>
-  inline ReturnIteratorType& get_iterator() {
-    /// static_assert check Type
+  template <IteratorDepthType depth,
+            std::enable_if_t<depth == 0, 
+                             bool> = false>
+  inline auto& get_iterator() {
+    return this->iterator_;
+  }
+  
+  template <IteratorDepthType depth,
+            std::enable_if_t<depth == 0, 
+                             bool> = false>
+  inline const auto& get_iterator() const {
+    return this->template get_const_iterator<depth>();
+  }
+
+  template <IteratorDepthType depth,
+            std::enable_if_t<depth == 0, 
+                             bool> = false>
+  inline const auto& get_const_iterator() const {
     return this->iterator_;
   }
 
-  template <typename ReturnIteratorType,
-            IteratorDepthType     depth,
-            typename std::enable_if<depth == 0, 
-                                    bool>::type = false>
-  inline const ReturnIteratorType& get_const_iterator() const {
-    /// static_assert check Type
-    return this->iterator_;
-  }
-
-  template <typename ReturnType,
-            TupleIdxType return_idx,
+  template <TupleIdxType return_idx,
             IteratorDepthType depth,
             typename std::enable_if<depth == 0, 
                                     bool>::type = false>
-  inline ReturnType& get() {
-    static_assert(
-        std::is_same<ReturnType&,
-                     decltype(this->iterator_.template get<return_idx>())>::value,
-        "Type mismatch");
+  inline auto& get() {
     return (this->iterator_.template get<return_idx>());
   }
 
-  template <typename ReturnType,
-            TupleIdxType return_idx,
+  template <TupleIdxType return_idx,
             IteratorDepthType depth,
             typename std::enable_if<depth == 0, 
                                     bool>::type = false>
-  inline const ReturnType& get_const() const {
-    static_assert(
-         std::is_same<const ReturnType&,
-                      decltype(this->iterator_.template get_const<return_idx>())>::value,
-        "Type mismatch");
+  inline const auto& get() const {
+    return this->template get_const<return_idx,
+                                         depth>();
+  }
+
+  template <TupleIdxType return_idx,
+            IteratorDepthType depth,
+            typename std::enable_if<depth == 0, 
+                                    bool>::type = false>
+  inline const auto& get_const() const {
     return (this->iterator_.template get_const<return_idx>());
   }
 
@@ -281,38 +285,22 @@ class InnerIterator_<Container<container_type_,
 
   using InnerContainerType = InnerContainerType_;
   using InnerIteratorType =
-      _InnerIterator_<InnerContainerType_, is_const_, depth_, 2>;
+       _InnerIterator_<InnerContainerType_, is_const_, depth_, 2>;
 
-  template <bool judge = is_const_,
-            typename std::enable_if<!judge, 
-                                    bool>::type = false>
-  inline static typename InnerContainerType::iterator inner_iterator_begin(
+  inline static auto inner_iterator_begin(
       const IteratorType& container_iterator) {
-    return (container_iterator.template get<kInnerContainerIdx_>()).begin();
+    if constexpr (is_const_)
+      return (container_iterator.template get_const<kInnerContainerIdx_>()).cbegin();  
+    if constexpr (!is_const_)
+      return (container_iterator.template get<kInnerContainerIdx_>()).begin();
   }
-
-  template <bool judge = is_const_,
-            typename std::enable_if<!judge, 
-                                    bool>::type = false>
-  inline static typename InnerContainerType::iterator inner_iterator_end(
+  
+  inline static auto inner_iterator_end(
       const IteratorType& container_iterator) {
-    return (container_iterator.template get<kInnerContainerIdx_>()).end();
-  }
-
-  template <bool judge = is_const_,
-            typename std::enable_if<judge, 
-                                    bool>::type = false>
-  inline static typename InnerContainerType::const_iterator
-  inner_iterator_begin(const IteratorType& container_iterator) {
-    return (container_iterator.template get_const<kInnerContainerIdx_>()).cbegin();
-  }
-
-  template <bool judge = is_const_,
-            typename std::enable_if<judge, 
-                                    bool>::type = false>
-  inline static typename InnerContainerType::const_iterator inner_iterator_end(
-      const IteratorType& container_iterator) {
-    return (container_iterator.template get_const<kInnerContainerIdx_>()).cend();
+    if constexpr (is_const_)
+      return (container_iterator.template get_const<kInnerContainerIdx_>()).cend();
+    if constexpr (!is_const_)
+      return (container_iterator.template get<kInnerContainerIdx_>()).end();
   }
 
   inline bool InnerIsDone() const {
@@ -327,12 +315,15 @@ class InnerIterator_<Container<container_type_,
     assert(this->IsDone());
     return;
   }
+  
   InnerIterator_(const IteratorType& iterator_begin,
                  const IteratorType& iterator_end)
-      : iterator_(iterator_begin), iterator_end_(iterator_end) {
+      : iterator_    (iterator_begin), 
+        iterator_end_(iterator_end ) {
     if (iterator_begin != iterator_end) {
       /// the next layer iterator is not empty
-      InnerIteratorType::set_iterator(inner_iterator_begin(iterator_begin));
+      InnerIteratorType::set_iterator(
+         InnerIterator_::inner_iterator_begin(iterator_begin));
       InnerIteratorType::set_lower_iterator();
     }
     return;
@@ -359,87 +350,56 @@ class InnerIterator_<Container<container_type_,
     this->iterator_++;
     if (this->IsDone()) return;
     InnerIteratorType::set_iterator(
-                     inner_iterator_begin(this->iterator_));
+       InnerIterator_::inner_iterator_begin(this->iterator_));
     InnerIteratorType::set_lower_iterator();
     return;
   }
 
-  // add by wangyj
-  template <typename     ReturnType, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth == 0, 
-                                    bool>::type = false>
-  inline ReturnType& get_iterator() {
-    return this->iterator_;
+  template <IteratorDepthType depth>
+  inline auto& get_iterator() {
+    if constexpr (depth == 0)
+      return this->iterator_;
+    if constexpr (depth != 0)
+      return InnerIteratorType::template get_iterator<depth>();
+  }
+  
+  template <IteratorDepthType depth>
+  inline const auto& get_iterator() const {
+    return this->template get_const_iterator<depth>();
   }
 
-  template <typename     ReturnType, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth == 0, 
-                                    bool>::type = false>
-  inline const ReturnType& get_const_iterator() const {
-    return this->iterator_;
+  template <IteratorDepthType depth>
+  inline const auto& get_const_iterator() const {
+    if constexpr (depth == 0)
+      return this->iterator_;
+    if constexpr (depth != 0)
+      return InnerIteratorType::template get_const_iterator<depth>();
   }
 
-  template <typename     ReturnType, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth != 0, 
-                                    bool>::type = false>
-  inline ReturnType& get_iterator() {
-    return InnerIteratorType::template get_iterator<ReturnType, depth>();
+  template <TupleIdxType return_idx,
+            IteratorDepthType depth>
+  inline auto& get() {
+    if constexpr (depth == 0)
+      return (this->iterator_.template get<return_idx>());
+    if constexpr (depth != 0)
+      return InnerIteratorType::template get<return_idx, 
+                                                  depth>();
   }
 
-  template <typename     ReturnType, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth != 0, 
-                                    bool>::type = false>
-  inline const ReturnType& get_const_iterator() const {
-    return InnerIteratorType::template get_const_iterator<ReturnType, depth>();
+  template <TupleIdxType return_idx,
+            IteratorDepthType depth>
+  inline const auto& get() const {
+    return this->template get_const<return_idx, depth>();
   }
 
-  template <typename     ReturnType, 
-            TupleIdxType return_idx,
-            IteratorDepthType depth,
-            typename std::enable_if<depth == 0, 
-                                    bool>::type = false>
-  inline ReturnType& get() {
-    static_assert(
-        std::is_same<ReturnType&,
-                     decltype((this->iterator_.template get<return_idx>()))>::value,
-        "Type mismatch");
-    return (this->iterator_.template get<return_idx>());
-  }
-
-  template <typename     ReturnType, 
-            TupleIdxType return_idx,
-            IteratorDepthType depth,
-            typename std::enable_if<depth != 0, 
-                                    bool>::type = false>
-  inline ReturnType& get() {
-    return InnerIteratorType::template get<ReturnType, 
-                                           return_idx, 
-                                                depth>();
-  }
-
-  template <typename     ReturnType, 
-            TupleIdxType return_idx,
-            IteratorDepthType depth,
-            typename std::enable_if<depth == 0, bool>::type = false>
-  inline const ReturnType& get_const() const {
-    static_assert(std::is_same<const ReturnType&,
-                               decltype(this->iterator_.template get_const<return_idx>())>::value,
-        "Type mismatch");
-    return (this->iterator_.template get_const<return_idx>());
-  }
-
-  template <typename ReturnType, 
-            TupleIdxType return_idx,
-            IteratorDepthType depth,
-            typename std::enable_if<depth != 0, 
-                                    bool>::type = false>
-  inline const ReturnType& get_const() const {
-    return InnerIteratorType::template get_const<ReturnType, return_idx,
-                                                 depth>();
+  template <TupleIdxType return_idx,
+            IteratorDepthType depth>
+  inline const auto& get_const() const {
+    if constexpr (depth == 0)
+      return (this->iterator_.template get_const<return_idx>());
+    if constexpr (depth != 0)
+      return InnerIteratorType::template get_const<return_idx,
+                                                  depth>();
   }
   
   inline IteratorType& iterator_end(){
@@ -493,37 +453,23 @@ class _InnerIterator_<Container<container_type_,
                                now_depth_ + 1>;
   IteratorType iterator_;
 
-  template <bool judge = is_const_,
-            typename std::enable_if<!judge, bool>::type = false>
-  inline static typename InnerContainerType::iterator 
-      inner_iterator_begin(const IteratorType& container_iterator) {
-    return (container_iterator.template get<kInnerContainerIdx_>()).begin();
+  inline static auto inner_iterator_begin(const IteratorType& container_iterator) {
+    if constexpr (is_const_)
+      return (container_iterator.template get_const<kInnerContainerIdx_>()).cbegin();
+    if constexpr (!is_const_)
+      return (container_iterator.template get<kInnerContainerIdx_>()).begin();
   }
 
-  template <bool judge = is_const_,
-            typename std::enable_if<!judge, bool>::type = false>
-  inline static typename InnerContainerType::iterator 
-      inner_iterator_end(const IteratorType& container_iterator) {
-    return (container_iterator.template get<kInnerContainerIdx_>()).end();
-  }
-
-  template <bool judge = is_const_,
-            typename std::enable_if<judge, bool>::type = false>
-  inline static typename InnerContainerType::const_iterator
-  inner_iterator_begin(const IteratorType& container_iterator) {
-    return (container_iterator.template get_const<kInnerContainerIdx_>()).cbegin();
-  }
-
-  template <bool judge = is_const_,
-            typename std::enable_if<judge, bool>::type = false>
-  inline static typename InnerContainerType::const_iterator inner_iterator_end(
-      const IteratorType& container_iterator) {
-    return (container_iterator.template get_const<kInnerContainerIdx_>()).cend();
+  inline static auto inner_iterator_end(const IteratorType& container_iterator) {
+    if constexpr (is_const_)
+      return (container_iterator.template get_const<kInnerContainerIdx_>()).cend();
+    if constexpr (!is_const_)
+      return (container_iterator.template get<kInnerContainerIdx_>()).end();
   }
 
   inline bool InnerIsDone() const {
-    return InnerIteratorType::const_iterator() ==
-           inner_iterator_end(this->iterator_);
+    return InnerIteratorType::const_iterator() 
+        == inner_iterator_end(this->iterator_);
   }
 
  protected:
@@ -561,88 +507,52 @@ class _InnerIterator_<Container<container_type_,
     return true;
   }
 
-  template <typename ReturnType, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth == now_depth_ - 1, 
-                                    bool>::type = false>
-  inline ReturnType& get_iterator() {
-    return this->iterator_;
+  template <IteratorDepthType depth>
+  inline auto& get_iterator() {
+    if constexpr (depth == now_depth_ - 1)
+      return this->iterator_;
+    if constexpr (depth != now_depth_ - 1)
+      return InnerIteratorType
+           ::template get_iterator<depth>();
   }
 
-  template <typename ReturnType, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth == now_depth_ - 1, 
-                                    bool>::type = false>
-  inline const ReturnType& get_const_iterator() const {
-    return this->iterator_;
+  template <IteratorDepthType depth>
+  inline const auto& get_iterator() const {
+    return this->template get_const_iterator<depth>();
   }
 
-  template <typename ReturnType, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth != now_depth_ - 1, 
-                                    bool>::type = false>
-  inline ReturnType& get_iterator() {
-    return InnerIteratorType
-         ::template get_iterator<ReturnType, depth>();
+  template <IteratorDepthType depth>
+  inline const auto& get_const_iterator() const {
+    if constexpr (depth == now_depth_ - 1)
+      return this->iterator_;
+    if constexpr (depth != now_depth_ - 1)
+      return InnerIteratorType
+           ::template get_const_iterator<depth>();
   }
 
-  template <typename ReturnType, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth != now_depth_ - 1, 
-                                    bool>::type = false>
-  inline const ReturnType& get_const_iterator() const {
-    return InnerIteratorType
-         ::template get_const_iterator<ReturnType, depth>();
+  template <TupleIdxType return_idx, 
+            IteratorDepthType depth>
+  inline auto& get() {
+    if constexpr (depth == now_depth_ - 1)
+      return (this->iterator_.template get<return_idx>());
+    if constexpr (depth != now_depth_ - 1)
+      return InnerIteratorType::template get<return_idx, depth>();
+  }
+  
+  template <TupleIdxType return_idx, 
+            IteratorDepthType depth>
+  inline const auto& get() const {
+    return this->template get_const<return_idx, depth>();
   }
 
-  template <typename ReturnType, 
-            TupleIdxType return_idx, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth == now_depth_ - 1, 
-                                    bool>::type = false>
-  inline ReturnType& get() {
-    static_assert(
-        std::is_same<ReturnType&,
-                     decltype((this->iterator_
-                                    .template get<return_idx>()))>::value,
-        "Type mismatch");
-    return (this->iterator_.template get<return_idx>());
-  }
-
-  template <typename     ReturnType, 
-            TupleIdxType return_idx, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth != now_depth_ - 1, 
-                                    bool>::type = false>
-  inline ReturnType& get() {
-    return InnerIteratorType::template get<ReturnType, 
-                                           return_idx, depth>();
-  }
-
-  template <typename     ReturnType, 
-            TupleIdxType return_idx, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth == now_depth_ - 1, 
-                                    bool>::type = false>
-  inline const ReturnType& get_const() const {
-    static_assert(
-          std::is_same<const ReturnType&, 
-                       decltype(this->iterator_
-                                     .template get_const<return_idx>())>::value,
-        "Type mismatch");
-
-    return (this->iterator_.template get_const<return_idx>());
-  }
-
-  template <typename     ReturnType, 
-            TupleIdxType return_idx, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth != now_depth_ - 1, 
-                                    bool>::type = false>
-  inline const ReturnType& get_const() const {
-    return InnerIteratorType::template get_const<ReturnType,
-                                                 return_idx,
-                                                      depth>();
+  template <TupleIdxType return_idx, 
+            IteratorDepthType depth>
+  inline const auto& get_const() const {
+    if constexpr (depth == now_depth_ - 1)
+      return (this->iterator_.template get_const<return_idx>());
+    if constexpr (depth != now_depth_ - 1)
+      return InnerIteratorType::template get_const<return_idx,
+                                                        depth>();
   }
 };
 
@@ -689,49 +599,52 @@ class _InnerIterator_<Container<container_type_,
     return true;
   }
 
-  template <typename ReturnType, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth == depth_ - 1, 
-                                    bool>::type = false>
-  inline ReturnType& get_iterator() {
+  template <IteratorDepthType depth,
+            std::enable_if_t<depth == depth_ - 1, 
+                             bool> = false>
+  inline auto& get_iterator() {
     return this->iterator_;
   }
 
-  template <typename     ReturnType, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth == depth_ - 1, 
-                                    bool>::type = false>
-  inline const ReturnType& get_const_iterator() const {
+  template <IteratorDepthType depth,
+            std::enable_if_t<depth == depth_ - 1, 
+                             bool> = false>
+  inline const auto& get_iterator() const {
+    return this->template get_const_iterator<depth>();
+  }
+
+  template <IteratorDepthType depth,
+            std::enable_if_t<depth == depth_ - 1, 
+                             bool> = false>
+  inline const auto& get_const_iterator() const {
     return this->iterator_;
   }
 
-  template <typename     ReturnType, 
-            TupleIdxType return_idx,
+  template <TupleIdxType return_idx,
             IteratorDepthType depth,
-            typename std::enable_if<depth == depth_ - 1, 
-                                    bool>::type = false>
-  inline ReturnType& get() {
-    static_assert(
-        std::is_same<ReturnType&,
-                     decltype((this->iterator_.template get<return_idx>()))>::value,
-        "Type mismatch");
+            std::enable_if_t<depth == depth_ - 1, 
+                             bool> = false>
+  inline auto& get() {
     return (this->iterator_.template get<return_idx>());
   }
 
-  template <typename     ReturnType,
-            TupleIdxType return_idx,
+  template <TupleIdxType return_idx,
             IteratorDepthType depth,
-            typename std::enable_if<depth == depth_ - 1, 
-                                    bool>::type = false>
-  inline const ReturnType& get_const() const {
-    static_assert(
-         std::is_same<const ReturnType&, 
-                      decltype(this->iterator_
-                                    .template get_const<return_idx>())>::value,
-        "Type mismatch");
+            std::enable_if_t<depth == depth_ - 1, 
+                             bool> = false>
+  inline const auto& get() const {
+    return this->template get_const<return_idx, depth>();
+  }
+
+  template <TupleIdxType return_idx,
+            IteratorDepthType depth,
+            std::enable_if_t<depth == depth_ - 1, 
+                             bool> = false>
+  inline const auto& get_const() const {
     return (this->iterator_.template get_const<return_idx>());
   }
 };
+
 template <enum ContainerType container_type_, 
           enum      SortType      sort_type_,
           typename      KeyType_, 
@@ -783,46 +696,63 @@ class _InnerIterator_<Container<container_type_,
     return true;
   }
 
-  template <typename     ReturnType, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth == depth_ - 1, 
-                                    bool>::type = false>
-  inline ReturnType& get_iterator() {
+  template <IteratorDepthType depth,
+            std::enable_if_t<depth == depth_ - 1, 
+                             bool> = false>
+  inline auto& get_iterator() {
     return this->iterator_;
   }
 
-  template <typename     ReturnType, 
-            IteratorDepthType depth,
-            typename std::enable_if<depth == depth_ - 1, 
-                                    bool>::type = false>
-  inline const ReturnType& get_const_iterator() const {
+  template <IteratorDepthType depth,
+            std::enable_if_t<depth == depth_ - 1, 
+                             bool> = false>
+  inline const auto& get_iterator() const {
+    return this->template get_const_iterator<depth>();
+  }
+
+  template <IteratorDepthType depth,
+            std::enable_if_t<depth == depth_ - 1, 
+                             bool> = false>
+  inline const auto& get_const_iterator() const {
     return this->iterator_;
   }
-  template <typename     ReturnType, 
-            TupleIdxType return_idx,
+
+  template <TupleIdxType return_idx,
             IteratorDepthType depth,
-            typename std::enable_if<depth == depth_ - 1, 
-                                    bool>::type = false>
-  inline ReturnType& get() {
-    static_assert(
-        std::is_same<ReturnType&,
-                     decltype((this->iterator_.template get<return_idx>()))>::value,
-        "Type mismatch");
+            std::enable_if_t<depth == depth_ - 1, 
+                             bool> = false>
+  inline auto& get() {
     return (this->iterator_.template get<return_idx>());
   }
 
-  template <typename     ReturnType, 
-            TupleIdxType return_idx,
+  template <TupleIdxType return_idx,
             IteratorDepthType depth,
-            typename std::enable_if<depth == depth_ - 1, 
-                                    bool>::type = false>
-  inline const ReturnType& get_const() const {
-    static_assert(
-         std::is_same<const ReturnType&, 
-                      decltype(this->iterator_.template get_const<return_idx>())>::value,
-        "Type mismatch");
+            std::enable_if_t<depth == depth_ - 1, 
+                             bool> = false>
+  inline const auto& get() const {
+    return this->template get_const<return_idx,
+                                         depth>();
+  }
+
+  template <TupleIdxType return_idx,
+            IteratorDepthType depth,
+            std::enable_if_t<depth == depth_ - 1, 
+                             bool> = false>
+  inline const auto& get_const() const {
     return (this->iterator_.template get_const<return_idx>());
   }
+
+  // template <TupleIdxType return_idx,
+  //           IteratorDepthType depth,
+  //           std::enable_if_t<depth != depth_ - 1, 
+  //                            bool> = false>
+  // inline const auto& get_const() const {
+  //   // assert false
+  //   static_assert(depth  != 1, "depth  equal to 1");
+  //   static_assert(depth_ != 3, "depth_ equal to 3");
+  //   // static_assert(depth == depth_ - 1, "illegal depth: depth = ");
+  //   return (this->iterator_.template get_const<return_idx>());
+  // }
 };
 
 // Iterator_ "outter"

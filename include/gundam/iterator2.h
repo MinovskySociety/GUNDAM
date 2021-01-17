@@ -163,7 +163,71 @@ class GIterator2 {
   IteratorType it_;
   IteratorType end_;
 };
+template <bool is_const, class GraphType, class IteratorType, class ValueType,
+          class PointerType>
+class GIterator3 {
+ public:
+  GIterator3() = default;
 
+  template <class GraphPtr, class Iter, class IterEnd>
+  GIterator3(GraphPtr &&graph, Iter &&it, IterEnd &&end)
+      : graph_(std::forward<GraphPtr>(graph)),
+        it_(std::forward<Iter>(it)),
+        end_(std::forward<IterEnd>(end)) {}
+
+  ValueType operator*() { return ValueType(graph_, *(*it_)); }
+
+  const ValueType operator*() const { return ValueType(graph_, *(*it_)); }
+
+  PointerType operator->() {
+    ;
+    return PointerType(ValueType(graph_, *(*it_)));
+  }
+
+  const PointerType operator->() const {
+    return PointerType(ValueType(graph_, *(*it_)));
+  }
+
+  operator PointerType() { return PointerType(ValueType(graph_, *(*it_))); }
+
+  operator const PointerType() const {
+    return PointerType(ValueType(graph_, *(*it_)));
+  }
+
+  GIterator3 &operator++() {
+    /// prefix
+    assert(!this->IsDone());
+    ++it_;
+    return *this;
+  }
+
+  GIterator3 operator++(int) {
+    /// postfix
+    assert(!this->IsDone());
+    GIterator3 tmp(*this);
+    //++(*this);
+    ++it_;
+    return tmp;
+  }
+
+  bool operator==(const GIterator3 &b) const {
+    assert(graph_);
+    assert(b.graph_);
+    assert(end_ == b.end_);
+    return it_ == b.it_;
+  }
+
+  bool IsDone() const {
+    assert(graph_);
+    return it_ == end_;
+  }
+
+ private:
+  typename std::conditional<is_const, const GraphType *, GraphType *>::type
+      graph_;
+  IteratorType it_;
+  IteratorType end_;
+};
 }  // namespace GUNDAM
 
 #endif  // _ITERATOR_H

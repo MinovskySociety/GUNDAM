@@ -942,10 +942,6 @@ inline int DPISO_Recurive(const QueryGraph &query_graph,
   if (!RefineCandidateSet(query_graph, target_graph, candidate_set)) {
     return 0;
   }
-  // std::cout << "candidate set:" << std::endl;
-  // for (const auto &it : candidate_set) {
-  //  std::cout << it.first->id() << "  " << it.second.size() << std::endl;
-  //}
   if (!update_candidate_callback(candidate_set)) {
     return 0;
   }
@@ -1268,6 +1264,7 @@ inline bool SuppUpdateCallBack(CandidateSetContainer &candidate_set,
     } else {
       it++;
     }
+    it++;
   }
   return true;
 }
