@@ -2,6 +2,7 @@
 #define _DATATYPE_H
 
 #include <cstdint>
+#include <sstream>
 #include <string>
 #include <type_traits>
 
@@ -64,7 +65,7 @@ inline std::istream& operator>>(std::istream& in, BasicDataType& data_type) {
   return in;
 }
 
-inline const char* EnumToString(const BasicDataType &data_type) {
+inline const char* EnumToString(const BasicDataType& data_type) {
   switch (data_type) {
     case BasicDataType::kTypeString:
       return "string";
@@ -155,7 +156,7 @@ inline constexpr BasicDataType TypeToEnum(const DataType&) {
 }
 
 template <typename DataType>
-inline constexpr const char* TypeToString(const DataType &data) {
+inline constexpr const char* TypeToString(const DataType& data) {
   return EnumToString(TypeToEnum<DataType>());
 }
 
@@ -165,34 +166,27 @@ inline constexpr const char* TypeToString() {
 }
 
 template <typename DataType>
-inline DataType StringToDataType(std::string str){
-  if constexpr (TypeToEnum<DataType>() 
-           == GUNDAM::BasicDataType::kTypeString){
+inline DataType StringToDataType(std::string str) {
+  if constexpr (TypeToEnum<DataType>() == GUNDAM::BasicDataType::kTypeString) {
     return str;
-  }
-  else if constexpr (TypeToEnum<DataType>() 
-                == GUNDAM::BasicDataType::kTypeInt){
+  } else if constexpr (TypeToEnum<DataType>() ==
+                       GUNDAM::BasicDataType::kTypeInt) {
     return std::stoi(str);
-  }
-  else if constexpr (TypeToEnum<DataType>() 
-                == GUNDAM::BasicDataType::kTypeInt64){
+  } else if constexpr (TypeToEnum<DataType>() ==
+                       GUNDAM::BasicDataType::kTypeInt64) {
     return std::stoll(str);
-  }
-  else if constexpr (TypeToEnum<DataType>() 
-                == GUNDAM::BasicDataType::kTypeFloat){
+  } else if constexpr (TypeToEnum<DataType>() ==
+                       GUNDAM::BasicDataType::kTypeFloat) {
     return std::stof(str);
-  }
-  else if constexpr (TypeToEnum<DataType>() 
-                == GUNDAM::BasicDataType::kTypeDouble){
+  } else if constexpr (TypeToEnum<DataType>() ==
+                       GUNDAM::BasicDataType::kTypeDouble) {
     return std::stod(str);
-  }
-  else if constexpr (TypeToEnum<DataType>() 
-                == GUNDAM::BasicDataType::kTypeDateTime){
+  } else if constexpr (TypeToEnum<DataType>() ==
+                       GUNDAM::BasicDataType::kTypeDateTime) {
     return DateTime(str);
   }
-  static_assert(TypeToEnum<DataType>() 
-           != GUNDAM::BasicDataType::kTypeUnknown,
-               "unknown data type");
+  static_assert(TypeToEnum<DataType>() != GUNDAM::BasicDataType::kTypeUnknown,
+                "unknown data type");
   return DataType();
 }
 
