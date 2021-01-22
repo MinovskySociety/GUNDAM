@@ -105,7 +105,11 @@ template <bool is_const, class GraphType, class IteratorType, class ValueType,
           class PointerType>
 class GIterator2 {
  public:
-  GIterator2() = default;
+  GIterator2() : graph_(nullptr),
+                 it_(), end_(it_){
+    assert(this->IsDone());
+    return;
+  }
 
   template <class GraphPtr, class Iter, class IterEnd>
   GIterator2(GraphPtr &&graph, Iter &&it, IterEnd &&end)
@@ -113,19 +117,33 @@ class GIterator2 {
         it_(std::forward<Iter>(it)),
         end_(std::forward<IterEnd>(end)) {}
 
-  ValueType operator*() { return ValueType(graph_, *it_); }
+  ValueType operator*() { 
+    assert(!this->IsDone());
+    return ValueType(graph_, *it_); 
+  }
 
-  const ValueType operator*() const { return ValueType(graph_, *it_); }
+  const ValueType operator*() const {
+    assert(!this->IsDone()); 
+    return ValueType(graph_, *it_); 
+  }
 
-  PointerType operator->() { return PointerType(ValueType(graph_, *it_)); }
+  PointerType operator->() { 
+    assert(!this->IsDone());
+    return PointerType(ValueType(graph_, *it_)); 
+  }
 
   const PointerType operator->() const {
+    assert(!this->IsDone());
     return PointerType(ValueType(graph_, *it_));
   }
 
-  operator PointerType() { return PointerType(ValueType(graph_, *it_)); }
+  operator PointerType() { 
+    assert(!this->IsDone());
+    return PointerType(ValueType(graph_, *it_)); 
+  }
 
   operator const PointerType() const {
+    assert(!this->IsDone());
     return PointerType(ValueType(graph_, *it_));
   }
 
@@ -153,7 +171,9 @@ class GIterator2 {
   }
 
   bool IsDone() const {
-    assert(graph_);
+    // graph_ would be false at beginning if it is initilized by
+    // GIterator2()
+    assert(graph_ || it_ == end_);
     return it_ == end_;
   }
 
