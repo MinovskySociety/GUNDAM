@@ -242,7 +242,10 @@ bool TestGraphSame(const GraphType& g1,
                <<" cannot be found in g2"<<std::endl;
       return false;
     }
-    vertex_ptr->label() == vertex_it->label();
+    if (vertex_ptr->label() != vertex_it->label()) {
+      // same id has different label
+      return false;
+    }
   }
 
   std::set<std::tuple<VertexIDType, //  src_id
@@ -415,6 +418,139 @@ void TestGraphVertexEdge() {
 }
 
 template <class GraphType>
+void TestIndex() {
+  using namespace GUNDAM;                 
+
+  using VertexPtr      = typename GraphType::VertexPtr;
+  using VertexConstPtr = typename GraphType::VertexConstPtr;
+
+  using EdgePtr      = typename GraphType::EdgePtr;
+  using EdgeConstPtr = typename GraphType::EdgeConstPtr;
+
+  GraphType g1;
+
+  TestAddVertexAddEdge(g1);
+
+  int count = 0;
+  for (auto v_it = g1.VertexCBegin("AAA"); 
+           !v_it.IsDone(); 
+          ++v_it) {
+    VertexConstPtr vertex_const_ptr = v_it;
+    ASSERT_EQ(vertex_const_ptr->id(),    v_it->id());
+    ASSERT_EQ(vertex_const_ptr->label(), v_it->label());
+    ASSERT_EQ(vertex_const_ptr->label(), "AAA");
+    ++count;
+  }
+  ASSERT_EQ(count, 2);
+  
+  count = 0;
+  for (auto v_it = g1.VertexCBegin("BBB"); 
+           !v_it.IsDone(); 
+          ++v_it) {
+    VertexConstPtr vertex_const_ptr = v_it;
+    ASSERT_EQ(vertex_const_ptr->id(),    v_it->id());
+    ASSERT_EQ(vertex_const_ptr->label(), v_it->label());
+    ASSERT_EQ(vertex_const_ptr->label(), "BBB");
+    ++count;
+  }
+  ASSERT_EQ(count, 2);
+
+  count = 0;
+  for (auto v_it = g1.VertexCBegin("zzz"); 
+           !v_it.IsDone(); 
+          ++v_it) {
+    VertexConstPtr vertex_const_ptr = v_it;
+    ASSERT_EQ(vertex_const_ptr->id(),    v_it->id());
+    ASSERT_EQ(vertex_const_ptr->label(), v_it->label());
+    ASSERT_EQ(vertex_const_ptr->label(), "zzz");
+    ++count;
+  }
+  ASSERT_EQ(count, 0);
+
+  count = 0;
+  for (auto v_it = g1.VertexBegin("AAA"); 
+           !v_it.IsDone(); 
+          ++v_it) {
+    VertexPtr vertex_ptr = v_it;
+    ASSERT_EQ(vertex_ptr->id(), v_it->id());
+    ASSERT_EQ(vertex_ptr->label(), v_it->label());
+    ASSERT_EQ(vertex_ptr->label(), "AAA");
+    ++count;
+  }
+  ASSERT_EQ(count, 2);
+  
+  count = 0;
+  for (auto v_it = g1.VertexBegin("BBB"); 
+           !v_it.IsDone(); 
+          ++v_it) {
+    VertexPtr vertex_ptr = v_it;
+    ASSERT_EQ(vertex_ptr->id(), v_it->id());
+    ASSERT_EQ(vertex_ptr->label(), v_it->label());
+    ASSERT_EQ(vertex_ptr->label(), "BBB");
+    ++count;
+  }
+  ASSERT_EQ(count, 2);
+  
+  count = 0;
+  for (auto v_it = g1.VertexBegin("zzz"); 
+           !v_it.IsDone(); 
+          ++v_it) {
+    VertexPtr vertex_ptr = v_it;
+    ASSERT_EQ(vertex_ptr->id(), v_it->id());
+    ASSERT_EQ(vertex_ptr->label(), v_it->label());
+    ASSERT_EQ(vertex_ptr->label(), "zzz");
+    ++count;
+  }
+  ASSERT_EQ(count, 0);
+
+  auto v1 = g1.FindVertex(1);
+  ASSERT_TRUE(v1);
+  ASSERT_EQ(v1->id(), 1);
+
+  count = 0;
+  for (auto e_out_it = v1->OutEdgeBegin("aaa");
+           !e_out_it.IsDone(); e_out_it++){
+    EdgePtr edge_ptr = e_out_it;
+    ASSERT_EQ(edge_ptr->src_ptr(), v1);
+    ASSERT_EQ(edge_ptr->label(), "aaa");
+    ++count;
+  }
+  ASSERT_EQ(count, 1);
+
+  count = 0;
+  for (auto e_in_it = v1->InEdgeBegin("aaa");
+           !e_in_it.IsDone(); e_in_it++){
+    EdgePtr edge_ptr = e_in_it;
+    ASSERT_EQ(edge_ptr->dst_ptr(), v1);
+    ASSERT_EQ(edge_ptr->label(), "aaa");
+    ++count;
+  }
+  ASSERT_EQ(count, 1);
+
+  count = 0;
+  for (auto e_out_it = v1->OutEdgeBegin("ZZZ");
+           !e_out_it.IsDone(); e_out_it++){
+    EdgePtr edge_ptr = e_out_it;
+    ASSERT_EQ(edge_ptr->src_ptr(), v1);
+    ASSERT_EQ(edge_ptr->label(), "ZZZ");
+    ++count;
+  }
+  ASSERT_EQ(count, 0);
+
+  count = 0;
+  for (auto e_in_it = v1->InEdgeBegin("ZZZ");
+           !e_in_it.IsDone(); e_in_it++){
+    EdgePtr edge_ptr = e_in_it;
+    ASSERT_EQ(edge_ptr->dst_ptr(), v1);
+    ASSERT_EQ(edge_ptr->label(), "ZZZ");
+    ++count;
+  }
+  ASSERT_EQ(count, 0);
+
+  return;
+}
+
+template <class GraphType>
 void TestSerialize() {
 
   GraphType g1;
@@ -506,4 +642,11 @@ TEST(TestGUNDAM, TestGraphVertexEdge) {
   TestSerialize<G1>();
   TestSerialize<G2>();
   TestSerialize<G3>();
+
+  TestIndex<G1>();
+  TestIndex<G2>();
+  TestIndex<G4>();
+  TestIndex<G5>();
+  TestIndex<G6>();
+  TestIndex<G7>();
 }
