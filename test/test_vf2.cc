@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-//#include "gundam/graph.h"
+#include "gundam/graph.h"
 #include "gundam/label.h"
 #include "gundam/large_graph.h"
 #include "gundam/simple_small_graph.h"
@@ -24,16 +24,16 @@ bool LabelEqual2(const Ptr1& a, const Ptr2& b) {
 
 template <class QueryGraph, class TargetGraph>
 void TestVF2_1() {
-  using VertexLabelType = typename QueryGraph::VertexType::LabelType;
-  using EdgeLabelType = typename TargetGraph::EdgeType::LabelType;
+  using VertexLabelType = typename  QueryGraph::VertexType::LabelType;
+  using   EdgeLabelType = typename TargetGraph::  EdgeType::LabelType;
 
-  using QueryVertexConstPtr = typename QueryGraph::VertexConstPtr;
+  using  QueryVertexConstPtr = typename  QueryGraph::VertexConstPtr;
   using TargetVertexConstPtr = typename TargetGraph::VertexConstPtr;
 
-  using QueryEdgeConstPtr = typename QueryGraph::EdgeConstPtr;
+  using  QueryEdgeConstPtr = typename  QueryGraph::EdgeConstPtr;
   using TargetEdgeConstPtr = typename TargetGraph::EdgeConstPtr;
 
-  QueryGraph query;
+   QueryGraph query;
   TargetGraph target;
 
   // query
@@ -52,7 +52,8 @@ void TestVF2_1() {
   target.AddEdge(3, 2, EdgeLabelType(1), 2);
   target.AddEdge(3, 1, EdgeLabelType(1), 3);
 
-  std::vector<std::map<QueryVertexConstPtr, TargetVertexConstPtr>> match_result;
+  std::vector<std::map<QueryVertexConstPtr, 
+                      TargetVertexConstPtr>> match_result;
   int count = GUNDAM::VF2<GUNDAM::MatchSemantics::kIsomorphism>(
       query, target, -1, match_result);
 
@@ -84,16 +85,65 @@ void TestVF2_1() {
 TEST(TestGUNDAM, VF2_1) {
   using namespace GUNDAM;
 
-  // using G = Graph<>;
-  using LG = LargeGraph<uint32_t, uint32_t, std::string, uint32_t, uint32_t,
-                        std::string>;
-  using SG = SmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
+  using G1 =
+    Graph<SetVertexIDType<uint32_t>, 
+          SetVertexLabelType<uint32_t>,
+          SetEdgeIDType<uint32_t>, 
+          SetEdgeLabelType<uint32_t>>;
+
+  using G2
+   = Graph<SetVertexIDType<uint32_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<uint32_t>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Map>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint32_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<uint32_t>,
+           SetEdgeAttributeKeyType<std::string>>;
+
+  using G3
+   = Graph<SetVertexIDType<uint32_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<uint32_t>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Vector>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint32_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<uint32_t>,
+           SetEdgeAttributeKeyType<std::string>>;
+
+  using LG = LargeGraph<uint32_t, uint32_t, std::string, 
+                        uint32_t, uint32_t, std::string>;
+  using SG  =       SmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
   using SSG = SimpleSmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
 
-  // TestVF2_1<G, G>();
-  // TestVF2_1<LG, G>();
+  TestVF2_1<G1, G1>();
+  TestVF2_1<G1, G2>();
+  TestVF2_1<G1, G3>();
+  TestVF2_1<G2, G1>();
+  TestVF2_1<G2, G2>();
+  TestVF2_1<G2, G3>();
+  TestVF2_1<G3, G1>();
+  TestVF2_1<G3, G2>();
+  TestVF2_1<G3, G3>();
+  TestVF2_1<LG, G1>();
+  TestVF2_1<LG, G2>();
+  TestVF2_1<LG, G3>();
   TestVF2_1<LG, LG>();
+  TestVF2_1<SG, G1>();
+  TestVF2_1<SG, G2>();
+  TestVF2_1<SG, G3>();
   TestVF2_1<SG, LG>();
+  TestVF2_1<SSG, G1>();
+  TestVF2_1<SSG, G2>();
+  TestVF2_1<SSG, G3>();
   TestVF2_1<SSG, LG>();
 }
 
@@ -149,24 +199,83 @@ void TestVF2_2() {
 TEST(TestGUNDAM, VF2_2) {
   using namespace GUNDAM;
 
-  // using QueryGraph =
-  //    Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<Label<uint32_t>>,
-  //          SetEdgeIDType<uint32_t>, SetEdgeLabelType<Label<uint32_t>>,
-  //          SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-  //          SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>;
+  using QG1
+   = Graph<SetVertexIDType<uint32_t>, 
+           SetVertexLabelType<uint32_t>,
+           SetEdgeIDType<uint32_t>, 
+           SetEdgeLabelType<uint32_t>>;
 
-  // using TargetGraph =
-  //    Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<std::string>,
-  //          SetEdgeIDType<uint64_t>, SetEdgeLabelType<std::string>,
-  //          SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-  //          SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
+  using TG1
+   = Graph<SetVertexIDType<uint64_t>, 
+           SetVertexLabelType<std::string>,
+           SetEdgeIDType<uint64_t>, 
+           SetEdgeLabelType<std::string>>;
+
+  using QG2
+   = Graph<SetVertexIDType<uint64_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<uint32_t>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Map>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint64_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<uint32_t>,
+           SetEdgeAttributeKeyType<std::string>>;
+
+  using TG2
+   = Graph<SetVertexIDType<uint64_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<std::string>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Map>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint64_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<std::string>,
+           SetEdgeAttributeKeyType<std::string>>;
+
+  using QG3
+   = Graph<SetVertexIDType<uint64_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<uint32_t>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Vector>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint64_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<uint32_t>,
+           SetEdgeAttributeKeyType<std::string>>;
+
+  using TG3
+   = Graph<SetVertexIDType<uint64_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<std::string>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Vector>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint64_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<std::string>,
+           SetEdgeAttributeKeyType<std::string>>;
 
   using QueryGraph = LargeGraph<uint32_t, Label<uint32_t>, std::string,
                                 uint32_t, Label<uint32_t>, std::string>;
 
-  using TargetGraph = LargeGraph<uint64_t, std::string, std::string, uint64_t,
-                                 std::string, std::string>;
+  using TargetGraph = LargeGraph<uint64_t, std::string, std::string, 
+                                 uint64_t, std::string, std::string>;
 
+  TestVF2_2<QG1, TG1>();
+  TestVF2_2<QG2, TG2>();
+  TestVF2_2<QG3, TG3>();
   TestVF2_2<QueryGraph, TargetGraph>();
 }
 
@@ -218,24 +327,83 @@ void TestVF2_3() {
 TEST(TestGUNDAM, VF2_3) {
   using namespace GUNDAM;
 
-  // using QueryGraph =
-  //    Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<Label<uint32_t>>,
-  //          SetEdgeIDType<uint32_t>, SetEdgeLabelType<Label<uint32_t>>,
-  //          SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-  //          SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>>;
+  // using QG1 =
+  //   Graph<SetVertexIDType<uint32_t>, 
+  //         SetVertexLabelType<Label<uint32_t>>,
+  //         SetEdgeIDType<uint32_t>, 
+  //         SetEdgeLabelType<Label<uint32_t>>>;
 
-  // using TargetGraph =
-  //    Graph<SetVertexIDType<uint64_t>, SetVertexLabelType<std::string>,
-  //          SetEdgeIDType<uint64_t>, SetEdgeLabelType<std::string>,
-  //          SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-  //          SetVertexHasAttribute<false>, SetEdgeHasAttribute<false>>;
+  // using TG1 =
+  //   Graph<SetVertexIDType<uint64_t>, 
+  //         SetVertexLabelType<std::string>,
+  //         SetEdgeIDType<uint64_t>, 
+  //         SetEdgeLabelType<std::string>>;
+
+  // using QG2
+  //  = Graph<SetVertexIDType<uint64_t>,
+  //          SetVertexAttributeStoreType<AttributeType::kGrouped>,
+  //          SetVertexLabelType<Label<uint32_t>>,
+  //          SetVertexLabelContainerType<ContainerType::Vector>,
+  //          SetVertexIDContainerType<ContainerType::Map>,
+  //          SetVertexPtrContainerType<ContainerType::Vector>,
+  //          SetEdgeLabelContainerType<ContainerType::Vector>,
+  //          SetVertexAttributeKeyType<std::string>,
+  //          SetEdgeIDType<uint64_t>,
+  //          SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+  //          SetEdgeLabelType<Label<uint32_t>>,
+  //          SetEdgeAttributeKeyType<std::string>>;
+
+  // using TG2
+  //  = Graph<SetVertexIDType<uint64_t>,
+  //          SetVertexAttributeStoreType<AttributeType::kGrouped>,
+  //          SetVertexLabelType<std::string>,
+  //          SetVertexLabelContainerType<ContainerType::Vector>,
+  //          SetVertexIDContainerType<ContainerType::Map>,
+  //          SetVertexPtrContainerType<ContainerType::Vector>,
+  //          SetEdgeLabelContainerType<ContainerType::Vector>,
+  //          SetVertexAttributeKeyType<std::string>,
+  //          SetEdgeIDType<uint64_t>,
+  //          SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+  //          SetEdgeLabelType<std::string>,
+  //          SetEdgeAttributeKeyType<std::string>>;
+
+  // using QG3
+  //  = Graph<SetVertexIDType<uint64_t>,
+  //          SetVertexAttributeStoreType<AttributeType::kGrouped>,
+  //          SetVertexLabelType<Label<uint32_t>>,
+  //          SetVertexLabelContainerType<ContainerType::Vector>,
+  //          SetVertexIDContainerType<ContainerType::Vector>,
+  //          SetVertexPtrContainerType<ContainerType::Vector>,
+  //          SetEdgeLabelContainerType<ContainerType::Vector>,
+  //          SetVertexAttributeKeyType<std::string>,
+  //          SetEdgeIDType<uint64_t>,
+  //          SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+  //          SetEdgeLabelType<Label<uint32_t>>,
+  //          SetEdgeAttributeKeyType<std::string>>;
+
+  // using TG3
+  //  = Graph<SetVertexIDType<uint64_t>,
+  //          SetVertexAttributeStoreType<AttributeType::kGrouped>,
+  //          SetVertexLabelType<std::string>,
+  //          SetVertexLabelContainerType<ContainerType::Vector>,
+  //          SetVertexIDContainerType<ContainerType::Vector>,
+  //          SetVertexPtrContainerType<ContainerType::Vector>,
+  //          SetEdgeLabelContainerType<ContainerType::Vector>,
+  //          SetVertexAttributeKeyType<std::string>,
+  //          SetEdgeIDType<uint64_t>,
+  //          SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+  //          SetEdgeLabelType<std::string>,
+  //          SetEdgeAttributeKeyType<std::string>>;
 
   using QueryGraph = LargeGraph<uint32_t, Label<uint32_t>, std::string,
                                 uint32_t, Label<uint32_t>, std::string>;
 
-  using TargetGraph = LargeGraph<uint64_t, std::string, std::string, uint64_t,
-                                 std::string, std::string>;
+  using TargetGraph = LargeGraph<uint64_t, std::string, std::string, 
+                                 uint64_t, std::string, std::string>;
 
+  // TestVF2_3<QG1, TG1>();
+  // TestVF2_3<QG2, TG2>();
+  // TestVF2_3<QG3, TG3>();
   TestVF2_3<QueryGraph, TargetGraph>();
 }
 
@@ -243,7 +411,7 @@ template <class QueryGraph, class TargetGraph>
 void TestVF2Speed1(int times_outer, int times_inner) {
   using namespace GUNDAM;
 
-  QueryGraph query;
+   QueryGraph  query;
   TargetGraph target;
 
   // query
@@ -282,11 +450,11 @@ void TestVF2Speed1(int times_outer, int times_inner) {
   ASSERT_TRUE(target.AddEdge(8, 9, 2, ++eid).second);
   ASSERT_TRUE(target.AddEdge(10, 7, 2, ++eid).second);
 
-  std::vector<std::map<typename QueryGraph::VertexConstPtr,
+  std::vector<std::map<typename  QueryGraph::VertexConstPtr,
                        typename TargetGraph::VertexConstPtr>>
       match_result1;
 
-  std::vector<std::vector<std::pair<typename QueryGraph::VertexConstPtr,
+  std::vector<std::vector<std::pair<typename  QueryGraph::VertexConstPtr,
                                     typename TargetGraph::VertexConstPtr>>>
       match_result2;
 
@@ -381,9 +549,9 @@ void TestVF2Speed1(int times_outer, int times_inner) {
           query, target,
           std::bind(
               _vf2::MatchCallbackSaveResult1<
-                  typename QueryGraph::VertexConstPtr,
+                  typename  QueryGraph::VertexConstPtr,
                   typename TargetGraph::VertexConstPtr,
-                  std::vector<std::map<typename QueryGraph::VertexConstPtr,
+                  std::vector<std::map<typename  QueryGraph::VertexConstPtr,
                                        typename TargetGraph::VertexConstPtr>>>,
               std::placeholders::_1, &max_result, &match_result1));
 
@@ -416,9 +584,9 @@ void TestVF2Speed1(int times_outer, int times_inner) {
     for (int i = 0; i < times_inner; i++) {
       int count = VF2<MatchSemantics::kIsomorphism>(
           query, target,
-          LabelEqual2<typename QueryGraph::VertexConstPtr,
+          LabelEqual2<typename  QueryGraph::VertexConstPtr,
                       typename TargetGraph::VertexConstPtr>,
-          LabelEqual2<typename QueryGraph::EdgeConstPtr,
+          LabelEqual2<typename  QueryGraph::EdgeConstPtr,
                       typename TargetGraph::EdgeConstPtr>,
           -1, match_result1);
 
@@ -434,20 +602,76 @@ void TestVF2Speed1(int times_outer, int times_inner) {
 TEST(TestGUNDAM, VF2_Speed_1) {
   using namespace GUNDAM;
 
-  using QG =
+  using QG1 =
     Graph<SetVertexIDType<uint32_t>, 
           SetVertexLabelType<uint32_t>,
           SetEdgeIDType<uint32_t>, 
           SetEdgeLabelType<uint32_t>>;
 
-  using TG =
+  using TG1 =
     Graph<SetVertexIDType<uint64_t>, 
           SetVertexLabelType<uint32_t>,
           SetEdgeIDType<uint64_t>, 
           SetEdgeLabelType<uint32_t>>;
 
-  using QLG = LargeGraph<uint32_t, uint32_t, std::string, uint32_t, uint32_t,
-                         std::string>;
+  using QG2
+   = Graph<SetVertexIDType<uint64_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<uint32_t>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Map>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint64_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<uint32_t>,
+           SetEdgeAttributeKeyType<std::string>>;
+
+  using TG2
+   = Graph<SetVertexIDType<uint64_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<uint32_t>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Map>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint64_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<uint32_t>,
+           SetEdgeAttributeKeyType<std::string>>;
+
+  using QG3
+   = Graph<SetVertexIDType<uint64_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<uint32_t>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Vector>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint64_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<uint32_t>,
+           SetEdgeAttributeKeyType<std::string>>;
+
+  using TG3
+   = Graph<SetVertexIDType<uint64_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<uint32_t>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Vector>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint64_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<uint32_t>,
+           SetEdgeAttributeKeyType<std::string>>;
+
+  using QLG = LargeGraph<uint32_t, uint32_t, std::string, 
+                         uint32_t, uint32_t, std::string>;
 
   using QSG = SmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
 
@@ -456,7 +680,9 @@ TEST(TestGUNDAM, VF2_Speed_1) {
   using TLG = LargeGraph<uint64_t, uint32_t, std::string, uint64_t, uint32_t,
                          std::string>;
 
-  TestVF2Speed1<QG, TG>(1, 10000);
+  TestVF2Speed1<QG1, TG1>(1, 10000);
+  TestVF2Speed1<QG2, TG2>(1, 10000);
+  TestVF2Speed1<QG3, TG3>(1, 10000);
   TestVF2Speed1<QLG, TLG>(1, 10000);
   TestVF2Speed1<QSG, TLG>(1, 10000);
   TestVF2Speed1<QSSG, TLG>(1, 10000);
