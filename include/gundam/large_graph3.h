@@ -53,8 +53,14 @@ class LargeGraph3 {
   using VertexIDLabelDict = SortedVectorDict<VertexIDType, VertexLabelType>;
 
   class VertexData
-      : public WithAttribute_<std::string, false, true, VertexAttributeKeyType,
-                              ContainerType::Vector, SortType::Default> {
+      : public Attribute_<AttributeType::kSeparated,
+                          false, // not const
+                          std::pair<VertexLabelType, bool>,
+                          VertexAttributeKeyType,
+                          ContainerType::Vector,
+                          SortType::Default> {
+      // : public WithAttribute_<std::string, false, true, VertexAttributeKeyType,
+      //                         ContainerType::Vector, SortType::Default> {
    private:
     friend class LargeGraph3;
 
@@ -224,8 +230,14 @@ class LargeGraph3 {
   };
 
   class EdgeData
-      : public WithAttribute_<std::string, false, true, EdgeAttributeKeyType,
-                              ContainerType::Vector, SortType::Default> {
+      : public Attribute_<AttributeType::kSeparated,
+                          false, // not const
+                          std::pair<EdgeLabelType, bool>,
+                          EdgeAttributeKeyType,
+                          ContainerType::Vector,
+                          SortType::Default> {
+      // : public WithAttribute_<std::string, false, true, EdgeAttributeKeyType,
+      //                         ContainerType::Vector, SortType::Default> {
    private:
     friend class LargeGraph3;
 

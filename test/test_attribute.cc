@@ -8,7 +8,6 @@
 #include "gundam/large_graph2.h"
 
 #include "gundam/attribute.h"
-#include "gundam/attribute2.h"
 
 template<typename TestAttributeHandleType>
 void TestAttribute(TestAttributeHandleType& has_attr_handle) {
@@ -101,10 +100,10 @@ void TestAttribute(TestAttributeHandleType& has_attr_handle) {
 
 TEST(TestGUNDAM, TestAttribute) {
   using namespace GUNDAM;
-  using AttributeType1 =
-    WithAttribute_<std::string, false, true, std::string,
-                   ContainerType::Vector, 
-                        SortType::Default>;
+  // using AttributeType1 =
+  //   WithAttribute_<std::string, false, true, std::string,
+  //                  ContainerType::Vector, 
+  //                       SortType::Default>;
 
   using AttributeType2 =
         Attribute_<AttributeType::kSeparated,
@@ -120,16 +119,16 @@ TEST(TestGUNDAM, TestAttribute) {
                    ContainerType::Vector,
                         SortType::Default>;
 
-  AttributeType1  attr1;
+  // AttributeType1  attr1;
   AttributeType2  attr2(1);
   auto attr3_ptr = new AttributeType3(1), // container_id 0
        attr4_ptr = new AttributeType3(1), // container_id 1
        attr5_ptr = new AttributeType3(1); // container_id 2
 
-  AttributeType1* attr1_ptr = &attr1;
+  // AttributeType1* attr1_ptr = &attr1;
   AttributeType2* attr2_ptr = &attr2;
 
-  TestAttribute(attr1_ptr);
+  // TestAttribute(attr1_ptr);
   TestAttribute(attr2_ptr);
   TestAttribute(attr3_ptr);
   TestAttribute(attr4_ptr);

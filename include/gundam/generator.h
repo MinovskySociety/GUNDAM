@@ -1,5 +1,5 @@
-#ifndef _GENEATOR_H
-#define _GENEATOR_H
+#ifndef _GENERATOR_H
+#define _GENERATOR_H
 
 #include <type_traits>
 

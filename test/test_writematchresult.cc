@@ -6,7 +6,7 @@
 
 #include "gundam/large_graph.h"
 #include "gundam/csvgraph.h"
-#include "gundam/geneator.h"
+#include "gundam/generator.h"
 #include "gundam/matchresult.h"
 #include "gundam/util.h"
 #include "gundam/vf2.h"

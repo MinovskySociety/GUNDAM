@@ -5,13 +5,12 @@
 #include "gundam/container.h"
 #include "gundam/datatype.h"
 #include "gundam/datetime.h"
-#include "gundam/geneator.h"
+#include "gundam/generator.h"
 #include "gundam/graph_item.h"
 #include "gundam/graph_configure.h"
 #include "gundam/iterator.h"
 #include "gundam/label.h"
 #include "gundam/attribute.h"
-#include "gundam/attribute2.h"
 
 #include <iostream>
 #include <set>

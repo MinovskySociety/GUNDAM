@@ -3,7 +3,7 @@
 
 #include "gundam/container.h"
 #include "gundam/label.h"
-#include "gundam/attribute2.h"
+#include "gundam/attribute.h"
 
 #include <cstdint>
 #include <string>

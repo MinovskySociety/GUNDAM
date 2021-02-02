@@ -3,7 +3,7 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "gundam/geneator.h"
+#include "gundam/generator.h"
 #include "gundam/large_graph.h"
 #include "gundam/util.h"
 

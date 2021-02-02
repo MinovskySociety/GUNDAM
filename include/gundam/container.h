@@ -142,6 +142,14 @@ class Container<ContainerType::Vector,
       return temp;
     }
 
+    template<TupleIdxType tuple_idx,
+             bool _is_const_ = is_const_,
+             std::enable_if_t<!_is_const_, bool> = false>
+    inline auto& get() { 
+      static_assert(_is_const_ == is_const_, "illegal usage of this method");
+      return std::get<tuple_idx>(*(this->iterator_));
+    }
+
     template<TupleIdxType tuple_idx>
     inline auto& get() const{ 
       return std::get<tuple_idx>(*(this->iterator_));
@@ -211,28 +219,20 @@ class Container<ContainerType::Vector,
     return;
   }
 
-  template<enum SortType _sort_type_ = sort_type_,
-           std::enable_if_t<_sort_type_ == SortType::Sorted, 
-                            bool> = false>
   inline std::pair<iterator, bool> Insert(const KeyType_& key) {
-    static_assert(sort_type_ == SortType::Sorted, "illegal usage of this method");
-    auto it = std::lower_bound(this->container_.begin(), 
-                               this->container_.end(), key, Compare);
-    if (it != this->container_.end() && std::get<kKeyIdx>(*it) == key){
-      /// already existed
-      return std::make_pair(it, false);
+    if constexpr (sort_type_ == SortType::Sorted){
+      auto it = std::lower_bound(this->container_.begin(), 
+                                this->container_.end(), key, Compare);
+      if (it != this->container_.end() && std::get<kKeyIdx>(*it) == key){
+        /// already existed
+        return std::make_pair(it, false);
+      }
+      return std::make_pair(
+          this->container_.emplace(it, std::tuple_cat(std::tuple<KeyType_>(key),
+                                                      std::tuple<ValueTypes_...>())),
+          true);
     }
-    return std::make_pair(
-        this->container_.emplace(it, std::tuple_cat(std::tuple<KeyType_>(key),
-                                                    std::tuple<ValueTypes_...>())),
-        true);
-  }
-
-  template<enum SortType _sort_type_ = sort_type_,
-           std::enable_if_t<_sort_type_ == SortType::Default, 
-                             bool> = false>
-  inline std::pair<iterator, bool> Insert(const KeyType_& key) {
-    static_assert(sort_type_ == SortType::Default, "illegal usage of this method");
+    assert(sort_type_ == SortType::Default);
     for (iterator it  = iterator(this->container_.begin());
                   it != iterator(this->container_. end ());++it){
       if ((it.template get<kKeyIdx>()) == key)
@@ -258,26 +258,18 @@ class Container<ContainerType::Vector,
     return this->container_.erase(it.iterator_);
   }
 
-  template<enum SortType _sort_type_ = sort_type_,
-           std::enable_if_t<_sort_type_ == SortType::Sorted, 
-                             bool> = false>
   inline std::pair<iterator, bool> Find(const KeyType& key) {
-    static_assert(sort_type_ == SortType::Sorted, "illegal usage of this method");
-    auto it = std::lower_bound(this->container_.begin(), 
-                               this->container_.end(), key, Compare);
-    if (it == container_.end() || std::get<kKeyIdx>(*it) != key) {
-      /// not found
-      return std::make_pair(this->container_.end(), false);
+    if constexpr (sort_type_ == SortType::Sorted){
+      auto it = std::lower_bound(this->container_.begin(), 
+                                this->container_.end(), key, Compare);
+      if (it == container_.end() || std::get<kKeyIdx>(*it) != key) {
+        /// not found
+        return std::make_pair(this->container_.end(), false);
+      }
+      /// found 
+      return std::make_pair(it, true);
     }
-    /// found 
-    return std::make_pair(it, true);
-  }
-
-  template<enum SortType _sort_type_ = sort_type_,
-           std::enable_if_t<_sort_type_ == SortType::Default, 
-                             bool> = false>
-  inline std::pair<iterator, bool> Find(const KeyType& key) {
-    static_assert(sort_type_ == SortType::Default, "illegal usage of this method");
+    assert(sort_type_ == SortType::Default);
     for (iterator it  = this->container_.begin();
                   it != this->container_. end ();++it){
       if (it.template get<kKeyIdx>() == key)
@@ -290,26 +282,18 @@ class Container<ContainerType::Vector,
     return this->FindConst(key);
   }
   
-  template<enum SortType _sort_type_ = sort_type_,
-           std::enable_if_t<_sort_type_ == SortType::Sorted, 
-                             bool> = false>
   inline std::pair<const_iterator, bool> FindConst(const KeyType& key) const {
-    static_assert(sort_type_ == SortType::Sorted, "illegal usage of this method");
-    auto it = std::lower_bound(this->container_.cbegin(), 
-                               this->container_.cend(), key, Compare);
-    if (it == container_.cend() || std::get<kKeyIdx>(*it) != key) {
-      /// not found
-      return std::make_pair(this->container_.cend(), false);
+    if constexpr (sort_type_ == SortType::Sorted){
+      auto it = std::lower_bound(this->container_.cbegin(), 
+                                 this->container_.cend(), key, Compare);
+      if (it == container_.cend() || std::get<kKeyIdx>(*it) != key) {
+        /// not found
+        return std::make_pair(this->container_.cend(), false);
+      }
+      /// found 
+      return std::make_pair(it, true);
     }
-    /// found 
-    return std::make_pair(it, true);
-  }
-
-  template<enum SortType _sort_type_ = sort_type_,
-           std::enable_if_t<_sort_type_ == SortType::Default, 
-                             bool> = false>
-  inline std::pair<const_iterator, bool> FindConst(const KeyType& key) const {
-    static_assert(sort_type_ == SortType::Default, "illegal usage of this method");
+    assert(sort_type_ == SortType::Default);
     for (const_iterator cit  = this->container_.cbegin();
                         cit != this->container_. cend (); ++cit){
       if ((cit.template get_const<kKeyIdx>()) == key)
@@ -409,6 +393,14 @@ class Container<ContainerType::Set,
       Iterator_ temp(*this);
       this->iterator_--;
       return temp;
+    }
+
+    template<TupleIdxType tuple_idx,
+             bool _is_const_ = is_const_,
+             std::enable_if_t<!_is_const_, bool> = false>
+    inline auto& get() { 
+      static_assert(_is_const_ == is_const_, "illegal usage of this method");
+      return std::get<tuple_idx>(*(this->iterator_));
     }
 
     template<TupleIdxType tuple_idx>
@@ -603,6 +595,22 @@ class Container<ContainerType::Map,
       Iterator_ temp(*this);
       this->iterator_--;
       return temp;
+    }
+
+    template<TupleIdxType tuple_idx,
+             bool _is_const_ = is_const_,
+             std::enable_if_t<!_is_const_ && tuple_idx == 0, bool> = false>
+    inline auto& get() { 
+      static_assert(_is_const_ == is_const_, "illegal usage of this method");
+      return this->iterator_->first;
+    }
+
+    template<TupleIdxType tuple_idx,
+             bool _is_const_ = is_const_,
+             std::enable_if_t<!_is_const_ && tuple_idx != 0, bool> = false>
+    inline auto& get() { 
+      static_assert(_is_const_ == is_const_, "illegal usage of this method");
+      return std::get<tuple_idx - 1>(this->iterator_->second);
     }
 
     template<TupleIdxType tuple_idx,
