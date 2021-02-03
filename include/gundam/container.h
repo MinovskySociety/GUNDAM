@@ -168,6 +168,14 @@ class Container<ContainerType::Vector,
   using       reverse_iterator = Iterator_<false,  true>;
   using      size_type = typename InnerContainerType::size_type;
 
+  Container() = default;
+
+  Container(const Container&) = default;
+  Container(Container&&) = default;
+
+  Container& operator=(const Container&) = default;	  
+  Container& operator=(Container&&) = default;	
+
   inline const_iterator cbegin() const {
     return const_iterator(this->container_.cbegin());
   }
@@ -219,17 +227,18 @@ class Container<ContainerType::Vector,
     return;
   }
 
-  inline std::pair<iterator, bool> Insert(const KeyType_& key) {
+  inline std::pair<iterator, bool> Insert(
+                  const   KeyType_& key,
+                       ValueTypes_&&... values) {
     if constexpr (sort_type_ == SortType::Sorted){
       auto it = std::lower_bound(this->container_.begin(), 
-                                this->container_.end(), key, Compare);
+                                 this->container_.end(), key, Compare);
       if (it != this->container_.end() && std::get<kKeyIdx>(*it) == key){
         /// already existed
         return std::make_pair(it, false);
       }
       return std::make_pair(
-          this->container_.emplace(it, std::tuple_cat(std::tuple<KeyType_>(key),
-                                                      std::tuple<ValueTypes_...>())),
+          this->container_.emplace(it, key, values...),
           true);
     }
     assert(sort_type_ == SortType::Default);
@@ -240,8 +249,7 @@ class Container<ContainerType::Vector,
     }
     return std::make_pair(this->container_.emplace(
                           this->container_.end(),
-                          std::tuple_cat(std::tuple<KeyType_>(key),
-                                         std::tuple<ValueTypes_...>())), true);
+                          key, values...), true);
   }
 
   inline bool Erase(const KeyType& key) {
@@ -420,6 +428,14 @@ class Container<ContainerType::Set,
   /// const_iterator and iterator are the same thing in std::set
   using      size_type = typename InnerContainerType::size_type;
 
+  Container() = default;
+
+  Container(const Container&) = default;
+  Container(Container&&) = default;
+
+  Container& operator=(const Container&) = default;	  
+  Container& operator=(Container&&) = default;	
+
   inline const_iterator cbegin() const {
     return const_iterator(this->container_.cbegin());
   }
@@ -454,9 +470,8 @@ class Container<ContainerType::Set,
   }
 
   inline std::pair<iterator, bool> Insert(const KeyType_& key) {
-    const ElementType new_element = ElementType(key);
     /// <iterator, bool>
-    auto ret = this->container_.insert(new_element);
+    auto ret = this->container_.emplace(key);
     return std::pair<iterator, bool>(iterator(ret.first),
                                               ret.second);
   }
@@ -645,6 +660,14 @@ class Container<ContainerType::Map,
   using       reverse_iterator = Iterator_<false,  true>;
   using      size_type = typename InnerContainerType::size_type;
 
+  Container() = default;
+
+  Container(const Container&) = default;
+  Container(Container&&) = default;
+
+  Container& operator=(const Container&) = default;	  
+  Container& operator=(Container&&) = default;	
+
   inline const_iterator cbegin() const {
     return const_iterator(this->container_.cbegin());
   }
@@ -696,10 +719,12 @@ class Container<ContainerType::Map,
     return;
   }
 
-  inline std::pair<iterator, bool> Insert(const KeyType_& key) {
-    const ElementType new_element = ElementType(key,ValueType());
+  inline std::pair<iterator, bool> Insert(
+                          const   KeyType_& key,
+                          const ValueType_ && value,
+                          const ValueTypes_&&... values) {
     /// <iterator, bool>
-    auto ret = this->container_.insert(new_element);
+    auto ret = this->container_.emplace(key ,ValueType(value, values...));
     return std::pair<iterator, bool>(iterator(ret.first),
                                               ret.second);
   }

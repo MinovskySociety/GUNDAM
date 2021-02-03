@@ -475,17 +475,16 @@ class Attribute_<AttributeType::kSeparated,
   template <typename ConcreteDataType>
   std::pair<AttributePtr, bool> AddAttribute(const AttributeKeyType_& key,
                                              const ConcreteDataType& value) {
-    /// the constant attribute should not be modified
+    auto concrete_value_ptr = new ConcreteValue<ConcreteDataType>(value);
     /// <iterator of attribute container, bool>
-    auto ret = this->attributes_.Insert(key);
+    auto ret = this->attributes_.Insert(key, 
+                                        std::move(concrete_value_ptr), 
+                                        TypeToEnum<ConcreteDataType>());
     if (!ret.second) {
       /// has already existed in the Container
+      delete concrete_value_ptr;
       return std::pair<AttributePtr, bool>(AttributePtr(ret.first), false);
     }
-    const enum BasicDataType value_type = TypeToEnum<ConcreteDataType>();
-    ret.first.template get<kAttributeValuePtrIdx>()
-      = new ConcreteValue<ConcreteDataType>(value);
-    ret.first.template get<kAttributeValueTypeIdx>() = value_type;
     return std::pair<AttributePtr, bool>(AttributePtr(ret.first), true);
   }
 
@@ -1182,12 +1181,12 @@ class Attribute_<AttributeType::kGrouped,
                 const   ContainerIDType&  container_id,
                 const  AttributeKeyType_&          key,
                 const ConcreteValueType&  attribute_value){
+      auto attr_list_ptr = new AttributeList_();
       /// <iterator, bool>
-      auto ret = this->attribute_list_ptr_container_.Insert(key);
-      if (ret.second){
-        /// does not have this key, new a new AttributeList for that key
-        ret.first.template get<kAttributeListPtrIdx>()
-                          = new AttributeList_();
+      auto ret = this->attribute_list_ptr_container_.Insert(key, std::move(attr_list_ptr));
+      if (!ret.second){
+        /// already has attr_list for this key
+        delete attr_list_ptr;
       }
       const bool kAddAttributeRet = ret.first
                                        .template get<kAttributeListPtrIdx>()
@@ -1536,13 +1535,13 @@ class Attribute_<AttributeType::kGrouped,
 
   Attribute_(const GroupKeyType_& group_key) {
     /// automatically alloc a container id in this group
+    auto attr_group_ptr = new AttributeContainerGroupType();
     /// <iterator, bool>
     auto ret = Attribute_::attribute_container_group_ptr_container_
-                          .Insert(group_key);
-    if (ret.second){
-      // this group does not exist, needs to alloc a new one
-      ret.first.template get<kAttributeContainerGroupPtrIdx>() 
-         = new AttributeContainerGroupType();
+                          .Insert(group_key, std::move(attr_group_ptr));
+    if (!ret.second){
+      // this group has already existes, delete the allocated pointer
+      delete attr_group_ptr;
     }
     this->attribute_container_group_ptr_
         = ret.first.template get<kAttributeContainerGroupPtrIdx>();

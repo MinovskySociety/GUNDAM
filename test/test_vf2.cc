@@ -327,73 +327,73 @@ void TestVF2_3() {
 TEST(TestGUNDAM, VF2_3) {
   using namespace GUNDAM;
 
-  // using QG1 =
-  //   Graph<SetVertexIDType<uint32_t>, 
-  //         SetVertexLabelType<Label<uint32_t>>,
-  //         SetEdgeIDType<uint32_t>, 
-  //         SetEdgeLabelType<Label<uint32_t>>>;
+  using QG1 =
+    Graph<SetVertexIDType<uint32_t>, 
+          SetVertexLabelType<Label<uint32_t>>,
+          SetEdgeIDType<uint32_t>, 
+          SetEdgeLabelType<Label<uint32_t>>>;
 
-  // using TG1 =
-  //   Graph<SetVertexIDType<uint64_t>, 
-  //         SetVertexLabelType<std::string>,
-  //         SetEdgeIDType<uint64_t>, 
-  //         SetEdgeLabelType<std::string>>;
+  using TG1 =
+    Graph<SetVertexIDType<uint64_t>, 
+          SetVertexLabelType<std::string>,
+          SetEdgeIDType<uint64_t>, 
+          SetEdgeLabelType<std::string>>;
 
-  // using QG2
-  //  = Graph<SetVertexIDType<uint64_t>,
-  //          SetVertexAttributeStoreType<AttributeType::kGrouped>,
-  //          SetVertexLabelType<Label<uint32_t>>,
-  //          SetVertexLabelContainerType<ContainerType::Vector>,
-  //          SetVertexIDContainerType<ContainerType::Map>,
-  //          SetVertexPtrContainerType<ContainerType::Vector>,
-  //          SetEdgeLabelContainerType<ContainerType::Vector>,
-  //          SetVertexAttributeKeyType<std::string>,
-  //          SetEdgeIDType<uint64_t>,
-  //          SetEdgeAttributeStoreType<AttributeType::kGrouped>,
-  //          SetEdgeLabelType<Label<uint32_t>>,
-  //          SetEdgeAttributeKeyType<std::string>>;
+  using QG2
+   = Graph<SetVertexIDType<uint64_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<Label<uint32_t>>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Map>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint64_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<Label<uint32_t>>,
+           SetEdgeAttributeKeyType<std::string>>;
 
-  // using TG2
-  //  = Graph<SetVertexIDType<uint64_t>,
-  //          SetVertexAttributeStoreType<AttributeType::kGrouped>,
-  //          SetVertexLabelType<std::string>,
-  //          SetVertexLabelContainerType<ContainerType::Vector>,
-  //          SetVertexIDContainerType<ContainerType::Map>,
-  //          SetVertexPtrContainerType<ContainerType::Vector>,
-  //          SetEdgeLabelContainerType<ContainerType::Vector>,
-  //          SetVertexAttributeKeyType<std::string>,
-  //          SetEdgeIDType<uint64_t>,
-  //          SetEdgeAttributeStoreType<AttributeType::kGrouped>,
-  //          SetEdgeLabelType<std::string>,
-  //          SetEdgeAttributeKeyType<std::string>>;
+  using TG2
+   = Graph<SetVertexIDType<uint64_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<std::string>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Map>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint64_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<std::string>,
+           SetEdgeAttributeKeyType<std::string>>;
 
-  // using QG3
-  //  = Graph<SetVertexIDType<uint64_t>,
-  //          SetVertexAttributeStoreType<AttributeType::kGrouped>,
-  //          SetVertexLabelType<Label<uint32_t>>,
-  //          SetVertexLabelContainerType<ContainerType::Vector>,
-  //          SetVertexIDContainerType<ContainerType::Vector>,
-  //          SetVertexPtrContainerType<ContainerType::Vector>,
-  //          SetEdgeLabelContainerType<ContainerType::Vector>,
-  //          SetVertexAttributeKeyType<std::string>,
-  //          SetEdgeIDType<uint64_t>,
-  //          SetEdgeAttributeStoreType<AttributeType::kGrouped>,
-  //          SetEdgeLabelType<Label<uint32_t>>,
-  //          SetEdgeAttributeKeyType<std::string>>;
+  using QG3
+   = Graph<SetVertexIDType<uint64_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<Label<uint32_t>>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Vector>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint64_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<Label<uint32_t>>,
+           SetEdgeAttributeKeyType<std::string>>;
 
-  // using TG3
-  //  = Graph<SetVertexIDType<uint64_t>,
-  //          SetVertexAttributeStoreType<AttributeType::kGrouped>,
-  //          SetVertexLabelType<std::string>,
-  //          SetVertexLabelContainerType<ContainerType::Vector>,
-  //          SetVertexIDContainerType<ContainerType::Vector>,
-  //          SetVertexPtrContainerType<ContainerType::Vector>,
-  //          SetEdgeLabelContainerType<ContainerType::Vector>,
-  //          SetVertexAttributeKeyType<std::string>,
-  //          SetEdgeIDType<uint64_t>,
-  //          SetEdgeAttributeStoreType<AttributeType::kGrouped>,
-  //          SetEdgeLabelType<std::string>,
-  //          SetEdgeAttributeKeyType<std::string>>;
+  using TG3
+   = Graph<SetVertexIDType<uint64_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<std::string>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Vector>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint64_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<std::string>,
+           SetEdgeAttributeKeyType<std::string>>;
 
   using QueryGraph = LargeGraph<uint32_t, Label<uint32_t>, std::string,
                                 uint32_t, Label<uint32_t>, std::string>;

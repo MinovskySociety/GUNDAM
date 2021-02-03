@@ -1224,6 +1224,12 @@ class Graph {
       Counter_():counter_(0){
         return;
       }
+      
+      Counter_(const Counter_&) = default;
+      Counter_(Counter_&&) = default;
+
+      Counter_& operator=(const Counter_&) = default;	  
+      Counter_& operator=(Counter_&&) = default;	
 
       inline const CounterType_& counter() const{
         return this->counter_;
@@ -1937,7 +1943,7 @@ class Graph {
         const VertexPtr& dst_ptr,
         const EdgeLabelType& edge_label,
         const EdgeIDType& edge_id,
-              EdgeAttributeType* const edge_attribute_ptr) {
+              EdgeAttributeType* edge_attribute_ptr) {
       /// maintain the vertex counter all input vetexes
       if (!this->FindInVertex(dst_ptr)){
         /// this vertex has no input edge point to dst_ptr
@@ -1945,21 +1951,22 @@ class Graph {
       }
       /// maintain the edge counter for all input edges
       this->edges_.InEdgeAddOne();
-      auto edge_label_it = this->edges_.in_edges()
-                                       .Insert(edge_label)
-                                       .first;
+      auto edge_label_ret = this->edges_.in_edges()
+                                        .Insert(edge_label, 
+                                                std::move(VertexPtrContainerType()), 
+                                                std::move(EdgeCounterType()));
       /// maintain the edge counter for edge_label
-      edge_label_it.template get<kEdgeLabelEdgeCounterIdx>()
-                   .AddOne();
-      auto vertex_ptr_it 
-         = edge_label_it.template get<kVertexPtrContainerIdx>()
-                        .Insert(dst_ptr)
-                        .first;
-      auto edge_it = vertex_ptr_it.template get<kDecomposedEdgeContainerIdx>()
-                                  .Insert(edge_id)
-                                  .first;
-      edge_it.template get<kEdgeAttributePtrIdx>()
-            = edge_attribute_ptr;
+      edge_label_ret.first.template get<kEdgeLabelEdgeCounterIdx>().AddOne();
+      auto vertex_ptr_ret
+         = edge_label_ret.first
+                         .template get<kVertexPtrContainerIdx>()
+                         .Insert(dst_ptr, 
+                                 std::move(DecomposedEdgeContainerType()));
+      auto edge_ret = vertex_ptr_ret.first
+                                    .template get<kDecomposedEdgeContainerIdx>()
+                                    .Insert(edge_id,
+                                            std::move(edge_attribute_ptr));
+      assert(edge_ret.second);
       return;
     }
 
@@ -1967,7 +1974,7 @@ class Graph {
         const VertexPtr& dst_ptr, 
         const EdgeLabelType& edge_label,
         const EdgeIDType& edge_id,
-              EdgeAttributeType* const edge_attribute_ptr) {
+              EdgeAttributeType* edge_attribute_ptr) {
       /// maintain the vertex counter for all output vertexes
       if (!this->FindOutVertex(dst_ptr)){
         /// this vertex has no output edge point to dst_ptr
@@ -1976,21 +1983,23 @@ class Graph {
       /// maintain the edge counter for all output edges
       this->edges_.OutEdgeAddOne();
       auto edge_label_it = this->edges_.out_edges()
-                                       .Insert(edge_label)
+                                       .Insert(edge_label, 
+                                               VertexPtrContainerType(), 
+                                               EdgeCounterType())
                                        .first;
       /// maintain the edge counter for edge_label
       edge_label_it.template get<kEdgeLabelEdgeCounterIdx>()
                    .AddOne();
       auto vertex_ptr_it
          = edge_label_it.template get<kVertexPtrContainerIdx>()
-                        .Insert(dst_ptr)
+                        .Insert(dst_ptr, 
+                                DecomposedEdgeContainerType())
                         .first;
       auto edge_it = vertex_ptr_it
                     .template get<kDecomposedEdgeContainerIdx>()
-                    .Insert(edge_id)
+                    .Insert(edge_id,
+                            std::move(edge_attribute_ptr))
                     .first;
-      edge_it.template get<kEdgeAttributePtrIdx>() 
-            = edge_attribute_ptr;
       InnerVertex_* const temp_this_ptr = this;
       VertexPtr temp_vertex_ptr(temp_this_ptr);
       assert(allow_duplicate_edge);
@@ -3974,12 +3983,17 @@ class Graph {
     InnerVertex_* const temp_inner_vertex_ptr = new InnerVertex_(id, label);
     VertexPtr temp_vertex_ptr(temp_inner_vertex_ptr);
     /// vertex label iterator
-    auto vertex_label_it = this->vertexes_.Insert(label).first;
+    // <iterator, bool>
+    auto vertex_label_ret = this->vertexes_.Insert(label, VertexIDContainerType());
     /// vertex ID iterator
-    auto vertex_id_it
-       = vertex_label_it.template get<kVertexIDContainerIdx>().Insert(id).first;
-    vertex_id_it.template get<kVertexPtrIdx>() = temp_vertex_ptr;
-    return std::pair<VertexPtr, bool>(vertex_id_it.template get<kVertexPtrIdx>(),
+    // <iterator, bool>
+    auto vertex_id_ret
+       = vertex_label_ret.first
+                         .template get<kVertexIDContainerIdx>()
+                         .Insert(id, std::move(temp_vertex_ptr));
+    assert(vertex_id_ret.second);
+    return std::pair<VertexPtr, bool>(vertex_id_ret.first
+                                                   .template get<kVertexPtrIdx>(),
                                       true);
   }
   /// possible variant:
