@@ -5,9 +5,8 @@
 #include <set>
 #include <vector>
 
-#include "container.h"
-#include "iterator.h"
-#include "graph_item.h"
+#include "gundam/component/container.h"
+#include "gundam/component/iterator.h"
 
 namespace GUNDAM {
 
@@ -217,36 +216,6 @@ class Match {
     }
     /// not found
     return DstVertexConstPtr();
-  }
-
-  /// constant dst
-  inline GraphItem<DstGraphType> MapTo(GraphItem<SrcGraphType>& src_item) const {
-    switch(src_item.type()){
-    case ItemType::Vertex:
-      return GraphItem<DstGraphType>(this->MapTo(src_item.vertex_ptr()));
-    case ItemType::VertexAttr:
-      return GraphItem<DstGraphType>(this->MapTo(src_item.vertex_ptr()),
-                                                 src_item.vertex_attribute_key());
-    default:
-      assert(false);
-    }
-    assert(false);
-    return GraphItem<DstGraphType>(this->MapTo(src_item.vertex_ptr()));
-  }
-
-  /// constant dst
-  inline GraphItem<const DstGraphType> MapToConst(GraphItem<SrcGraphType>& src_item) const {
-    switch(src_item.type()){
-    case ItemType::Vertex:
-      return GraphItem<DstGraphType>(this->MapToConst(src_item.vertex_ptr()));
-    case ItemType::VertexAttr:
-      return GraphItem<DstGraphType>(this->MapToConst(src_item.vertex_ptr()),
-                                                      src_item.vertex_attribute_key());
-    default:
-      assert(false);
-    }
-    assert(false);
-    return GraphItem<DstGraphType>(this->MapToConst(src_item.vertex_ptr()));
   }
 
   inline bool operator<(const Match& match) const{

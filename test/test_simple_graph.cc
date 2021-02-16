@@ -3,10 +3,10 @@
 #include <string>
 
 #include "gtest/gtest.h"
-//#include "gundam/graph.h"
-#include "gundam/large_graph.h"
-#include "gundam/small_graph.h"
-#include "gundam/simple_small_graph.h"
+//#include "gundam/graph_type/graph.h"
+#include "gundam/graph_type/large_graph.h"
+#include "gundam/graph_type/small_graph.h"
+#include "gundam/graph_type/simple_small_graph.h"
 
 template <class GraphType>
 void TestBuildSimpleGraph1(GraphType& g) {

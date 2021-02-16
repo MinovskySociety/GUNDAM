@@ -1,9 +1,9 @@
 #ifndef _LARGE_GRAPH2_H
 #define _LARGE_GRAPH2_H
 
-#include "attribute.h"
-#include "container2.h"
-#include "iterator2.h"
+#include "gundam/component/attribute.h"
+#include "gundam/component/container2.h"
+#include "gundam/component/iterator2.h"
 
 namespace GUNDAM {
 

@@ -6,9 +6,9 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/vf2.h"
-#include "gundam/large_graph.h"
-//#include "gundam/graph.h"
+#include "gundam/algorithm/vf2.h"
+#include "gundam/graph_type/large_graph.h"
+#include "gundam/graph_type/graph.h"
 
 template <class GraphType>
 void TestMultiVF2() {

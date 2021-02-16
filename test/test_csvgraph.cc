@@ -3,10 +3,10 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "gundam/csvgraph.h"
-#include "gundam/large_graph.h"
-#include "gundam/util.h"
-#include "gundam/graph.h"
+#include "gundam/io/csvgraph.h"
+#include "gundam/graph_type/large_graph.h"
+#include "gundam/component/util.h"
+#include "gundam/graph_type/graph.h"
 
 inline uint64_t GetTime() { return clock() * 1000 / CLOCKS_PER_SEC; }
 

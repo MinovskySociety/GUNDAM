@@ -6,10 +6,10 @@
 #include <unordered_set>
 #include <vector>
 
-#include "attribute.h"
-#include "container2.h"
-#include "iterator2.h"
-#include "datatype.h"
+#include "gundam/component/attribute.h"
+#include "gundam/component/container2.h"
+#include "gundam/component/iterator2.h"
+#include "gundam/data_type/datatype.h"
 
 namespace GUNDAM {
 

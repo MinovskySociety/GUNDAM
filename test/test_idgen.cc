@@ -3,9 +3,9 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "gundam/generator.h"
-#include "gundam/large_graph.h"
-#include "gundam/util.h"
+#include "gundam/component/generator.h"
+#include "gundam/graph_type/large_graph.h"
+#include "gundam/component/util.h"
 
 TEST(TestGUNDAM, IDGEN)
 {

@@ -6,9 +6,9 @@
 #include <string>
 #include <vector>
 
-#include "gundam/container2.h"
-#include "gundam/iterator2.h"
-#include "gundam/pointer.h"
+#include "gundam/component/container2.h"
+#include "gundam/component/iterator2.h"
+#include "gundam/component/pointer.h"
 
 namespace GUNDAM {
 

@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/container.h"
+#include "gundam/component/container.h"
 
 TEST(TestGUNDAM, TestContainer) {
   using namespace GUNDAM;

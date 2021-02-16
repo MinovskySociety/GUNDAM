@@ -4,12 +4,12 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/large_graph.h"
-#include "gundam/csvgraph.h"
-#include "gundam/generator.h"
-#include "gundam/matchresult.h"
-#include "gundam/util.h"
-#include "gundam/vf2.h"
+#include "gundam/graph_type/large_graph.h"
+#include "gundam/io/csvgraph.h"
+#include "gundam/component/generator.h"
+#include "gundam/match/matchresult.h"
+#include "gundam/component/util.h"
+#include "gundam/algorithm/vf2.h"
 
 TEST(TestGUNDAM, WRITEMATCHRESULT) {
   using namespace GUNDAM;

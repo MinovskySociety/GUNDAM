@@ -7,9 +7,9 @@
 #include <sstream>
 #include <string>
 
-#include "gundam/datatype.h"
-#include "gundam/generator.h"
-#include "rapidcsv.h"
+#include "gundam/data_type/datatype.h"
+#include "gundam/component/generator.h"
+#include "gundam/io/rapidcsv.h"
 
 namespace GUNDAM {
 

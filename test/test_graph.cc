@@ -2,10 +2,10 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "gundam/small_graph.h"
-#include "gundam/large_graph.h"
-#include "gundam/large_graph2.h"
-#include "gundam/graph.h"
+#include "gundam/graph_type/small_graph.h"
+#include "gundam/graph_type/large_graph.h"
+#include "gundam/graph_type/large_graph2.h"
+#include "gundam/graph_type/graph.h"
 
 template<class GraphType>
 void TestAddVertexAddEdge(GraphType& g){

@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "gundam/datetime.h"
-#include "gundam/datatype.h"
+#include "gundam/data_type/datetime.h"
+#include "gundam/data_type/datatype.h"
 
 TEST(TestGUNDAM, TestDataType) {
   using namespace GUNDAM;

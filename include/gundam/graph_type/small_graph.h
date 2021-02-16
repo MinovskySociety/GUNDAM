@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 
-#include "gundam/container2.h"
-#include "gundam/iterator2.h"
-#include "gundam/pointer.h"
-#include "gundam/datatype.h"
+#include "gundam/component/container2.h"
+#include "gundam/component/iterator2.h"
+#include "gundam/component/pointer.h"
+#include "gundam/data_type/datatype.h"
 
 namespace GUNDAM {
 

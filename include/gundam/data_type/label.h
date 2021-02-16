@@ -5,8 +5,6 @@
 #include <type_traits>
 #include <assert.h>
 
-#include "define.h"
-
 template<typename... LabelUnderlieType>
 class Label;
 

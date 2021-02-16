@@ -6,19 +6,19 @@
 
 //#define _ENABLE_GRAPH
 
-#include "gundam/csvgraph.h"
+#include "gundam/io/csvgraph.h"
 #ifdef _ENABLE_GRAPH
-#include "gundam/graph.h"
+#include "gundam/graph_type/graph.h"
 #endif
 
-#include "gundam/large_graph.h"
+#include "gundam/graph_type/large_graph.h"
 //#include "gundam/large_graph1.h"
-#include "gundam/large_graph2.h"
-//#include "gundam/large_graph3.h"
-#include "gundam/simple_small_graph.h"
-#include "gundam/small_graph.h"
-#include "gundam/vf2.h"
-#include "gundam/dp_iso.h"
+#include "gundam/graph_type/large_graph2.h"
+//#include "gundam/graph_type/large_graph3.h"
+#include "gundam/graph_type/simple_small_graph.h"
+#include "gundam/graph_type/small_graph.h"
+#include "gundam/algorithm/vf2.h"
+#include "gundam/algorithm/dp_iso.h"
 
 inline uint64_t GetTime() { return clock() * 1000 / CLOCKS_PER_SEC; }
 

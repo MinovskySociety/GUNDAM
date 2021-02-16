@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/large_graph.h"
+#include "gundam/graph_type/large_graph.h"
 
 TEST(TestGUNDAM, TestGraphLabel) {
   using namespace GUNDAM;

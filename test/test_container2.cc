@@ -3,7 +3,7 @@
 #include <tuple>
 
 #include "gtest/gtest.h"
-#include "gundam/container2.h"
+#include "gundam/component/container2.h"
 
 template <class ContainerType>
 inline void TestDictContainer() {

@@ -1,16 +1,14 @@
 #ifndef _GRAPH_H
 #define _GRAPH_H
 
-#include "gundam/define.h"
-#include "gundam/container.h"
-#include "gundam/datatype.h"
-#include "gundam/datetime.h"
-#include "gundam/generator.h"
-#include "gundam/graph_item.h"
-#include "gundam/graph_configure.h"
-#include "gundam/iterator.h"
-#include "gundam/label.h"
-#include "gundam/attribute.h"
+#include "gundam/component/container.h"
+#include "gundam/data_type/datatype.h"
+#include "gundam/data_type/datetime.h"
+#include "gundam/component/generator.h"
+#include "gundam/graph_type/graph_configure.h"
+#include "gundam/component/iterator.h"
+#include "gundam/data_type/label.h"
+#include "gundam/component/attribute.h"
 
 #include <iostream>
 #include <set>

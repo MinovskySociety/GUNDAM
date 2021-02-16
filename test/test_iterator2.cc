@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "gundam/iterator2.h"
+#include "gundam/component/iterator2.h"
 
 class TestString {
  public:

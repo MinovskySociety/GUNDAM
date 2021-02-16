@@ -1,8 +1,8 @@
 #ifndef _VERTEX_SET_H
 #define _VERTEX_SET_H
 
-#include "gundam/container2.h"
-#include "gundam/iterator2.h"
+#include "gundam/component/"gundam/component/container2.h""
+#include "gundam/component/iterator2.h"
 
 namespace GUNDAM {
 

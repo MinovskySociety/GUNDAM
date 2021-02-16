@@ -6,7 +6,8 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "gundam/pointer.h"
+
+#include "gundam/component/pointer.h"
 
 class TestString {
  public:

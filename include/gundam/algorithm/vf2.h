@@ -11,8 +11,8 @@
 #include <type_traits>
 #include <vector>
 
-#include "gundam/match.h"
-#include "gundam/timer.h"
+#include "gundam/match/match.h"
+#include "gundam/component/timer.h"
 
 namespace GUNDAM {
 

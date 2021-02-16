@@ -1,9 +1,9 @@
 #ifndef _GRAPH_CONFIGURE_H
 #define _GRAPH_CONFIGURE_H
 
-#include "gundam/container.h"
-#include "gundam/label.h"
-#include "gundam/attribute.h"
+#include "gundam/component/container.h"
+#include "gundam/data_type/label.h"
+#include "gundam/component/attribute.h"
 
 #include <cstdint>
 #include <string>

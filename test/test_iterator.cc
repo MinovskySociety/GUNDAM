@@ -3,8 +3,8 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/container.h"
-#include "gundam/iterator.h"
+#include "gundam/component/container.h"
+#include "gundam/component/iterator.h"
 
 TEST(TestGUNDAM, TestInnerIterator) {
   using namespace GUNDAM;
