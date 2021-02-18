@@ -412,8 +412,8 @@ class Container<ContainerType::Set,
     }
 
     template<TupleIdxType tuple_idx>
-    inline auto& get() const{ 
-      return std::get<tuple_idx>(*(this->iterator_));
+    inline auto& get() const{
+      return this->template get_const<tuple_idx>();
     }
 
     template<TupleIdxType tuple_idx>

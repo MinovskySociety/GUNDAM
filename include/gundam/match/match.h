@@ -93,28 +93,28 @@ class Match {
 
     inline SrcVertexConstPtr const_src_ptr() const {
       return InnerIteratorType::template get_const<
-              SrcVertexPtrType, src_idx_, depth_ - 1>();
+               src_idx_, depth_ - 1>();
       auto temp_vertex_ptr =
           InnerIteratorType::template get_const<
-              SrcVertexPtrType, src_idx_, depth_ - 1>();
+               src_idx_, depth_ - 1>();
       return SrcVertexConstPtr(temp_vertex_ptr);
     }
 
     inline SrcVertexPtrType& src_ptr(){
       return InnerIteratorType::template get<
-              SrcVertexPtrType, src_idx_, depth_ - 1>();
+               src_idx_, depth_ - 1>();
     }
 
     inline DstVertexConstPtr const_dst_ptr() const {
       auto temp_vertex_ptr =
           InnerIteratorType::template get_const<
-              DstVertexPtrType, dst_idx_, depth_ - 1>();
+               dst_idx_, depth_ - 1>();
       return DstVertexConstPtr(temp_vertex_ptr);
     }
 
     inline DstVertexPtrType& dst_ptr(){
       return InnerIteratorType::template get<
-              DstVertexPtrType, dst_idx_, depth_ - 1>();
+               dst_idx_, depth_ - 1>();
     }
   };
 
@@ -158,13 +158,13 @@ class Match {
     // assert(src_ptr != nullptr
     //     && dst_ptr != nullptr);
     /// <iterator, bool>
-    auto ret = this->match_container_.Insert(src_ptr);
+    auto temp_dst_ptr = dst_ptr;
+    auto ret = this->match_container_.Insert(src_ptr, std::move(temp_dst_ptr));
     if (!ret.second) {
       /// has already existed in the current match
       return false;
     }
     /// has not added match for that vertex
-    ret.first.template get<kDstVertexPtrIdx>() = dst_ptr;
     return true;
   }
 
@@ -293,8 +293,8 @@ class Match {
 };
 
 template <typename SrcGraphType, typename DstGraphType,
-          enum ContainerType match_container_type = ContainerType::Set,
-          enum SortType match_container_sort_type = SortType::Default>
+          enum ContainerType match_container_type = ContainerType::Vector,
+          enum SortType match_container_sort_type = SortType::Sorted>
 class MatchSet {
  private:
   static constexpr bool kSrcIsConst_ = std::is_const<SrcGraphType>::value;
@@ -341,7 +341,7 @@ class MatchSet {
     inline ContentPtr content_ptr() const {
       static_assert(judge == is_const_, "illegal usage of this method");
       assert(!this->IsDone());
-      return &(InnerIteratorType::template get_const<MatchType, key_idx_,
+      return &(InnerIteratorType::template get_const<key_idx_,
                                                      depth_ - 1>());
     }
 
@@ -351,7 +351,7 @@ class MatchSet {
       static_assert(judge == is_const_, "illegal usage of this method");
       assert(!this->IsDone());
       return &(
-          InnerIteratorType::template get<MatchType, key_idx_, depth_ - 1>());
+          InnerIteratorType::template get<key_idx_, depth_ - 1>());
     }
 
     template <bool judge = is_const_,
@@ -359,8 +359,8 @@ class MatchSet {
     inline const MatchType& instance() const {
       static_assert(judge == is_const_, "illegal usage of this method");
       assert(!this->IsDone());
-      return (InnerIteratorType::template get_const<MatchType, key_idx_,
-                                                     depth_ - 1>());
+      return (InnerIteratorType::template get_const<key_idx_,
+                                                    depth_ - 1>());
     }
 
     template <bool judge = is_const_,
@@ -369,7 +369,7 @@ class MatchSet {
       static_assert(judge == is_const_, "illegal usage of this method");
       assert(!this->IsDone());
       return (
-          InnerIteratorType::template get<MatchType, key_idx_, depth_ - 1>());
+          InnerIteratorType::template get<key_idx_, depth_ - 1>());
     }
 
    public:
@@ -382,20 +382,26 @@ class MatchSet {
   using MatchIterator =
       IteratorWithInstance_<MatchContentIterator_<MatchContainerType, false, 1, kMatchIdx>>;
   using MatchConstIterator =
-      IteratorWithInstance_<MatchContentIterator_<MatchContainerType, true, 1, kMatchIdx>>;
+      IteratorWithInstance_<MatchContentIterator_<MatchContainerType,  true, 1, kMatchIdx>>;
 
   using size_type = typename MatchContainerType::size_type;
 
-  MatchSet() : match_set() { return; }
+  MatchSet() : match_set() { 
+    return; 
+  }
 
-  inline size_type size() const { return this->match_set.size(); }
+  inline size_type size() const { 
+    return this->match_set.size(); 
+  }
 
   inline MatchIterator MatchBegin() {
-    return MatchIterator(this->match_set.begin(), this->match_set.end());
+    return MatchIterator(this->match_set.begin(), 
+                         this->match_set. end ());
   }
 
   inline MatchConstIterator MatchCBegin() const {
-    return MatchConstIterator(this->match_set.cbegin(), this->match_set.cend());
+    return MatchConstIterator(this->match_set.cbegin(), 
+                              this->match_set. cend ());
   }
 
   inline std::pair<MatchIterator, bool> AddMatch(const MatchType& match) {
