@@ -229,7 +229,8 @@ class Container<ContainerType::Vector,
 
   inline std::pair<iterator, bool> Insert(
                   const   KeyType_& key,
-                       ValueTypes_&&... values) {
+                       ValueTypes_&&... values) { 
+    const ElementType new_element(key, values...);
     if constexpr (sort_type_ == SortType::Sorted){
       auto it = std::lower_bound(this->container_.begin(), 
                                  this->container_.end(), key, Compare);
@@ -238,7 +239,7 @@ class Container<ContainerType::Vector,
         return std::make_pair(it, false);
       }
       return std::make_pair(
-          this->container_.emplace(it, key, values...),
+          this->container_.emplace(it, new_element),
           true);
     }
     assert(sort_type_ == SortType::Default);
@@ -249,7 +250,7 @@ class Container<ContainerType::Vector,
     }
     return std::make_pair(this->container_.emplace(
                           this->container_.end(),
-                          key, values...), true);
+                          new_element), true);
   }
 
   inline bool Erase(const KeyType& key) {

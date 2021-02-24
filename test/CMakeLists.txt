@@ -25,6 +25,10 @@ add_executable (test_vf2 "test_vf2.cc")
 target_link_libraries(test_vf2 GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_vf2)
 
+add_executable (test_dp_iso "test_dp_iso.cc")
+target_link_libraries(test_dp_iso GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_dp_iso)
+
 add_executable (test_bfs "test_bfs.cc")
 target_link_libraries(test_bfs GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_bfs)

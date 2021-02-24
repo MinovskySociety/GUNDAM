@@ -925,7 +925,7 @@ inline bool RefineCandidateSet(const QueryGraph &query_graph,
 template <enum MatchSemantics match_semantics, class QueryGraph,
           class TargetGraph, class MatchCallback, class PruneCallback,
           class UpdateCandidateCallback>
-inline int DPISO_Recurive(const QueryGraph &query_graph,
+inline int DPISO_Recursive(const QueryGraph &query_graph,
                           const TargetGraph &target_graph,
                           MatchCallback user_callback,
                           PruneCallback prune_callback,
@@ -964,7 +964,7 @@ inline int DPISO_Recurive(const QueryGraph &query_graph,
 
 template <enum MatchSemantics match_semantics, class QueryGraph,
           class TargetGraph, class MatchCallback, class PruneCallback>
-inline int DPISO_Recurive(
+inline int DPISO_Recursive(
     const QueryGraph &query_graph, const TargetGraph &target_graph,
     std::map<typename QueryGraph::VertexConstPtr,
              std::vector<typename TargetGraph::VertexConstPtr>> &candidate_set,
@@ -1001,7 +1001,7 @@ inline int DPISO_Recurive(
 }
 template <enum MatchSemantics match_semantics, class QueryGraph,
           class TargetGraph, class MatchCallback, class PruneCallback>
-inline int DPISO_Recurive(
+inline int DPISO_Recursive(
     const QueryGraph &query_graph, const TargetGraph &target_graph,
     std::map<typename QueryGraph::VertexConstPtr,
              std::vector<typename TargetGraph::VertexConstPtr>> &candidate_set,
@@ -1012,14 +1012,14 @@ inline int DPISO_Recurive(
   std::map<typename QueryGraph::VertexConstPtr,
            typename TargetGraph::VertexConstPtr>
       match_state;
-  return DPISO_Recurive<match_semantics, QueryGraph, TargetGraph>(
+  return DPISO_Recursive<match_semantics, QueryGraph, TargetGraph>(
       query_graph, target_graph, candidate_set, match_state, user_callback,
       prune_callback, query_limit_time);
 }
 template <enum MatchSemantics match_semantics, class QueryGraph,
           class TargetGraph, class MatchCallback, class PruneCallback,
           class UpdateCandidateCallback>
-inline int DPISO_Recurive(
+inline int DPISO_Recursive(
     const QueryGraph &query_graph, const TargetGraph &target_graph,
     std::map<typename QueryGraph::VertexConstPtr,
              typename TargetGraph::VertexConstPtr> &match_state,
@@ -1047,20 +1047,20 @@ inline int DPISO_Recurive(
   if (!update_candidate_callback(candidate_set)) {
     return 0;
   }
-  return DPISO_Recurive<match_semantics>(
+  return DPISO_Recursive<match_semantics>(
       query_graph, target_graph, candidate_set, match_state, user_callback,
       prune_callback, query_limit_time);
 }
 
 template <enum MatchSemantics match_semantics, class QueryGraph,
           class TargetGraph, class MatchCallback>
-inline int DPISO_Recurive(const QueryGraph &query_graph,
+inline int DPISO_Recursive(const QueryGraph &query_graph,
                           const TargetGraph &target_graph,
                           MatchCallback user_callback,
                           double query_limit_time = 1200) {
   using QueryVertexPtr = typename QueryGraph::VertexConstPtr;
   using TargetVertexPtr = typename TargetGraph::VertexConstPtr;
-  return DPISO_Recurive<match_semantics>(
+  return DPISO_Recursive<match_semantics>(
       query_graph, target_graph, user_callback,
       std::bind(PruneCallbackEmpty<QueryVertexPtr, TargetVertexPtr>,
                 std::placeholders::_1),
@@ -1074,7 +1074,7 @@ template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
           class QueryGraph, class TargetGraph, class MatchCallback>
 inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
                  MatchCallback user_callback, double query_limit_time = 1200) {
-  return _dp_iso::DPISO_Recurive<match_semantics>(
+  return _dp_iso::DPISO_Recursive<match_semantics>(
       query_graph, target_graph, user_callback, query_limit_time);
 }
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
@@ -1158,7 +1158,7 @@ inline int DPISO(
                   std::placeholders::_1, &max_result);
     /*
     match_state.emplace(cal_supp_vertex_ptr, target_ptr);
-    _dp_iso::DPISO_Recurive<match_semantics, QueryGraph, TargetGraph>(
+    _dp_iso::DPISO_Recursive<match_semantics, QueryGraph, TargetGraph>(
         query_graph, target_graph, temp_candidate_set, match_state,
         user_callback, prune_callback, single_query_limit_time);
     */
@@ -1206,7 +1206,7 @@ inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
                  MatchCallback match_callback, PruneCallBack prune_callback,
                  UpdateInitCandidateCallback update_initcandidate_callback,
                  double query_limit_time = 1200) {
-  return _dp_iso::DPISO_Recurive<match_semantics>(
+  return _dp_iso::DPISO_Recursive<match_semantics>(
       query_graph, target_graph, match_callback, prune_callback,
       update_initcandidate_callback, query_limit_time);
 }
@@ -1221,7 +1221,7 @@ inline int DPISO(
              typename TargetGraph::VertexConstPtr> &match_state,
     MatchCallback user_callback, PruneCallback prune_callback,
     double query_limit_time = 1200) {
-  return _dp_iso::DPISO_Recurive<match_semantics>(
+  return _dp_iso::DPISO_Recursive<match_semantics>(
       query_graph, target_graph, candidate_set, match_state, user_callback,
       prune_callback, query_limit_time);
 }
@@ -1235,7 +1235,7 @@ inline int DPISO(
              std::vector<typename TargetGraph::VertexConstPtr>> &candidate_set,
     MatchCallback user_callback, PruneCallback prune_callback,
     double query_limit_time = 1200) {
-  return _dp_iso::DPISO_Recurive<match_semantics>(
+  return _dp_iso::DPISO_Recursive<match_semantics>(
       query_limit_time, target_graph, candidate_set, user_callback,
       prune_callback, query_limit_time);
 }
@@ -1249,7 +1249,7 @@ inline int DPISO(const QueryGraph &query_graph, const TargetGraph &target_graph,
                  MatchCallback user_callback, PruneCallback prune_callback,
                  UpdateCandidateCallback update_candidate_callback,
                  double query_limit_time = 1200) {
-  return _dp_iso::DPISO_Recurive<match_semantics>(
+  return _dp_iso::DPISO_Recursive<match_semantics>(
       query_graph, target_graph, match_state, user_callback, prune_callback,
       update_candidate_callback, query_limit_time);
 }

@@ -25,17 +25,70 @@ template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
           typename   TargetGraphVertexPtr,
           typename PruneCallback, 
           typename MatchCallback>
-inline int DPISO_UsingMatch(
-   QueryGraph&  query_graph, 
-  TargetGraph& target_graph,
+inline size_t DPISO_UsingMatch(
+        QueryGraph&  query_graph, 
+       TargetGraph& target_graph,
   Match<QueryGraph,
        TargetGraph>& match_state,
   std::map<QueryGraphVertexPtr, 
-            std::vector<TargetGraphVertexPtr>>& candidate_set,
+           std::vector<TargetGraphVertexPtr>>& candidate_set,
   PruneCallback prune_callback,
   MatchCallback match_callback, 
-   double query_limit_time = -1.0) {
-  
+   double time_limit = -1.0) {
+
+  using MatchMap = std::map<QueryGraphVertexPtr, 
+                           TargetGraphVertexPtr>;
+
+  using MatchContainer = std::vector<MatchMap>;
+
+  MatchMap match_state;
+  std::set<TargetGraphVertexPtr> target_matched;
+  for (auto vertex_it = query_graph.VertexBegin(); 
+           !vertex_it.IsDone();
+            vertex_it++) {
+    const QueryGraphVertexPtr src_ptr = vertex_it;
+    if (!partical_match.HasMap(src_ptr)) {
+      continue;
+    }
+    const auto dst_ptr = partical_match.MapTo(src_ptr);
+    match_state.emplace(src_ptr, dst_ptr);
+    target_matched.insert(dst_ptr);
+  }
+
+
+  MatchContainer match_result;
+
+  if (query_graph.CountEdge() < _dp_iso::large_query_edge) {
+    size_t result_count = 0;
+    _dp_iso::_DPISO<match_semantics, 
+                    QueryGraph, 
+                   TargetGraph>(
+        candidate_set, match_state, target_matched, result_count, 
+        match_callback,
+        prune_callback, 
+        clock(), time_limit);
+    return result_count;
+  }
+
+  using FailSetContainer = std::vector<QueryGraphVertexPtr>;
+  using  ParentContainer = std::map<QueryGraphVertexPtr, 
+                                    std::vector<QueryGraphVertexPtr>>;
+  FailSetContainer fail_set;
+   ParentContainer parent;
+  for (const auto &map : match_state) {
+    _dp_iso::UpdateParent(match_state, map.first, parent);
+  }
+
+  size_t result_count = 0;
+  _dp_iso::_DPISO<match_semantics, 
+                  QueryGraph, 
+                 TargetGraph>(
+      candidate_set, match_state, target_matched, parent, fail_set,
+      result_count, 
+      match_callback, 
+      prune_callback,
+      clock(), time_limit);
+  return result_count;
 }
 
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
@@ -45,7 +98,7 @@ template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
           typename   TargetGraphVertexPtr,
           typename PruneCallback, 
           typename MatchCallback>
-inline int DPISO_UsingMatch(
+inline size_t DPISO_UsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
   std::map<QueryGraphVertexPtr, 

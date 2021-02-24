@@ -32,6 +32,12 @@ public:
         return;
     }
 
+    Label(Label &&) = default;
+    Label(const Label &) = default;
+
+    Label& operator=(const Label&) = default;	  
+    Label& operator=(Label&&) = default;	
+
     inline bool operator ==(const Label<>& label) const{
         return true;
     }
@@ -77,6 +83,12 @@ public:
     Label():kLable_(){
         return;
     }
+
+    Label(Label &&) = default;
+    Label(const Label &) = default;
+
+    Label& operator=(const Label&) = default;	  
+    Label& operator=(Label&&) = default;	
 
     Label(const LabelUnderlieType& kLable_)
                           :kLable_(kLable_){
