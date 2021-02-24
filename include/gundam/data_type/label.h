@@ -55,7 +55,7 @@ private:
     static_assert(std::is_object<LabelUnderlieType>::value,
                   "Illegal underlie label type");
 protected:
-    const LabelUnderlieType kLable_;
+    LabelUnderlieType kLable_;
 
     template<bool judge = std::is_same<LabelUnderlieType,
                                        std::string>::value,

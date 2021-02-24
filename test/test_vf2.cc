@@ -401,9 +401,9 @@ TEST(TestGUNDAM, VF2_3) {
   using TargetGraph = LargeGraph<uint64_t, std::string, std::string, 
                                  uint64_t, std::string, std::string>;
 
-  // TestVF2_3<QG1, TG1>();
-  // TestVF2_3<QG2, TG2>();
-  // TestVF2_3<QG3, TG3>();
+  TestVF2_3<QG1, TG1>();
+  TestVF2_3<QG2, TG2>();
+  TestVF2_3<QG3, TG3>();
   TestVF2_3<QueryGraph, TargetGraph>();
 }
 
