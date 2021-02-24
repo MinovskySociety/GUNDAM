@@ -130,7 +130,22 @@ class Match {
 
   using size_type = typename MapContainerType::size_type;
 
-  Match() : match_container_() { return; }
+  Match() = default;
+
+  Match(SrcGraphType& src_graph,
+        DstGraphType& dst_graph) : match_container_(){
+    for (auto src_vertex_it = src_graph.VertexBegin();
+             !src_vertex_it.IsDone();
+              src_vertex_it++){
+      auto dst_ptr = dst_graph.FindVertex(src_vertex_it->id());
+      if (!dst_ptr){
+        // dst_ptr is null 
+        continue;
+      }
+      this->AddMap(src_vertex_it, dst_ptr);
+    }
+    return;
+  }
 
   inline size_type size() const { return this->match_container_.size(); }
 
@@ -386,9 +401,7 @@ class MatchSet {
 
   using size_type = typename MatchContainerType::size_type;
 
-  MatchSet() : match_set() { 
-    return; 
-  }
+  MatchSet() = default;
 
   inline size_type size() const { 
     return this->match_set.size(); 
