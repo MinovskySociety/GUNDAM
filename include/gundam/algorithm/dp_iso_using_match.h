@@ -25,7 +25,7 @@ template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
           typename   TargetGraphVertexPtr,
           typename PruneCallback, 
           typename MatchCallback>
-inline size_t DPISOUsingMatch(
+inline size_t DpisoUsingMatch(
         QueryGraph&  query_graph, 
        TargetGraph& target_graph,
   Match<QueryGraph,
@@ -97,7 +97,7 @@ template <enum MatchSemantics match_semantics
           typename   TargetGraphVertexPtr,
           typename PruneCallback, 
           typename MatchCallback>
-inline size_t DPISOUsingMatch(
+inline size_t DpisoUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
   std::map<QueryGraphVertexPtr, 
@@ -108,7 +108,7 @@ inline size_t DPISOUsingMatch(
 
   Match<QueryGraph, TargetGraph> match_state;
 
-  return DPISOUsingMatch(query_graph,
+  return DpisoUsingMatch(query_graph,
                         target_graph,
                          match_state,
                        candidate_set,
@@ -121,7 +121,7 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           typename    QueryGraph,
           typename   TargetGraph>
-inline size_t DPISOUsingMatch(
+inline size_t DpisoUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
   MatchSet<QueryGraph,
@@ -173,7 +173,7 @@ inline size_t DPISOUsingMatch(
   // the initial partial match is empty
   Match<QueryGraph, TargetGraph> match_state;
 
-  return DPISOUsingMatch(query_graph,
+  return DpisoUsingMatch(query_graph,
                         target_graph,
                          match_state,
                        candidate_set,

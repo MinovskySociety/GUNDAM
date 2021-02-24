@@ -54,7 +54,7 @@ void TestDPISOUsingMatch_1() {
                    const TargetGraph> match_result;
   const auto&  query_const_ref = query;
   const auto& target_const_ref = target;
-  int count = GUNDAM::DPISOUsingMatch<MatchSemantics::kIsomorphism>(
+  int count = GUNDAM::DpisoUsingMatch<MatchSemantics::kIsomorphism>(
                query_const_ref, 
               target_const_ref, 
                   match_result);
@@ -171,7 +171,7 @@ void TestDPISOUsingMatch_2() {
                    const TargetGraph> match_result;
   const auto&  query_const_ref = query;
   const auto& target_const_ref = target;
-  int count = GUNDAM::DPISOUsingMatch<MatchSemantics::kIsomorphism>(
+  int count = GUNDAM::DpisoUsingMatch<MatchSemantics::kIsomorphism>(
                query_const_ref, 
               target_const_ref, 
                   match_result);
@@ -303,7 +303,7 @@ void TestDPISOUsingMatch_3() {
                    const TargetGraph> match_result;
   const auto&  query_const_ref = query;
   const auto& target_const_ref = target;
-  int count = GUNDAM::DPISOUsingMatch<MatchSemantics::kIsomorphism>(
+  int count = GUNDAM::DpisoUsingMatch<MatchSemantics::kIsomorphism>(
                query_const_ref, 
               target_const_ref, 
                   match_result);
@@ -459,7 +459,7 @@ void TestDPISOUsingMatch_3() {
 //     std::cout << "         Default: ";
 //     start = GetTime();
 //     for (int i = 0; i < times_inner; i++) {
-//       int count = DPISOUsingMatch(query, target, match_result1);
+//       int count = DpisoUsingMatch(query, target, match_result1);
 
 //       ASSERT_EQ(40, count);
 //     }
@@ -468,7 +468,7 @@ void TestDPISOUsingMatch_3() {
 
 //     start = GetTime();
 //     for (int i = 0; i < times_inner; i++) {
-//       int count = DPISOUsingMatch<MatchSemantics::kIsomorphism>(query, target, 20);
+//       int count = DpisoUsingMatch<MatchSemantics::kIsomorphism>(query, target, 20);
 
 //       ASSERT_EQ(20, count);
 //     }
@@ -478,7 +478,7 @@ void TestDPISOUsingMatch_3() {
 //     start = GetTime();
 //     for (int i = 0; i < times_inner; i++) {
 //       int count =
-//           DPISOUsingMatch<MatchSemantics::kIsomorphism>(query, target, -1, match_result2);
+//           DpisoUsingMatch<MatchSemantics::kIsomorphism>(query, target, -1, match_result2);
 
 //       ASSERT_EQ(40, count);
 //     }
@@ -490,7 +490,7 @@ void TestDPISOUsingMatch_3() {
 //       int max_result = -1;
 //       match_result1.clear();
 
-//       int count = DPISOUsingMatch<MatchSemantics::kIsomorphism>(
+//       int count = DpisoUsingMatch<MatchSemantics::kIsomorphism>(
 //           query, target,
 //           std::bind(
 //               _dp_iso::MatchCallbackSaveResult1<
@@ -510,7 +510,7 @@ void TestDPISOUsingMatch_3() {
 //       int max_result = -1;
 //       match_result1.clear();
 
-//       int count = DPISOUsingMatch<MatchSemantics::kIsomorphism>(
+//       int count = DpisoUsingMatch<MatchSemantics::kIsomorphism>(
 //           query, target,
 //           std::bind(_dp_iso::MatchCallbackSaveResult2<
 //                         typename QueryGraph::VertexConstPtr,
@@ -527,7 +527,7 @@ void TestDPISOUsingMatch_3() {
 
 //     start = GetTime();
 //     for (int i = 0; i < times_inner; i++) {
-//       int count = DPISOUsingMatch<MatchSemantics::kIsomorphism>(
+//       int count = DpisoUsingMatch<MatchSemantics::kIsomorphism>(
 //           query, target,
 //           -1, match_result1);
 
