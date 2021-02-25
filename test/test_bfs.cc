@@ -136,28 +136,75 @@ void TestBfs() {
   using VertexPtrType      = typename GraphType::VertexPtr;
   using VertexConstPtrType = typename GraphType::VertexConstPtr;
 
-  auto my_callback = [](const VertexPtrType& vertex_ptr, 
-                        const size_t& current_distance){
-    ASSERT_EQ(vertex_ptr->label(), current_distance);
-    return;
+  bool distance_tested = true;
+
+  auto my_callback = [&distance_tested](
+                        const VertexPtrType& vertex_ptr, 
+                        const size_t& current_distance) -> bool{
+    if (vertex_ptr->label() != current_distance) {
+      distance_tested = false;
+    }
+    return true;
   };
   
+  distance_tested = true;
   auto src_ptr = g.FindVertex(1);
   auto ret = GUNDAM::Bfs(g, src_ptr, my_callback);
+  ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, g.CountVertex());
 
+  distance_tested = true;
   ret = GUNDAM::Bfs<false>(g, src_ptr, my_callback);
+  ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, g.CountVertex());
 
-  auto my_callback2 = [](const VertexPtrType& vertex_ptr, 
-                         const size_t& current_distance){
-    ASSERT_EQ(vertex_ptr->label(), 4 - current_distance);
-    return;
+  auto my_callback2 = [&distance_tested](
+                         const VertexPtrType& vertex_ptr, 
+                         const size_t& current_distance) -> bool{
+    if (vertex_ptr->label() != 4 - current_distance) {
+      distance_tested = false;
+    }
+    return true;
   };
-  
+
+  distance_tested = true;
   auto src_ptr2 = g.FindVertex(9);
   ret = GUNDAM::Bfs<true>(g, src_ptr2, my_callback2);
+  ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, g.CountVertex());
+
+  distance_tested = true;
+  ret = GUNDAM::Bfs<false>(g, src_ptr2, my_callback2);
+  ASSERT_TRUE(distance_tested);
+  ASSERT_EQ(ret, 1);
+
+  distance_tested = true;
+  ret = GUNDAM::Bfs<false>(g, src_ptr2, my_callback);
+  ASSERT_TRUE(!distance_tested);
+  ASSERT_EQ(ret, 1);
+
+
+  int counter = 0;
+  const int kVertexLimit = 5;
+
+  auto my_callback3 
+    = [&distance_tested,
+       &counter,
+       &kVertexLimit](const VertexPtrType& vertex_ptr, 
+                      const size_t& current_distance) -> bool{
+    if (vertex_ptr->label() != current_distance) {
+      distance_tested = false;
+    }
+    counter++;
+    if (counter == kVertexLimit)
+      return false;
+    return true;
+  };
+  
+  distance_tested = true;
+  ret = GUNDAM::Bfs(g, src_ptr, my_callback3);
+  ASSERT_TRUE(distance_tested);
+  ASSERT_EQ(ret, kVertexLimit);
 
   // now_furthest = 0;
 

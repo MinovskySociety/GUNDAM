@@ -1,17 +1,8 @@
 #ifndef _BFS_H
 #define _BFS_H
-#include <cassert>
-#include <cstdint>
-#include <ctime>
-#include <functional>
-#include <iostream>
-#include <list>
-#include <map>
+
 #include <queue>
 #include <set>
-#include <stack>
-#include <type_traits>
-#include <vector>
 
 namespace GUNDAM {
 
@@ -34,7 +25,10 @@ inline size_t Bfs(GraphType&  graph,
           current_distance] = vertex_ptr_queue.front();
     vertex_ptr_queue.pop();
     counter++;
-    user_callback(current_vertex_ptr, current_distance);
+    if (!user_callback(current_vertex_ptr, current_distance)){
+      // meets stopping condition, stop the matching process
+      return counter;
+    }
     for (auto edge_it = current_vertex_ptr->OutEdgeBegin();
              !edge_it.IsDone();
               edge_it++) {
@@ -72,5 +66,22 @@ inline size_t Bfs(GraphType& graph,
   return Bfs<bidirectional>(graph, src_vertex_ptr_set, user_callback);
 }
 
+template <bool bidirectional = false,
+          typename        GraphType,
+          typename    VertexPtrType,
+          typename UserCallBackType>
+inline size_t Bfs(GraphType& graph,
+              VertexPtrType& src_vertex_ptr) {
+  std::set<VertexPtrType> src_vertex_ptr_set = {src_vertex_ptr};
+
+  auto do_nothing_callback = [](const VertexPtrType& vertex_ptr, 
+                                const size_t& current_distance){
+    // do nothing, continue matching
+    return true;
+  };
+  return Bfs<bidirectional>(graph, src_vertex_ptr_set, do_nothing_callback);
+}
+
 }  // namespace GUNDAM
+
 #endif // _BFS_H
