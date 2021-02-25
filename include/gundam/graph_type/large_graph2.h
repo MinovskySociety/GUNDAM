@@ -992,6 +992,10 @@ class LargeGraph2 {
     return EdgeIterator(edges_.begin(), edges_.end());
   }
 
+  EdgeConstIterator EdgeBegin() const {
+    return this->EdgeCBegin();
+  }
+
   EdgeConstIterator EdgeCBegin() const {
     return EdgeConstIterator(edges_.cbegin(), edges_.cend());
   }
