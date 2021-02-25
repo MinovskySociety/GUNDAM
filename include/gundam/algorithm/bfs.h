@@ -68,8 +68,7 @@ inline size_t Bfs(GraphType& graph,
 
 template <bool bidirectional = false,
           typename        GraphType,
-          typename    VertexPtrType,
-          typename UserCallBackType>
+          typename    VertexPtrType>
 inline size_t Bfs(GraphType& graph,
               VertexPtrType& src_vertex_ptr) {
   std::set<VertexPtrType> src_vertex_ptr_set = {src_vertex_ptr};

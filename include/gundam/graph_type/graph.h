@@ -824,7 +824,11 @@ class Graph {
         return this->VertexPtrContainerElement();
       }
 
-      inline const VertexConstPtr const_src_ptr() const {
+      inline VertexConstPtr src_ptr() const {
+        return this->const_src_ptr();
+      }
+
+      inline VertexConstPtr const_src_ptr() const {
         assert(!this->IsDone());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return this->vertex_ptr_;
@@ -838,6 +842,10 @@ class Graph {
           return this->VertexPtrContainerElement();
         /// this->direction_ == EdgeDirection::InputEdge
         return this->vertex_ptr_;
+      }
+      
+      inline VertexConstPtr dst_ptr() const {
+        return this->const_dst_ptr();
       }
       
       inline VertexConstPtr const_dst_ptr() const {
@@ -1156,8 +1164,12 @@ class Graph {
         /// this->direction_ == EdgeDirection::InputEdge
         return this->VertexPtrContainerElement();
       }
+      
+      inline VertexConstPtr src_ptr() const {
+        return this->const_src_ptr();
+      }
 
-      inline const VertexConstPtr const_src_ptr() const {
+      inline VertexConstPtr const_src_ptr() const {
         assert(!this->IsDone());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return InnerIteratorType::const_vertex_ptr();
@@ -1171,6 +1183,10 @@ class Graph {
           return this->VertexPtrContainerElement();
         /// this->direction_ == EdgeDirection::InputEdge
         return InnerIteratorType::vertex_ptr();
+      }
+      
+      inline VertexConstPtr dst_ptr() const {
+        return this->const_dst_ptr();
       }
       
       inline VertexConstPtr const_dst_ptr() const {
@@ -1349,18 +1365,26 @@ class Graph {
         return this->decomposed_edge_iterator_.template get_const<kEdgeIDIdx>();
       }
 
-      inline const VertexConstPtr const_src_ptr() const {
+      inline VertexConstPtr const_src_ptr() const {
         assert(!this->IsNull());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return this->vertex_ptr_;
         return this->VertexPtrContainerConstElement();
       }
 
-      inline const VertexConstPtr const_dst_ptr() const {
+      inline VertexConstPtr src_ptr() const {
+        return this->const_src_ptr();
+      }
+
+      inline VertexConstPtr const_dst_ptr() const {
         assert(!this->IsNull());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return this->VertexPtrContainerConstElement();
         return this->vertex_ptr_;
+      }
+
+      inline VertexConstPtr dst_ptr() const {
+        return this->const_dst_ptr();
       }
 
       template <typename ConcreteDataType>

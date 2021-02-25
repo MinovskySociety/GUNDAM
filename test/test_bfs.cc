@@ -149,7 +149,11 @@ void TestBfs() {
   
   distance_tested = true;
   auto src_ptr = g.FindVertex(1);
-  auto ret = GUNDAM::Bfs(g, src_ptr, my_callback);
+
+  auto ret = GUNDAM::Bfs(g, src_ptr);
+  ASSERT_EQ(ret, g.CountVertex());
+
+  ret = GUNDAM::Bfs(g, src_ptr, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, g.CountVertex());
 
@@ -182,7 +186,6 @@ void TestBfs() {
   ret = GUNDAM::Bfs<false>(g, src_ptr2, my_callback);
   ASSERT_TRUE(!distance_tested);
   ASSERT_EQ(ret, 1);
-
 
   int counter = 0;
   const int kVertexLimit = 5;
@@ -275,5 +278,5 @@ TEST(TestGUNDAM, TestBfs) {
   TestBfs<G4>();
   TestBfs<G5>();
   TestBfs<G6>();
-  // TestBfs<G7>();
+  TestBfs<G7>();
 }
