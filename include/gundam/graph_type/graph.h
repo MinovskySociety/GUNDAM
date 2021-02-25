@@ -576,17 +576,14 @@ class Graph {
         this->ptr_ = ptr.ptr_;
         return *this;
       }
-
-      template <const bool judge = is_const_,
-                typename std::enable_if<!judge, bool>::type = false>
-      inline VertexPtrType operator->() {
-        static_assert(judge == is_const_, "Illegal usage of this method");
+      
+      inline VertexPtrType operator->() const {
         return this->ptr_;
       }
 
       template <const bool judge = is_const_,
-                typename std::enable_if<judge, bool>::type = false>
-      inline VertexPtrType operator->() const {
+                typename std::enable_if<!judge, bool>::type = false>
+      inline VertexPtrType operator->() {
         static_assert(judge == is_const_, "Illegal usage of this method");
         return this->ptr_;
       }
@@ -1780,11 +1777,8 @@ class Graph {
                            == EdgePtrContentType::id();
       }
 
-      template <bool judge = is_const_,
-                typename std::enable_if<judge, bool>::type = false>
       inline EdgePtrContentTypePtrType operator->() const {
         assert(!this->IsNull());
-        static_assert(judge == is_const_, "Illegal usage of this method");
         EdgePtrContentTypePtrType const temp_ptr = this;
         return temp_ptr;
       }

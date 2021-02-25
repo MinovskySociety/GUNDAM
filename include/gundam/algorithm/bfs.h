@@ -22,17 +22,18 @@ inline size_t Bfs(GraphType&  graph,
      std::set<VertexPtrType>& src_vertex_ptr_set,
            UserCallBackType&  user_callback) {
   size_t counter = 0;
-  std::queue<VertexPtrType> vertex_ptr_queue;
+  std::queue<std::pair<VertexPtrType, size_t>> vertex_ptr_queue;
   std:: set <VertexPtrType> visited;
   for (const auto& src_vertex_ptr : src_vertex_ptr_set){
-    vertex_ptr_queue.emplace(src_vertex_ptr);
+    vertex_ptr_queue.emplace(src_vertex_ptr, 0);
     visited.emplace(src_vertex_ptr);
   }
   while (!vertex_ptr_queue.empty()){
-    auto current_vertex_ptr = vertex_ptr_queue.front();
+    auto [current_vertex_ptr, 
+          current_distance] = vertex_ptr_queue.front();
     vertex_ptr_queue.pop();
     counter++;
-    user_callback(current_vertex_ptr);
+    user_callback(current_vertex_ptr, current_distance);
     for (auto edge_it = current_vertex_ptr->OutEdgeBegin();
              !edge_it.IsDone();
               edge_it++) {
@@ -41,7 +42,7 @@ inline size_t Bfs(GraphType&  graph,
         continue;
       }
       visited.emplace(edge_it->dst_ptr());
-      vertex_ptr_queue.emplace(edge_it->dst_ptr());
+      vertex_ptr_queue.emplace(edge_it->dst_ptr(), current_distance + 1);
     }
   }
   return counter;

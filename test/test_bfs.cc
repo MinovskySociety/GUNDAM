@@ -136,15 +136,12 @@ void TestBfs() {
   using VertexPtrType      = typename GraphType::VertexPtr;
   using VertexConstPtrType = typename GraphType::VertexConstPtr;
 
-  int now_furthest = 0;
-
-  auto my_callback = [&now_furthest](VertexPtrType& vertex_ptr){
-    ASSERT_TRUE(vertex_ptr->label() == now_furthest
-             || vertex_ptr->label() == now_furthest + 1);
-    std::cout<<"vertex id: "<<vertex_ptr->id()<<std::endl;
-    now_furthest = vertex_ptr->label();
+  auto my_callback = [](const VertexPtrType& vertex_ptr, 
+                        const size_t& current_distance){
+    ASSERT_EQ(vertex_ptr->label(), current_distance);
     return;
   };
+  
   auto src_ptr = g.FindVertex(1);
   auto ret = GUNDAM::Bfs(g, src_ptr, my_callback);
   ASSERT_EQ(ret, g.CountVertex());
