@@ -146,6 +146,19 @@ void TestBfs() {
   auto ret = GUNDAM::Bfs(g, src_ptr, my_callback);
   ASSERT_EQ(ret, g.CountVertex());
 
+  ret = GUNDAM::Bfs<false>(g, src_ptr, my_callback);
+  ASSERT_EQ(ret, g.CountVertex());
+
+  auto my_callback2 = [](const VertexPtrType& vertex_ptr, 
+                         const size_t& current_distance){
+    ASSERT_EQ(vertex_ptr->label(), 4 - current_distance);
+    return;
+  };
+  
+  auto src_ptr2 = g.FindVertex(9);
+  ret = GUNDAM::Bfs<true>(g, src_ptr2, my_callback2);
+  ASSERT_EQ(ret, g.CountVertex());
+
   // now_furthest = 0;
 
   // auto my_const_ptr_callback = [&now_furthest](VertexConstPtrType& vertex_ptr){

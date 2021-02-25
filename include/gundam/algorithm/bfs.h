@@ -15,7 +15,8 @@
 
 namespace GUNDAM {
 
-template <typename        GraphType,
+template <bool bidirectional = false,
+          typename        GraphType,
           typename    VertexPtrType,
           typename UserCallBackType>
 inline size_t Bfs(GraphType&  graph,
@@ -44,18 +45,31 @@ inline size_t Bfs(GraphType&  graph,
       visited.emplace(edge_it->dst_ptr());
       vertex_ptr_queue.emplace(edge_it->dst_ptr(), current_distance + 1);
     }
+    if constexpr (bidirectional){
+      for (auto edge_it = current_vertex_ptr->InEdgeBegin();
+               !edge_it.IsDone();
+                edge_it++) {
+        if (visited.find(edge_it->src_ptr()) != visited.end()){
+          // already visited
+          continue;
+        }
+        visited.emplace(edge_it->src_ptr());
+        vertex_ptr_queue.emplace(edge_it->src_ptr(), current_distance + 1);
+      }
+    }
   }
   return counter;
 }
 
-template <typename        GraphType,
+template <bool bidirectional = false,
+          typename        GraphType,
           typename    VertexPtrType,
           typename UserCallBackType>
 inline size_t Bfs(GraphType& graph,
               VertexPtrType& src_vertex_ptr,
            UserCallBackType& user_callback) {
   std::set<VertexPtrType> src_vertex_ptr_set = {src_vertex_ptr};
-  return Bfs(graph, src_vertex_ptr_set, user_callback);
+  return Bfs<bidirectional>(graph, src_vertex_ptr_set, user_callback);
 }
 
 }  // namespace GUNDAM
