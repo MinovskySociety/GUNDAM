@@ -10,8 +10,10 @@
 #include "gundam/graph_type/large_graph2.h"
 #include "gundam/graph_type/graph.h"
 
-template<class GraphType>
-void TestAddVertexAddEdge(GraphType& g){
+template <class GraphType>
+void TestBfs() {
+  GraphType g0;
+
   // 1 -> 2 -> 4
   // |  / |  / |
   // V /  V /  V
@@ -23,115 +25,109 @@ void TestAddVertexAddEdge(GraphType& g){
   // label denotes the distance 
 
   // AddVertex
-  auto res1 = g.AddVertex(1, 0);
+  auto res1 = g0.AddVertex(1, 0);
   ASSERT_TRUE(res1.first);
   ASSERT_TRUE(res1.second);
 
-  res1 = g.AddVertex(2, 1);
+  res1 = g0.AddVertex(2, 1);
   ASSERT_TRUE(res1.first);
   ASSERT_TRUE(res1.second);
 
-  res1 = g.AddVertex(3, 1);
+  res1 = g0.AddVertex(3, 1);
   ASSERT_TRUE(res1.first);
   ASSERT_TRUE(res1.second);
 
-  res1 = g.AddVertex(4, 2);
+  res1 = g0.AddVertex(4, 2);
   ASSERT_TRUE(res1.first);
   ASSERT_TRUE(res1.second);
 
-  res1 = g.AddVertex(5, 2);
+  res1 = g0.AddVertex(5, 2);
   ASSERT_TRUE(res1.first);
   ASSERT_TRUE(res1.second);
 
-  res1 = g.AddVertex(6, 2);
+  res1 = g0.AddVertex(6, 2);
   ASSERT_TRUE(res1.first);
   ASSERT_TRUE(res1.second);
 
-  res1 = g.AddVertex(7, 3);
+  res1 = g0.AddVertex(7, 3);
   ASSERT_TRUE(res1.first);
   ASSERT_TRUE(res1.second);
 
-  res1 = g.AddVertex(8, 3);
+  res1 = g0.AddVertex(8, 3);
   ASSERT_TRUE(res1.first);
   ASSERT_TRUE(res1.second);
 
-  res1 = g.AddVertex(9, 4);
+  res1 = g0.AddVertex(9, 4);
   ASSERT_TRUE(res1.first);
   ASSERT_TRUE(res1.second);
 
   // AddEdge
-  auto res2 = g.AddEdge(1, 2, 42, 1);
+  auto res2 = g0.AddEdge(1, 2, 42, 1);
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
-  res2 = g.AddEdge(1, 3, 42, 2);
-  ASSERT_TRUE(res2.first);
-  ASSERT_TRUE(res2.second);
-
-  res2 = g.AddEdge(2, 3, 42, 3);
-  ASSERT_TRUE(res2.first);
-  ASSERT_TRUE(res2.second);
-  res2 = g.AddEdge(3, 2, 42, 4);
+  res2 = g0.AddEdge(1, 3, 42, 2);
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
 
-  res2 = g.AddEdge(2, 4, 42, 5);
+  res2 = g0.AddEdge(2, 3, 42, 3);
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
-  res2 = g.AddEdge(2, 5, 42, 6);
-  ASSERT_TRUE(res2.first);
-  ASSERT_TRUE(res2.second);
-  res2 = g.AddEdge(3, 5, 42, 7);
-  ASSERT_TRUE(res2.first);
-  ASSERT_TRUE(res2.second);
-  res2 = g.AddEdge(3, 6, 42, 8);
+  res2 = g0.AddEdge(3, 2, 42, 4);
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
 
-  res2 = g.AddEdge(4, 5, 42, 9);
+  res2 = g0.AddEdge(2, 4, 42, 5);
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
-  res2 = g.AddEdge(5, 4, 42, 10);
+  res2 = g0.AddEdge(2, 5, 42, 6);
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
-  res2 = g.AddEdge(5, 6, 42, 11);
+  res2 = g0.AddEdge(3, 5, 42, 7);
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
-  res2 = g.AddEdge(6, 5, 42, 12);
-  ASSERT_TRUE(res2.first);
-  ASSERT_TRUE(res2.second);
-
-  res2 = g.AddEdge(4, 7, 42, 13);
-  ASSERT_TRUE(res2.first);
-  ASSERT_TRUE(res2.second);
-  res2 = g.AddEdge(5, 7, 42, 14);
-  ASSERT_TRUE(res2.first);
-  ASSERT_TRUE(res2.second);
-  res2 = g.AddEdge(5, 8, 42, 15);
-  ASSERT_TRUE(res2.first);
-  ASSERT_TRUE(res2.second);
-  res2 = g.AddEdge(6, 8, 42, 16);
+  res2 = g0.AddEdge(3, 6, 42, 8);
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
 
-  res2 = g.AddEdge(7, 8, 42, 17);
+  res2 = g0.AddEdge(4, 5, 42, 9);
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
-  res2 = g.AddEdge(8, 7, 42, 18);
+  res2 = g0.AddEdge(5, 4, 42, 10);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g0.AddEdge(5, 6, 42, 11);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g0.AddEdge(6, 5, 42, 12);
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
 
-  res2 = g.AddEdge(7, 9, 42, 19);
+  res2 = g0.AddEdge(4, 7, 42, 13);
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
-  res2 = g.AddEdge(8, 9, 42, 20);
+  res2 = g0.AddEdge(5, 7, 42, 14);
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
-}
+  res2 = g0.AddEdge(5, 8, 42, 15);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g0.AddEdge(6, 8, 42, 16);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
 
-template <class GraphType>
-void TestBfs() {
-  GraphType g;
-  TestAddVertexAddEdge(g);
+  res2 = g0.AddEdge(7, 8, 42, 17);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g0.AddEdge(8, 7, 42, 18);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+  res2 = g0.AddEdge(7, 9, 42, 19);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g0.AddEdge(8, 9, 42, 20);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
 
   using VertexPtrType      = typename GraphType::VertexPtr;
   using VertexConstPtrType = typename GraphType::VertexConstPtr;
@@ -147,20 +143,20 @@ void TestBfs() {
     return true;
   };
   
-  distance_tested = true;
-  auto src_ptr = g.FindVertex(1);
+  auto src_ptr = g0.FindVertex(1);
 
-  auto ret = GUNDAM::Bfs(g, src_ptr);
-  ASSERT_EQ(ret, g.CountVertex());
-
-  ret = GUNDAM::Bfs(g, src_ptr, my_callback);
-  ASSERT_TRUE(distance_tested);
-  ASSERT_EQ(ret, g.CountVertex());
+  auto ret = GUNDAM::Bfs(g0, src_ptr);
+  ASSERT_EQ(ret, 9);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g, src_ptr, my_callback);
+  ret = GUNDAM::Bfs(g0, src_ptr, my_callback);
   ASSERT_TRUE(distance_tested);
-  ASSERT_EQ(ret, g.CountVertex());
+  ASSERT_EQ(ret, 9);
+
+  distance_tested = true;
+  ret = GUNDAM::Bfs<false>(g0, src_ptr, my_callback);
+  ASSERT_TRUE(distance_tested);
+  ASSERT_EQ(ret, 9);
 
   auto my_callback2 = [&distance_tested](
                          const VertexPtrType& vertex_ptr, 
@@ -172,18 +168,18 @@ void TestBfs() {
   };
 
   distance_tested = true;
-  auto src_ptr2 = g.FindVertex(9);
-  ret = GUNDAM::Bfs<true>(g, src_ptr2, my_callback2);
+  auto src_ptr2 = g0.FindVertex(9);
+  ret = GUNDAM::Bfs<true>(g0, src_ptr2, my_callback2);
   ASSERT_TRUE(distance_tested);
-  ASSERT_EQ(ret, g.CountVertex());
+  ASSERT_EQ(ret, 9);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g, src_ptr2, my_callback2);
+  ret = GUNDAM::Bfs<false>(g0, src_ptr2, my_callback2);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 1);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g, src_ptr2, my_callback);
+  ret = GUNDAM::Bfs<false>(g0, src_ptr2, my_callback);
   ASSERT_TRUE(!distance_tested);
   ASSERT_EQ(ret, 1);
 
@@ -203,9 +199,145 @@ void TestBfs() {
       return false;
     return true;
   };
-  
+
+  counter = 0;
   distance_tested = true;
-  ret = GUNDAM::Bfs(g, src_ptr, my_callback3);
+  ret = GUNDAM::Bfs(g0, src_ptr, my_callback3);
+  ASSERT_TRUE(distance_tested);
+  ASSERT_EQ(ret, kVertexLimit);
+
+
+  GraphType g1;
+
+  // 1 -> 2 -> 4
+  // |    |    /\
+  // V    V    |
+  // 3 -> 5 <- 7
+  // |    /\   /\
+  // V    |    |
+  // 6 <- 8 <- 9
+
+  // label denotes the distance 
+
+  // AddVertex
+  res1 = g1.AddVertex(1, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g1.AddVertex(2, 1);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g1.AddVertex(3, 1);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g1.AddVertex(4, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g1.AddVertex(5, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g1.AddVertex(6, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g1.AddVertex(7, 3);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g1.AddVertex(8, 3);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g1.AddVertex(9, 4);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  // AddEdge
+  res2 = g1.AddEdge(1, 2, 42, 1);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g1.AddEdge(1, 3, 42, 2);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+  res2 = g1.AddEdge(2, 4, 42, 5);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g1.AddEdge(2, 5, 42, 6);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g1.AddEdge(3, 5, 42, 7);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g1.AddEdge(3, 6, 42, 8);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+  res2 = g1.AddEdge(7, 4, 42, 13);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g1.AddEdge(7, 5, 42, 14);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g1.AddEdge(8, 5, 42, 15);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g1.AddEdge(8, 6, 42, 16);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+  res2 = g1.AddEdge(9, 7, 42, 19);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g1.AddEdge(9, 8, 42, 20);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+  using VertexPtrType      = typename GraphType::VertexPtr;
+  using VertexConstPtrType = typename GraphType::VertexConstPtr;
+  
+  src_ptr = g1.FindVertex(1);
+  ret = GUNDAM::Bfs(g1, src_ptr);
+  ASSERT_EQ(ret, 6);
+
+  distance_tested = true;
+  ret = GUNDAM::Bfs(g1, src_ptr, my_callback);
+  ASSERT_TRUE(distance_tested);
+  ASSERT_EQ(ret, 6);
+
+  distance_tested = true;
+  ret = GUNDAM::Bfs<false>(g1, src_ptr, my_callback);
+  ASSERT_TRUE(distance_tested);
+  ASSERT_EQ(ret, 6);
+
+  distance_tested = true;
+  ret = GUNDAM::Bfs<true>(g1, src_ptr, my_callback);
+  ASSERT_TRUE(distance_tested);
+  ASSERT_EQ(ret, 9);
+
+  src_ptr2 = g1.FindVertex(9);
+  distance_tested = true;
+  ret = GUNDAM::Bfs<true>(g1, src_ptr2, my_callback2);
+  ASSERT_TRUE(distance_tested);
+  ASSERT_EQ(ret, 9);
+
+  distance_tested = true;
+  ret = GUNDAM::Bfs<false>(g1, src_ptr2, my_callback2);
+  ASSERT_TRUE(distance_tested);
+  ASSERT_EQ(ret, 6);
+
+  distance_tested = true;
+  ret = GUNDAM::Bfs<false>(g1, src_ptr2, my_callback);
+  ASSERT_TRUE(!distance_tested);
+  ASSERT_EQ(ret, 6);
+  
+  counter = 0;
+  distance_tested = true;
+  ret = GUNDAM::Bfs(g1, src_ptr, my_callback3);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, kVertexLimit);
 
@@ -217,10 +349,10 @@ void TestBfs() {
   //   now_furthest = vertex_ptr->label();
   //   return;
   // };
-  // const auto& const_ref_g = g;
+  // const auto& const_ref_g = g0;
   // auto const_src_ptr = const_ref_g.FindVertex(1);
-  // ret = GUNDAM::Bfs(g, const_src_ptr, my_const_ptr_callback);
-  // assert(ret == g.CountVertex());
+  // ret = GUNDAM::Bfs(g0, const_src_ptr, my_const_ptr_callback);
+  // assert(ret == g0.CountVertex());
   return;
 }
 

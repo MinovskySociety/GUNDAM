@@ -1,7 +1,7 @@
 #ifndef _CONNECTED_H
 #define _CONNECTED_H
 
-#include "gundam/algorithm/bfs.h"
+#include "gundam/algorithm/dfs.h"
 
 namespace GUNDAM {
 
@@ -12,7 +12,7 @@ inline bool Connected(GraphType& graph) {
   const auto& graph_const_ref = graph;
   typename GraphType::VertexConstPtr 
     vertex_ptr = graph_const_ref.VertexBegin();
-  return GUNDAM::Bfs<true>(graph_const_ref, vertex_ptr)
+  return GUNDAM::Dfs<true>(graph_const_ref, vertex_ptr)
                         == graph_const_ref.CountVertex();
 }
 
