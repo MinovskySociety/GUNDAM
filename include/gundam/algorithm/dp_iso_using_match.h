@@ -20,12 +20,10 @@ namespace GUNDAM {
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
-          typename    QueryGraph,
-          typename   TargetGraph,
-          typename    QueryGraphVertexPtr,
-          typename   TargetGraphVertexPtr,
-          typename PruneCallback, 
-          typename MatchCallback>
+          typename  QueryGraph,
+          typename TargetGraph,
+          typename  QueryGraphVertexPtr,
+          typename TargetGraphVertexPtr>
 inline size_t DpisoUsingMatch(
         QueryGraph&  query_graph,
        TargetGraph& target_graph,
@@ -33,8 +31,10 @@ inline size_t DpisoUsingMatch(
        TargetGraph>& partial_match,
   std::map<QueryGraphVertexPtr,
            std::vector<TargetGraphVertexPtr>>& candidate_set,
-  PruneCallback prune_callback,
-  MatchCallback match_callback,
+  std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
+                                    typename TargetGraph::VertexConstPtr>&)> prune_callback,
+  std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
+                                    typename TargetGraph::VertexConstPtr>&)> match_callback,
    double time_limit = -1.0) {
 
   using MatchMap = std::map<QueryGraphVertexPtr, 
@@ -92,19 +92,19 @@ inline size_t DpisoUsingMatch(
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
-          typename    QueryGraph,
-          typename   TargetGraph,
-          typename    QueryGraphVertexPtr,
-          typename   TargetGraphVertexPtr,
-          typename PruneCallback, 
-          typename MatchCallback>
+          typename  QueryGraph,
+          typename TargetGraph,
+          typename  QueryGraphVertexPtr,
+          typename TargetGraphVertexPtr>
 inline size_t DpisoUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
   std::map<QueryGraphVertexPtr, 
             std::vector<TargetGraphVertexPtr>>& candidate_set,
-  PruneCallback prune_callback,
-  MatchCallback match_callback, 
+  std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
+                                    typename TargetGraph::VertexConstPtr>&)> prune_callback,
+  std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
+                                    typename TargetGraph::VertexConstPtr>&)> match_callback,
    double time_limit = -1.0) {
 
   Match<QueryGraph, TargetGraph> match_state;
@@ -120,17 +120,17 @@ inline size_t DpisoUsingMatch(
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
-          typename    QueryGraph,
-          typename   TargetGraph,
-          typename PruneCallback, 
-          typename MatchCallback>
+          typename  QueryGraph,
+          typename TargetGraph>
 inline size_t DpisoUsingMatch(
         QueryGraph&  query_graph,
        TargetGraph& target_graph,
   Match<QueryGraph,
        TargetGraph>& partial_match,
-  PruneCallback prune_callback,
-  MatchCallback match_callback,
+  std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
+                                    typename TargetGraph::VertexConstPtr>&)> prune_callback,
+  std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
+                                    typename TargetGraph::VertexConstPtr>&)> match_callback,
    double time_limit = -1.0) {
 
   using  QueryGraphVertexPtr = typename  QueryGraph::VertexConstPtr;
@@ -151,9 +151,6 @@ inline size_t DpisoUsingMatch(
     return 0;
   }
 
-  using MatchMap = std::map<QueryGraphVertexPtr, 
-                           TargetGraphVertexPtr>;
-
   return DpisoUsingMatch(query_graph,
                         target_graph,
                        partial_match,
@@ -165,8 +162,31 @@ inline size_t DpisoUsingMatch(
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
-          typename    QueryGraph,
-          typename   TargetGraph>
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t DpisoUsingMatch(
+        QueryGraph&  query_graph,
+       TargetGraph& target_graph,
+    std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
+                                      typename TargetGraph::VertexConstPtr>&)> prune_callback,
+    std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
+                                      typename TargetGraph::VertexConstPtr>&)> match_callback,
+   double time_limit = -1.0) {
+
+  Match<QueryGraph, TargetGraph> partial_match;
+
+  return DpisoUsingMatch(query_graph,
+                        target_graph,
+                       partial_match,
+                      prune_callback,
+                      match_callback,
+                          time_limit);
+}
+
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          typename  QueryGraph,
+          typename TargetGraph>
 inline size_t DpisoUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
