@@ -45,6 +45,10 @@ add_executable (test_connected "test_connected.cc")
 target_link_libraries(test_connected GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_connected)
 
+add_executable (test_has_isolate_vertex "test_has_isolate_vertex.cc")
+target_link_libraries(test_has_isolate_vertex GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_has_isolate_vertex)
+
 add_executable (test_same_pattern "test_same_pattern.cc")
 target_link_libraries(test_same_pattern GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_same_pattern)
