@@ -36,7 +36,7 @@ inline size_t Bfs(GraphType&  graph,
                                    VertexCounterType, 
                                    VertexCounterType)> >, 
       "illegal callback type, only allows one of user_callback(vertex_ptr), user_callback(vertex_ptr, bfs_idx) and user_callback(vertex_ptr, bfs_idx, distance)");
-  VertexCounterType bfd_idx = 0;
+  VertexCounterType bfs_idx = 0;
   std::queue<std::pair<VertexPtrType, VertexCounterType>> vertex_ptr_queue;
   std:: set <VertexPtrType> visited;
   for (const auto& src_vertex_ptr : src_vertex_ptr_set){
@@ -47,7 +47,7 @@ inline size_t Bfs(GraphType&  graph,
     auto [current_vertex_ptr, 
           current_distance] = vertex_ptr_queue.front();
     vertex_ptr_queue.pop();
-    bfd_idx++;
+    bfs_idx++;
     bool ret = false;
     if constexpr (
       std::is_convertible_v<
@@ -61,7 +61,7 @@ inline size_t Bfs(GraphType&  graph,
                 std::function<bool(VertexPtrType,
                                    VertexCounterType)> >){
       ret = user_callback(current_vertex_ptr,
-                          bfd_idx);
+                          bfs_idx);
     }
     if constexpr (
       std::is_convertible_v<
@@ -70,12 +70,12 @@ inline size_t Bfs(GraphType&  graph,
                                    VertexCounterType,
                                    VertexCounterType)> >){
       ret = user_callback(current_vertex_ptr,
-                          bfd_idx,
+                          bfs_idx,
                           current_distance);
     }
     if (!ret){
       // meets stopping condition, stop the matching process
-      return bfd_idx;
+      return bfs_idx;
     }
     for (auto edge_it = current_vertex_ptr->OutEdgeBegin();
              !edge_it.IsDone();
@@ -100,7 +100,7 @@ inline size_t Bfs(GraphType&  graph,
       }
     }
   }
-  return bfd_idx;
+  return bfs_idx;
 }
 
 template <bool bidirectional = false,
@@ -115,18 +115,17 @@ inline size_t Bfs(GraphType& graph,
 }
 
 template <bool bidirectional = false,
-          typename        GraphType,
-          typename    VertexPtrType>
+          typename     GraphType,
+          typename VertexPtrType>
 inline size_t Bfs(GraphType& graph,
               VertexPtrType& src_vertex_ptr) {
-  std::set<VertexPtrType> src_vertex_ptr_set = {src_vertex_ptr};
 
   auto do_nothing_callback = [](VertexPtrType vertex_ptr, 
                                 typename GraphType::VertexCounterType current_distance){
     // do nothing, continue matching
     return true;
   };
-  return Bfs<bidirectional>(graph, src_vertex_ptr_set, do_nothing_callback);
+  return Bfs<bidirectional>(graph, src_vertex_ptr, do_nothing_callback);
 }
 
 }  // namespace GUNDAM
