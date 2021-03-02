@@ -314,9 +314,13 @@ class Match {
       const auto src_src_ptr = cit.template get_const<kSrcVertexPtrIdx>();
       const auto     src_ptr = cit.template get_const<kDstVertexPtrIdx>();
       const auto     dst_ptr = this->MapTo(src_ptr);
+      if (!dst_ptr){
+        // "*this" does not have match for src_ptr
+        continue;
+      }
       result.AddMap(src_src_ptr, dst_ptr);
     }
-    assert(result.size() == match0.size());
+    assert(result.size() <= match0.size());
     return result;
   }
 };
