@@ -157,6 +157,8 @@ class Match {
 
   inline size_type size() const { return this->match_container_.size(); }
 
+  inline bool empty() const { return this->match_container_.empty(); }
+
   inline bool HasMap(const SrcVertexPtrType& src_ptr) const {
     /// <iterator, bool>
     auto ret = this->match_container_.FindConst(src_ptr);
