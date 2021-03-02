@@ -100,9 +100,13 @@ class Match {
       return SrcVertexConstPtr(temp_vertex_ptr);
     }
 
-    inline SrcVertexPtrType& src_ptr(){
+    inline SrcVertexPtrType src_ptr(){
       return InnerIteratorType::template get<
                src_idx_, depth_ - 1>();
+    }
+
+    inline SrcVertexConstPtr src_ptr() const{
+      return this->const_src_ptr();
     }
 
     inline DstVertexConstPtr const_dst_ptr() const {
@@ -112,9 +116,13 @@ class Match {
       return DstVertexConstPtr(temp_vertex_ptr);
     }
 
-    inline DstVertexPtrType& dst_ptr(){
+    inline DstVertexPtrType dst_ptr(){
       return InnerIteratorType::template get<
                dst_idx_, depth_ - 1>();
+    }
+
+    inline DstVertexConstPtr dst_ptr() const{
+      return this->const_dst_ptr();
     }
   };
 
@@ -278,6 +286,10 @@ class Match {
   inline MapIterator MapBegin(){
     return MapIterator(this->match_container_.begin(),
                        this->match_container_.end());
+  }
+
+  inline MapConstIterator MapBegin() const {
+    return this->MapCBegin();
   }
 
   inline MapConstIterator MapCBegin() const {
