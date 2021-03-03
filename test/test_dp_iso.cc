@@ -64,6 +64,70 @@ void TestDPISO_1() {
   }
   std::cout << "count: " << match_result.size() << std::endl;
   ASSERT_EQ(count, 2);
+
+  const  QueryGraph&  query2 =  query;
+  const TargetGraph& target2 = target;
+
+  using  QueryVertexHandle2 = typename GUNDAM::VertexHandle<decltype( query2)>::type;
+  using TargetVertexHandle2 = typename GUNDAM::VertexHandle<decltype(target2)>::type;
+
+  std::vector<std::map<QueryVertexHandle2, 
+                      TargetVertexHandle2>> match_result2;
+  count = GUNDAM::DPISO<GUNDAM::MatchSemantics::kIsomorphism>(
+      query2, target2, -1, match_result2);
+
+  for (size_t i = 0; i < match_result2.size(); i++) {
+    std::cout << "match " << i << std::endl;
+    for (const auto& mapping : match_result2[i]) {
+      std::cout << " " << mapping.first->id() << " " << mapping.second->id()
+                << std::endl;
+    }
+  }
+  std::cout << "count: " << match_result2.size() << std::endl;
+  ASSERT_EQ(count, 2);
+
+
+  QueryGraph&  query3 =  query;
+  const TargetGraph& target3 = target;
+
+  using  QueryVertexHandle3 = typename GUNDAM::VertexHandle<decltype( query3)>::type;
+  using TargetVertexHandle3 = typename GUNDAM::VertexHandle<decltype(target3)>::type;
+
+  std::vector<std::map<QueryVertexHandle3, 
+                      TargetVertexHandle3>> match_result3;
+  count = GUNDAM::DPISO<GUNDAM::MatchSemantics::kIsomorphism>(
+      query3, target3, -1, match_result3);
+
+  for (size_t i = 0; i < match_result3.size(); i++) {
+    std::cout << "match " << i << std::endl;
+    for (const auto& mapping : match_result3[i]) {
+      std::cout << " " << mapping.first->id() << " " << mapping.second->id()
+                << std::endl;
+    }
+  }
+  std::cout << "count: " << match_result3.size() << std::endl;
+  ASSERT_EQ(count, 2);
+
+  const QueryGraph&  query4 =  query;
+  TargetGraph& target4 = target;
+
+  using  QueryVertexHandle4 = typename GUNDAM::VertexHandle<decltype( query4)>::type;
+  using TargetVertexHandle4 = typename GUNDAM::VertexHandle<decltype(target4)>::type;
+
+  std::vector<std::map<QueryVertexHandle4, 
+                      TargetVertexHandle4>> match_result4;
+  count = GUNDAM::DPISO<GUNDAM::MatchSemantics::kIsomorphism>(
+      query4, target4, -1, match_result4);
+
+  for (size_t i = 0; i < match_result4.size(); i++) {
+    std::cout << "match " << i << std::endl;
+    for (const auto& mapping : match_result4[i]) {
+      std::cout << " " << mapping.first->id() << " " << mapping.second->id()
+                << std::endl;
+    }
+  }
+  std::cout << "count: " << match_result4.size() << std::endl;
+  ASSERT_EQ(count, 2);
 }
 
 TEST(TestGUNDAM, DPISO_1) {
