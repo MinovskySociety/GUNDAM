@@ -8,6 +8,8 @@
 #include "gundam/component/container.h"
 #include "gundam/component/iterator.h"
 
+#include "gundam/graph_type/vertex_handle.h"
+
 namespace GUNDAM {
 
 /// can be configured to much different type
@@ -27,22 +29,14 @@ class Match {
             enum      SortType _map_container_sort_type>
   friend class Match;
 
-  static constexpr bool kSrcIsConst_ = std::is_const<SrcGraphType>::value;
-  using SrcVertexIDType = typename SrcGraphType ::VertexType ::IDType;
-  using SrcVertexPtrType =
-      typename std::conditional<kSrcIsConst_,
-                                typename SrcGraphType ::VertexConstPtr,
-                                typename SrcGraphType ::VertexPtr>::type;
+  using SrcVertexIDType     = typename SrcGraphType ::VertexType ::IDType;
+  using SrcVertexHandleType = typename VertexHandle<SrcGraphType>::type;
 
-  static constexpr bool kDstIsConst_ = std::is_const<DstGraphType>::value;
-  using DstVertexIDType = typename DstGraphType ::VertexType ::IDType;
-  using DstVertexPtrType =
-      typename std::conditional<kDstIsConst_,
-                                typename DstGraphType ::VertexConstPtr,
-                                typename DstGraphType ::VertexPtr>::type;
+  using DstVertexIDType     = typename DstGraphType ::VertexType ::IDType;
+  using DstVertexHandleType = typename VertexHandle<DstGraphType>::type;
 
-  using SrcVertexConstPtr = typename SrcGraphType ::VertexConstPtr;
-  using DstVertexConstPtr = typename DstGraphType ::VertexConstPtr;
+  // using SrcVertexConstHandle = typename SrcGraphType ::VertexConstPtr;
+  // using DstVertexConstHandle = typename DstGraphType ::VertexConstPtr;
 
   static constexpr TupleIdxType kSrcVertexPtrIdx = 0;
   static constexpr TupleIdxType kDstVertexPtrIdx = 1;
@@ -50,8 +44,8 @@ class Match {
   using MapContainerType =
       Container<map_container_type,
                 map_container_sort_type,
-                SrcVertexPtrType,
-                DstVertexPtrType>;
+                SrcVertexHandleType,
+                DstVertexHandleType>;
 
   template <typename ContainerType_,
             bool is_const_,
@@ -91,39 +85,39 @@ class Match {
    public:
     using InnerIteratorType::InnerIteratorType;
 
-    inline SrcVertexConstPtr const_src_ptr() const {
+    // inline SrcVertexConstHandle const_src_ptr() const {
+    //   return InnerIteratorType::template get_const<
+    //            src_idx_, depth_ - 1>();
+    //   auto temp_vertex_ptr =
+    //       InnerIteratorType::template get_const<
+    //            src_idx_, depth_ - 1>();
+    //   return SrcVertexConstHandle(temp_vertex_ptr);
+    // }
+
+    inline SrcVertexHandleType src_ptr() const{
       return InnerIteratorType::template get_const<
                src_idx_, depth_ - 1>();
-      auto temp_vertex_ptr =
-          InnerIteratorType::template get_const<
-               src_idx_, depth_ - 1>();
-      return SrcVertexConstPtr(temp_vertex_ptr);
     }
 
-    inline SrcVertexPtrType src_ptr(){
-      return InnerIteratorType::template get<
-               src_idx_, depth_ - 1>();
-    }
+    // inline SrcVertexConstHandle src_ptr() const{
+    //   return this->const_src_ptr();
+    // }
 
-    inline SrcVertexConstPtr src_ptr() const{
-      return this->const_src_ptr();
-    }
+    // inline DstVertexConstHandle const_dst_ptr() const {
+    //   auto temp_vertex_ptr =
+    //       InnerIteratorType::template get_const<
+    //            dst_idx_, depth_ - 1>();
+    //   return DstVertexConstHandle(temp_vertex_ptr);
+    // }
 
-    inline DstVertexConstPtr const_dst_ptr() const {
-      auto temp_vertex_ptr =
-          InnerIteratorType::template get_const<
-               dst_idx_, depth_ - 1>();
-      return DstVertexConstPtr(temp_vertex_ptr);
-    }
-
-    inline DstVertexPtrType dst_ptr(){
-      return InnerIteratorType::template get<
+    inline DstVertexHandleType dst_ptr() const{
+      return InnerIteratorType::template get_const<
                dst_idx_, depth_ - 1>();
     }
 
-    inline DstVertexConstPtr dst_ptr() const{
-      return this->const_dst_ptr();
-    }
+    // inline DstVertexConstHandle dst_ptr() const{
+    //   return this->const_dst_ptr();
+    // }
   };
 
   MapContainerType match_container_;
@@ -159,7 +153,7 @@ class Match {
 
   inline bool empty() const { return this->match_container_.empty(); }
 
-  inline bool HasMap(const SrcVertexPtrType& src_ptr) const {
+  inline bool HasMap(const SrcVertexHandleType& src_ptr) const {
     /// <iterator, bool>
     auto ret = this->match_container_.FindConst(src_ptr);
     return ret.second;
@@ -178,8 +172,8 @@ class Match {
   /// pair to current match then return true
   /// else if the match for this src vertex has already
   /// exisited then return false
-  inline bool AddMap(const SrcVertexPtrType& src_ptr,
-                     const DstVertexPtrType& dst_ptr) {
+  inline bool AddMap(const SrcVertexHandleType& src_ptr,
+                     const DstVertexHandleType& dst_ptr) {
     // assert(src_ptr != nullptr
     //     && dst_ptr != nullptr);
     /// <iterator, bool>
@@ -194,54 +188,54 @@ class Match {
   }
 
   /// constant dst
-  inline DstVertexPtrType MapTo(const SrcVertexPtrType& src_ptr) const {
+  inline DstVertexHandleType MapTo(const SrcVertexHandleType& src_ptr) const {
     assert(src_ptr);
     /// <iterator, bool>
     auto ret = this->match_container_.FindConst(src_ptr);
     if (!ret.second) {
       /// does not find src_ptr
       /// this just a partial match and does not contain
-      return DstVertexPtrType();
+      return DstVertexHandleType();
     }
     /// found that
     return ret.first.template get_const<kDstVertexPtrIdx>();
   }
 
-  /// constant dst
-  inline DstVertexConstPtr MapToConst(const SrcVertexPtrType& src_ptr) const {
-    assert(!src_ptr.IsNull());
-    /// <iterator, bool>
-    auto ret = this->match_container_.FindConst(src_ptr);
-    if (!ret.second) {
-      /// does not find src_ptr
-      /// this just a partial match and does not contain
-      return DstVertexConstPtr();
-    }
-    /// found that
-    return DstVertexConstPtr(ret.first.template get_const<kDstVertexPtrIdx>());
-  }
+  // /// constant dst
+  // inline DstVertexConstHandle MapToConst(const SrcVertexHandleType& src_ptr) const {
+  //   assert(!src_ptr.IsNull());
+  //   /// <iterator, bool>
+  //   auto ret = this->match_container_.FindConst(src_ptr);
+  //   if (!ret.second) {
+  //     /// does not find src_ptr
+  //     /// this just a partial match and does not contain
+  //     return DstVertexConstHandle();
+  //   }
+  //   /// found that
+  //   return DstVertexConstHandle(ret.first.template get_const<kDstVertexPtrIdx>());
+  // }
 
   /// constant dst
-  inline DstVertexPtrType MapTo(const SrcVertexIDType& src_id) const {
+  inline DstVertexHandleType MapTo(const SrcVertexIDType& src_id) const {
     for (auto it  = this->match_container_.begin();
               it != this->match_container_.end();it++){
       if (it.template get_const<kSrcVertexPtrIdx>()->id() == src_id)
         return it.template get_const<kDstVertexPtrIdx>();
     }
     /// not found
-    return DstVertexPtrType();
+    return DstVertexHandleType();
   }
 
-  /// constant dst
-  inline DstVertexConstPtr MapToConst(const SrcVertexIDType& src_id) const {
-    for (auto cit  = this->match_container_.cbegin();
-              cit != this->match_container_.cend();cit++){
-      if (cit.template get_const<kSrcVertexPtrIdx>()->id() == src_id)
-        return cit.template get_const<kDstVertexPtrIdx>();
-    }
-    /// not found
-    return DstVertexConstPtr();
-  }
+  // /// constant dst
+  // inline DstVertexConstHandle MapToConst(const SrcVertexIDType& src_id) const {
+  //   for (auto cit  = this->match_container_.cbegin();
+  //             cit != this->match_container_.cend();cit++){
+  //     if (cit.template get_const<kSrcVertexPtrIdx>()->id() == src_id)
+  //       return cit.template get_const<kDstVertexPtrIdx>();
+  //   }
+  //   /// not found
+  //   return DstVertexConstHandle();
+  // }
 
   inline bool operator<(const Match& match) const{
     if (this->size() < match.size())
@@ -330,17 +324,8 @@ template <typename SrcGraphType, typename DstGraphType,
           enum SortType match_container_sort_type = SortType::Sorted>
 class MatchSet {
  private:
-  static constexpr bool kSrcIsConst_ = std::is_const<SrcGraphType>::value;
-  static constexpr bool kDstIsConst_ = std::is_const<DstGraphType>::value;
-
-  using SrcVertexPtrType =
-      typename std::conditional<kSrcIsConst_,
-                                typename SrcGraphType ::VertexConstPtr,
-                                typename SrcGraphType ::VertexPtr>::type;
-  using DstVertexPtrType =
-      typename std::conditional<kDstIsConst_,
-                                typename DstGraphType ::VertexConstPtr,
-                                typename DstGraphType ::VertexPtr>::type;
+  using SrcVertexHandleType = typename VertexHandle<SrcGraphType>::type;
+  using DstVertexHandleType = typename VertexHandle<DstGraphType>::type;
 
  public:
   using MatchType = Match<SrcGraphType, DstGraphType>;

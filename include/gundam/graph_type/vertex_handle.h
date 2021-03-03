@@ -36,6 +36,19 @@ class VertexHandle<const GraphType&>{
   using type = typename VertexHandle<const GraphType>::type;
 };
 
+template <typename GraphType>
+class VertexConstHandle{
+ public:
+  using type = typename GraphType::VertexConstPtr;
+};
+
+// remove reference
+template <typename GraphType>
+class VertexConstHandle<GraphType&>{
+ public:
+  using type = typename VertexConstHandle<GraphType>::type;
+};
+
 }; // namespace GUNDAM
 
 #endif // _TYPE_H
