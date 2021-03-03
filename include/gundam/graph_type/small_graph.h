@@ -457,8 +457,6 @@ class SmallGraph {
       return dst_;
     }
 
-    template <bool judge = !is_const,
-              class = typename std::enable_if<judge>::type>
     VertexPtr src_ptr() {
       assert(HasValue());
       return VertexPtr(Vertex(graph_, src_));
@@ -474,8 +472,6 @@ class SmallGraph {
       return VertexConstPtr(ConstVertex(graph_, src_));
     }
 
-    template <bool judge = !is_const,
-              class = typename std::enable_if<judge>::type>
     VertexPtr dst_ptr() {
       assert(HasValue());
       return VertexPtr(Vertex(graph_, dst_));

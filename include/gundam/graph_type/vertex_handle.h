@@ -1,5 +1,5 @@
-#ifndef _TYPE_H
-#define _TYPE_H
+#ifndef _VERTEX_HANDLE_H
+#define _VERTEX_HANDLE_H
 
 namespace GUNDAM {
 
@@ -13,14 +13,6 @@ class VertexHandle{
   using type = typename GraphType::VertexPtr;
 };
 
-// non-constant graph type
-// remove reference
-template <typename GraphType>
-class VertexHandle<GraphType&>{
- public:
-  using type = typename VertexHandle<GraphType>::type;
-};
-
 // constant graph type
 template <typename GraphType>
 class VertexHandle<const GraphType>{
@@ -28,27 +20,26 @@ class VertexHandle<const GraphType>{
   using type = typename GraphType::VertexConstPtr;
 };
 
-// constant graph type
 // remove reference
 template <typename GraphType>
-class VertexHandle<const GraphType&>{
+class VertexHandle<GraphType&>{
  public:
-  using type = typename VertexHandle<const GraphType>::type;
+  using type = typename VertexHandle<GraphType>::type;
 };
 
-template <typename GraphType>
-class VertexConstHandle{
- public:
-  using type = typename GraphType::VertexConstPtr;
-};
+// template <typename GraphType>
+// class VertexConstHandle{
+//  public:
+//   using type = typename GraphType::VertexConstPtr;
+// };
 
-// remove reference
-template <typename GraphType>
-class VertexConstHandle<GraphType&>{
- public:
-  using type = typename VertexConstHandle<GraphType>::type;
-};
+// // remove reference
+// template <typename GraphType>
+// class VertexConstHandle<GraphType&>{
+//  public:
+//   using type = typename VertexConstHandle<GraphType>::type;
+// };
 
 }; // namespace GUNDAM
 
-#endif // _TYPE_H
+#endif // _VERTEX_HANDLE_H

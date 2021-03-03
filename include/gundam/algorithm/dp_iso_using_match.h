@@ -16,38 +16,41 @@
 #include "gundam/algorithm/dp_iso.h"
 #include "gundam/match/match.h"
 
+#include "gundam/graph_type/vertex_handle.h"
+
 namespace GUNDAM {
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
           typename  QueryGraph,
-          typename TargetGraph,
-          typename  QueryGraphVertexPtr,
-          typename TargetGraphVertexPtr>
+          typename TargetGraph>
 inline size_t DpisoUsingMatch(
         QueryGraph&  query_graph,
        TargetGraph& target_graph,
   Match<QueryGraph,
        TargetGraph>& partial_match,
-  std::map<QueryGraphVertexPtr,
-           std::vector<TargetGraphVertexPtr>>& candidate_set,
-  std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
-                                    typename TargetGraph::VertexConstPtr>&)> prune_callback,
-  std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
-                                    typename TargetGraph::VertexConstPtr>&)> match_callback,
+  std::map<typename VertexHandle<QueryGraph>::type,
+           std::vector<typename VertexHandle<TargetGraph>::type>>& candidate_set,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
    double time_limit = -1.0) {
 
-  using MatchMap = std::map<QueryGraphVertexPtr, 
-                           TargetGraphVertexPtr>;
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
+
+  using MatchMap = std::map<QueryVertexHandle, 
+                           TargetVertexHandle>;
 
   using MatchContainer = std::vector<MatchMap>;
 
   MatchMap match_state;
-  std::set<TargetGraphVertexPtr> target_matched;
+  std::set<TargetVertexHandle> target_matched;
   for (auto vertex_it = query_graph.VertexBegin(); 
            !vertex_it.IsDone();
             vertex_it++) {
-    const QueryGraphVertexPtr src_ptr = vertex_it;
+    const QueryVertexHandle src_ptr = vertex_it;
     if (!partial_match.HasMap(src_ptr)) {
       continue;
     }
@@ -68,9 +71,9 @@ inline size_t DpisoUsingMatch(
     return result_count;
   }
 
-  using FailSetContainer = std::vector<QueryGraphVertexPtr>;
-  using  ParentContainer = std::map<QueryGraphVertexPtr,
-                                    std::vector<QueryGraphVertexPtr>>;
+  using FailSetContainer = std::vector<QueryVertexHandle>;
+  using  ParentContainer = std::  map <QueryVertexHandle,
+                                    std::vector<QueryVertexHandle>>;
   FailSetContainer fail_set;
    ParentContainer parent;
   for (const auto &map : match_state) {
@@ -93,19 +96,20 @@ inline size_t DpisoUsingMatch(
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
           typename  QueryGraph,
-          typename TargetGraph,
-          typename  QueryGraphVertexPtr,
-          typename TargetGraphVertexPtr>
+          typename TargetGraph>
 inline size_t DpisoUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
-  std::map<QueryGraphVertexPtr, 
-            std::vector<TargetGraphVertexPtr>>& candidate_set,
-  std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
-                                    typename TargetGraph::VertexConstPtr>&)> prune_callback,
-  std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
-                                    typename TargetGraph::VertexConstPtr>&)> match_callback,
+  std::map<typename VertexHandle<QueryGraph>::type, 
+            std::vector<typename VertexHandle<TargetGraph>::type>>& candidate_set,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
    double time_limit = -1.0) {
+
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
   Match<QueryGraph, TargetGraph> match_state;
 
@@ -125,19 +129,18 @@ template <enum MatchSemantics match_semantics
 inline size_t DpisoUsingMatch(
         QueryGraph&  query_graph,
        TargetGraph& target_graph,
-  Match<QueryGraph,
-       TargetGraph>& partial_match,
-  std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
-                                    typename TargetGraph::VertexConstPtr>&)> prune_callback,
-  std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
-                                    typename TargetGraph::VertexConstPtr>&)> match_callback,
+  Match<QueryGraph, TargetGraph>& partial_match,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
    double time_limit = -1.0) {
 
-  using  QueryGraphVertexPtr = typename  QueryGraph::VertexConstPtr;
-  using TargetGraphVertexPtr = typename TargetGraph::VertexConstPtr;
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
-  using CandidateSetType = std::map<QueryGraphVertexPtr, 
-                       std::vector<TargetGraphVertexPtr>>;
+  using CandidateSetType = std::map<QueryVertexHandle, 
+                       std::vector<TargetVertexHandle>>;
 
   CandidateSetType candidate_set;
   if (!_dp_iso::InitCandidateSet<match_semantics>(query_graph,
@@ -167,11 +170,14 @@ template <enum MatchSemantics match_semantics
 inline size_t DpisoUsingMatch(
         QueryGraph&  query_graph,
        TargetGraph& target_graph,
-    std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
-                                      typename TargetGraph::VertexConstPtr>&)> prune_callback,
-    std::function<bool(const std::map<typename  QueryGraph::VertexConstPtr, 
-                                      typename TargetGraph::VertexConstPtr>&)> match_callback,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
    double time_limit = -1.0) {
+
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
   Match<QueryGraph, TargetGraph> partial_match;
 
@@ -193,11 +199,11 @@ inline size_t DpisoUsingMatch(
    int64_t max_match = -1,
    double time_limit = -1.0) {
 
-  using  QueryGraphVertexPtr = typename  QueryGraph::VertexConstPtr;
-  using TargetGraphVertexPtr = typename TargetGraph::VertexConstPtr;
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
-  using MatchMap = std::map<QueryGraphVertexPtr, 
-                           TargetGraphVertexPtr>;
+  using MatchMap = std::map<QueryVertexHandle, 
+                           TargetVertexHandle>;
 
   auto prune_callback = [](const MatchMap& match){
     // prune nothing, continue matching
@@ -240,16 +246,15 @@ template <enum MatchSemantics match_semantics
 inline size_t DpisoUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
-  MatchSet<QueryGraph,
-          TargetGraph>& match_result,
+  MatchSet<QueryGraph, TargetGraph>& match_result,
    int64_t max_match = -1,
    double time_limit = -1.0) {
 
-  using  QueryGraphVertexPtr = typename  QueryGraph::VertexConstPtr;
-  using TargetGraphVertexPtr = typename TargetGraph::VertexConstPtr;
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
-  using MatchMap = std::map<QueryGraphVertexPtr, 
-                           TargetGraphVertexPtr>;
+  using MatchMap = std::map<QueryVertexHandle, 
+                           TargetVertexHandle>;
 
   auto prune_callback = [](const MatchMap& match){
     // prune nothing, continue matching

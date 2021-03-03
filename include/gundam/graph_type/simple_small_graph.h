@@ -211,6 +211,10 @@ class SimpleSmallGraph {
                           data_->out_edges_.end());
     }
 
+    EdgeConstIterator OutEdgeBegin() const {
+      return this->OutEdgeCBegin();
+    }
+
     EdgeConstIterator OutEdgeCBegin() const {
       assert(HasValue());
       return EdgeConstIterator(graph_, data_->out_edges_.begin(),
@@ -221,6 +225,10 @@ class SimpleSmallGraph {
       assert(HasValue());
       return EdgeIterator(graph_, data_->in_edges_.begin(),
                           data_->in_edges_.end());
+    }
+
+    EdgeConstIterator InEdgeBegin() const {
+      return this->InEdgeCBegin();
     }
 
     EdgeConstIterator InEdgeCBegin() const {
@@ -332,8 +340,6 @@ class SimpleSmallGraph {
       return ConstVertex(graph_, data_->dst_).id();
     }
 
-    template <bool judge = !is_const,
-              class = typename std::enable_if<judge>::type>
     VertexPtr src_ptr() {
       assert(HasValue());
       return VertexPtr(Vertex(graph_, data_->src_));
@@ -349,8 +355,6 @@ class SimpleSmallGraph {
       return VertexConstPtr(ConstVertex(graph_, data_->src_));
     }
 
-    template <bool judge = !is_const,
-              class = typename std::enable_if<judge>::type>
     VertexPtr dst_ptr() {
       assert(HasValue());
       return VertexPtr(Vertex(graph_, data_->dst_));

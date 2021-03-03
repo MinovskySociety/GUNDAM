@@ -765,6 +765,10 @@ class LargeGraph2 {
 
     VertexData *dst_ptr() { return dst_; }
 
+    const VertexData *src_ptr() const { return this->const_src_ptr(); }
+
+    const VertexData *dst_ptr() const { return this->const_dst_ptr(); }
+
     const VertexData *const_src_ptr() const { return src_; }
 
     const VertexData *const_dst_ptr() const { return dst_; }
