@@ -93,6 +93,96 @@ inline size_t DpisoUsingMatch(
   return result_count;
 }
 
+// remove reference from QueryGraph
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t DpisoUsingMatch(
+        QueryGraph&  query_graph,
+       TargetGraph& target_graph,
+  Match<QueryGraph&,
+       TargetGraph>& partial_match,
+  std::map<typename VertexHandle<QueryGraph>::type,
+           std::vector<typename VertexHandle<TargetGraph>::type>>& candidate_set,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
+   double time_limit = -1.0) {
+     
+  Match<QueryGraph,
+       TargetGraph>& temp_partial_match = partial_match;
+
+  return DpisoUsingMatch(query_graph,
+                        target_graph,
+                   temp_partial_match,
+                        candidate_set,
+                        prune_callback,
+                        match_callback,
+                        time_limit);
+}
+
+// remove reference from TargetGraph
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t DpisoUsingMatch(
+        QueryGraph&  query_graph,
+       TargetGraph& target_graph,
+  Match<QueryGraph,
+       TargetGraph&>& partial_match,
+  std::map<typename VertexHandle<QueryGraph>::type,
+           std::vector<typename VertexHandle<TargetGraph>::type>>& candidate_set,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
+   double time_limit = -1.0) {
+     
+  Match<QueryGraph,
+       TargetGraph>& temp_partial_match = partial_match;
+
+  return DpisoUsingMatch(query_graph,
+                        target_graph,
+                   temp_partial_match,
+                        candidate_set,
+                        prune_callback,
+                        match_callback,
+                        time_limit);
+}
+
+// remove reference from both QueryGraph and TargetGraph
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t DpisoUsingMatch(
+        QueryGraph&  query_graph,
+       TargetGraph& target_graph,
+  Match<QueryGraph&,
+       TargetGraph&>& partial_match,
+  std::map<typename VertexHandle<QueryGraph>::type,
+           std::vector<typename VertexHandle<TargetGraph>::type>>& candidate_set,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
+   double time_limit = -1.0) {
+     
+  Match<QueryGraph,
+       TargetGraph>& temp_partial_match = partial_match;
+
+  return DpisoUsingMatch(query_graph,
+                        target_graph,
+                   temp_partial_match,
+                        candidate_set,
+                        prune_callback,
+                        match_callback,
+                        time_limit);
+}
+
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
           typename  QueryGraph,
@@ -161,6 +251,87 @@ inline size_t DpisoUsingMatch(
                       prune_callback,
                       match_callback,
                           time_limit);
+}
+
+// remove reference from QueryGraph
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t DpisoUsingMatch(
+        QueryGraph&  query_graph,
+       TargetGraph& target_graph,
+  Match<QueryGraph&, 
+       TargetGraph>& partial_match,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
+   double time_limit = -1.0) {
+     
+  Match<QueryGraph,
+       TargetGraph>& temp_partial_match = partial_match;
+
+  return DpisoUsingMatch(query_graph,
+                        target_graph,
+                  temp_partial_match,
+                       prune_callback,
+                       match_callback,
+                       time_limit);
+}
+
+// remove reference from TargetGraph
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t DpisoUsingMatch(
+        QueryGraph&  query_graph,
+       TargetGraph& target_graph,
+  Match<QueryGraph, 
+       TargetGraph&>& partial_match,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
+   double time_limit = -1.0) {
+     
+  Match<QueryGraph,
+       TargetGraph>& temp_partial_match = partial_match;
+
+  return DpisoUsingMatch(query_graph,
+                        target_graph,
+                  temp_partial_match,
+                       prune_callback,
+                       match_callback,
+                       time_limit);
+}
+
+// remove reference from both QueryGraph and TargetGraph
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t DpisoUsingMatch(
+        QueryGraph&  query_graph,
+       TargetGraph& target_graph,
+  Match<QueryGraph&, 
+       TargetGraph&>& partial_match,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
+   double time_limit = -1.0) {
+     
+  Match<QueryGraph,
+       TargetGraph>& temp_partial_match = partial_match;
+
+  return DpisoUsingMatch(query_graph,
+                        target_graph,
+                  temp_partial_match,
+                       prune_callback,
+                       match_callback,
+                       time_limit);
 }
 
 template <enum MatchSemantics match_semantics 
@@ -284,6 +455,75 @@ inline size_t DpisoUsingMatch(
                          match_state,
                       prune_callback,
                       match_callback, 
+                          time_limit);
+}
+
+// remove reference from QueryGraph
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          typename    QueryGraph,
+          typename   TargetGraph>
+inline size_t DpisoUsingMatch(
+   QueryGraph&  query_graph, 
+  TargetGraph& target_graph,
+  MatchSet<QueryGraph&, 
+          TargetGraph>& match_result,
+   int64_t max_match = -1,
+   double time_limit = -1.0){
+
+  MatchSet<QueryGraph, 
+          TargetGraph>& temp_match_result = match_result;
+
+  return DpisoUsingMatch(query_graph, 
+                        target_graph,
+                    temp_match_result,
+                           max_match,
+                          time_limit);
+}
+
+// remove reference from TargetGraph
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          typename    QueryGraph,
+          typename   TargetGraph>
+inline size_t DpisoUsingMatch(
+   QueryGraph&  query_graph, 
+  TargetGraph& target_graph,
+  MatchSet<QueryGraph, 
+          TargetGraph&>& match_result,
+   int64_t max_match = -1,
+   double time_limit = -1.0){
+
+  MatchSet<QueryGraph, 
+          TargetGraph>& temp_match_result = match_result;
+
+  return DpisoUsingMatch(query_graph, 
+                        target_graph,
+                    temp_match_result,
+                           max_match,
+                          time_limit);
+}
+
+// remove reference from both QueryGraph and TargetGraph
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          typename    QueryGraph,
+          typename   TargetGraph>
+inline size_t DpisoUsingMatch(
+   QueryGraph&  query_graph, 
+  TargetGraph& target_graph,
+  MatchSet<QueryGraph&, 
+          TargetGraph&>& match_result,
+   int64_t max_match = -1,
+   double time_limit = -1.0){
+
+  MatchSet<QueryGraph, 
+          TargetGraph>& temp_match_result = match_result;
+
+  return DpisoUsingMatch(query_graph, 
+                        target_graph,
+                    temp_match_result,
+                           max_match,
                           time_limit);
 }
 

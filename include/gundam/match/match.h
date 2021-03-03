@@ -12,6 +12,12 @@
 
 namespace GUNDAM {
 
+template <typename SrcGraphType,
+          typename DstGraphType,
+          enum ContainerType map_container_type = ContainerType::Vector,
+          enum SortType map_container_sort_type = SortType::Default>
+class Match;
+
 /// can be configured to much different type
 ///     constant src graph to     constant dst graph
 ///     constant src graph to non-constant dst graph
@@ -19,8 +25,8 @@ namespace GUNDAM {
 /// non-constant src graph to non-constant dst graph
 template <typename SrcGraphType,
           typename DstGraphType,
-          enum ContainerType map_container_type = ContainerType::Vector,
-          enum SortType map_container_sort_type = SortType::Default>
+          enum ContainerType map_container_type,
+          enum SortType map_container_sort_type>
 class Match {
  private:
   template <typename _SrcGraphType,
@@ -319,9 +325,88 @@ class Match {
   }
 };
 
-template <typename SrcGraphType, typename DstGraphType,
+// remove reference from SrcGraphType
+template <typename SrcGraphType,
+          typename DstGraphType,
+          enum ContainerType map_container_type,
+          enum SortType map_container_sort_type>
+class Match<SrcGraphType&,
+            DstGraphType,
+            map_container_type,
+            map_container_sort_type> 
+  : public Match<SrcGraphType,
+                 DstGraphType,
+                 map_container_type,
+                 map_container_sort_type>{
+ private:
+  using InnerMatchType 
+           = Match<SrcGraphType,
+                   DstGraphType,
+                   map_container_type,
+                   map_container_sort_type>;
+
+ public:
+  using InnerMatchType::InnerMatchType;
+};
+
+// remove reference from DstGraphType
+template <typename SrcGraphType,
+          typename DstGraphType,
+          enum ContainerType map_container_type,
+          enum SortType map_container_sort_type>
+class Match<SrcGraphType,
+            DstGraphType&,
+            map_container_type,
+            map_container_sort_type> 
+  : public Match<SrcGraphType,
+                 DstGraphType,
+                 map_container_type,
+                 map_container_sort_type>{
+ private:
+  using InnerMatchType 
+           = Match<SrcGraphType,
+                   DstGraphType,
+                   map_container_type,
+                   map_container_sort_type>;
+
+ public:
+  using InnerMatchType::InnerMatchType;
+};
+
+// remove reference from both SrcGraphType and DstGraphType
+template <typename SrcGraphType,
+          typename DstGraphType,
+          enum ContainerType map_container_type,
+          enum SortType map_container_sort_type>
+class Match<SrcGraphType&,
+            DstGraphType&,
+            map_container_type,
+            map_container_sort_type> 
+  : public Match<SrcGraphType,
+                 DstGraphType,
+                 map_container_type,
+                 map_container_sort_type>{
+ private:
+  using InnerMatchType 
+           = Match<SrcGraphType,
+                   DstGraphType,
+                   map_container_type,
+                   map_container_sort_type>;
+
+ public:
+  using InnerMatchType::InnerMatchType;
+};
+
+template <typename SrcGraphType,
+          typename DstGraphType,
           enum ContainerType match_container_type = ContainerType::Vector,
-          enum SortType match_container_sort_type = SortType::Sorted>
+          enum SortType match_container_sort_type = SortType::Default>
+class MatchSet;
+
+template <typename SrcGraphType, 
+          typename DstGraphType,
+          enum ContainerType match_container_type,
+          enum SortType match_container_sort_type>
 class MatchSet {
  private:
   using SrcVertexHandleType = typename VertexHandle<SrcGraphType>::type;
@@ -427,6 +512,78 @@ class MatchSet {
     return std::pair<MatchIterator, bool>(
         MatchIterator(ret.first, this->match_set.end()), ret.second);
   }
+};
+
+// remove reference from SrcGraphType
+template <typename SrcGraphType,
+          typename DstGraphType,
+          enum ContainerType match_container_type,
+          enum SortType match_container_sort_type>
+class MatchSet<SrcGraphType&,
+               DstGraphType,
+               match_container_type,
+               match_container_sort_type> 
+  : public MatchSet<SrcGraphType,
+                    DstGraphType,
+                    match_container_type,
+                    match_container_sort_type>{
+ private:
+  using InnerMatchSetType 
+           = MatchSet<SrcGraphType,
+                      DstGraphType,
+                      match_container_type,
+                      match_container_sort_type>;
+
+ public:
+  using InnerMatchSetType::InnerMatchSetType;
+};
+
+// remove reference from DstGraphType
+template <typename SrcGraphType,
+          typename DstGraphType,
+          enum ContainerType match_container_type,
+          enum SortType match_container_sort_type>
+class MatchSet<SrcGraphType,
+               DstGraphType&,
+               match_container_type,
+               match_container_sort_type> 
+  : public MatchSet<SrcGraphType,
+                    DstGraphType,
+                    match_container_type,
+                    match_container_sort_type>{
+ private:
+  using InnerMatchSetType 
+           = MatchSet<SrcGraphType,
+                      DstGraphType,
+                      match_container_type,
+                      match_container_sort_type>;
+
+ public:
+  using InnerMatchSetType::InnerMatchSetType;
+};
+
+// remove reference from both SrcGraphType and DstGraphType
+template <typename SrcGraphType,
+          typename DstGraphType,
+          enum ContainerType match_container_type,
+          enum SortType match_container_sort_type>
+class MatchSet<SrcGraphType&,
+               DstGraphType&,
+               match_container_type,
+               match_container_sort_type> 
+  : public MatchSet<SrcGraphType,
+                    DstGraphType,
+                    match_container_type,
+                    match_container_sort_type>{
+ private:
+  using InnerMatchSetType 
+           = MatchSet<SrcGraphType,
+                      DstGraphType,
+                      match_container_type,
+                      match_container_sort_type>;
+
+ public:
+  using InnerMatchSetType::InnerMatchSetType;
 };
 
 }  // namespace GUNDAM
