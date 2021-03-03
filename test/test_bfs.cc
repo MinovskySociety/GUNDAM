@@ -130,9 +130,6 @@ void TestBfs() {
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
 
-  using VertexPtrType      = typename GraphType::VertexPtr;
-  using VertexConstPtrType = typename GraphType::VertexConstPtr;
-
   auto my_callback0 
     = [](typename GUNDAM::VertexHandle<decltype(g0)>::type vertex_handle){
     return true;
@@ -150,17 +147,18 @@ void TestBfs() {
     return true;
   };
   
-  auto src_ptr = g0.FindVertex(1);
+  typename GUNDAM::VertexHandle<decltype(g0)>::type 
+    src_handle = g0.FindVertex(1);
 
   distance_tested = true;
-  auto ret = GUNDAM::Bfs(g0, src_ptr);
+  auto ret = GUNDAM::Bfs(g0, src_handle);
   ASSERT_EQ(ret, 9);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs(g0, src_ptr, my_callback);
+  ret = GUNDAM::Bfs(g0, src_handle, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 9);
-  ret = GUNDAM::Bfs(g0, src_ptr, my_callback0);
+  ret = GUNDAM::Bfs(g0, src_handle, my_callback0);
   ASSERT_EQ(ret, 9);
 
   const auto& g0_const_ref = g0;
@@ -200,16 +198,16 @@ void TestBfs() {
   ASSERT_EQ(ret, 9);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g0, src_ptr, my_callback);
+  ret = GUNDAM::Bfs<false>(g0, src_handle, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 9);
-  ret = GUNDAM::Bfs<false>(g0, src_ptr, my_callback0);
+  ret = GUNDAM::Bfs<false>(g0, src_handle, my_callback0);
   ASSERT_EQ(ret, 9);
 
   auto my_callback2 = [&distance_tested](
-                         VertexPtrType vertex_handle, 
-                         typename GraphType::VertexCounterType bfs_idx,
-                         typename GraphType::VertexCounterType current_distance){
+      typename GUNDAM::VertexHandle<decltype(g0)>::type vertex_handle, 
+      typename GraphType::VertexCounterType bfs_idx,
+      typename GraphType::VertexCounterType current_distance){
     if (vertex_handle->label() != 4 - current_distance) {
       distance_tested = false;
     }
@@ -217,18 +215,19 @@ void TestBfs() {
   };
 
   distance_tested = true;
-  auto src_ptr2 = g0.FindVertex(9);
-  ret = GUNDAM::Bfs<true>(g0, src_ptr2, my_callback2);
+  typename GUNDAM::VertexHandle<decltype(g0)>::type 
+    src_handle2 = g0.FindVertex(9);
+  ret = GUNDAM::Bfs<true>(g0, src_handle2, my_callback2);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 9);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g0, src_ptr2, my_callback2);
+  ret = GUNDAM::Bfs<false>(g0, src_handle2, my_callback2);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 1);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g0, src_ptr2, my_callback);
+  ret = GUNDAM::Bfs<false>(g0, src_handle2, my_callback);
   ASSERT_TRUE(!distance_tested);
   ASSERT_EQ(ret, 1);
 
@@ -236,7 +235,7 @@ void TestBfs() {
 
   auto my_callback3 
     = [&distance_tested,
-       &kVertexLimit](VertexPtrType vertex_handle, 
+       &kVertexLimit](typename GUNDAM::VertexHandle<decltype(g0)>::type vertex_handle, 
                       typename GraphType::VertexCounterType bfs_idx){
     if (bfs_idx == kVertexLimit)
       return false;
@@ -244,7 +243,7 @@ void TestBfs() {
   };
 
   distance_tested = true;
-  ret = GUNDAM::Bfs(g0, src_ptr, my_callback3);
+  ret = GUNDAM::Bfs(g0, src_handle, my_callback3);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, kVertexLimit);
 
@@ -338,47 +337,44 @@ void TestBfs() {
   res2 = g1.AddEdge(9, 8, 42, 20);
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
-
-  using VertexPtrType      = typename GraphType::VertexPtr;
-  using VertexConstPtrType = typename GraphType::VertexConstPtr;
   
-  src_ptr = g1.FindVertex(1);
-  ret = GUNDAM::Bfs(g1, src_ptr);
+  src_handle = g1.FindVertex(1);
+  ret = GUNDAM::Bfs(g1, src_handle);
   ASSERT_EQ(ret, 6);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs(g1, src_ptr, my_callback);
+  ret = GUNDAM::Bfs(g1, src_handle, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 6);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g1, src_ptr, my_callback);
+  ret = GUNDAM::Bfs<false>(g1, src_handle, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 6);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<true>(g1, src_ptr, my_callback);
+  ret = GUNDAM::Bfs<true>(g1, src_handle, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 9);
 
-  src_ptr2 = g1.FindVertex(9);
+  src_handle2 = g1.FindVertex(9);
   distance_tested = true;
-  ret = GUNDAM::Bfs<true>(g1, src_ptr2, my_callback2);
+  ret = GUNDAM::Bfs<true>(g1, src_handle2, my_callback2);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 9);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g1, src_ptr2, my_callback2);
+  ret = GUNDAM::Bfs<false>(g1, src_handle2, my_callback2);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 6);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g1, src_ptr2, my_callback);
+  ret = GUNDAM::Bfs<false>(g1, src_handle2, my_callback);
   ASSERT_TRUE(!distance_tested);
   ASSERT_EQ(ret, 6);
   
   distance_tested = true;
-  ret = GUNDAM::Bfs(g1, src_ptr, my_callback3);
+  ret = GUNDAM::Bfs(g1, src_handle, my_callback3);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, kVertexLimit);
 
@@ -443,14 +439,14 @@ void TestBfs() {
   ASSERT_TRUE(res2.second);
 
   distance_tested = true;
-  src_ptr = g2.FindVertex(1);
-  ret = GUNDAM::Bfs<false>(g2, src_ptr, my_callback);
+  src_handle = g2.FindVertex(1);
+  ret = GUNDAM::Bfs<false>(g2, src_handle, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 4);
 
   distance_tested = true;
-  src_ptr = g2.FindVertex(5);
-  ret = GUNDAM::Bfs<false>(g2, src_ptr, my_callback);
+  src_handle = g2.FindVertex(5);
+  ret = GUNDAM::Bfs<false>(g2, src_handle, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 4);
   return;
@@ -505,10 +501,10 @@ TEST(TestGUNDAM, TestBfs) {
                    SetEdgeLabelContainerType<GUNDAM::ContainerType::Map>>;
 
   TestBfs<G1>();
-  // TestBfs<G2>();
-  // TestBfs<G3>();
-  // TestBfs<G4>();
-  // TestBfs<G5>();
-  // TestBfs<G6>();
-  // TestBfs<G7>();
+  TestBfs<G2>();
+  TestBfs<G3>();
+  TestBfs<G4>();
+  TestBfs<G5>();
+  TestBfs<G6>();
+  TestBfs<G7>();
 }

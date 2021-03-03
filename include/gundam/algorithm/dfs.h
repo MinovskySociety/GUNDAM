@@ -5,6 +5,8 @@
 #include <set>
 #include <type_traits>
 
+#include "gundam/graph_type/vertex_handle.h"
+
 namespace GUNDAM {
 
 // legal callback forms:
@@ -12,27 +14,27 @@ namespace GUNDAM {
 //    user_callback(vertex_ptr, dfs_idx)
 template <bool bidirectional = false,
           typename        GraphType,
-          typename    VertexPtrType,
           typename UserCallBackType>
 inline size_t Dfs(GraphType& graph,
-              VertexPtrType& src_vertex_ptr,
+              typename VertexHandle<GraphType>::type& src_vertex_ptr,
            UserCallBackType& user_callback) {
   using VertexCounterType = typename GraphType::VertexCounterType;
+  using VertexHandleType = typename VertexHandle<GraphType>::type;
   static_assert(
        // user_callback(vertex_ptr)
       std::is_convertible_v<
                 UserCallBackType, 
-                std::function<bool(VertexPtrType)> >
+                std::function<bool(VertexHandleType)> >
     || // user_callback(vertex_ptr, dfs_idx)
       std::is_convertible_v<
                 UserCallBackType, 
-                std::function<bool(VertexPtrType, 
+                std::function<bool(VertexHandleType, 
                                    VertexCounterType)> >,
       "illegal callback type, only allows one of user_callback(vertex_ptr) and user_callback(vertex_ptr, bfs_idx)");
 
   VertexCounterType dfs_idx = 0;
-  std::stack<VertexPtrType> vertex_ptr_stack;
-  std:: set <VertexPtrType> visited;
+  std::stack<VertexHandleType> vertex_ptr_stack;
+  std:: set <VertexHandleType> visited;
   vertex_ptr_stack.emplace(src_vertex_ptr);
   visited.emplace(src_vertex_ptr);
   while (!vertex_ptr_stack.empty()) {
@@ -43,13 +45,13 @@ inline size_t Dfs(GraphType& graph,
     if constexpr (
       std::is_convertible_v<
                 UserCallBackType, 
-                std::function<bool(VertexPtrType)> >){
+                std::function<bool(VertexHandleType)> >){
       ret = user_callback(current_vertex_ptr);
     }
     if constexpr (
       std::is_convertible_v<
                 UserCallBackType, 
-                std::function<bool(VertexPtrType,
+                std::function<bool(VertexHandleType,
                                    VertexCounterType)> >){
       ret = user_callback(current_vertex_ptr,
                           dfs_idx);
@@ -84,13 +86,12 @@ inline size_t Dfs(GraphType& graph,
   return dfs_idx;
 }
 
-template <bool bidirectional = false,
-          typename     GraphType,
-          typename VertexPtrType>
+template<bool bidirectional = false,
+         typename GraphType>
 inline size_t Dfs(GraphType& graph,
-              VertexPtrType& src_vertex_ptr) {
-
-  auto do_nothing_callback = [](const VertexPtrType& vertex_ptr, 
+              typename VertexHandle<GraphType>::type& src_vertex_ptr) {
+  using VertexHandleType = typename VertexHandle<GraphType>::type;
+  auto do_nothing_callback = [](const VertexHandleType& vertex_ptr, 
                                 const size_t&           dfs_idx){
     // do nothing, continue matching
     return true;
