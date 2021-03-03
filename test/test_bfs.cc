@@ -9,6 +9,7 @@
 #include "gundam/graph_type/large_graph.h"
 #include "gundam/graph_type/large_graph2.h"
 #include "gundam/graph_type/graph.h"
+#include "gundam/graph_type/vertex_handle.h"
 
 template <class GraphType>
 void TestBfs() {
@@ -132,17 +133,18 @@ void TestBfs() {
   using VertexPtrType      = typename GraphType::VertexPtr;
   using VertexConstPtrType = typename GraphType::VertexConstPtr;
 
-  auto my_callback0 = [](VertexPtrType vertex_ptr){
+  auto my_callback0 
+    = [](typename GUNDAM::VertexHandle<decltype(g0)>::type vertex_handle){
     return true;
   };
 
   bool distance_tested = true;
 
   auto my_callback = [&distance_tested](
-                        VertexPtrType vertex_ptr, 
-                        typename GraphType::VertexCounterType bfs_idx,
-                        typename GraphType::VertexCounterType current_distance){
-    if (vertex_ptr->label() != current_distance) {
+      typename GUNDAM::VertexHandle<decltype(g0)>::type vertex_handle, 
+      typename GraphType::VertexCounterType bfs_idx,
+      typename GraphType::VertexCounterType current_distance){
+    if (vertex_handle->label() != current_distance) {
       distance_tested = false;
     }
     return true;
@@ -150,6 +152,7 @@ void TestBfs() {
   
   auto src_ptr = g0.FindVertex(1);
 
+  distance_tested = true;
   auto ret = GUNDAM::Bfs(g0, src_ptr);
   ASSERT_EQ(ret, 9);
 
@@ -160,6 +163,42 @@ void TestBfs() {
   ret = GUNDAM::Bfs(g0, src_ptr, my_callback0);
   ASSERT_EQ(ret, 9);
 
+  const auto& g0_const_ref = g0;
+
+  auto my_callback0_const_ref
+    = [](typename GUNDAM::VertexHandle<decltype(g0_const_ref)>::type vertex_handle){
+    return true;
+  };
+
+  auto my_callback_const_ref = [&distance_tested](
+      typename GUNDAM::VertexHandle<decltype(g0_const_ref)>::type vertex_handle, 
+      typename GraphType::VertexCounterType bfs_idx,
+      typename GraphType::VertexCounterType current_distance){
+    if (vertex_handle->label() != current_distance) {
+      distance_tested = false;
+    }
+    return true;
+  };
+  
+  typename GUNDAM::VertexHandle<decltype(g0_const_ref)>::type 
+       src_handle_g0_const_ref = g0_const_ref.FindVertex(1);
+
+  distance_tested = true;
+  ret = GUNDAM::Bfs(g0_const_ref, 
+         src_handle_g0_const_ref);
+  ASSERT_EQ(ret, 9);
+
+  distance_tested = true;
+  ret = GUNDAM::Bfs(g0_const_ref,
+         src_handle_g0_const_ref, 
+           my_callback_const_ref);
+  ASSERT_TRUE(distance_tested);
+  ASSERT_EQ(ret, 9);
+  ret = GUNDAM::Bfs(g0_const_ref, 
+         src_handle_g0_const_ref, 
+          my_callback0_const_ref);
+  ASSERT_EQ(ret, 9);
+
   distance_tested = true;
   ret = GUNDAM::Bfs<false>(g0, src_ptr, my_callback);
   ASSERT_TRUE(distance_tested);
@@ -168,10 +207,10 @@ void TestBfs() {
   ASSERT_EQ(ret, 9);
 
   auto my_callback2 = [&distance_tested](
-                         VertexPtrType vertex_ptr, 
+                         VertexPtrType vertex_handle, 
                          typename GraphType::VertexCounterType bfs_idx,
                          typename GraphType::VertexCounterType current_distance){
-    if (vertex_ptr->label() != 4 - current_distance) {
+    if (vertex_handle->label() != 4 - current_distance) {
       distance_tested = false;
     }
     return true;
@@ -197,7 +236,7 @@ void TestBfs() {
 
   auto my_callback3 
     = [&distance_tested,
-       &kVertexLimit](VertexPtrType vertex_ptr, 
+       &kVertexLimit](VertexPtrType vertex_handle, 
                       typename GraphType::VertexCounterType bfs_idx){
     if (bfs_idx == kVertexLimit)
       return false;
