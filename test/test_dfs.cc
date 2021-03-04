@@ -10,7 +10,7 @@
 #include "gundam/graph_type/large_graph2.h"
 #include "gundam/graph_type/graph.h"
 
-#include "gundam/graph_type/vertex_handle.h"
+#include "gundam/type_getter/vertex_handle.h"
 
 template <class GraphType>
 void TestDfs() {

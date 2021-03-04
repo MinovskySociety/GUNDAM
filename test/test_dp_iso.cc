@@ -18,7 +18,7 @@
 
 #include "gundam/algorithm/dp_iso.h"
 
-#include "gundam/graph_type/vertex_handle.h"
+#include "gundam/type_getter/vertex_handle.h"
 
 inline uint64_t GetTime() { return clock() * 1000 / CLOCKS_PER_SEC; }
 

@@ -8,7 +8,7 @@
 #include "gundam/component/container.h"
 #include "gundam/component/iterator.h"
 
-#include "gundam/graph_type/vertex_handle.h"
+#include "gundam/type_getter/vertex_handle.h"
 
 namespace GUNDAM {
 

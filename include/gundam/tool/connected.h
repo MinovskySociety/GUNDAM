@@ -3,7 +3,7 @@
 
 #include "gundam/algorithm/dfs.h"
 
-#include "gundam/graph_type/vertex_handle.h"
+#include "gundam/type_getter/vertex_handle.h"
 
 namespace GUNDAM {
 
