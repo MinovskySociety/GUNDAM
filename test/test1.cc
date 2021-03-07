@@ -4,6 +4,8 @@
 
 #include "gtest/gtest.h"
 
+#include "gundam/type_getter/vertex_handle.h"
+
 #include "gundam/graph_type/graph.h"
 #include "gundam/graph_type/large_graph.h"
 #include "gundam/graph_type/large_graph2.h"
@@ -13,7 +15,7 @@ template <class GraphType>
 void TestBuildGraph(GraphType& g) {
   bool res;
 
-  typename GraphType::VertexPtr v1;
+  typename GUNDAM::VertexHandle<GraphType>::type v1;
   std::tie(v1, res) = g.AddVertex(1, 1);
   ASSERT_TRUE(res);
   ASSERT_TRUE(v1);
@@ -25,7 +27,7 @@ void TestBuildGraph(GraphType& g) {
   ASSERT_TRUE(g.AddVertex(4, 4).second);
   ASSERT_TRUE(g.AddVertex(5, 5).second);
 
-  typename GraphType::VertexPtr v5;
+  typename GUNDAM::VertexHandle<GraphType>::type v5;
   std::tie(v5, res) = g.AddVertex(5, 100);
   ASSERT_FALSE(res);
   ASSERT_TRUE(v5);
@@ -169,7 +171,7 @@ void TestGraph1() {
   GraphType g;
   bool res;
 
-  typename GraphType::VertexPtr v1;
+  typename GUNDAM::VertexHandle<GraphType>::type v1;
   std::tie(v1, res) = g.AddVertex(1, 1);
   ASSERT_TRUE(res);
   ASSERT_TRUE(v1);
@@ -181,7 +183,7 @@ void TestGraph1() {
   ASSERT_TRUE(g.AddVertex(4, 4).second);
   ASSERT_TRUE(g.AddVertex(5, 5).second);
 
-  typename GraphType::VertexPtr v5;
+  typename GUNDAM::VertexHandle<GraphType>::type v5;
   std::tie(v5, res) = g.AddVertex(5, 100);
   ASSERT_FALSE(res);
   ASSERT_TRUE(v5);
@@ -204,13 +206,13 @@ void TestGraph1() {
   auto v1a = g.FindVertex(1);
   ASSERT_EQ(v1, v1a);
 
-  typename GraphType::VertexPtr v2 = g.FindVertex(2);
+  typename GUNDAM::VertexHandle<GraphType>::type v2 = g.FindVertex(2);
   ASSERT_TRUE(v2);
-  typename GraphType::VertexConstPtr v2const = g.FindConstVertex(2);
-  ASSERT_TRUE(v2const);
-  ASSERT_EQ(v2, v2const);
-  ASSERT_EQ(2, v2const->id());
-  ASSERT_EQ(2, v2const->label());
+  // typename GraphType::VertexConstPtr v2const = g.FindConstVertex(2);
+  // ASSERT_TRUE(v2const);
+  // ASSERT_EQ(v2, v2const);
+  // ASSERT_EQ(2, v2const->id());
+  // ASSERT_EQ(2, v2const->label());
 
   {
     typename GraphType::VertexIterator it;

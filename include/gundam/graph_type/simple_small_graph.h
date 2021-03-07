@@ -10,6 +10,9 @@
 #include "gundam/component/iterator2.h"
 #include "gundam/component/pointer.h"
 
+#include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/edge_handle.h"
+
 namespace GUNDAM {
 
 template <class VertexIDType, class VertexLabelType, class EdgeIDType,
@@ -53,7 +56,13 @@ class SimpleSmallGraph {
 
   using ConstEdge = _Edge<true>;
 
- public:
+ private:
+  friend class VertexHandle<SimpleSmallGraph>;
+  friend class VertexHandle<const SimpleSmallGraph>;
+  
+  friend class EdgeHandle<SimpleSmallGraph>;
+  friend class EdgeHandle<const SimpleSmallGraph>;
+
   using VertexPtr = GPointer<false, Vertex, ConstVertex>;
 
   using VertexConstPtr = GPointer<true, Vertex, ConstVertex>;
@@ -62,6 +71,7 @@ class SimpleSmallGraph {
 
   using EdgeConstPtr = GPointer<true, Edge, ConstEdge>;
 
+ public:
   using VertexIterator =
       GIterator2<false, SimpleSmallGraph, typename VertexContainer::iterator,
                  Vertex, VertexPtr>;

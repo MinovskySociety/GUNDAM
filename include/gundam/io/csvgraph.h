@@ -11,6 +11,9 @@
 #include "gundam/component/generator.h"
 #include "gundam/io/rapidcsv.h"
 
+#include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/edge_handle.h"
+
 namespace GUNDAM {
 
 //// universial empty callback function template
@@ -192,7 +195,7 @@ inline bool ReadAttribues(
 //          typename std::enable_if<!GraphType::vertex_has_attribute,
 //                                  bool>::type = false>
 // bool LoadVertexAttribue(GraphType& graph,
-//                        typename GraphType::VertexPtr& vertex_ptr,
+//                        typename GUNDAM::VertexHandle<GraphType>::type& vertex_ptr,
 //                        rapidcsv::Document& vertex_file,
 //                        std::vector<std::string>& after_parse_col_name,
 //                        std::vector<std::string>& after_parse_value_type,
@@ -205,7 +208,7 @@ inline bool ReadAttribues(
 //          =
 //              false>
 // bool LoadVertexAttribue(GraphType& graph,
-//                        typename GraphType::VertexPtr& vertex_ptr,
+//                        typename GUNDAM::VertexHandle<GraphType>::type& vertex_ptr,
 //                        rapidcsv::Document& vertex_file,
 //                        std::vector<std::string>& after_parse_col_name,
 //                        std::vector<std::string>& after_parse_value_type,
@@ -274,7 +277,7 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
   using VertexLabelType = typename GraphType::VertexType::LabelType;
   using VertexAttributeKeyType =
       typename GraphType::VertexType::AttributeKeyType;
-  using VertexPtr = typename GraphType::VertexPtr;
+  using VertexPtr = typename GUNDAM::VertexHandle<GraphType>::type;
 
   try {
     std::cout << v_file << std::endl;
@@ -424,7 +427,7 @@ int ReadCSVEdgeFileWithCallback(const std::string &e_file, GraphType& graph,
   using EdgeIDType = typename GraphType::EdgeType::IDType;
   using EdgeLabelType = typename GraphType::EdgeType::LabelType;
   using EdgeAttributeKeyType = typename GraphType::EdgeType::AttributeKeyType;
-  using EdgePtr = typename GraphType::EdgePtr;
+  using EdgePtr = typename GUNDAM::EdgeHandle<GraphType>::type;
   
   try {
     std::cout << e_file << std::endl;
@@ -685,7 +688,7 @@ inline void WriteCSVLine(StreamType& s, std::vector<std::string>& cols) {
 //  using VertexIDType = typename VertexType::IDType;
 //  using VertexLabelType = typename VertexType::LabelType;
 //  using EdgeLabelType = typename EdgeType::LabelType;
-//  using VertexPtr = typename GraphType::VertexPtr;
+//  using VertexPtr = typename GUNDAM::VertexHandle<GraphType>::type;
 //  using VertexConstPtr = typename GraphType::VertexConstPtr;
 //  using EdgeConstPtr = typename GraphType::EdgeConstPtr;
 //  using AttributeKeyType = typename VertexType::AttributeKeyType;
@@ -764,7 +767,7 @@ void WriteAttributes(VertexEdgePtr& vertex_edge_ptr,
 //  using VertexIDType = typename VertexType::IDType;
 //  using VertexLabelType = typename VertexType::LabelType;
 //  using EdgeLabelType = typename EdgeType::LabelType;
-//  using VertexPtr = typename GraphType::VertexPtr;
+//  using VertexPtr = typename GUNDAM::VertexHandle<GraphType>::type;
 //  using VertexConstPtr = typename GraphType::VertexConstPtr;
 //  using EdgeConstPtr = typename GraphType::EdgeConstPtr;
 //  using AttributeKeyType = typename VertexType::AttributeKeyType;

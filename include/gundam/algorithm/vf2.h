@@ -1,4 +1,4 @@
-#ifndef _VF2_H
+#ifdef _VF2_H
 #define _VF2_H
 
 #include <cstdint>
@@ -15,8 +15,6 @@
 #include "gundam/component/timer.h"
 
 namespace GUNDAM {
-
-enum MatchSemantics { kIsomorphism, kHomomorphism };
 
 namespace _vf2 {
 

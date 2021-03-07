@@ -412,8 +412,8 @@ inline size_t DpisoUsingMatch(
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
-          typename    QueryGraph,
-          typename   TargetGraph>
+          typename  QueryGraph,
+          typename TargetGraph>
 inline size_t DpisoUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
@@ -461,8 +461,8 @@ inline size_t DpisoUsingMatch(
 // remove reference from QueryGraph
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
-          typename    QueryGraph,
-          typename   TargetGraph>
+          typename  QueryGraph,
+          typename TargetGraph>
 inline size_t DpisoUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
@@ -484,8 +484,8 @@ inline size_t DpisoUsingMatch(
 // remove reference from TargetGraph
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
-          typename    QueryGraph,
-          typename   TargetGraph>
+          typename  QueryGraph,
+          typename TargetGraph>
 inline size_t DpisoUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
@@ -507,8 +507,8 @@ inline size_t DpisoUsingMatch(
 // remove reference from both QueryGraph and TargetGraph
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
-          typename    QueryGraph,
-          typename   TargetGraph>
+          typename  QueryGraph,
+          typename TargetGraph>
 inline size_t DpisoUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,

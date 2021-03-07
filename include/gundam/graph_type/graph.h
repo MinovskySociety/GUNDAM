@@ -1,14 +1,19 @@
 #ifndef _GRAPH_H
 #define _GRAPH_H
 
-#include "gundam/component/container.h"
 #include "gundam/data_type/datatype.h"
 #include "gundam/data_type/datetime.h"
-#include "gundam/component/generator.h"
-#include "gundam/graph_type/graph_configure.h"
-#include "gundam/component/iterator.h"
 #include "gundam/data_type/label.h"
+
+#include "gundam/graph_type/graph_configure.h"
+
 #include "gundam/component/attribute.h"
+#include "gundam/component/iterator.h"
+#include "gundam/component/generator.h"
+#include "gundam/component/container.h"
+
+#include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/edge_handle.h"
 
 #include <iostream>
 #include <set>
@@ -113,7 +118,13 @@ class Graph {
 
   class InnerVertex_;
   
- public:
+ private:
+  friend class VertexHandle<Graph>;
+  friend class VertexHandle<const Graph>;
+
+  friend class EdgeHandle<Graph>;
+  friend class EdgeHandle<const Graph>;
+
   /// non-constant pointer
   using VertexPtr = typename InnerVertex_::VertexPtr;
   using   EdgePtr = typename InnerVertex_::  EdgePtr;

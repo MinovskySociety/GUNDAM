@@ -11,6 +11,9 @@
 #include "gundam/component/iterator2.h"
 #include "gundam/data_type/datatype.h"
 
+#include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/edge_handle.h"
+
 namespace GUNDAM {
 
 template <class VertexIDType, 
@@ -111,8 +114,8 @@ std::string& operator>>(std::string& in_string,
                               EdgeLabelType,
                        EdgeAttributeKeyType>;
 
-  using VertexPtr = typename GraphType::VertexPtr;
-  using   EdgePtr = typename GraphType::  EdgePtr;
+  using VertexPtr = typename VertexHandle<GraphType>::type;
+  using   EdgePtr = typename   EdgeHandle<GraphType>::type;
 
   std::stringstream ss;
   ss << in_string;
@@ -794,16 +797,26 @@ class LargeGraph {
 
   using EdgeContainer = TreeDict<EdgeIDType, EdgeData *>;
 
- public:
-  using VertexType = VertexData;
+  friend class VertexHandle<LargeGraph>;
+  friend class VertexHandle<const LargeGraph>;
 
-  using VertexCounterType = size_t;
-
-  using EdgeType = EdgeData;
+  friend class EdgeHandle<LargeGraph>;
+  friend class EdgeHandle<const LargeGraph>;
 
   using VertexPtr = VertexData *;
 
   using VertexConstPtr = const VertexData *;
+
+  using EdgePtr = EdgeData *;
+
+  using EdgeConstPtr = const EdgeData *;
+
+ public:
+  using VertexType = VertexData;
+
+  using EdgeType = EdgeData;
+
+  using VertexCounterType = size_t;
 
   using VertexIterator = GIterator<typename VertexContainer::iterator,
                                    VertexData, PairSecondPointerCast>;
@@ -811,10 +824,6 @@ class LargeGraph {
   using VertexConstIterator =
       GIterator<typename VertexContainer::const_iterator, VertexData,
                 PairSecondPointerCast>;
-
-  using EdgePtr = EdgeData *;
-
-  using EdgeConstPtr = const EdgeData *;
 
   using EdgeIterator = GIterator<typename EdgeContainer::iterator, EdgeData,
                                  PairSecondPointerCast>;

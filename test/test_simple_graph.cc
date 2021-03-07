@@ -12,7 +12,7 @@ template <class GraphType>
 void TestBuildSimpleGraph1(GraphType& g) {
   bool res;
 
-  typename GraphType::VertexPtr v;
+  typename GUNDAM::VertexHandle<GraphType>::type v;
   std::tie(v, res) = g.AddVertex(1, 10);
   ASSERT_TRUE(res);
   ASSERT_TRUE(v);
@@ -37,7 +37,7 @@ void TestBuildSimpleGraph1(GraphType& g) {
 
   ASSERT_EQ(10, g.CountVertex());
 
-  typename GraphType::EdgePtr e;
+  typename GUNDAM::EdgeHandle<GraphType>::type e;
   std::tie(e, res) = g.AddEdge(1, 1, 100, 1);
   ASSERT_TRUE(res);
   ASSERT_TRUE(e);
@@ -74,7 +74,7 @@ template <class GraphType>
 void TestBuildSimpleGraph2(GraphType& g) {
   bool res;
 
-  typename GraphType::VertexPtr v;
+  typename GUNDAM::VertexHandle<GraphType>::type v;
 
   auto ret1 = g.AddVertex(12, 1);
   ASSERT_FALSE(ret1.second);
@@ -86,7 +86,7 @@ void TestBuildSimpleGraph2(GraphType& g) {
 
   ASSERT_EQ(10, g.CountVertex());
 
-  typename GraphType::EdgePtr e;
+  typename GUNDAM::EdgeHandle<GraphType>::type e;
   std::tie(e, res) = g.AddEdge(1, 1, 1000, 0);
   ASSERT_FALSE(res);
   ASSERT_FALSE(e);
@@ -215,9 +215,9 @@ void PrintGraphInEdges(GraphType& g) {
 
 template <class GraphType>
 void TestSimpleGraphPtrIterator(GraphType &g) {
-  typename GraphType::VertexPtr v1 = g.FindVertex(5);
-  typename GraphType::VertexConstPtr cv1 = g.FindConstVertex(5);
-  ////typename GraphType::VertexPtr v2 = g.FindConstVertex(5); // wrong
+  typename GUNDAM::VertexHandle<GraphType>::type v1 = g.FindVertex(5);
+  // typename GraphType::VertexConstPtr cv1 = g.FindConstVertex(5);
+  ////typename GUNDAM::VertexHandle<GraphType>::type v2 = g.FindConstVertex(5); // wrong
   //typename GraphType::VertexConstPtr cv2 = g.FindVertex(5); // ok
 }
 

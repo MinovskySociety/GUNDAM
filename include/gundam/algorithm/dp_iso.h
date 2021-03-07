@@ -20,6 +20,9 @@
 #include "gundam/type_getter/edge_handle.h"
 
 namespace GUNDAM {
+  
+enum MatchSemantics { kIsomorphism, kHomomorphism };
+
 namespace _dp_iso {
 enum EdgeState { kIn, kOut };
 // if query.CountEdge()>=large_query_edge, using fail set
@@ -236,10 +239,10 @@ inline bool JoinableCheck(
            ((edge_state == EdgeState::kIn) ? query_vertex_hanlde->InEdgeBegin()
                                            : query_vertex_hanlde->OutEdgeBegin());
        !query_edge_iter.IsDone(); query_edge_iter++) {
-    QueryEdgeHandle query_edge_ptr = query_edge_iter;
+    QueryEdgeHandle query_edge_handle = query_edge_iter;
     QueryVertexHandle query_opp_vertex_handle = (edge_state == EdgeState::kIn)
-                                              ? query_edge_ptr->src_ptr()
-                                              : query_edge_ptr->dst_ptr();
+                                              ? query_edge_handle->src_ptr()
+                                              : query_edge_handle->dst_ptr();
     auto match_iter = match_state.find(query_opp_vertex_handle);
     if (match_iter == match_state.end()) continue;
 
@@ -248,10 +251,10 @@ inline bool JoinableCheck(
     bool find_target_flag = false;
     for (auto target_edge_iter =
              ((edge_state == EdgeState::kIn)
-                  ? target_vertex_handle->InEdgeBegin(query_edge_ptr->label(),
+                  ? target_vertex_handle->InEdgeBegin(query_edge_handle->label(),
                                                     query_opp_match_vertex_handle)
                   : target_vertex_handle->OutEdgeBegin(
-                        query_edge_ptr->label(), query_opp_match_vertex_handle));
+                        query_edge_handle->label(), query_opp_match_vertex_handle));
          !target_edge_iter.IsDone(); target_edge_iter++) {
       if (used_edge.count(target_edge_iter->id())) continue;
       find_target_flag = true;
@@ -331,11 +334,11 @@ inline void UpdateCandidateSetOneDirection(
            ((edge_state == EdgeState::kIn) ? query_vertex_hanlde->InEdgeBegin()
                                            : query_vertex_hanlde->OutEdgeBegin());
        !label_it.IsDone(); label_it++) {
-    QueryVertexHandle temp_ptr = (edge_state == EdgeState::kIn)
+    QueryVertexHandle temp_handle = (edge_state == EdgeState::kIn)
                                   ? label_it->src_ptr()
                                   : label_it->dst_ptr();
-    if (match_state.count(temp_ptr)) continue;
-    if (!candidate_set.count(temp_ptr)) continue;
+    if (match_state.count(temp_handle)) continue;
+    if (!candidate_set.count(temp_handle)) continue;
     //枚举label
     if (used_edge_label.count(label_it->label())) continue;
     used_edge_label.insert(label_it->label());
@@ -352,8 +355,8 @@ inline void UpdateCandidateSetOneDirection(
                   ? target_vertex_handle->InVertexBegin(label_it->label())
                   : target_vertex_handle->OutVertexBegin(label_it->label()));
          !it.IsDone(); it++) {
-      TargetVertexHandle temp_target_ptr = it;
-      temp_adj_vertex[temp_target_ptr->label()].push_back(temp_target_ptr);
+      TargetVertexHandle temp_target_handle = it;
+      temp_adj_vertex[temp_target_handle->label()].push_back(temp_target_handle);
     }
     for (auto &it : temp_adj_vertex) {
       std::sort(it.second.begin(), it.second.end());
@@ -547,12 +550,12 @@ void UpdateParentSingleDirection(
                            ? update_query_vertex_handle->InEdgeBegin()
                            : update_query_vertex_handle->OutEdgeBegin());
        !edge_it.IsDone(); edge_it++) {
-    QueryVertexHandle update_query_adj_ptr = edge_state == EdgeState::kIn
+    QueryVertexHandle update_query_adj_handle = edge_state == EdgeState::kIn
                                               ? edge_it->src_ptr()
                                               : edge_it->dst_ptr();
-    if (match_state.find(update_query_adj_ptr) == match_state.end()) continue;
+    if (match_state.find(update_query_adj_handle) == match_state.end()) continue;
     auto &query_parent_set = parent.find(update_query_vertex_handle)->second;
-    auto find_it = parent.find(update_query_adj_ptr);
+    auto find_it = parent.find(update_query_adj_handle);
     if (find_it != parent.end()) {
       for (auto &it : find_it->second) {
         query_parent_set.push_back(it);
@@ -1024,19 +1027,19 @@ inline bool DAGDP(
     for (auto edge_it = vertex_handle->OutEdgeBegin(); 
              !edge_it.IsDone();
               edge_it++) {
-      QueryVertexHandle dst_ptr = edge_it->dst_ptr();
-      if (!used_vertex.count(dst_ptr)) {
+      QueryVertexHandle dst_handle = edge_it->dst_ptr();
+      if (!used_vertex.count(dst_handle)) {
         continue;
       }
-      out_edge_count[dst_ptr][edge_it->label()]++;
+      out_edge_count[dst_handle][edge_it->label()]++;
     }
     for (auto edge_it = vertex_handle->InEdgeBegin(); !edge_it.IsDone();
          edge_it++) {
-      QueryVertexHandle dst_ptr = edge_it->src_ptr();
-      if (!used_vertex.count(dst_ptr)) {
+      QueryVertexHandle dst_handle = edge_it->src_ptr();
+      if (!used_vertex.count(dst_handle)) {
         continue;
       }
-      in_edge_count[dst_ptr][edge_it->label()]++;
+      in_edge_count[dst_handle][edge_it->label()]++;
     }
     for (auto &candidate_it : l) {
       bool candidate_flag = true;
@@ -1322,7 +1325,7 @@ inline int DPISO(
     return 0;
   }
 
-  for (auto &target_ptr :
+  for (auto &target_handle :
        candidate_set.find(cal_supp_vertex_handle)->second) {
     time_t begin = clock();
     int max_result = 1;
@@ -1337,11 +1340,11 @@ inline int DPISO(
         std::bind(_dp_iso::MatchCallbackLimit<QueryVertexHandle, TargetVertexHandle>,
                   std::placeholders::_1, &max_result);
     std::set<TargetVertexHandle> target_matched;
-    _dp_iso::UpdateState(cal_supp_vertex_handle, target_ptr, match_state,
+    _dp_iso::UpdateState(cal_supp_vertex_handle, target_handle, match_state,
                          target_matched);
     auto t_begin = clock();
     _dp_iso::UpdateCandidateSet<QueryGraph, TargetGraph>(
-        cal_supp_vertex_handle, target_ptr, temp_candidate_set, match_state,
+        cal_supp_vertex_handle, target_handle, temp_candidate_set, match_state,
         target_matched);
     auto t_end = clock();
     if (query_graph.CountEdge() >= _dp_iso::large_query_edge) {
@@ -1360,7 +1363,7 @@ inline int DPISO(
     }
 
     if (max_result == 0) {
-      supp.emplace_back(target_ptr);
+      supp.emplace_back(target_handle);
     }
     time_t end = clock();
   }

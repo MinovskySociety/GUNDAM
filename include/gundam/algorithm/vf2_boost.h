@@ -1,4 +1,4 @@
-#ifndef _VF2BOOST_H
+#ifdef _VF2BOOST_H
 #define _VF2BOOST_H
 
 #include <iterator>

@@ -5,6 +5,9 @@
 #include ""gundam/component/container2.h""
 #include "gundam/component/iterator2.h"
 
+#include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/edge_handle.h"
+
 namespace GUNDAM {
 template <class VertexIDType, class VertexLabelType,
           class VertexAttributeKeyType, class EdgeIDType, class EdgeLabelType,
@@ -280,6 +283,21 @@ class LargeGraph3 {
     // EdgeAttributeListType attributes_;
   };
 
+ private:
+  friend class VertexHandle<LargeGraph3>;
+  friend class VertexHandle<const LargeGraph3>;
+  
+  friend class EdgeHandle<LargeGraph3>;
+  friend class EdgeHandle<const LargeGraph3>;
+
+  using VertexPtr = VertexData *;
+
+  using VertexConstPtr = const VertexData *;
+
+  using EdgePtr = EdgeData *;
+
+  using EdgeConstPtr = const EdgeData *;
+
  public:
   using VertexType = VertexData;
 
@@ -287,20 +305,12 @@ class LargeGraph3 {
 
   using EdgeType = EdgeData;
 
-  using VertexPtr = VertexData *;
-
-  using VertexConstPtr = const VertexData *;
-
   using VertexIterator = GIterator<typename VertexDataContainer::iterator,
                                    VertexData, DefaultCast>;
 
   using VertexConstIterator =
       GIterator<typename VertexDataContainer::const_iterator, const VertexData,
                 DefaultCast>;
-
-  using EdgePtr = EdgeData *;
-
-  using EdgeConstPtr = const EdgeData *;
 
   static constexpr bool vertex_has_attribute = true;
 

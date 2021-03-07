@@ -28,9 +28,6 @@ void TestDPISOUsingMatch_1() {
   using VertexLabelType = typename  QueryGraph::VertexType::LabelType;
   using   EdgeLabelType = typename TargetGraph::  EdgeType::LabelType;
 
-  using  QueryVertexConstPtr = typename  QueryGraph::VertexConstPtr;
-  using TargetVertexConstPtr = typename TargetGraph::VertexConstPtr;
-
    QueryGraph  query;
   TargetGraph target;
 

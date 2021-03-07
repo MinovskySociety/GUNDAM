@@ -3,6 +3,9 @@
 
 #include "gtest/gtest.h"
 
+#include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/edge_handle.h"
+
 #include "gundam/graph_type/graph.h"
 #include "gundam/graph_type/large_graph.h"
 #include "gundam/graph_type/large_graph2.h"
@@ -161,7 +164,7 @@ void TestGraphAttribute() {
   GraphType g;
   bool res;
 
-  typename GraphType::VertexPtr v1, v2;
+  typename GUNDAM::VertexHandle<GraphType>::type v1, v2;
   std::tie(v1, res) = g.AddVertex(1, "1");
   ASSERT_TRUE(res);
   ASSERT_TRUE(v1);
@@ -170,7 +173,7 @@ void TestGraphAttribute() {
   ASSERT_TRUE(res);
   ASSERT_TRUE(v2);
 
-  typename GraphType::EdgePtr e1, e2;
+  typename GUNDAM::EdgeHandle<GraphType>::type e1, e2;
   std::tie(e1, res) = g.AddEdge(1, 2, "a", 1);
   ASSERT_TRUE(res);
   ASSERT_TRUE(e1);
