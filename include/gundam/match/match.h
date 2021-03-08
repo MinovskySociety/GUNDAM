@@ -140,6 +140,12 @@ class Match {
 
   Match() = default;
 
+  Match(const Match&) = default;
+  Match(Match&&) = default;
+
+  Match& operator=(const Match&) = default;
+  Match& operator=(Match&&) = default;
+
   Match(SrcGraphType& src_graph,
         DstGraphType& dst_graph) : match_container_(){
     for (auto src_vertex_it = src_graph.VertexBegin();
@@ -302,8 +308,8 @@ class Match {
   /// composition
   /// match2 = match1(match0);
   /// match0: SrcSrcGraphType -> SrcGraphType
-  /// match1: SrcGraphType    -> DstGraphType
-  /// match2: SrcSrcGraphType -> DstGraphType
+  /// match1:                    SrcGraphType -> DstGraphType
+  /// match2: SrcSrcGraphType -----------------> DstGraphType
   template<typename SrcSrcGraphType>
   inline Match<SrcSrcGraphType,
                   DstGraphType> operator()(const Match<SrcSrcGraphType,
@@ -322,6 +328,15 @@ class Match {
     }
     assert(result.size() <= match0.size());
     return result;
+  }
+
+  template<typename SrcSrcGraphType>
+  inline Match<SrcSrcGraphType,
+                  DstGraphType> operator()(const Match<SrcSrcGraphType,
+                                                          SrcGraphType&>& match0) const{
+    const Match<SrcSrcGraphType,
+                   SrcGraphType>& temp_match = match0;
+    return (*this)(temp_match);
   }
 };
 
@@ -347,6 +362,30 @@ class Match<SrcGraphType&,
 
  public:
   using InnerMatchType::InnerMatchType;
+
+  Match(const Match&) = default;
+  Match(Match&&) = default;
+
+  Match& operator=(const Match&) = default;
+  Match& operator=(Match&&) = default;
+
+  Match(const InnerMatchType& match) 
+    : Match(static_cast<const Match&>(match)){
+    return;
+  }
+
+  Match(InnerMatchType&& match) 
+    : Match(static_cast<const Match&&>(match)){
+    return;
+  }
+
+  Match& operator=(const InnerMatchType& match){
+    return this->operator=(static_cast<const Match&>(match));
+  }
+
+  Match& operator=(InnerMatchType&& match){
+    return this->operator=(static_cast<Match&&>(match));
+  }
 };
 
 // remove reference from DstGraphType
@@ -371,6 +410,30 @@ class Match<SrcGraphType,
 
  public:
   using InnerMatchType::InnerMatchType;
+
+  Match(const Match&) = default;
+  Match(Match&&) = default;
+
+  Match& operator=(const Match&) = default;
+  Match& operator=(Match&&) = default;
+
+  Match(const InnerMatchType& match) 
+    : Match(static_cast<const Match&>(match)){
+    return;
+  }
+
+  Match(InnerMatchType&& match) 
+    : Match(static_cast<const Match&&>(match)){
+    return;
+  }
+
+  Match& operator=(const InnerMatchType& match){
+    return this->operator=(static_cast<const Match&>(match));
+  }
+
+  Match& operator=(InnerMatchType&& match){
+    return this->operator=(static_cast<Match&&>(match));
+  }
 };
 
 // remove reference from both SrcGraphType and DstGraphType
@@ -395,6 +458,30 @@ class Match<SrcGraphType&,
 
  public:
   using InnerMatchType::InnerMatchType;
+
+  Match(const Match&) = default;
+  Match(Match&&) = default;
+
+  Match& operator=(const Match&) = default;
+  Match& operator=(Match&&) = default;
+
+  Match(const InnerMatchType& match) 
+    : Match(static_cast<const Match&>(match)){
+    return;
+  }
+
+  Match(InnerMatchType&& match) 
+    : Match(static_cast<const Match&&>(match)){
+    return;
+  }
+
+  Match& operator=(const InnerMatchType& match){
+    return this->operator=(static_cast<const Match&>(match));
+  }
+
+  Match& operator=(InnerMatchType&& match){
+    return this->operator=(static_cast<Match&&>(match));
+  }
 };
 
 template <typename SrcGraphType,

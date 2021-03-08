@@ -812,7 +812,7 @@ class IteratorWithInstance_ : public Iterator_<ContentIterator_> {
 
   template <bool judge = ContentIterator_::kIsConst_,
             typename std::enable_if<!judge, bool>::type = false>
-  inline const ContentDataType& operator*() {
+  inline ContentDataType& operator*() {
     assert(!this->IsDone());
     return ContentIterator_::instance();
   }

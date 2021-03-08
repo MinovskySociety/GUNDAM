@@ -814,6 +814,28 @@ inline void CopyMap(std::vector<std::pair<A, B>> &c, std::map<A, B> &m) {
   return;
 };
 
+template <class A, class B>
+inline void CopyMap(std::map<A, B> &c, const std::map<A, B> &m) {
+  c = m;
+  return;
+};
+
+template <class A, class B>
+inline void CopyMap(std::list<std::pair<A, B>> &c, const std::map<A, B> &m) {
+  for (auto &p : m) {
+    c.emplace_back(p);
+  }
+  return;
+};
+
+template <class A, class B>
+inline void CopyMap(std::vector<std::pair<A, B>> &c, const std::map<A, B> &m) {
+  for (auto &p : m) {
+    c.emplace_back(p);
+  }
+  return;
+};
+
 template <class  QueryVertexHandle, 
           class TargetVertexHandle, 
           class ResultContainer>
