@@ -18,7 +18,8 @@ template <bool bidirectional = false,
           typename UserCallBackType>
 inline size_t Bfs(GraphType&  graph,
   const std::set<typename VertexHandle<GraphType>::type>& src_vertex_handle_set,
-           UserCallBackType  user_callback) {
+           UserCallBackType  user_callback,
+           int distance_limit = -1) {
   using VertexCounterType = typename GraphType::VertexCounterType;
   using VertexHandleType = typename VertexHandle<GraphType>::type;
   static_assert(
@@ -81,6 +82,11 @@ inline size_t Bfs(GraphType&  graph,
       // meets stopping condition, stop the matching process
       return bfs_idx;
     }
+    if (distance_limit != -1 
+     && distance_limit == current_distance) {
+      // has reached the distance_limit
+      continue;
+    }
     for (auto edge_it = current_vertex_handle->OutEdgeBegin();
              !edge_it.IsDone();
               edge_it++) {
@@ -112,17 +118,19 @@ template<bool bidirectional = false,
          typename UserCallBackType>
 inline size_t Bfs(GraphType& graph,
         const typename VertexHandle<GraphType>::type& src_vertex_handle,
-           UserCallBackType& user_callback) {
+           UserCallBackType& user_callback,
+           int distance_limit = -1) {
   using VertexHandleType = typename VertexHandle<GraphType>::type;
   std::set<VertexHandleType> src_vertex_handle_set 
                           = {src_vertex_handle};
-  return Bfs<bidirectional>(graph, src_vertex_handle_set, user_callback);
+  return Bfs<bidirectional>(graph, src_vertex_handle_set, user_callback, distance_limit);
 }
 
 template<bool bidirectional = false,
          typename GraphType>
 inline size_t Bfs(GraphType& graph,
-        const typename VertexHandle<GraphType>::type& src_vertex_handle) {
+        const typename VertexHandle<GraphType>::type& src_vertex_handle,
+           int distance_limit = -1) {
 
   using VertexHandleType = typename VertexHandle<GraphType>::type;
   auto do_nothing_callback = [](VertexHandleType vertex_handle, 
@@ -130,7 +138,7 @@ inline size_t Bfs(GraphType& graph,
     // do nothing, continue matching
     return true;
   };
-  return Bfs<bidirectional>(graph, src_vertex_handle, do_nothing_callback);
+  return Bfs<bidirectional>(graph, src_vertex_handle, do_nothing_callback, distance_limit);
 }
 
 }  // namespace GUNDAM

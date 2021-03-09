@@ -105,7 +105,7 @@ GraphType KHop(GraphType& graph,
     return true;
   };
 
-  GUNDAM::Bfs<true>(graph, src_handle_set, hop_callback);
+  GUNDAM::Bfs<true>(graph, src_handle_set, hop_callback, k);
 
   return k_hop;
 }
