@@ -16,6 +16,11 @@ GraphType KHop(GraphType& graph,
 
   GraphType k_hop;
 
+  for (const auto& src_handle : src_handle_set){
+    k_hop.AddVertex(src_handle->id(),
+                    src_handle->label());
+  }
+
   auto hop_callback = [&k_hop, &k](
         VertexHandleType vertex_handle,
         uint32_t bfs_idx,
@@ -27,8 +32,6 @@ GraphType KHop(GraphType& graph,
 
     auto [new_vertex_handle, ret] = k_hop.AddVertex(vertex_handle->id(),
                                                     vertex_handle->label());
-
-    assert(ret);
     assert(new_vertex_handle);
 
     // add attribute to new_vertex
