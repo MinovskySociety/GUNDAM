@@ -1,5 +1,5 @@
-#ifndef _BFS_H
-#define _BFS_H
+#ifndef _GUNDAM_ALGORITHM_BFS_H
+#define _GUNDAM_ALGORITHM_BFS_H
 
 #include <queue>
 #include <set>

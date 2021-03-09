@@ -1,5 +1,5 @@
-#ifndef _DPISO_H
-#define _DPISO_H
+#ifndef _GUNDAM_ALGORITHM_DPISO_H
+#define _GUNDAM_ALGORITHM_DPISO_H
 #include <cassert>
 #include <cstdint>
 #include <ctime>

@@ -1,5 +1,5 @@
-#ifndef _LARGE_GRAPH2_H
-#define _LARGE_GRAPH2_H
+#ifndef _GUNDAM_GRAPH_TYPE_LARGE_GRAPH2_H
+#define _GUNDAM_GRAPH_TYPE_LARGE_GRAPH2_H
 
 #include "gundam/component/attribute.h"
 #include "gundam/component/container2.h"

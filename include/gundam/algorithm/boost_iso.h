@@ -1,5 +1,5 @@
-#ifdef _BOOSTISO_H
-#define _BOOSTISO_H
+#ifdef _GUNDAM_ALGORITHM_BOOSTISO_H
+#define _GUNDAM_ALGORITHM_BOOSTISO_H
 //#include "gundam/graph_type/graph.h"
 template <class VertexHandle>
 void GetKStepAdj(VertexHandle vertex_ptr, int k, std::set<VertexHandle> &adj_list) {

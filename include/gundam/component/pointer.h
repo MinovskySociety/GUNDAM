@@ -1,5 +1,5 @@
-#ifndef _POINTER_H
-#define _POINTER_H
+#ifndef _GUNDAM_COMPONENT_POINTER_H
+#define _GUNDAM_COMPONENT_POINTER_H
 
 #include <type_traits>
 

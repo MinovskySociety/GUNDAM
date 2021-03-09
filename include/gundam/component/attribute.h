@@ -1,5 +1,5 @@
-#ifndef _ATTRIBUTE_H
-#define _ATTRIBUTE_H
+#ifndef _GUNDAM_COMPONENT_ATTRIBUTE_H
+#define _GUNDAM_COMPONENT_ATTRIBUTE_H
 
 #include <sstream>
 #include <string>

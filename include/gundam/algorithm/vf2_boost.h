@@ -1,5 +1,5 @@
-#ifdef _VF2BOOST_H
-#define _VF2BOOST_H
+#ifdef _GUNDAM_ALGORITHM_VF2BOOST_H
+#define _GUNDAM_ALGORITHM_VF2BOOST_H
 
 #include <iterator>
 

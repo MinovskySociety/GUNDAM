@@ -1,5 +1,5 @@
-#ifndef _GRAPH_H
-#define _GRAPH_H
+#ifndef _GUNDAM_GRAPH_TYPE_GRAPH_H
+#define _GUNDAM_GRAPH_TYPE_GRAPH_H
 
 #include "gundam/data_type/datatype.h"
 #include "gundam/data_type/datetime.h"

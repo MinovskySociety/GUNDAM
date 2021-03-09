@@ -1,5 +1,5 @@
-#ifndef _LARGE_GRAPH_H
-#define _LARGE_GRAPH_H
+#ifndef _GUNDAM_GRAPH_TYPE_LARGE_GRAPH_H
+#define _GUNDAM_GRAPH_TYPE_LARGE_GRAPH_H
 
 #include <map>
 #include <set>

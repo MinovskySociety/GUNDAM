@@ -1,5 +1,5 @@
-#ifndef _MATCHRESULT_H
-#define _MATCHRESULT_H
+#ifndef _GUNDAM_MATCH_MATCHRESULT_H
+#define _GUNDAM_MATCH_MATCHRESULT_H
 #include <ostream>
 // single match_result is ptr->ptr
 template <typename PatternVertexIDType, typename TargetVertexIDType,

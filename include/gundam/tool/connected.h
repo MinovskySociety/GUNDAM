@@ -1,5 +1,5 @@
-#ifndef _CONNECTED_H
-#define _CONNECTED_H
+#ifndef _GUNDAM_TOOL_CONNECTED_H
+#define _GUNDAM_TOOL_CONNECTED_H
 
 #include "gundam/algorithm/dfs.h"
 
@@ -19,4 +19,4 @@ inline bool Connected(GraphType& graph) {
 
 }  // namespace GUNDAM
 
-#endif // _CONNECTED_H
+#endif // _GUNDAM_TOOL_CONNECTED_H

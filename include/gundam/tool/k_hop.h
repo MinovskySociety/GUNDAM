@@ -1,5 +1,5 @@
-#ifndef _K_HOP_H
-#define _K_HOP_H
+#ifndef _GUNDAM_TOOL_K_HOP_H
+#define _GUNDAM_TOOL_K_HOP_H
 
 #include "gundam/algorithm/bfs.h"
 
@@ -40,7 +40,7 @@ GraphType KHop(GraphType& graph,
                                       attr_it->value_type(),
                                       attr_it->value_str());
       assert(ret);
-      assert(attr_handle);
+      assert(!attr_handle.IsNull());
     }
 
     for (auto out_edge_it = vertex_handle->OutEdgeBegin();
@@ -69,7 +69,7 @@ GraphType KHop(GraphType& graph,
                                         attr_it->value_type(),
                                         attr_it->value_str());
         assert(ret);
-        assert(attr_handle);
+        assert(!attr_handle.IsNull());
       }
     }
 
@@ -99,7 +99,7 @@ GraphType KHop(GraphType& graph,
                                         attr_it->value_type(),
                                         attr_it->value_str());
         assert(ret);
-        assert(attr_handle);
+        assert(!attr_handle.IsNull());
       }
     }
     return true;
@@ -112,4 +112,4 @@ GraphType KHop(GraphType& graph,
 
 }; // namespace GUNDAM
 
-#endif // _K_HOP_H
+#endif // _GUNDAM_TOOL_K_HOP_H

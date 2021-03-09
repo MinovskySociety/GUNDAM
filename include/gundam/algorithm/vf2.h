@@ -1,5 +1,5 @@
-#ifdef _VF2_H
-#define _VF2_H
+#ifdef _GUNDAM_ALGORITHM_VF2_H
+#define _GUNDAM_ALGORITHM_VF2_H
 
 #include <cstdint>
 #include <functional>

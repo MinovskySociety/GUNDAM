@@ -1,5 +1,5 @@
-#ifndef _DFS_H
-#define _DFS_H
+#ifndef _GUNDAM_ALGORITHM_DFS_H
+#define _GUNDAM_ALGORITHM_DFS_H
 
 #include <stack>
 #include <set>

@@ -1,5 +1,5 @@
-#ifndef _DATETIME_H
-#define _DATETIME_H
+#ifndef _GUNDAM_DATA_TYPE_DATETIME_H
+#define _GUNDAM_DATA_TYPE_DATETIME_H
 
 #include <cstdio>
 #include <cstring>

@@ -1,5 +1,5 @@
-#ifndef _ITERATOR_H
-#define _ITERATOR_H
+#ifndef _GUNDAM_COMPONENT_ITERATOR_H
+#define _GUNDAM_COMPONENT_ITERATOR_H
 
 #include "gundam/component/container.h"
 

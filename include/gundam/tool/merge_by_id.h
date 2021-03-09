@@ -1,5 +1,5 @@
-#ifndef _MERGE_BY_ID_H
-#define _MERGE_BY_ID_H
+#ifndef _GUNDAM_TOOL_MERGE_BY_ID_H
+#define _GUNDAM_TOOL_MERGE_BY_ID_H
 
 #include "gundam/match/match.h"
 
@@ -76,4 +76,4 @@ inline bool MergeById(GraphType0& graph0,
 
 }
 
-#endif // _MERGE_BY_ID_H
+#endif // _GUNDAM_TOOL_MERGE_BY_ID_H

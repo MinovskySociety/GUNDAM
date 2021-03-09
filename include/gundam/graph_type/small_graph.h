@@ -1,5 +1,5 @@
-#ifndef _SMALL_GRAPH_H
-#define _SMALL_GRAPH_H
+#ifndef _GUNDAM_GRAPH_TYPE_SMALL_GRAPH_H
+#define _GUNDAM_GRAPH_TYPE_SMALL_GRAPH_H
 
 #include <algorithm>
 #include <iterator>

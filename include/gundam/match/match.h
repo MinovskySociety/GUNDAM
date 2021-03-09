@@ -1,5 +1,5 @@
-#ifndef _MATCH_H
-#define _MATCH_H
+#ifndef _GUNDAM_MATCH_MATCH_H
+#define _GUNDAM_MATCH_MATCH_H
 #pragma once
 #include <iostream>
 #include <set>

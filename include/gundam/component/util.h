@@ -1,5 +1,5 @@
-#ifndef _UTIL_H
-#define _UTIL_H
+#ifndef _GUNDAM_COMPONENT_UTIL_H
+#define _GUNDAM_COMPONENT_UTIL_H
 
 #include <iostream>
 

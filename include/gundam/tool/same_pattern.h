@@ -1,5 +1,5 @@
-#ifndef _SAME_PATTERN_H
-#define _SAME_PATTERN_H
+#ifndef _GUNDAM_TOOL_SAME_PATTERN_H
+#define _GUNDAM_TOOL_SAME_PATTERN_H
 
 #include "gundam/algorithm/dp_iso_using_match.h"
 
@@ -28,4 +28,4 @@ inline bool SamePattern(GraphType0& graph_0,
 
 }  // namespace GUNDAM
 
-#endif // _SAME_PATTERN_H
+#endif // _GUNDAM_TOOL_SAME_PATTERN_H
