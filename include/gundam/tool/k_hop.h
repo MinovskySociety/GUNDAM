@@ -62,7 +62,6 @@ GraphType KHop(GraphType& graph,
                           out_edge_it->dst_ptr()->id(),
                           out_edge_it->label(),
                           out_edge_it->id());
-      assert(ret);
       assert(k_hop_edge_handle);
       for (auto attr_it = out_edge_it->AttributeBegin();
                !attr_it.IsDone();
@@ -92,7 +91,6 @@ GraphType KHop(GraphType& graph,
                           in_edge_it->dst_ptr()->id(),
                           in_edge_it->label(),
                           in_edge_it->id());
-      assert(ret);
       assert(k_hop_edge_handle);
       for (auto attr_it = in_edge_it->AttributeBegin();
                !attr_it.IsDone();
