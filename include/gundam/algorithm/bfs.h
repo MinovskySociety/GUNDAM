@@ -17,7 +17,7 @@ template <bool bidirectional = false,
           typename        GraphType,
           typename UserCallBackType>
 inline size_t Bfs(GraphType&  graph,
-     std::set<typename VertexHandle<GraphType>::type>& src_vertex_handle_set,
+  const std::set<typename VertexHandle<GraphType>::type>& src_vertex_handle_set,
            UserCallBackType  user_callback) {
   using VertexCounterType = typename GraphType::VertexCounterType;
   using VertexHandleType = typename VertexHandle<GraphType>::type;
@@ -111,7 +111,7 @@ template<bool bidirectional = false,
          typename GraphType,
          typename UserCallBackType>
 inline size_t Bfs(GraphType& graph,
-              typename VertexHandle<GraphType>::type& src_vertex_handle,
+        const typename VertexHandle<GraphType>::type& src_vertex_handle,
            UserCallBackType& user_callback) {
   using VertexHandleType = typename VertexHandle<GraphType>::type;
   std::set<VertexHandleType> src_vertex_handle_set 
@@ -122,7 +122,7 @@ inline size_t Bfs(GraphType& graph,
 template<bool bidirectional = false,
          typename GraphType>
 inline size_t Bfs(GraphType& graph,
-              typename VertexHandle<GraphType>::type& src_vertex_handle) {
+        const typename VertexHandle<GraphType>::type& src_vertex_handle) {
 
   using VertexHandleType = typename VertexHandle<GraphType>::type;
   auto do_nothing_callback = [](VertexHandleType vertex_handle, 
