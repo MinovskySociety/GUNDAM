@@ -1,6 +1,9 @@
 #ifndef _GUNDAM_SAMPLE_EDGE_SAMPLE_H
 #define _GUNDAM_SAMPLE_EDGE_SAMPLE_H
 
+#include <vector>
+#include "gundam/tool/remove_isolate_vertex.h"
+
 namespace GUNDAM{
 
 template<typename GraphType>
@@ -24,6 +27,7 @@ GraphType EdgeSample(const GraphType& graph, double sample_ratio){
   for (const auto& remove_edge_id : remove_edge_id_set){
     sampled_graph.EraseEdge(remove_edge_id);
   }
+  GUNDAM::RemoveIsolateVertex(sampled_graph);
   return sampled_graph;
 }
 

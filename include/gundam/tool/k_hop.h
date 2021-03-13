@@ -16,11 +16,6 @@ GraphType KHop(GraphType& graph,
 
   GraphType k_hop;
 
-  for (const auto& src_handle : src_handle_set){
-    k_hop.AddVertex(src_handle->id(),
-                    src_handle->label());
-  }
-
   auto hop_callback = [&k_hop, &k](
         VertexHandleType vertex_handle,
         uint32_t bfs_idx,
@@ -42,8 +37,6 @@ GraphType KHop(GraphType& graph,
                                       attr_it->key(),
                                       attr_it->value_type(),
                                       attr_it->value_str());
-      assert(ret);
-      assert(!attr_handle.IsNull());
     }
 
     for (auto out_edge_it = vertex_handle->OutEdgeBegin();
@@ -70,8 +63,6 @@ GraphType KHop(GraphType& graph,
                                         attr_it->key(),
                                         attr_it->value_type(),
                                         attr_it->value_str());
-        assert(ret);
-        assert(!attr_handle.IsNull());
       }
     }
 
@@ -99,8 +90,6 @@ GraphType KHop(GraphType& graph,
                                         attr_it->key(),
                                         attr_it->value_type(),
                                         attr_it->value_str());
-        assert(ret);
-        assert(!attr_handle.IsNull());
       }
     }
     return true;
