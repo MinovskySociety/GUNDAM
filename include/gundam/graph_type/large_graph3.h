@@ -382,6 +382,7 @@ class LargeGraph3 {
     return VertexPtr(&*it2);
   }
 
+ private:
   VertexConstPtr FindConstVertex(const typename VertexType::IDType &id) const {
     auto it = vertex_id_dict_.Find(id);
     if (it == vertex_id_dict_.cend()) return VertexConstPtr(nullptr);
@@ -390,7 +391,8 @@ class LargeGraph3 {
     assert(it2 != vertex_data_.cend());
     return VertexPtr(&*it2);
   }    
-
+ 
+ public:
   VertexIterator VertexBegin() {
     return VertexIterator(vertex_data_.begin(), vertex_data_.end());
   }

@@ -898,12 +898,14 @@ class LargeGraph2 {
     return this->FindConstVertex(id);
   }
 
+ private:
   VertexConstPtr FindConstVertex(const typename VertexType::IDType &id) const {
     auto it = vertices_.Find(id);
     if (it == vertices_.end()) return nullptr;
     return it->second;
   }
 
+ public:
   VertexIterator VertexBegin() {
     return VertexIterator(vertices_.begin(), vertices_.end());
   }
@@ -998,12 +1000,14 @@ class LargeGraph2 {
     return it->second;
   }
 
+ private:
   EdgeConstPtr FindConstEdge(const typename EdgeType::IDType &id) const {
     auto it = edges_.Find(id);
     if (it == edges_.end()) return nullptr;
     return it->second;
   }
 
+ public:
   EdgeIterator EdgeBegin() {
     return EdgeIterator(edges_.begin(), edges_.end());
   }
