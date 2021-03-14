@@ -345,6 +345,15 @@ class Match {
   }
 };
 
+template <typename SrcGraphType,
+          typename DstGraphType>
+Match(SrcGraphType& src_graph,
+      DstGraphType& dst_graph) 
+   -> Match<SrcGraphType,
+            DstGraphType,
+           ContainerType::Vector,
+                SortType::Default>;
+
 // remove reference from SrcGraphType
 template <typename SrcGraphType,
           typename DstGraphType,
