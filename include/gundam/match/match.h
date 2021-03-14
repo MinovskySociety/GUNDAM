@@ -5,10 +5,15 @@
 #include <set>
 #include <vector>
 
+#include <string>
+#include <sstream>
+#include <fstream>
+
 #include "gundam/component/container.h"
 #include "gundam/component/iterator.h"
 
 #include "gundam/type_getter/vertex_handle.h"
+#include "gundam/data_type/datatype.h"
 
 namespace GUNDAM {
 
@@ -499,14 +504,17 @@ class MatchSet {
   using SrcVertexHandleType = typename VertexHandle<SrcGraphType>::type;
   using DstVertexHandleType = typename VertexHandle<DstGraphType>::type;
 
+  using SrcVertexIDType = typename SrcGraphType::VertexType::IDType;
+  using DstVertexIDType = typename DstGraphType::VertexType::IDType;
+
  public:
   using MatchType = Match<SrcGraphType, DstGraphType>;
 
  private:
   static constexpr TupleIdxType kMatchIdx = 0;
   using MatchContainerType = Container<match_container_type, 
-                                      match_container_sort_type, 
-                                      MatchType>;
+                                       match_container_sort_type, 
+                                       MatchType>;
 
   template <typename ContainerType_,
             bool is_const_,
@@ -577,6 +585,42 @@ class MatchSet {
   using size_type = typename MatchContainerType::size_type;
 
   MatchSet() = default;
+
+  MatchSet(SrcGraphType& src_graph,
+           DstGraphType& dst_graph,
+          std::ifstream& support_file){
+    assert(support_file.is_open());
+    std::string str; 
+    while (std::getline(support_file, str)){
+      std::string buf;                 // Have a buffer string
+      std::stringstream ss(str);       // Insert the string into a stream
+
+      std::vector<DstVertexIDType> dst_vertex_id_set; // Create vector to hold our words
+
+      dst_vertex_id_set.reserve(src_graph.CountVertex());
+      while (ss >> buf){
+        dst_vertex_id_set.emplace_back(
+                            GUNDAM::StringToDataType<DstVertexIDType>(buf));
+      }
+      assert(dst_vertex_id_set.size() == src_graph.CountVertex());
+      auto dst_vertex_id_it = dst_vertex_id_set.begin();
+
+      for (auto src_vertex_it = src_graph.VertexBegin();
+               !src_vertex_it.IsDone();
+                src_vertex_it++) {
+        assert(dst_vertex_id_it !=  dst_vertex_id_set.end());
+        DstVertexIDType  dst_id  = *dst_vertex_id_it;
+        dst_vertex_id_it++;
+        SrcVertexHandleType src_handle = src_vertex_it;
+        DstVertexHandleType dst_handle
+                          = dst_graph.FindVertex(dst_id); 
+        auto [match_it, match_ret] = this->AddMatch(MatchSet());
+        assert(match_ret);
+        match_it->AddMap(src_handle, dst_handle);
+      }
+    }
+    return;
+  }
 
   inline size_type size() const { 
     return this->match_set.size(); 
