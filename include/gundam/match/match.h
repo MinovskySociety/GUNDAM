@@ -596,10 +596,29 @@ class MatchSet {
   MatchSet() = default;
 
   MatchSet(SrcGraphType& src_graph,
+           DstGraphType& dst_graph){
+    return;
+  }
+
+  MatchSet(SrcGraphType& src_graph,
            DstGraphType& dst_graph,
           std::ifstream& support_file){
     assert(support_file.is_open());
     std::string str; 
+    std::getline(support_file, str);
+
+    std::string buf;                 // Have a buffer string
+    std::stringstream ss(str);       // Insert the string into a stream
+
+    std::vector<SrcVertexIDType> src_vertex_id_set; // Create vector to hold our words
+
+    src_vertex_id_set.reserve(src_graph.CountVertex());
+    while (ss >> buf){
+      src_vertex_id_set.emplace_back(
+                          GUNDAM::StringToDataType<SrcVertexIDType>(buf));
+    }
+    assert(src_vertex_id_set.size() == src_graph.CountVertex());
+    
     while (std::getline(support_file, str)){
       std::string buf;                 // Have a buffer string
       std::stringstream ss(str);       // Insert the string into a stream
@@ -614,18 +633,24 @@ class MatchSet {
       assert(dst_vertex_id_set.size() == src_graph.CountVertex());
       auto dst_vertex_id_it = dst_vertex_id_set.begin();
 
-      for (auto src_vertex_it = src_graph.VertexBegin();
-               !src_vertex_it.IsDone();
-                src_vertex_it++) {
-        assert(dst_vertex_id_it !=  dst_vertex_id_set.end());
-        DstVertexIDType  dst_id  = *dst_vertex_id_it;
-        dst_vertex_id_it++;
-        SrcVertexHandleType src_handle = src_vertex_it;
+      for (auto [src_vertex_id_cit,
+                 dst_vertex_id_cit] = std::tuple{src_vertex_id_set.cbegin(),
+                                                 dst_vertex_id_set.cbegin()};
+                 src_vertex_id_cit != src_vertex_id_set.cend()
+              && dst_vertex_id_cit != dst_vertex_id_set.cend();
+                 src_vertex_id_cit++,
+                 dst_vertex_id_cit++){
+        
+        SrcVertexHandleType src_handle 
+                          = src_graph.FindVertex(*src_vertex_id_cit);
         DstVertexHandleType dst_handle
-                          = dst_graph.FindVertex(dst_id); 
+                          = dst_graph.FindVertex(*dst_vertex_id_cit); 
+                          
         auto [match_it, match_ret] = this->AddMatch(MatchType());
         assert(match_ret);
-        match_it->AddMap(src_handle, dst_handle);
+        bool add_map_ret = match_it->AddMap(src_handle, 
+                                            dst_handle);
+        assert(add_map_ret);
       }
     }
     return;
@@ -653,6 +678,25 @@ class MatchSet {
         MatchIterator(ret.first, this->match_set.end()), ret.second);
   }
 };
+
+template <typename SrcGraphType,
+          typename DstGraphType>
+MatchSet(SrcGraphType& src_graph,
+         DstGraphType& dst_graph)
+   -> MatchSet<SrcGraphType,
+               DstGraphType,
+              ContainerType::Vector,
+                   SortType::Default>;
+
+template <typename SrcGraphType,
+          typename DstGraphType>
+MatchSet(SrcGraphType& src_graph,
+         DstGraphType& dst_graph,
+        std::ifstream& supp_file)
+   -> MatchSet<SrcGraphType,
+               DstGraphType,
+              ContainerType::Vector,
+                   SortType::Default>;
 
 // remove reference from SrcGraphType
 template <typename SrcGraphType,
