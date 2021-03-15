@@ -623,7 +623,7 @@ class MatchSet {
         SrcVertexHandleType src_handle = src_vertex_it;
         DstVertexHandleType dst_handle
                           = dst_graph.FindVertex(dst_id); 
-        auto [match_it, match_ret] = this->AddMatch(MatchSet());
+        auto [match_it, match_ret] = this->AddMatch(MatchType());
         assert(match_ret);
         match_it->AddMap(src_handle, dst_handle);
       }
