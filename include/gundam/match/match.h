@@ -152,7 +152,9 @@ class Match {
   Match& operator=(Match&&) = default;
 
   Match(SrcGraphType& src_graph,
-        DstGraphType& dst_graph) : match_container_(){
+        DstGraphType& dst_graph,
+        std::string construct_method) : match_container_(){
+    assert(construct_method == "same_id_map");
     for (auto src_vertex_it = src_graph.VertexBegin();
              !src_vertex_it.IsDone();
               src_vertex_it++){
@@ -583,7 +585,7 @@ class MatchSet {
     using InnerIteratorType::InnerIteratorType;
   };
 
-  MatchContainerType match_set;
+  MatchContainerType match_set_;
 
  public:
   using MatchIterator =
@@ -602,80 +604,125 @@ class MatchSet {
 
   MatchSet(SrcGraphType& src_graph,
            DstGraphType& dst_graph,
-          std::ifstream& support_file){
-    assert(support_file.is_open());
-    std::string str; 
-    std::getline(support_file, str);
-
-    std::string buf;                 // Have a buffer string
-    std::stringstream ss(str);       // Insert the string into a stream
-
-    std::vector<SrcVertexIDType> src_vertex_id_set; // Create vector to hold our words
-
-    src_vertex_id_set.reserve(src_graph.CountVertex());
-    while (ss >> buf){
-      src_vertex_id_set.emplace_back(
-                          GUNDAM::StringToDataType<SrcVertexIDType>(buf));
+           std::istream& match_file){
+    if (!match_file.good()){
+      std::cout << " match file is not good! " << std::endl;
+      return;
     }
-    assert(src_vertex_id_set.size() == src_graph.CountVertex());
-    
-    while (std::getline(support_file, str)){
-      std::string buf;                 // Have a buffer string
-      std::stringstream ss(str);       // Insert the string into a stream
 
-      std::vector<DstVertexIDType> dst_vertex_id_set; // Create vector to hold our words
+    // get the first line of the match_file
+    std::string s;
+    if (!std::getline( match_file, s )) {
+      // cannot get the first line of the match_file
+      std::cout << " cannot get the first line of the match_file! " << std::endl;
+      return;
+    }
 
-      dst_vertex_id_set.reserve(src_graph.CountVertex());
-      while (ss >> buf){
-        dst_vertex_id_set.emplace_back(
-                            GUNDAM::StringToDataType<DstVertexIDType>(buf));
+    std::istringstream ss( s );
+    std::vector <std::string> record;
+    record.reserve(src_graph.CountVertex() + 1);
+    while (ss) {
+      std::string s;
+      if (!std::getline( ss, s, ',' )) {
+        break;
       }
-      assert(dst_vertex_id_set.size() == src_graph.CountVertex());
-      auto dst_vertex_id_it = dst_vertex_id_set.begin();
+      record.emplace_back( s );
+    }
 
-      for (auto [src_vertex_id_cit,
-                 dst_vertex_id_cit] = std::tuple{src_vertex_id_set.cbegin(),
-                                                 dst_vertex_id_set.cbegin()};
-                 src_vertex_id_cit != src_vertex_id_set.cend()
-              && dst_vertex_id_cit != dst_vertex_id_set.cend();
-                 src_vertex_id_cit++,
-                 dst_vertex_id_cit++){
-        
-        SrcVertexHandleType src_handle 
-                          = src_graph.FindVertex(*src_vertex_id_cit);
-        DstVertexHandleType dst_handle
-                          = dst_graph.FindVertex(*dst_vertex_id_cit); 
-                          
-        auto [match_it, match_ret] = this->AddMatch(MatchType());
-        assert(match_ret);
-        bool add_map_ret = match_it->AddMap(src_handle, 
-                                            dst_handle);
+    if (record.size() != src_graph.CountVertex() + 1) {
+      // illegal match_file
+      std::cout << " illegal match file, colum mismatch! " << std::endl;
+      return;
+    }
+
+    if (record[0] != "match_id") {
+      // illegal match_file
+      std::cout << " illegal match file, first colum of the first line should be \"match_id\"! " 
+                << std::endl;
+      return;
+    }
+
+    std::vector<SrcVertexHandleType> src_vertex_handle_set;
+
+    assert(record.size() > 1);
+    for (int i = 1; i < record.size(); i++){
+      const SrcVertexIDType src_vertex_id = GUNDAM::StringToDataType<SrcVertexIDType>(record[i]);
+      src_vertex_handle_set.emplace_back(src_graph.FindVertex(src_vertex_id));
+    }
+    assert(src_vertex_handle_set.size() == src_graph.CountVertex());
+
+    while (match_file) {
+      std::string s;
+      if (!std::getline( match_file, s )) 
+        break;
+
+      std::istringstream ss( s );
+      std::vector <std::string> record;
+      record.reserve(src_graph.CountVertex() + 1);
+      while (ss) {
+        std::string s;
+        if (!std::getline( ss, s, ',' )) {
+          break;
+        }
+        record.emplace_back( s );
+      }
+
+      if (record.size() != src_graph.CountVertex() + 1) {
+        // illegal match_file
+        std::cout << " illegal match file, colum mismatch! " << std::endl;
+        return;
+      }
+
+      auto [match_it, match_ret] = this->AddMatch(MatchType());
+      assert(match_ret);
+
+      for (auto [src_vertex_handle_cit,
+                 dst_vertex_id_str_cit] = std::tuple{src_vertex_handle_set.cbegin(),
+                                                     record.cbegin() + 1};
+                 src_vertex_handle_cit != src_vertex_handle_set.cend()
+              && dst_vertex_id_str_cit != record.cend();
+                 src_vertex_handle_cit++,
+                 dst_vertex_id_str_cit++){
+        const DstVertexIDType kDstId
+          = GUNDAM::StringToDataType<DstVertexIDType>(*dst_vertex_id_str_cit);
+        DstVertexHandleType dst_vertex_handle = dst_graph.FindVertex(kDstId);
+
+        auto src_vertex_handle = *src_vertex_handle_cit;
+
+        bool add_map_ret = match_it->AddMap(src_vertex_handle, 
+                                            dst_vertex_handle);
         assert(add_map_ret);
       }
+
+      assert(match_it->size() == src_graph.CountVertex());
     }
     return;
   }
 
   inline size_type size() const { 
-    return this->match_set.size(); 
+    return this->match_set_.size(); 
   }
 
   inline MatchIterator MatchBegin() {
-    return MatchIterator(this->match_set.begin(), 
-                         this->match_set. end ());
+    return MatchIterator(this->match_set_.begin(), 
+                         this->match_set_. end ());
+  }
+
+  inline bool Empty() const { 
+    return this->match_set_.empty(); 
   }
 
   inline MatchConstIterator MatchCBegin() const {
-    return MatchConstIterator(this->match_set.cbegin(), 
-                              this->match_set. cend ());
+    return MatchConstIterator(this->match_set_.cbegin(), 
+                              this->match_set_. cend ());
   }
 
   inline std::pair<MatchIterator, bool> AddMatch(const MatchType& match) {
     /// <iterator, bool>
-    auto ret = this->match_set.Insert(match);
-    assert(ret.second || ret.first == this->match_set.end());
+    auto ret = this->match_set_.Insert(match);
+    assert(ret.second || ret.first == this->match_set_.end());
     return std::pair<MatchIterator, bool>(
-        MatchIterator(ret.first, this->match_set.end()), ret.second);
+        MatchIterator(ret.first, this->match_set_.end()), ret.second);
   }
 };
 
