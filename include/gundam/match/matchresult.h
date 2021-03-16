@@ -73,6 +73,7 @@ void MatchSetToFile(MatchSet<SrcGraphType,
   for (auto &src_vertex_handle : src_vertex_handle_set) {
     out << "," << src_vertex_handle->id();
   }
+  out << std::endl;
   
   int now_match_id = 0;
   for (auto match_it = match_set.MatchBegin();
