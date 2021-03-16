@@ -152,7 +152,9 @@ class Match {
   Match& operator=(Match&&) = default;
 
   Match(SrcGraphType& src_graph,
-        DstGraphType& dst_graph) : match_container_(){
+        DstGraphType& dst_graph,
+        std::string construct_method) : match_container_(){
+    assert(construct_method == "same_id_map");
     for (auto src_vertex_it = src_graph.VertexBegin();
              !src_vertex_it.IsDone();
               src_vertex_it++){
@@ -583,7 +585,7 @@ class MatchSet {
     using InnerIteratorType::InnerIteratorType;
   };
 
-  MatchContainerType match_set;
+  MatchContainerType match_set_;
 
  public:
   using MatchIterator =
@@ -602,10 +604,10 @@ class MatchSet {
 
   MatchSet(SrcGraphType& src_graph,
            DstGraphType& dst_graph,
-          std::ifstream& support_file){
-    assert(support_file.is_open());
+          std::ifstream& match_file){
+    assert(match_file.is_open());
     std::string str; 
-    std::getline(support_file, str);
+    std::getline(match_file, str);
 
     std::string buf;                 // Have a buffer string
     std::stringstream ss(str);       // Insert the string into a stream
@@ -619,7 +621,7 @@ class MatchSet {
     }
     assert(src_vertex_id_set.size() == src_graph.CountVertex());
     
-    while (std::getline(support_file, str)){
+    while (std::getline(match_file, str)){
       std::string buf;                 // Have a buffer string
       std::stringstream ss(str);       // Insert the string into a stream
 
@@ -657,25 +659,29 @@ class MatchSet {
   }
 
   inline size_type size() const { 
-    return this->match_set.size(); 
+    return this->match_set_.size(); 
   }
 
   inline MatchIterator MatchBegin() {
-    return MatchIterator(this->match_set.begin(), 
-                         this->match_set. end ());
+    return MatchIterator(this->match_set_.begin(), 
+                         this->match_set_. end ());
+  }
+
+  inline bool Empty() const { 
+    return this->match_set_.empty(); 
   }
 
   inline MatchConstIterator MatchCBegin() const {
-    return MatchConstIterator(this->match_set.cbegin(), 
-                              this->match_set. cend ());
+    return MatchConstIterator(this->match_set_.cbegin(), 
+                              this->match_set_. cend ());
   }
 
   inline std::pair<MatchIterator, bool> AddMatch(const MatchType& match) {
     /// <iterator, bool>
-    auto ret = this->match_set.Insert(match);
-    assert(ret.second || ret.first == this->match_set.end());
+    auto ret = this->match_set_.Insert(match);
+    assert(ret.second || ret.first == this->match_set_.end());
     return std::pair<MatchIterator, bool>(
-        MatchIterator(ret.first, this->match_set.end()), ret.second);
+        MatchIterator(ret.first, this->match_set_.end()), ret.second);
   }
 };
 

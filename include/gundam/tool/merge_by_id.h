@@ -12,7 +12,7 @@ inline bool MergeById(GraphType0& graph0,
                       GraphType1& graph1) {
 
   GUNDAM::Match<GraphType1, 
-                GraphType0> match(graph1, graph0);
+                GraphType0> match(graph1, graph0, "same_id_map");
 
   // merge vertexes 
   for (auto graph1_vertex_it = graph1.VertexBegin();
@@ -41,7 +41,7 @@ inline bool MergeById(GraphType0& graph0,
   }
 
   GUNDAM::Match<GraphType1, 
-                GraphType0> complete_match(graph1, graph0);
+                GraphType0> complete_match(graph1, graph0, "same_id_map");
 
   assert(complete_match.size() == graph1.CountVertex());
 
