@@ -6,6 +6,7 @@
 #include <type_traits>
 
 #include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/edge_handle.h"
 
 namespace GUNDAM {
 
@@ -129,7 +130,7 @@ inline size_t Dfs(GraphType& graph,
                     std::function<bool(VertexHandleType, 
                                         EdgeHandleType)> >){
           prune_ret = prune_callback(edge_it->src_ptr(),
-                                    edge_it);
+                                     edge_it);
         }
         if (prune_ret){
           // this vertex is pruned, does not be considered
@@ -154,10 +155,10 @@ inline size_t Dfs(GraphType& graph,
     // prune nothing, continue matching
     return false;
   };
-  return Dfs(graph,
-             src_vertex_handle, 
-             user_callback, 
-    prune_nothing_callback); 
+  return Dfs<bidirectional>(graph,
+                src_vertex_handle, 
+                    user_callback, 
+           prune_nothing_callback); 
 }
 
 template<bool bidirectional = false,
