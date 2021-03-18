@@ -704,6 +704,24 @@ inline size_t DpisoUsingMatch(
                           time_limit);
 }
 
+
+template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+          typename    QueryGraph, 
+          typename   TargetGraph>
+inline int IncreamentDpisoUsingMatch(
+                      QueryGraph &query_graph, 
+                     TargetGraph &target_graph,
+     std::vector<typename VertexHandle<TargetGraph>::type> &delta_target_graph,
+  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
+                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
+                           double query_limit_time = -1){
+  return IncreamentDPISO(query_graph, 
+                        target_graph,
+                  delta_target_graph,
+                         match_callback,
+                         query_limit_time);
+}
+
 }  // namespace GUNDAM
 
 #endif //_DPISO_USING_MATCH_H

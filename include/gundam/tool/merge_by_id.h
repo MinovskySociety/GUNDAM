@@ -25,18 +25,21 @@ inline bool MergeById(GraphType0& graph0,
       // contained in graph1
       continue;
     }
-    auto [new_vertex_handle, 
-          add_vertex_ret] = graph0.AddVertex(graph1_vertex_it->id(),
-                                             graph1_vertex_it->label());
+    auto [vertex_handle, add_vertex_ret] 
+        = graph0.AddVertex(graph1_vertex_it->id(),
+                           graph1_vertex_it->label());
     if (!add_vertex_ret){
       // is not added successfully
       return false;
     }
     for (auto attr_it = graph1_vertex_it->AttributeBegin();
              !attr_it.IsDone(); attr_it++){
-      new_vertex_handle->AddAttribute(attr_it->key(), 
+      auto [attr_handle, attr_ret] 
+        = vertex_handle->AddAttribute(attr_it->key(), 
                                       attr_it->value_type(), 
                                       attr_it->value_str());
+      assert(!attr_handle.IsNull());
+      assert(attr_ret);
     }
   }
 
@@ -65,9 +68,12 @@ inline bool MergeById(GraphType0& graph0,
       for (auto attr_it = out_edge_it->AttributeBegin();
                !attr_it.IsDone(); 
                 attr_it++){
-        edge_handle->AddAttribute(attr_it->key(), 
-                                  attr_it->value_type(), 
-                                  attr_it->value_str());
+        auto [attr_handle, attr_ret] 
+            = edge_handle->AddAttribute(attr_it->key(), 
+                                        attr_it->value_type(), 
+                                        attr_it->value_str());
+        assert(!attr_handle.IsNull());
+        assert(attr_ret);
       }
     }
   }

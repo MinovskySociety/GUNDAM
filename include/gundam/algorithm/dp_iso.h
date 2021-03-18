@@ -1406,15 +1406,18 @@ inline int DPISO(QueryGraph &query_graph, TargetGraph &target_graph,
   return static_cast<int>(match_result.size());
 }
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
-          typename QueryGraph, typename TargetGraph, class MatchCallback,
-          typename TargetVertexHandle>
-inline int IncreamentDPISO(QueryGraph &query_graph, TargetGraph &target_graph,
-                           std::vector<TargetVertexHandle> &delta_target_graph,
+          typename  QueryGraph, 
+          typename TargetGraph, 
+             class MatchCallback>
+inline int IncreamentDPISO(QueryGraph &query_graph, 
+                          TargetGraph &target_graph,
+                           std::vector<typename VertexHandle<TargetGraph>::type> &delta_target_graph,
                            MatchCallback match_callback,
-                           double query_limit_time = 1200) {
-  using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
-  using CandidateSet =
-      std::map<QueryVertexHandle, std::vector<TargetVertexHandle>>;
+                           double query_limit_time = -1) {
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
+  using CandidateSet = std::map<QueryVertexHandle, 
+                                std::vector<TargetVertexHandle>>;
   CandidateSet candidate_set;
   if (!GUNDAM::_dp_iso::InitCandidateSet<match_semantics>(
           query_graph, target_graph, candidate_set)) {
@@ -1423,7 +1426,8 @@ inline int IncreamentDPISO(QueryGraph &query_graph, TargetGraph &target_graph,
   if (!_dp_iso::RefineCandidateSet(query_graph, target_graph, candidate_set)) {
     return 0;
   }
-  std::sort(delta_target_graph.begin(), delta_target_graph.end());
+  std::sort(delta_target_graph.begin(), 
+            delta_target_graph.end());
   std::vector<QueryVertexHandle> has_delta_target_graph_pattern_vertex;
   for (auto &[query_ptr, target_list] : candidate_set) {
     bool find_new_vertex_flag = false;
@@ -1445,7 +1449,8 @@ inline int IncreamentDPISO(QueryGraph &query_graph, TargetGraph &target_graph,
   for (int mask = 1; mask < total_mask; mask++) {
     std::vector<QueryVertexHandle> this_mask_vertex;
     for (int bit_pos = 0;
-         bit_pos < has_delta_target_graph_pattern_vertex.size(); bit_pos++) {
+             bit_pos < has_delta_target_graph_pattern_vertex.size(); 
+             bit_pos++) {
       if (mask & (1 << bit_pos)) {
         this_mask_vertex.emplace_back(
             has_delta_target_graph_pattern_vertex[bit_pos]);
@@ -1453,7 +1458,8 @@ inline int IncreamentDPISO(QueryGraph &query_graph, TargetGraph &target_graph,
     }
     CandidateSet copy_candidate_set{candidate_set};
     for (auto &[query_ptr, target_list] : copy_candidate_set) {
-      if (std::binary_search(this_mask_vertex.begin(), this_mask_vertex.end(),
+      if (std::binary_search(this_mask_vertex.begin(), 
+                             this_mask_vertex.end(),
                              query_ptr)) {
         std::vector<TargetVertexHandle> this_vertex_target_list;
         for (auto &target_ptr : target_list) {
