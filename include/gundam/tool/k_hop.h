@@ -16,14 +16,16 @@ GraphType KHop(GraphType& graph,
 
   GraphType k_hop;
 
-  auto hop_callback = [&k_hop, &k](
+  auto hop_callback = [&k_hop
+                      #ifndef NDEBUG
+                      ,&k
+                      #endif
+                      ](
         VertexHandleType vertex_handle,
         uint32_t bfs_idx,
         uint32_t distance
       ){
-    if (distance > k){
-      return false;
-    }
+    assert(distance <= k);
 
     auto [new_vertex_handle, ret] = k_hop.AddVertex(vertex_handle->id(),
                                                     vertex_handle->label());

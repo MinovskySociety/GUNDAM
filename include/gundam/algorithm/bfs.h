@@ -140,10 +140,10 @@ inline size_t Bfs(GraphType&  graph,
       // meets stopping condition, stop the matching process
       return bfs_idx;
     }
-    for (auto edge_it = current_vertex_handle->OutEdgeBegin();
-             !edge_it.IsDone();
-              edge_it++) {
-      if (visited.find(edge_it->dst_ptr()) != visited.end()){
+    for (auto out_edge_it = current_vertex_handle->OutEdgeBegin();
+             !out_edge_it.IsDone();
+              out_edge_it++) {
+      if (visited.find(out_edge_it->dst_ptr()) != visited.end()){
         // already visited
         continue;
       }
@@ -152,15 +152,15 @@ inline size_t Bfs(GraphType&  graph,
         std::is_convertible_v<
                   PruneCallBackType, 
                   std::function<bool(VertexHandleType)> >){
-        prune_ret = prune_callback(edge_it->dst_ptr());
+        prune_ret = prune_callback(out_edge_it->dst_ptr());
       }
       if constexpr (
         std::is_convertible_v<
                   PruneCallBackType, 
                   std::function<bool(VertexHandleType, 
                                       EdgeHandleType)> >){
-        prune_ret = prune_callback(edge_it->dst_ptr(),
-                                   edge_it);
+        prune_ret = prune_callback(out_edge_it->dst_ptr(),
+                                   out_edge_it);
       }
       if constexpr (
         std::is_convertible_v<
@@ -168,8 +168,8 @@ inline size_t Bfs(GraphType&  graph,
                   std::function<bool(VertexHandleType, 
                                         EdgeHandleType,
                                     VertexCounterType)> >){
-        prune_ret = prune_callback(edge_it->dst_ptr(),
-                                   edge_it, bfs_idx);
+        prune_ret = prune_callback(out_edge_it->dst_ptr(),
+                                   out_edge_it, bfs_idx);
       }
       if constexpr (
         std::is_convertible_v<
@@ -178,21 +178,21 @@ inline size_t Bfs(GraphType&  graph,
                                         EdgeHandleType,
                                     VertexCounterType,
                                     VertexCounterType)> >){
-        prune_ret = prune_callback(edge_it->dst_ptr(),
-                                   edge_it, bfs_idx, current_distance);
+        prune_ret = prune_callback(out_edge_it->dst_ptr(),
+                                   out_edge_it, bfs_idx, current_distance + 1);
       }
       if (prune_ret){
         // this vertex is pruned, does not be considered
         continue;
       }
-      visited.emplace(edge_it->dst_ptr());
-      vertex_handle_queue.emplace(edge_it->dst_ptr(), current_distance + 1);
+      visited.emplace(out_edge_it->dst_ptr());
+      vertex_handle_queue.emplace(out_edge_it->dst_ptr(), current_distance + 1);
     }
     if constexpr (bidirectional){
-      for (auto edge_it = current_vertex_handle->InEdgeBegin();
-               !edge_it.IsDone();
-                edge_it++) {
-        if (visited.find(edge_it->src_ptr()) != visited.end()){
+      for (auto in_edge_it = current_vertex_handle->InEdgeBegin();
+               !in_edge_it.IsDone();
+                in_edge_it++) {
+        if (visited.find(in_edge_it->src_ptr()) != visited.end()){
           // already visited
           continue;
         }
@@ -201,15 +201,15 @@ inline size_t Bfs(GraphType&  graph,
           std::is_convertible_v<
                     PruneCallBackType, 
                     std::function<bool(VertexHandleType)> >){
-          prune_ret = prune_callback(edge_it->src_ptr());
+          prune_ret = prune_callback(in_edge_it->src_ptr());
         }
         if constexpr (
           std::is_convertible_v<
                     PruneCallBackType, 
                     std::function<bool(VertexHandleType, 
                                         EdgeHandleType)> >){
-          prune_ret = prune_callback(edge_it->src_ptr(),
-                                     edge_it);
+          prune_ret = prune_callback(in_edge_it->src_ptr(),
+                                     in_edge_it);
         }
         if constexpr (
           std::is_convertible_v<
@@ -217,8 +217,8 @@ inline size_t Bfs(GraphType&  graph,
                     std::function<bool(VertexHandleType, 
                                          EdgeHandleType,
                                       VertexCounterType)> >){
-          prune_ret = prune_callback(edge_it->src_ptr(),
-                                     edge_it, bfs_idx);
+          prune_ret = prune_callback(in_edge_it->src_ptr(),
+                                     in_edge_it, bfs_idx);
         }
         if constexpr (
           std::is_convertible_v<
@@ -227,16 +227,16 @@ inline size_t Bfs(GraphType&  graph,
                                          EdgeHandleType,
                                       VertexCounterType,
                                       VertexCounterType)> >){
-          prune_ret = prune_callback(edge_it->src_ptr(),
-                                     edge_it, bfs_idx, current_distance);
+          prune_ret = prune_callback(in_edge_it->src_ptr(),
+                                     in_edge_it, bfs_idx, current_distance + 1);
         }
 
         if (prune_ret){
           // this vertex is pruned, does not be considered
           continue;
         }
-        visited.emplace(edge_it->src_ptr());
-        vertex_handle_queue.emplace(edge_it->src_ptr(), current_distance + 1);
+        visited.emplace(in_edge_it->src_ptr());
+        vertex_handle_queue.emplace(in_edge_it->src_ptr(), current_distance + 1);
       }
     }
   }
@@ -276,8 +276,8 @@ inline size_t Bfs(GraphType&  graph,
            UserCallBackType  user_callback,
           PruneCallBackType prune_callback) {
   const std::set<typename VertexHandle<GraphType>::type> src_vertex_handle_set = {src_vertex_handle};
-  return Bfs(graph, src_vertex_handle_set, user_callback,
-                                          prune_callback);
+  return Bfs<bidirectional>(graph, src_vertex_handle_set, user_callback,
+                                                         prune_callback);
 }
 
 template <bool bidirectional = false,
@@ -299,8 +299,8 @@ inline size_t Bfs(GraphType&  graph,
       // distance limit is not set, prune nothing
       return false;
     }
-    assert(current_distance <= distance_limit);
-    if (current_distance == distance_limit) {
+    assert(current_distance <= distance_limit + 1);
+    if (current_distance > distance_limit) {
       // reach the distance limit, prune this vertex
       return true;
     }

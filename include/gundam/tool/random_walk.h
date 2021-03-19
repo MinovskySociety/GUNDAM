@@ -110,13 +110,7 @@ inline size_t RandomWalk(GraphType&  graph,
                                     VertexCounterType)> >){
       user_callback_ret = user_callback(current_vertex_handle,
                                         random_walk_idx);
-      
     }
-
-    // std::cout << "current_vertex_handle->id(): "
-    //           <<  current_vertex_handle->id() << std::endl
-    //           << "random_walk_idx: "
-    //           <<  random_walk_idx << std::endl;
 
     random_walk_idx++;
     if (!user_callback_ret){
@@ -197,10 +191,6 @@ inline size_t RandomWalk(GraphType&  graph,
       qualified_edge_id_set.emplace_back(out_edge_it->id());
     }
 
-    // std::cout << "qualified_edge_id_set.size(): "
-    //           <<  qualified_edge_id_set.size() 
-    //           << std::endl;
-
     if (qualified_edge_id_set.empty()){
       // does not find legal edge, end random walking
       break;
@@ -264,8 +254,8 @@ inline size_t RandomWalk(GraphType&  graph,
                                EdgeHandleType   edge_handle,
                             VertexCounterType bfs_idx,
                             VertexCounterType bfs_depth){
-    assert(bfs_depth <= depth_limit);
-    if (bfs_depth == depth_limit) {
+    assert(bfs_depth <= depth_limit + 1);
+    if (bfs_depth > depth_limit) {
       // reach the distance limit, prune this vertex
       return true;
     }
@@ -274,8 +264,7 @@ inline size_t RandomWalk(GraphType&  graph,
   };
 
   auto preserve_vertexes_in_k_hop_user_callback 
-            = [&vertexes_in_k_hop,
-               &depth_limit](VertexHandleType vertex_handle){
+            = [&vertexes_in_k_hop](VertexHandleType vertex_handle){
     auto [vertexes_in_k_hop_it,
           vertexes_in_k_hop_ret] 
         = vertexes_in_k_hop.emplace(vertex_handle);
@@ -289,8 +278,7 @@ inline size_t RandomWalk(GraphType&  graph,
 
   assert(vertexes_in_k_hop.size() == kKHopVertexSize);
 
-  auto prune_callback = [&vertexes_in_k_hop,
-                         &size_limit](
+  auto prune_callback = [&vertexes_in_k_hop](
          VertexHandleType vertex_handle){
     if (vertexes_in_k_hop.find(vertex_handle) 
      == vertexes_in_k_hop.end()){
@@ -303,22 +291,17 @@ inline size_t RandomWalk(GraphType&  graph,
 
   std::set<VertexHandleType> visited_vertex;
 
+  const size_t kSizeLimit = size_limit < vertexes_in_k_hop.size() ?
+                            size_limit : vertexes_in_k_hop.size();
+
   auto random_walk_callback= [&user_callback,
                               &visited_vertex,
-                              &size_limit](
+                              &kSizeLimit](
               VertexHandleType vertex_handle) {
-    assert(visited_vertex.size() < size_limit);
-    auto [visited_vertex_it,
-          visited_vertex_ret]
-        = visited_vertex.emplace(vertex_handle);
-    if (!visited_vertex_ret){
-      // added failed, this vertex has already been visited
-      assert(visited_vertex.size() < size_limit);
-      // continue walking
-      return true;
-    }
-    auto user_callback_ret = user_callback(vertex_handle);
-    return (visited_vertex.size() < size_limit)
+    assert(visited_vertex.size() < kSizeLimit);
+    visited_vertex.emplace(vertex_handle);
+    bool user_callback_ret = user_callback(vertex_handle);
+    return (visited_vertex.size() < kSizeLimit)
          && user_callback_ret;
   };
 
