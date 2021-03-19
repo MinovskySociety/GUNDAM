@@ -142,8 +142,10 @@ void TestRandomWalk() {
     auto [visited_vertex_it,
           visited_vertex_ret] 
         = visited_vertex_set.emplace(vertex_handle);
-    assert(visited_vertex_ret);
-    visited_vertexes.emplace_back(vertex_handle);
+    if (visited_vertex_ret){
+      // this vertex has not been visited
+      visited_vertexes.emplace_back(vertex_handle);
+    }
     return true;
   };
   
