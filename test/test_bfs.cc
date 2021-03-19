@@ -237,7 +237,7 @@ void TestBfs() {
     = [&distance_tested,
        &kVertexLimit](typename GUNDAM::VertexHandle<decltype(g0)>::type vertex_handle, 
                       typename GraphType::VertexCounterType bfs_idx){
-    if (bfs_idx == kVertexLimit)
+    if (bfs_idx == kVertexLimit - 1)
       return false;
     return true;
   };

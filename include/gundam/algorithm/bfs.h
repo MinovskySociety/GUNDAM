@@ -12,8 +12,6 @@ namespace GUNDAM {
 
 // legal prune_callback forms:
 //    prune_callback(next_vertex_handle)
-//    prune_callback(next_vertex_handle, current_bfs_idx)
-//    prune_callback(next_vertex_handle, current_bfs_idx, current_distance)
 //    prune_callback(next_vertex_handle, next_edge_handle)
 //    prune_callback(next_vertex_handle, next_edge_handle, current_bfs_idx)
 //    prune_callback(next_vertex_handle, next_edge_handle, current_bfs_idx, current_distance)
@@ -31,17 +29,6 @@ template <bool bidirectional = false,
                    std::is_convertible_v<
                             PruneCallBackType, 
                             std::function<bool(typename VertexHandle<GraphType>::type)> >
-                || // prune_callback(next_vertex_handle, current_bfs_idx)
-                   std::is_convertible_v<
-                            PruneCallBackType, 
-                            std::function<bool(typename VertexHandle<GraphType>::type,
-                                               typename  GraphType::VertexCounterType)> >
-                || // prune_callback(next_vertex_handle, current_bfs_idx, current_distance)
-                   std::is_convertible_v<
-                            PruneCallBackType, 
-                            std::function<bool(typename VertexHandle<GraphType>::type,
-                                               typename  GraphType::VertexCounterType,
-                                               typename  GraphType::VertexCounterType)> >
                 || // prune_callback(next_vertex_handle, next_edge_handle)
                    std::is_convertible_v<
                             PruneCallBackType, 
@@ -90,17 +77,6 @@ inline size_t Bfs(GraphType&  graph,
       std::is_convertible_v<
                 PruneCallBackType, 
                 std::function<bool(VertexHandleType)> >
-    || // prune_callback(next_vertex_handle, current_bfs_idx)
-      std::is_convertible_v<
-                PruneCallBackType, 
-                std::function<bool(VertexHandleType,
-                                  VertexCounterType)> >
-    || // prune_callback(next_vertex_handle, current_bfs_idx, current_distance)
-      std::is_convertible_v<
-                PruneCallBackType, 
-                std::function<bool(VertexHandleType,
-                                  VertexCounterType,
-                                  VertexCounterType)> >
     || // prune_callback(next_vertex_handle, next_edge_handle)
       std::is_convertible_v<
                 PruneCallBackType, 
@@ -119,7 +95,7 @@ inline size_t Bfs(GraphType&  graph,
                                      EdgeHandleType,
                                   VertexCounterType,
                                   VertexCounterType)> >,
-      "illegal callback type, only allows one of prune_callback(vertex_handle) and prune_callback(vertex_handle, edge_handle)");
+      "illegal callback type, only allows one of prune_callback(vertex_handle), prune_callback(vertex_handle, edge_handle), prune_callback(next_vertex_handle, next_edge_handle, current_bfs_idx), prune_callback(next_vertex_handle, next_edge_handle, current_bfs_idx, current_distance)");
 
   VertexCounterType bfs_idx = 0;
   std::queue<std::pair<VertexHandleType, 
@@ -134,7 +110,6 @@ inline size_t Bfs(GraphType&  graph,
     auto [current_vertex_handle, 
           current_distance] = vertex_handle_queue.front();
     vertex_handle_queue.pop();
-    bfs_idx++;
     bool ret = false;
     if constexpr (
       std::is_convertible_v<
@@ -160,6 +135,7 @@ inline size_t Bfs(GraphType&  graph,
                           bfs_idx,
                           current_distance);
     }
+    bfs_idx++;
     if (!ret){
       // meets stopping condition, stop the matching process
       return bfs_idx;
@@ -181,46 +157,30 @@ inline size_t Bfs(GraphType&  graph,
       if constexpr (
         std::is_convertible_v<
                   PruneCallBackType, 
-                  std::function<bool(VertexHandleType,
-                                    VertexCounterType)> >){
-        prune_ret = prune_callback(edge_it->dst_ptr(), bfs_idx);
+                  std::function<bool(VertexHandleType, 
+                                      EdgeHandleType)> >){
+        prune_ret = prune_callback(edge_it->dst_ptr(),
+                                   edge_it);
       }
       if constexpr (
         std::is_convertible_v<
                   PruneCallBackType, 
-                  std::function<bool(VertexHandleType,
+                  std::function<bool(VertexHandleType, 
+                                        EdgeHandleType,
+                                    VertexCounterType)> >){
+        prune_ret = prune_callback(edge_it->dst_ptr(),
+                                   edge_it, bfs_idx);
+      }
+      if constexpr (
+        std::is_convertible_v<
+                  PruneCallBackType, 
+                  std::function<bool(VertexHandleType, 
+                                        EdgeHandleType,
                                     VertexCounterType,
                                     VertexCounterType)> >){
-        prune_ret = prune_callback(edge_it->dst_ptr(), bfs_idx, current_distance);
+        prune_ret = prune_callback(edge_it->dst_ptr(),
+                                   edge_it, bfs_idx, current_distance);
       }
-
-      // if constexpr (
-      //   std::is_convertible_v<
-      //             PruneCallBackType, 
-      //             std::function<bool(VertexHandleType, 
-      //                                 EdgeHandleType)> >){
-      //   prune_ret = prune_callback(edge_it->dst_ptr(),
-      //                              edge_it);
-      // }
-      // if constexpr (
-      //   std::is_convertible_v<
-      //             PruneCallBackType, 
-      //             std::function<bool(VertexHandleType, 
-      //                                   EdgeHandleType,
-      //                               VertexCounterType)> >){
-      //   prune_ret = prune_callback(edge_it->dst_ptr(),
-      //                              edge_it, bfs_idx);
-      // }
-      // if constexpr (
-      //   std::is_convertible_v<
-      //             PruneCallBackType, 
-      //             std::function<bool(VertexHandleType, 
-      //                                   EdgeHandleType,
-      //                               VertexCounterType,
-      //                               VertexCounterType)> >){
-      //   prune_ret = prune_callback(edge_it->dst_ptr(),
-      //                              edge_it, bfs_idx, current_distance);
-      // }
       if (prune_ret){
         // this vertex is pruned, does not be considered
         continue;
@@ -246,46 +206,30 @@ inline size_t Bfs(GraphType&  graph,
         if constexpr (
           std::is_convertible_v<
                     PruneCallBackType, 
-                    std::function<bool(VertexHandleType,
-                                      VertexCounterType)> >){
-          prune_ret = prune_callback(edge_it->src_ptr(), bfs_idx);
+                    std::function<bool(VertexHandleType, 
+                                        EdgeHandleType)> >){
+          prune_ret = prune_callback(edge_it->src_ptr(),
+                                     edge_it);
         }
         if constexpr (
           std::is_convertible_v<
                     PruneCallBackType, 
-                    std::function<bool(VertexHandleType,
+                    std::function<bool(VertexHandleType, 
+                                         EdgeHandleType,
+                                      VertexCounterType)> >){
+          prune_ret = prune_callback(edge_it->src_ptr(),
+                                     edge_it, bfs_idx);
+        }
+        if constexpr (
+          std::is_convertible_v<
+                    PruneCallBackType, 
+                    std::function<bool(VertexHandleType, 
+                                         EdgeHandleType,
                                       VertexCounterType,
                                       VertexCounterType)> >){
-          prune_ret = prune_callback(edge_it->src_ptr(), bfs_idx, current_distance);
+          prune_ret = prune_callback(edge_it->src_ptr(),
+                                     edge_it, bfs_idx, current_distance);
         }
-
-        // if constexpr (
-        //   std::is_convertible_v<
-        //             PruneCallBackType, 
-        //             std::function<bool(VertexHandleType, 
-        //                                 EdgeHandleType)> >){
-        //   prune_ret = prune_callback(edge_it->src_ptr(),
-        //                              edge_it);
-        // }
-        // if constexpr (
-        //   std::is_convertible_v<
-        //             PruneCallBackType, 
-        //             std::function<bool(VertexHandleType, 
-        //                                  EdgeHandleType,
-        //                               VertexCounterType)> >){
-        //   prune_ret = prune_callback(edge_it->src_ptr(),
-        //                              edge_it, bfs_idx);
-        // }
-        // if constexpr (
-        //   std::is_convertible_v<
-        //             PruneCallBackType, 
-        //             std::function<bool(VertexHandleType, 
-        //                                  EdgeHandleType,
-        //                               VertexCounterType,
-        //                               VertexCounterType)> >){
-        //   prune_ret = prune_callback(edge_it->src_ptr(),
-        //                              edge_it, bfs_idx, current_distance);
-        // }
 
         if (prune_ret){
           // this vertex is pruned, does not be considered
@@ -299,6 +243,43 @@ inline size_t Bfs(GraphType&  graph,
   return bfs_idx;
 }
 
+
+template <bool bidirectional = false,
+          typename         GraphType,
+          typename  UserCallBackType,
+          typename PruneCallBackType,
+          typename std::enable_if_t< 
+                   // prune_callback(next_vertex_handle)
+                   std::is_convertible_v<
+                            PruneCallBackType, 
+                            std::function<bool(typename VertexHandle<GraphType>::type)> >
+                || // prune_callback(next_vertex_handle, next_edge_handle)
+                   std::is_convertible_v<
+                            PruneCallBackType, 
+                            std::function<bool(typename VertexHandle<GraphType>::type, 
+                                               typename   EdgeHandle<GraphType>::type)> >
+                || // prune_callback(next_vertex_handle, next_edge_handle, current_bfs_idx)
+                   std::is_convertible_v<
+                            PruneCallBackType, 
+                            std::function<bool(typename VertexHandle<GraphType>::type, 
+                                               typename   EdgeHandle<GraphType>::type,
+                                               typename  GraphType::VertexCounterType)> >
+                || // prune_callback(next_vertex_handle, next_edge_handle, current_bfs_idx, current_distance)
+                   std::is_convertible_v<
+                            PruneCallBackType, 
+                            std::function<bool(typename VertexHandle<GraphType>::type, 
+                                               typename   EdgeHandle<GraphType>::type,
+                                               typename  GraphType::VertexCounterType,
+                                               typename  GraphType::VertexCounterType)> >, bool> = false>
+inline size_t Bfs(GraphType&  graph,
+  const typename VertexHandle<GraphType>::type& src_vertex_handle,
+           UserCallBackType  user_callback,
+          PruneCallBackType prune_callback) {
+  const std::set<typename VertexHandle<GraphType>::type> src_vertex_handle_set = {src_vertex_handle};
+  return Bfs(graph, src_vertex_handle_set, user_callback,
+                                          prune_callback);
+}
+
 template <bool bidirectional = false,
           typename        GraphType,
           typename UserCallBackType>
@@ -308,8 +289,10 @@ inline size_t Bfs(GraphType&  graph,
            int distance_limit = -1) {
   using VertexCounterType = typename  GraphType::VertexCounterType;
   using  VertexHandleType = typename VertexHandle<GraphType>::type;
+  using    EdgeHandleType = typename   EdgeHandle<GraphType>::type;
   auto prune_distance_callback = [&distance_limit](
-         VertexHandleType vertex_handle,
+         VertexHandleType  vertex_handle,
+           EdgeHandleType    edge_handle,
         VertexCounterType current_idx,
         VertexCounterType current_distance){
     if (distance_limit == -1){

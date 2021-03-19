@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/algorithm/dfs.h"
+#include "gundam/tool/random_walk.h"
 
 #include "gundam/graph_type/small_graph.h"
 #include "gundam/graph_type/large_graph.h"
@@ -13,11 +13,11 @@
 #include "gundam/type_getter/vertex_handle.h"
 
 template <class GraphType>
-void TestDfs() {
+void TestRandomWalk() {
   GraphType g;
   // 1 -> 2 -> 4
-  // |  / |  / |
-  // V /  V /  V
+  // |    |  / |
+  // V    V /  V
   // 3 -> 5 -> 7
   // |  / |  / |
   // V /  V /  V
@@ -70,12 +70,12 @@ void TestDfs() {
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
 
-  res2 = g.AddEdge(2, 3, 42, 3);
-  ASSERT_TRUE(res2.first);
-  ASSERT_TRUE(res2.second);
-  res2 = g.AddEdge(3, 2, 42, 4);
-  ASSERT_TRUE(res2.first);
-  ASSERT_TRUE(res2.second);
+  // res2 = g.AddEdge(2, 3, 42, 3);
+  // ASSERT_TRUE(res2.first);
+  // ASSERT_TRUE(res2.second);
+  // res2 = g.AddEdge(3, 2, 42, 4);
+  // ASSERT_TRUE(res2.first);
+  // ASSERT_TRUE(res2.second);
 
   res2 = g.AddEdge(2, 4, 42, 5);
   ASSERT_TRUE(res2.first);
@@ -130,48 +130,57 @@ void TestDfs() {
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
 
-  auto my_callback0 = [](typename GUNDAM::VertexHandle<GraphType>::type& vertex_handle) -> bool{
-    // do nothing
-    return true;
-  };
+  using VertexHandleType = typename GUNDAM::VertexHandle<GraphType>::type;
 
-  auto my_callback = [](const typename GUNDAM::VertexHandle<GraphType>::type& vertex_handle, 
-                               const size_t& dfs_idx) -> bool{
-    // do nothing
+  std::set<VertexHandleType> visited_vertex_set;
+  std::vector<VertexHandleType> visited_vertexes;
+
+  auto add_visited_callback 
+       = [&visited_vertex_set,
+          &visited_vertexes](VertexHandleType vertex_handle) -> bool{
+    // added into the visited_vertex_set
+    auto [visited_vertex_it,
+          visited_vertex_ret] 
+        = visited_vertex_set.emplace(vertex_handle);
+    assert(visited_vertex_ret);
+    visited_vertexes.emplace_back(vertex_handle);
     return true;
   };
   
   auto src_handle = g.FindVertex(1);
 
-  auto ret = GUNDAM::Dfs(g, src_handle);
-  ASSERT_EQ(ret, g.CountVertex());
+  std::cout << "####  Random Walk 0  ####" << std::endl;
+  auto ret = GUNDAM::RandomWalk(g, src_handle, 1, 1, add_visited_callback);
+  ASSERT_EQ(1, ret);
+  ASSERT_EQ(1, visited_vertex_set.size());
+  ASSERT_TRUE(src_handle->id() == (*(visited_vertexes.begin()))->id());
+  ASSERT_TRUE(src_handle       ==  *(visited_vertexes.begin()));
 
-  ret = GUNDAM::Dfs(g, src_handle, my_callback);
-  ASSERT_EQ(ret, g.CountVertex());
+  visited_vertex_set.clear();
+  std::cout << "####  Random Walk 1  ####" << std::endl;
+  ret = GUNDAM::RandomWalk<false>(g, src_handle, 1, 10, add_visited_callback);
+  ASSERT_EQ(2, ret);
+  ASSERT_EQ(2, visited_vertex_set.size());
+  ASSERT_TRUE(src_handle->id() == (*(visited_vertexes.begin()))->id());
+  ASSERT_TRUE(src_handle       ==  *(visited_vertexes.begin()));
 
-  ret = GUNDAM::Dfs<false>(g, src_handle, my_callback);
-  ASSERT_EQ(ret, g.CountVertex());
+  visited_vertex_set.clear();
+  std::cout << "####  Random Walk 2  ####" << std::endl;
+  ret = GUNDAM::RandomWalk<true>(g, src_handle, 1, 3, add_visited_callback);
+  ASSERT_LE(2, ret);
+  ASSERT_EQ(3, visited_vertex_set.size());
+  ASSERT_TRUE(src_handle->id() == (*(visited_vertexes.begin()))->id());
+  ASSERT_TRUE(src_handle       ==  *(visited_vertexes.begin()));
 
-  auto src_handle2 = g.FindVertex(9);
-  ret = GUNDAM::Dfs<false>(g, src_handle2, my_callback);
-  ASSERT_EQ(ret, 1);
-
-  const int kVertexLimit = 5;
-
-  auto my_callback1 
-    = [&kVertexLimit](const typename GUNDAM::VertexHandle<GraphType>::type& vertex_handle, 
-                             const size_t& dfs_idx) -> bool{
-    if (dfs_idx == kVertexLimit - 1)
-      return false;
-    return true;
-  };
-  
-  ret = GUNDAM::Dfs(g, src_handle, my_callback1);
-  ASSERT_EQ(ret, kVertexLimit);
+  visited_vertex_set.clear();
+  std::cout << "####  Random Walk 3  ####" << std::endl;
+  ret = GUNDAM::RandomWalk<true>(g, src_handle, 1000, 9, add_visited_callback);
+  ASSERT_LE(9, ret);
+  ASSERT_EQ(9, visited_vertex_set.size());
   return;
 }
 
-TEST(TestGUNDAM, TestDfs) {
+TEST(TestGUNDAM, TestRandomWalk) {
   using namespace GUNDAM;
 
   using G1 = LargeGraph<uint32_t, uint32_t, std::string, 
@@ -219,11 +228,32 @@ TEST(TestGUNDAM, TestDfs) {
                    SetVertexPtrContainerType<GUNDAM::ContainerType::Map>,
                    SetEdgeLabelContainerType<GUNDAM::ContainerType::Map>>;
 
-  TestDfs<G1>();
-  TestDfs<G2>();
-  TestDfs<G3>();
-  TestDfs<G4>();
-  TestDfs<G5>();
-  TestDfs<G6>();
-  TestDfs<G7>();
+  std::cout << "##############" << std::endl
+            << "##    G1    ##" << std::endl
+            << "##############" << std::endl;
+  TestRandomWalk<G1>();
+  std::cout << "##############" << std::endl
+            << "##    G2    ##" << std::endl
+            << "##############" << std::endl;
+  TestRandomWalk<G2>();
+  std::cout << "##############" << std::endl
+            << "##    G3    ##" << std::endl
+            << "##############" << std::endl;
+  TestRandomWalk<G3>();
+  std::cout << "##############" << std::endl
+            << "##    G4    ##" << std::endl
+            << "##############" << std::endl;
+  TestRandomWalk<G4>();
+  std::cout << "##############" << std::endl
+            << "##    G5    ##" << std::endl
+            << "##############" << std::endl;
+  TestRandomWalk<G5>();
+  std::cout << "##############" << std::endl
+            << "##    G6    ##" << std::endl
+            << "##############" << std::endl;
+  TestRandomWalk<G6>();
+  std::cout << "##############" << std::endl
+            << "##    G7    ##" << std::endl
+            << "##############" << std::endl;
+  TestRandomWalk<G7>();
 }

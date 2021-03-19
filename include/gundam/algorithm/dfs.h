@@ -13,6 +13,7 @@ namespace GUNDAM {
 // legal prune_callback forms:
 //    prune_callback(vertex_handle)
 //    prune_callback(vertex_handle, edge_handle)
+//    prune_callback(vertex_handle, edge_handle, dfs_idx)
 //
 // legal user_callback forms:
 //    user_callback(vertex_handle)
@@ -38,7 +39,7 @@ inline size_t Dfs(GraphType& graph,
                 UserCallBackType, 
                 std::function<bool(VertexHandleType, 
                                    VertexCounterType)> >,
-      "illegal callback type, only allows one of user_callback(vertex_handle) and user_callback(vertex_handle, bfs_idx)");
+      "illegal callback type, only allows one of user_callback(vertex_handle) and user_callback(vertex_handle, dfs_idx)");
 
   static_assert(
        // prune_callback(vertex_handle)
@@ -49,8 +50,14 @@ inline size_t Dfs(GraphType& graph,
       std::is_convertible_v<
                 PruneCallBackType, 
                 std::function<bool(VertexHandleType, 
-                                     EdgeHandleType)> >,
-      "illegal callback type, only allows one of prune_callback(vertex_handle) and prune_callback(vertex_handle, edge_handle)");
+                                     EdgeHandleType)> >
+    || // prune_callback(vertex_handle, edge_handle, dfs_idx)
+      std::is_convertible_v<
+                PruneCallBackType, 
+                std::function<bool(VertexHandleType, 
+                                     EdgeHandleType,
+                                  VertexCounterType)> >,
+      "illegal callback type, only allows one of prune_callback(vertex_handle), prune_callback(vertex_handle, edge_handle) and prune_callback(vertex_handle, edge_handle, dfs_idx)");
 
   VertexCounterType dfs_idx = 0;
   std::stack<VertexHandleType> vertex_handle_stack;
@@ -60,7 +67,6 @@ inline size_t Dfs(GraphType& graph,
   while (!vertex_handle_stack.empty()) {
     auto current_vertex_handle = vertex_handle_stack.top();
     vertex_handle_stack.pop();
-    dfs_idx++;
     bool ret = false;
     if constexpr (
       std::is_convertible_v<
@@ -72,10 +78,11 @@ inline size_t Dfs(GraphType& graph,
       std::is_convertible_v<
                 UserCallBackType, 
                 std::function<bool(VertexHandleType,
-                                   VertexCounterType)> >){
+                                  VertexCounterType)> >){
       ret = user_callback(current_vertex_handle,
                           dfs_idx);
     }
+    dfs_idx++;
     if (!ret){
       // meets stopping condition, stop the matching process
       return dfs_idx;
@@ -89,18 +96,30 @@ inline size_t Dfs(GraphType& graph,
       }
       bool prune_ret = false;
       if constexpr (
+        // prune_callback(vertex_handle)
         std::is_convertible_v<
                   PruneCallBackType, 
                   std::function<bool(VertexHandleType)> >){
         prune_ret = prune_callback(edge_it->dst_ptr());
       }
       if constexpr (
+        // prune_callback(vertex_handle, edge_handle)
         std::is_convertible_v<
                   PruneCallBackType, 
                   std::function<bool(VertexHandleType, 
                                        EdgeHandleType)> >){
         prune_ret = prune_callback(edge_it->dst_ptr(),
                                    edge_it);
+      }
+      if constexpr (
+        // prune_callback(vertex_handle, edge_handle, dfs_idx)
+        std::is_convertible_v<
+                  PruneCallBackType, 
+                  std::function<bool(VertexHandleType, 
+                                       EdgeHandleType,
+                                    VertexCounterType)> >){
+        prune_ret = prune_callback(edge_it->dst_ptr(),
+                                   edge_it, dfs_idx);
       }
       if (prune_ret){
         // this vertex is pruned, does not be considered

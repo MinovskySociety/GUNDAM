@@ -41,6 +41,10 @@ add_executable (test_dfs "test_dfs.cc")
 target_link_libraries(test_dfs GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_dfs)
 
+add_executable (test_random_walk "test_random_walk.cc")
+target_link_libraries(test_random_walk GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_random_walk)
+
 add_executable (test_connected "test_connected.cc")
 target_link_libraries(test_connected GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_connected)
