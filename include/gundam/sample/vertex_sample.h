@@ -5,7 +5,7 @@ namespace GUNDAM{
 
 template<typename GraphType>
 GraphType VertexSample(const GraphType& graph, double sample_ratio){
-  GraphType sampled_graph = graph;
+  GraphType sampled_graph(graph);
   std::vector<typename GraphType::VertexType::IDType> remove_vertex_id_set;
   for (auto vertex_it = graph.VertexBegin();
            !vertex_it.IsDone(); 
