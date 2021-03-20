@@ -641,7 +641,7 @@ inline void WriteCSVLine(StreamType& s, std::vector<std::string>& cols) {
 //    std::vector<std::pair<typename GraphType::VertexType::AttributeKeyType,
 //                          enum BasicDataType>>& attr_info,
 //    WriteVertexCallback wv_callback) {
-//  for (auto vertex_it = graph.VertexCBegin(); !vertex_it.IsDone();
+//  for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
 //       ++vertex_it) {
 //    if (wv_callback(vertex_it->id(), vertex_it->label())) {
 //      for (auto attr_it = vertex_it->AttributeCBegin(); !attr_it.IsDone();
@@ -694,7 +694,7 @@ inline void WriteCSVLine(StreamType& s, std::vector<std::string>& cols) {
 //  using AttributeKeyType = typename VertexType::AttributeKeyType;
 //  using EdgeAttributeKeyType = typename EdgeType::AttributeKeyType;
 //  std::set<EdgeLabelType> edge_used_label;
-//  for (auto vertex_it = graph.VertexCBegin(); !vertex_it.IsDone();
+//  for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
 //  vertex_it++) {
 //    VertexConstPtr vertex_ptr = vertex_it;
 //    for (auto edge_it = vertex_ptr->OutEdgeCBegin(); !edge_it.IsDone();
@@ -832,7 +832,7 @@ void WriteAttributes(VertexEdgePtr& vertex_edge_ptr,
 //  vertex_col_name.push_back("vertex_label");
 //  // get ID and Label Type
 //  int has_vertex_flag = 0;
-//  for (auto vertex_it = graph.VertexCBegin(); !vertex_it.IsDone();
+//  for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
 //  vertex_it++) {
 //    VertexConstPtr vertex_ptr = vertex_it;
 //    col_value_type.push_back(TypeToString<VertexIDType>());
@@ -851,7 +851,7 @@ void WriteAttributes(VertexEdgePtr& vertex_edge_ptr,
 //  // cout col
 //  WriteCSVCol(vertex_file, vertex_col_name, col_value_type);
 //  // cout each vertex
-//  for (auto vertex_it = graph.VertexCBegin(); !vertex_it.IsDone();
+//  for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
 //  vertex_it++) {
 //    count++;
 //    std::vector<std::string> line_vertex_info;
@@ -876,7 +876,7 @@ void WriteAttributes(VertexEdgePtr& vertex_edge_ptr,
 //  edge_col_name.push_back("edge_label_id");
 //  // get ID and Label Type
 //  int insert_edge_flag = 0;
-//  for (auto vertex_it = graph.VertexCBegin(); !vertex_it.IsDone();
+//  for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
 //  vertex_it++) {
 //    VertexConstPtr vertex_ptr = vertex_it;
 //    for (auto edge_it = vertex_ptr->OutEdgeCBegin(); !edge_it.IsDone();
@@ -903,7 +903,7 @@ void WriteAttributes(VertexEdgePtr& vertex_edge_ptr,
 //  // cout col
 //  WriteCSVCol(edge_vertex_file, edge_col_name, edge_col_value_type);
 //  // cout each edge
-//  for (auto vertex_it = graph.VertexCBegin(); !vertex_it.IsDone();
+//  for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
 //  vertex_it++) {
 //    VertexConstPtr vertex_ptr = vertex_it;
 //    for (auto edge_it = vertex_ptr->OutEdgeCBegin(); !edge_it.IsDone();
@@ -961,7 +961,7 @@ int WriteCSVVertexFileWithCallback(const GraphType& graph,
   // get columns
   std::vector<std::string> key_str, type_str;
   std::map<VertexAttributeKeyType, size_t> attr_pos;
-  for (auto vertex_it = graph.VertexCBegin(); !vertex_it.IsDone();
+  for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
        ++vertex_it) {
     if constexpr (!std::is_null_pointer_v<WriteVertexCallback>) {
       if (!wv_callback(vertex_it)) continue;
@@ -989,7 +989,7 @@ int WriteCSVVertexFileWithCallback(const GraphType& graph,
 
   // write each vertex
   int count = 0;
-  for (auto vertex_it = graph.VertexCBegin(); !vertex_it.IsDone();
+  for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
        ++vertex_it) {
     if constexpr (!std::is_null_pointer_v<WriteVertexCallback>) {
       if (!wv_callback(vertex_it)) continue;
@@ -1023,9 +1023,9 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
   // get columns
   std::vector<std::string> key_str, type_str;
   std::map<EdgeAttributeKeyType, size_t> attr_pos;
-  for (auto edge_it = graph.EdgeCBegin(); !edge_it.IsDone(); ++edge_it) {
+  for (auto edge_it = graph.EdgeBegin(); !edge_it.IsDone(); ++edge_it) {
   /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in vertex){} }
-  // for (auto vertex_cit = graph.VertexCBegin(); !vertex_cit.IsDone(); ++vertex_cit) {
+  // for (auto vertex_cit = graph.VertexBegin(); !vertex_cit.IsDone(); ++vertex_cit) {
   //   for (auto edge_cit = vertex_cit->OutEdgeCBegin(); !edge_cit.IsDone(); ++edge_cit) {
       if constexpr (!std::is_null_pointer_v<WriteEdgeCallback>) {
         if (!we_callback(edge_it)) continue;
@@ -1059,9 +1059,9 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
 
   // write each edge
   int count = 0;
-   for (auto edge_it = graph.EdgeCBegin(); !edge_it.IsDone(); ++edge_it) {
+   for (auto edge_it = graph.EdgeBegin(); !edge_it.IsDone(); ++edge_it) {
   /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in vertex){} }
-  //for (auto vertex_cit = graph.VertexCBegin(); !vertex_cit.IsDone(); ++vertex_cit) {
+  //for (auto vertex_cit = graph.VertexBegin(); !vertex_cit.IsDone(); ++vertex_cit) {
    // for (auto edge_cit = vertex_cit->OutEdgeCBegin(); !edge_cit.IsDone(); ++edge_cit) {
       if constexpr (!std::is_null_pointer_v<WriteEdgeCallback>) {
         if (!we_callback(edge_it)) continue;
