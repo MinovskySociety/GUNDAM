@@ -174,7 +174,7 @@ class SmallGraph {
 
     size_t CountOutEdge(const EdgeLabelType &edge_label) const {
       size_t out_edge_count = 0;
-      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->OutEdgeBegin(); !it.IsDone(); it++) {
         if (it->label() == edge_label) out_edge_count++;
       }
       return out_edge_count;
@@ -188,7 +188,7 @@ class SmallGraph {
 
     size_t CountInEdge(const EdgeLabelType &edge_label) const {
       size_t in_edge_count = 0;
-      for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->InEdgeBegin(); !it.IsDone(); it++) {
         if (it->label() == edge_label) in_edge_count++;
       }
       return in_edge_count;
@@ -196,14 +196,14 @@ class SmallGraph {
 
     size_t CountOutVertex() const {
       std::set<VertexIDType> out_vertex_id_set;
-      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->OutEdgeBegin(); !it.IsDone(); it++) {
         out_vertex_id_set.insert(it->const_dst_handle()->id());
       }
       return out_vertex_id_set.size();
     }
     size_t CountOutVertex(const EdgeLabelType &edge_label) const {
       std::set<VertexIDType> out_vertex_id_set;
-      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->OutEdgeBegin(); !it.IsDone(); it++) {
         if (it->label() == edge_label)
           out_vertex_id_set.insert(it->const_dst_handle()->id());
       }
@@ -211,14 +211,14 @@ class SmallGraph {
     }
     size_t CountInVertex() const {
       std::set<VertexIDType> in_vertex_id_set;
-      for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->InEdgeBegin(); !it.IsDone(); it++) {
         in_vertex_id_set.insert(it->const_src_handle()->id());
       }
       return in_vertex_id_set.size();
     }
     size_t CountInVertex(const EdgeLabelType &edge_label) const {
       std::set<VertexIDType> in_vertex_id_set;
-      for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->InEdgeBegin(); !it.IsDone(); it++) {
         if (it->label() == edge_label)
           in_vertex_id_set.insert(it->const_src_handle()->id());
       }
@@ -226,10 +226,10 @@ class SmallGraph {
     }
     size_t CountVertex() const {
       std::set<VertexIDType> vertex_id_set;
-      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->OutEdgeBegin(); !it.IsDone(); it++) {
         vertex_id_set.insert(it->dst_handle()->id());
       }
-      for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->InEdgeBegin(); !it.IsDone(); it++) {
         vertex_id_set.insert(it->src_handle()->id());
       }
       return vertex_id_set.size();
@@ -244,16 +244,11 @@ class SmallGraph {
     }
 
     EdgeConstIterator OutEdgeBegin() const {
-      return this->OutEdgeCBegin();
-    }
-   private:
-    EdgeConstIterator OutEdgeCBegin() const {
       assert(HasValue());
       const auto &data = graph_->vertices_.Find(id_)->second;
       return EdgeConstIterator(graph_, data.out_edges_.cbegin(),
                                data.out_edges_.cend());
     }
-   public:
 
     EdgeIterator InEdgeBegin() {
       assert(HasValue());
@@ -262,17 +257,11 @@ class SmallGraph {
     }
 
     EdgeConstIterator InEdgeBegin() const {
-      return this->InEdgeCBegin();
-    }
-
-   private:
-    EdgeConstIterator InEdgeCBegin() const {
       assert(HasValue());
       const auto &data = graph_->vertices_.Find(id_)->second;
       return EdgeConstIterator(graph_, data.in_edges_.cbegin(),
                                data.in_edges_.cend());
     }
-   public:
 
     bool operator==(const _Vertex &b) const {
       if (!graph_) {
@@ -495,14 +484,8 @@ class SmallGraph {
   }
 
   VertexConstIterator VertexBegin() const {
-    return this->VertexCBegin();
-  }
-
- private:
-  VertexConstIterator VertexCBegin() const {
     return VertexConstIterator(this, vertices_.cbegin(), vertices_.cend());
   }
- public:
 
   // VertexIterator VertexBegin(const VertexLabelType &label);
 
@@ -596,14 +579,8 @@ class SmallGraph {
   }
 
   EdgeConstIterator EdgeBegin() const {
-    return this->EdgeCBegin();
-  }
-
- private:
-  EdgeConstIterator EdgeCBegin() const {
     return EdgeConstIterator(this, edges_.cbegin(), edges_.cend());
   }
- public:
 
   size_t EraseEdge(const EdgeIDType &id) {
     auto it1 = edges_.Find(id);

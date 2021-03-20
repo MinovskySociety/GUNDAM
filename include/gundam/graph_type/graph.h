@@ -3631,57 +3631,34 @@ class Graph {
       return this->VertexBegin(this->edges_.out_edges());
     }
     inline VertexConstIterator OutVertexBegin() const {
-      return this->OutVertexCBegin();
-    }
-   private:
-    inline VertexConstIterator OutVertexCBegin() const {
       return this->VertexCBegin(this->edges_.const_out_edges());
     }
-   public:
     inline VertexIteratorSpecifiedEdgeLabel OutVertexBegin(
         const EdgeLabelType& edge_label) {
       return this->VertexBegin(this->edges_.out_edges(), edge_label);
     }
     inline VertexConstIteratorSpecifiedEdgeLabel OutVertexBegin(
         const EdgeLabelType& edge_label) const {
-      return this->OutVertexCBegin(edge_label);
-    }
-   private:
-    inline VertexConstIteratorSpecifiedEdgeLabel OutVertexCBegin(
-        const EdgeLabelType& edge_label) const {
       return this->VertexCBegin(this->edges_.const_out_edges(), edge_label);
     }
-   public:
     /// possible extension:
-    ///     OutVertexBegin (edge_label,vertex_label)
-    ///     OutVertexCBegin(edge_label,vertex_label)
+    ///     OutVertexBegin(edge_label,vertex_label)
 
     /// input edge:
     inline VertexIterator InVertexBegin() {
       return this->VertexBegin(this->edges_.in_edges());
     }
     inline VertexConstIterator InVertexBegin() const {
-      return this->InVertexCBegin();
-    }
-   private:
-    inline VertexConstIterator InVertexCBegin() const {
       return this->VertexCBegin(this->edges_.const_in_edges());
     }
-   public:
     inline VertexIteratorSpecifiedEdgeLabel InVertexBegin(
         const EdgeLabelType& edge_label) {
       return this->VertexBegin(this->edges_.in_edges(), edge_label);
     }
     inline VertexConstIteratorSpecifiedEdgeLabel InVertexBegin(
         const EdgeLabelType& edge_label) const {
-      return this->InVertexCBegin(edge_label);
-    }
-   private:
-    inline VertexConstIteratorSpecifiedEdgeLabel InVertexCBegin(
-        const EdgeLabelType& edge_label) const {
       return this->VertexCBegin(this->edges_.const_in_edges(), edge_label);
     }
-   public:
     /// possible extension:
     ///     InVertexBegin (edge_label,vertex_label)
     ///     InVertexCBegin(edge_label,vertex_label)
@@ -3693,14 +3670,9 @@ class Graph {
                              this->edges_.out_edges());
     }
     inline EdgeConstIterator OutEdgeBegin() const {
-      return this->OutEdgeCBegin();
-    }
-   private:
-    inline EdgeConstIterator OutEdgeCBegin() const {
       return this->EdgeCBegin(EdgeDirection::OutputEdge,
                               this->edges_.const_out_edges());
     }
-   public:
     inline EdgeIteratorSpecifiedEdgeLabel OutEdgeBegin(
         const EdgeLabelType& edge_label) {
       return this->EdgeBegin(EdgeDirection::OutputEdge,
@@ -3708,15 +3680,9 @@ class Graph {
     }
     inline EdgeConstIteratorSpecifiedEdgeLabel OutEdgeBegin(
         const EdgeLabelType& edge_label) const {
-      return this->OutEdgeCBegin(edge_label);
-    }
-   private:
-    inline EdgeConstIteratorSpecifiedEdgeLabel OutEdgeCBegin(
-        const EdgeLabelType& edge_label) const {
       return this->EdgeCBegin(EdgeDirection::OutputEdge,
                               this->edges_.const_out_edges(), edge_label);
     }
-   public:
     template<bool ptr_is_const_>
     inline EdgeIteratorSpecifiedEdgeLabelVertexPtr
         OutEdgeBegin(const   EdgeLabelType&   edge_label,
@@ -3728,39 +3694,24 @@ class Graph {
     }
     template<bool ptr_is_const_>
     inline EdgeConstIteratorSpecifiedEdgeLabelVertexPtr
-        OutEdgeBegin(const   EdgeLabelType&   edge_label,
-                     const VertexPtr_<ptr_is_const_>& vertex_ptr) const {
-      return this->OutEdgeCBegin(edge_label,
-                                 vertex_ptr);
-    }
-   private:
-    template<bool ptr_is_const_>
-    inline EdgeConstIteratorSpecifiedEdgeLabelVertexPtr
-        OutEdgeCBegin(const   EdgeLabelType&   edge_label,
+         OutEdgeBegin(const   EdgeLabelType&   edge_label,
                       const VertexPtr_<ptr_is_const_>& vertex_ptr) const{
       return this->EdgeCBegin(EdgeDirection::OutputEdge,
                               this->edges_.const_out_edges(),
                               edge_label,
                               vertex_ptr);
     }
-   public:
     /// possible extension:
-    ///     OutEdgeBegin (edge_label,vertex_label)
-    ///     OutEdgeCBegin(edge_label,vertex_label)
+    ///     OutEdgeBegin(edge_label,vertex_label)
 
     /// input edge:
     inline EdgeIterator InEdgeBegin() {
       return this->EdgeBegin(EdgeDirection::InputEdge, this->edges_.in_edges());
     }
     inline EdgeConstIterator InEdgeBegin() const {
-      return this->InEdgeCBegin();
-    }
-   private:
-    inline EdgeConstIterator InEdgeCBegin() const {
       return this->EdgeCBegin(EdgeDirection::InputEdge,
                               this->edges_.const_in_edges());
     }
-   public:
     inline EdgeIteratorSpecifiedEdgeLabel InEdgeBegin(
         const EdgeLabelType& edge_label) {
       return this->EdgeBegin(EdgeDirection::InputEdge, this->edges_.in_edges(),
@@ -3768,15 +3719,9 @@ class Graph {
     }
     inline EdgeConstIteratorSpecifiedEdgeLabel InEdgeBegin(
         const EdgeLabelType& edge_label) const {
-      return this->EdgeCBegin(edge_label);
-    }
-   private:
-    inline EdgeConstIteratorSpecifiedEdgeLabel InEdgeCBegin(
-        const EdgeLabelType& edge_label) const {
       return this->EdgeCBegin(EdgeDirection::InputEdge,
                               this->edges_.const_in_edges(), edge_label);
     }
-   public:
     template<bool ptr_is_const_>
     inline EdgeIteratorSpecifiedEdgeLabelVertexPtr
          InEdgeBegin(const   EdgeLabelType&   edge_label,
@@ -3788,24 +3733,15 @@ class Graph {
     }
     template<bool ptr_is_const_>
     inline EdgeConstIteratorSpecifiedEdgeLabelVertexPtr
-         InEdgeBegin(const   EdgeLabelType&   edge_label,
-                     const VertexPtr_<ptr_is_const_>& vertex_ptr) const {
-      return this->InEdgeCBegin(edge_label, vertex_ptr);
-    }
-   private:
-    template<bool ptr_is_const_>
-    inline EdgeConstIteratorSpecifiedEdgeLabelVertexPtr
-         InEdgeCBegin(const   EdgeLabelType&   edge_label,
+          InEdgeBegin(const   EdgeLabelType&   edge_label,
                       const VertexPtr_<ptr_is_const_>& vertex_ptr) const {
       return this->EdgeCBegin(EdgeDirection::InputEdge,
                               this->edges_.const_in_edges(), 
                               edge_label,
                               vertex_ptr);
     }
-   public:
     /// possible extension:
-    ///     InEdgeBegin (edge_label,vertex_label)
-    ///     InEdgeCBegin(edge_label,vertex_label)
+    ///     InEdgeBegin(edge_label,vertex_label)
 
     /// unimplemented:
     /// inline VertexIterator EraseVertex(const VertexIterator& iterator);
@@ -4014,14 +3950,14 @@ class Graph {
   template<typename GraphType>
   void CopyGraphTopo(const GraphType& graph) {
     this->Deconstruct();
-    for (auto vertex_cit = graph.VertexCBegin(); 
+    for (auto vertex_cit = graph.VertexBegin(); 
              !vertex_cit.IsDone(); 
               vertex_cit++){
       /// <VertexPtr, bool>
       auto vertex_ret = this->AddVertex(vertex_cit->id(), 
                                         vertex_cit->label());
     }
-    for (auto vertex_cit = graph.VertexCBegin(); 
+    for (auto vertex_cit = graph.VertexBegin(); 
              !vertex_cit.IsDone(); 
               vertex_cit++){
       auto vertex_ptr = this->FindVertex(vertex_cit->id());
@@ -4412,7 +4348,7 @@ class Graph {
 
   EdgeSizeType CountEdge() const {
     EdgeSizeType edge_num = 0;
-    for (auto vertex_cit = this->VertexCBegin();
+    for (auto vertex_cit = this->VertexBegin();
              !vertex_cit.IsDone();vertex_cit++){
       edge_num += vertex_cit->CountOutEdge();
     }
@@ -4445,15 +4381,9 @@ class Graph {
   }
 
   inline VertexConstIterator VertexBegin() const {
-    return this->VertexCBegin();
-  }
-
- private:
-  inline VertexConstIterator VertexCBegin() const {
     return VertexConstIterator(this->vertexes_.cbegin(),
                                this->vertexes_.cend());
   }
- public:
 
   inline VertexIteratorSpecifiedLabel VertexBegin(
       typename VertexType::LabelType label) {
@@ -4468,12 +4398,6 @@ class Graph {
   
   inline VertexConstIteratorSpecifiedLabel VertexBegin(
       typename VertexType::LabelType label) const {
-    return this->VertexCBegin(label);
-  }
-  
- private:
-  inline VertexConstIteratorSpecifiedLabel VertexCBegin(
-      typename VertexType::LabelType label) const {
     /// <iterator of VertexLabelContainer, bool>
     auto ret = this->vertexes_.FindConst(label);
     if (!ret.second)  /// does not have this vertex label
@@ -4482,7 +4406,6 @@ class Graph {
         ret.first.template get_const<kVertexIDContainerIdx>().cbegin(),
         ret.first.template get_const<kVertexIDContainerIdx>().cend());
   }
- public:
 
   /// unimplemented:
   /// inline VertexIterator EraseVertex(const VertexIterator& iterator);

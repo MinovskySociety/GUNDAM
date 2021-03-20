@@ -161,27 +161,16 @@ class LargeGraph {
     }
 
     EdgeConstIterator OutEdgeBegin() const {
-      return this->OutEdgeCBegin();
-    }
-   private:
-    EdgeConstIterator OutEdgeCBegin() const {
       return EdgeConstIterator(out_edges_.cbegin(), out_edges_.cend());
     }
-   public:
 
     EdgeIterator InEdgeBegin() {
       return EdgeIterator(in_edges_.begin(), in_edges_.end());
     }
 
     EdgeConstIterator InEdgeBegin() const {
-      return this->InEdgeCBegin();
-    }
-
-   private:
-    EdgeConstIterator InEdgeCBegin() const {
       return EdgeIterator(in_edges_.cbegin(), in_edges_.cend());
     }
-   public:
 
     // VertexIterator OutVertexBegin() {
     //  return VertexIterator(out_vertices_.begin(), out_vertices_.end());
@@ -207,20 +196,14 @@ class LargeGraph {
       }
       return EdgeIterator(it->second.begin(), it->second.end());
     }
-
+    
     EdgeConstIterator OutEdgeBegin(const EdgeLabelType &edge_label) const {
-      return this->OutEdgeCBegin(edge_label);
-    }
-
-   private:
-    EdgeConstIterator OutEdgeCBegin(const EdgeLabelType &edge_label) const {
       auto it = out_edge_labels_.find(edge_label);
       if (it == out_edge_labels_.cend()) {
         return EdgeConstIterator();
       }
       return EdgeConstIterator(it->second.cbegin(), it->second.cend());
     }
-   public:
 
     EdgeIterator InEdgeBegin(const EdgeLabelType &edge_label) {
       auto it = in_edge_labels_.find(edge_label);
@@ -231,18 +214,12 @@ class LargeGraph {
     }
 
     EdgeConstIterator InEdgeBegin(const EdgeLabelType &edge_label) const {
-      return this->InEdgeCBegin(edge_label);
-    }
-
-   private:
-    EdgeConstIterator InEdgeCBegin(const EdgeLabelType &edge_label) const {
       auto it = in_edge_labels_.find(edge_label);
       if (it == in_edge_labels_.cend()) {
         return EdgeConstIterator();
       }
       return EdgeConstIterator(it->second.cbegin(), it->second.cend());
     }
-   public:
 
     // OutEdgeBegin(edge_label,dst_ptr),InEdgeBegin(edge_label,src_ptr)
     EdgeIterator OutEdgeBegin(const EdgeLabelType &edge_label,
@@ -260,12 +237,6 @@ class LargeGraph {
     }
 
     EdgeConstIterator OutEdgeBegin(const EdgeLabelType &edge_label,
-                                   const VertexData *vertex_ptr) const {
-      return this->OutEdgeCBegin(edge_label, vertex_ptr);
-    }
-
-   private:
-    EdgeConstIterator OutEdgeCBegin(const EdgeLabelType &edge_label,
                                     const VertexData *vertex_ptr) const {
       auto it =
           out_edge_build_on_vertex_.find(const_cast<VertexData *>(vertex_ptr));
@@ -278,7 +249,6 @@ class LargeGraph {
       }
       return EdgeConstIterator(it1->second.cbegin(), it1->second.cend());
     }
-   public:
 
     EdgeIterator InEdgeBegin(const EdgeLabelType &edge_label,
                              const VertexData *vertex_ptr) {
@@ -296,12 +266,6 @@ class LargeGraph {
 
     EdgeConstIterator InEdgeBegin(const EdgeLabelType &edge_label,
                                   const VertexData *vertex_ptr) const {
-      return this->InEdgeCBegin(edge_label, vertex_ptr);
-    }
-
-   private:
-    EdgeConstIterator InEdgeCBegin(const EdgeLabelType &edge_label,
-                                   const VertexData *vertex_ptr) const {
       auto it =
           in_edge_build_on_vertex_.find(const_cast<VertexData *>(vertex_ptr));
       if (it == in_edge_build_on_vertex_.cend()) {
@@ -313,7 +277,6 @@ class LargeGraph {
       }
       return EdgeConstIterator(it1->second.cbegin(), it1->second.cend());
     }
-   public:
 
     // OutVertexBegin(edge_label),InVertexBegin(edge_label)
     VertexIterator InVertexBegin(const EdgeLabelType &edge_label) {
@@ -325,18 +288,12 @@ class LargeGraph {
     }
 
     VertexConstIterator InVertexBegin(const EdgeLabelType &edge_label) const {
-      return this->InVertexCBegin(edge_label);
-    }
-
-   private:
-    VertexConstIterator InVertexCBegin(const EdgeLabelType &edge_label) const {
       auto it = this->in_vertices_.find(edge_label);
       if (it == this->in_vertices_.cend()) {
         return VertexIterator();
       }
       return VertexConstIterator(it->second.cbegin(), it->second.cend());
     }
-   public:
 
     VertexIterator OutVertexBegin(const EdgeLabelType &edge_label) {
       auto it = this->out_vertices_.find(edge_label);
@@ -347,42 +304,22 @@ class LargeGraph {
     }
 
     VertexConstIterator OutVertexBegin(const EdgeLabelType &edge_label) const {
-      return this->OutVertexCBegin(edge_label);
-    }
-
-   private:
-    VertexConstIterator OutVertexCBegin(const EdgeLabelType &edge_label) const {
       auto it = this->out_vertices_.find(edge_label);
       if (it == this->out_vertices_.cend()) {
         return VertexIterator();
       }
       return VertexConstIterator(it->second.cbegin(), it->second.cend());
     }
-   public:
 
     EdgeLabelConstIterator OutEdgeLabelBegin() const {
       return EdgeLabelConstIterator(out_edge_labels_.cbegin(),
                                     out_edge_labels_.cend());
     }
 
-   private:
-    EdgeLabelConstIterator OutEdgeLabelCBegin() const {
-      return EdgeLabelConstIterator(out_edge_labels_.cbegin(),
-                                    out_edge_labels_.cend());
-    }
-   public:
-
     EdgeLabelConstIterator InEdgeLabelBegin() const {
       return EdgeLabelConstIterator(in_edge_labels_.cbegin(),
                                     in_edge_labels_.cend());
     }
-
-   private:
-    EdgeLabelConstIterator InEdgeLabelCBegin() const {
-      return EdgeLabelConstIterator(in_edge_labels_.cbegin(),
-                                    in_edge_labels_.cend());
-    }
-   public:
 
    private:
     VertexData(const IDType &id, const LabelType &label)
@@ -642,11 +579,11 @@ class LargeGraph {
   LargeGraph() = default;
 
   LargeGraph(const LargeGraph &other) {
-    for (auto it_v = other.VertexCBegin(); !it_v.IsDone(); ++it_v) {
+    for (auto it_v = other.VertexBegin(); !it_v.IsDone(); ++it_v) {
       auto [v, r] = AddVertex(it_v->id(), it_v->label());
       CopyAllAttributes(it_v, v);
     }
-    for (auto it_e = other.EdgeCBegin(); !it_e.IsDone(); ++it_e) {
+    for (auto it_e = other.EdgeBegin(); !it_e.IsDone(); ++it_e) {
       auto [e, r] = AddEdge(it_e->src_id(), it_e->dst_id(),
               it_e->label(), it_e->id());
       CopyAllAttributes(it_e, e);
@@ -658,11 +595,11 @@ class LargeGraph {
   LargeGraph &operator=(const LargeGraph &other) {
     Clear();
 
-    for (auto it_v = other.VertexCBegin(); !it_v.IsDone(); ++it_v) {
+    for (auto it_v = other.VertexBegin(); !it_v.IsDone(); ++it_v) {
       auto [v, r] = AddVertex(it_v->id(), it_v->label());
       CopyAllAttributes(it_v, v);
     }
-    for (auto it_e = other.EdgeCBegin(); !it_e.IsDone(); ++it_e) {
+    for (auto it_e = other.EdgeBegin(); !it_e.IsDone(); ++it_e) {
       auto [e, r] =
           AddEdge(it_e->src_id(), it_e->dst_id(), it_e->label(), it_e->id());
       CopyAllAttributes(it_e, e);
@@ -726,14 +663,8 @@ class LargeGraph {
   }
 
   VertexConstIterator VertexBegin() const {
-    return this->VertexCBegin();
-  }
-
- private:
-  VertexConstIterator VertexCBegin() const {
     return VertexConstIterator(vertices_.cbegin(), vertices_.cend());
   }
- public:
 
   VertexIterator VertexBegin(const typename VertexType::LabelType &label) {
     auto it = vertex_labels_.find(label);
@@ -743,12 +674,7 @@ class LargeGraph {
     return VertexIterator(it->second.begin(), it->second.end());
   }
 
-  VertexConstIterator VertexBegin(const typename VertexType::LabelType &label) const {
-    return this->VertexCBegin(label);
-  }
-
- private:
-  VertexConstIterator VertexCBegin(
+  VertexConstIterator VertexBegin(
       const typename VertexType::LabelType &label) const {
     auto it = vertex_labels_.find(label);
     if (it == vertex_labels_.cend()) {
@@ -756,7 +682,6 @@ class LargeGraph {
     }
     return VertexConstIterator(it->second.cbegin(), it->second.cend());
   }
- public:
 
   size_t EraseVertex(const typename VertexType::IDType &id) {   
     auto it_v = vertices_.Find(id);
@@ -835,14 +760,8 @@ class LargeGraph {
   }
 
   EdgeConstIterator EdgeBegin() const {
-    return this->EdgeCBegin();
-  }
-
- private:
-  EdgeConstIterator EdgeCBegin() const {
     return EdgeConstIterator(edges_.cbegin(), edges_.cend());
   }
- public:
 
   size_t EraseEdge(const typename EdgeType::IDType &id) {
     auto it = edges_.Find(id);
