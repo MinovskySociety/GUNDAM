@@ -425,7 +425,7 @@ class SimpleSmallGraph {
 
   SimpleSmallGraph() = default;
 
-  SimpleSmallGraph(const SimpleSmallGraph &other) = default;
+  explicit SimpleSmallGraph(const SimpleSmallGraph &other) = default;
 
   SimpleSmallGraph(SimpleSmallGraph &&) = default;
 

@@ -3848,14 +3848,14 @@ class Graph {
     return;
   }
   
-  Graph(const Graph& graph) {
+  explicit Graph(const Graph& graph) {
     this->CanConvertTo(graph);
     this->Construct(graph);
     return;
   }
 
   template<typename GraphType>
-  Graph(const GraphType& graph) {
+  explicit Graph(const GraphType& graph) {
     this->CanConvertTo(graph);
     this->Construct(graph);
     return;

@@ -439,7 +439,7 @@ class SmallGraph {
 
   SmallGraph() = default;
 
-  SmallGraph(const SmallGraph &other) = default;
+  explicit SmallGraph(const SmallGraph &other) = default;
 
   SmallGraph(SmallGraph &&) = default;
 

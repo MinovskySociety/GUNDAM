@@ -548,7 +548,7 @@ void TestSerialize() {
 
   TestAddVertexAddEdge(g1);
   
-  GraphType g12 = g1;
+  GraphType g12(g1);
   auto vertex_id = g12.VertexBegin()->id();
   auto ret = g12.EraseVertex(vertex_id);
   ASSERT_TRUE(ret);

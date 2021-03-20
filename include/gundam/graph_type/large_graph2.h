@@ -557,7 +557,7 @@ class LargeGraph2 {
 
   LargeGraph2() = default;
 
-  LargeGraph2(const LargeGraph2 &other) {
+  explicit LargeGraph2(const LargeGraph2 &other) {
     for (auto it_v = other.VertexBegin(); !it_v.IsDone(); ++it_v) {
       auto [v, r] = AddVertex(it_v->id(), it_v->label());
       CopyAllAttributes(it_v, v);
