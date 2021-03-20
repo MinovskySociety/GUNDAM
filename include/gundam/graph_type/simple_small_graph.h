@@ -459,11 +459,6 @@ class SimpleSmallGraph {
   }
 
   VertexConstPtr FindVertex(const VertexIDType &id) const {
-    return this->FindConstVertex(id);
-  }
-
- private:
-  VertexConstPtr FindConstVertex(const VertexIDType &id) const {
     if (id == 0 || id > vertices_.Count()) {
       return VertexConstPtr();
     }
@@ -471,7 +466,6 @@ class SimpleSmallGraph {
     return VertexConstPtr(ConstVertex(this, *it));
   }
 
- public:
   VertexIterator VertexBegin() {
     return VertexIterator(this, vertices_.begin(), vertices_.end());
   }
@@ -530,11 +524,6 @@ class SimpleSmallGraph {
   }
 
   EdgeConstPtr FindEdge(const EdgeIDType &id) const {
-    return this->FindConstEdge(id);
-  }
-
- private:
-  EdgeConstPtr FindConstEdge(const EdgeIDType &id) const {
     if (id == 0 || id > edges_.size()) {
       return EdgeConstPtr();
     }
@@ -543,7 +532,6 @@ class SimpleSmallGraph {
     return EdgeConstPtr(this, *it);
   }
 
- public:
   EdgeIterator EdgeBegin() {
     return EdgeIterator(this, edges_.begin(), edges_.end());
   }
