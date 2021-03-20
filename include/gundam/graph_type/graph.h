@@ -15,6 +15,8 @@
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
 
+#include "gundam/serialize/serialize.h"
+
 #include <iostream>
 #include <set>
 #include <tuple>

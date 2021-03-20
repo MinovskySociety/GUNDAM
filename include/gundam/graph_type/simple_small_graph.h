@@ -13,6 +13,8 @@
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
 
+#include "gundam/serialize/serialize.h"
+
 namespace GUNDAM {
 
 template <class VertexIDType, class VertexLabelType, class EdgeIDType,

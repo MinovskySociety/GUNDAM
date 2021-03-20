@@ -15,110 +15,13 @@
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
 
+#include "gundam/serialize/serialize.h"
+
 namespace GUNDAM {
 
 template <class VertexIDType, class VertexLabelType, 
           class   EdgeIDType, class   EdgeLabelType>
 class SmallGraph;
-  
-template <class VertexIDType, class VertexLabelType, 
-          class   EdgeIDType, class   EdgeLabelType>
-std::string& operator<<(std::string& out_string, 
-      const SmallGraph<VertexIDType, 
-                    VertexLabelType,
-                         EdgeIDType,   
-                      EdgeLabelType>& small_graph) {
-
-  out_string = std::move(out_string) + " <Graph ";
-
-  out_string = std::move(out_string) + "vertex";
-  for (auto vertex_it = small_graph.VertexBegin(); 
-           !vertex_it.IsDone();
-            vertex_it++) {
-    out_string = std::move(out_string) 
-               + " " + ToString(vertex_it->id()) 
-               + " " + ToString(vertex_it->label());
-  }
-  out_string = std::move(out_string) + " edge";
-  for (auto vertex_it = small_graph.VertexBegin(); 
-           !vertex_it.IsDone();
-            vertex_it++) {
-    for (auto edge_it = vertex_it->OutEdgeBegin(); 
-             !edge_it.IsDone();
-              edge_it++) {
-      out_string = std::move(out_string) 
-                 + " " + ToString(edge_it->src_id()) 
-                 + " " + ToString(edge_it->dst_id())
-                 + " " + ToString(edge_it->label())
-                 + " " + ToString(edge_it->id());
-    }
-  }
-  out_string = std::move(out_string) + " >";
-  return out_string;
-}
-  
-template <class VertexIDType, class VertexLabelType, 
-          class   EdgeIDType, class   EdgeLabelType>
-std::string& operator>>(std::string& in_string, 
-            SmallGraph<VertexIDType, 
-                    VertexLabelType,
-                         EdgeIDType,   
-                      EdgeLabelType>& small_graph) {
-  
-  using namespace GUNDAM;
-
-  std::stringstream ss;
-  ss << in_string;
-
-  std::string str;
-  
-  ss>>str;
-  assert(str == "<Graph");
-
-  ss>>str;
-  assert(str == "vertex");
-
-  small_graph.Clear();
-
-  while (ss>>str){
-    if (str == "edge")
-      break;
-    VertexIDType vertex_id
-      = StringToDataType<VertexIDType>(str);
-    ss>>str;
-    VertexLabelType vertex_label 
-      = StringToDataType<VertexLabelType>(str);
-    small_graph.AddVertex(vertex_id,
-                          vertex_label);
-  }
-
-  while (ss>>str){
-    if (str == ">"){
-      // end symbol
-      break;
-    }
-    VertexIDType src_id
-      = StringToDataType<VertexIDType>(str);
-    ss>>str;
-    VertexIDType dst_id
-      = StringToDataType<VertexIDType>(str);
-    ss>>str;
-    EdgeLabelType edge_label
-      = StringToDataType<EdgeLabelType>(str);
-    ss>>str;
-    EdgeIDType edge_id
-      = StringToDataType<EdgeIDType>(str);
- 
-    small_graph.AddEdge(src_id,
-                        dst_id,
-                       edge_label,
-                       edge_id);
-  }
-  getline(ss, in_string);
-  if (ss.fail())
-    in_string.clear();
-  return in_string;
-}
 
 template <class VertexIDType, class VertexLabelType, class EdgeIDType,
           class EdgeLabelType>
