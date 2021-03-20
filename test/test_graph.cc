@@ -149,7 +149,7 @@ void TestConstGraph(const GraphType& g){
   //ASSERT_EQ(e1, e1b);
 
   int count = 0;
-  for (auto v_it = g.VertexCBegin(); 
+  for (auto v_it = g.VertexBegin(); 
            !v_it.IsDone(); 
           ++v_it) {
     VertexHandle vertex_const_ptr = v_it;
@@ -169,7 +169,7 @@ void TestConstGraph(const GraphType& g){
   ASSERT_EQ(count, 4);
 
   count = 0;
-  for (auto e_out_it = v1->OutEdgeCBegin(); 
+  for (auto e_out_it = v1->OutEdgeBegin(); 
            !e_out_it.IsDone(); 
           ++e_out_it) {
     EdgeHandle edge_const_ptr = e_out_it;
@@ -189,7 +189,7 @@ void TestConstGraph(const GraphType& g){
   ASSERT_EQ(count, 3);
 
   count = 0;
-  for (auto e_in_it = v1->InEdgeCBegin(); 
+  for (auto e_in_it = v1->InEdgeBegin(); 
            !e_in_it.IsDone(); 
           ++e_in_it) {
     EdgeHandle edge_const_ptr = e_in_it;

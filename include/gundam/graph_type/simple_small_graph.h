@@ -225,11 +225,13 @@ class SimpleSmallGraph {
       return this->OutEdgeCBegin();
     }
 
+   private:
     EdgeConstIterator OutEdgeCBegin() const {
       assert(HasValue());
       return EdgeConstIterator(graph_, data_->out_edges_.begin(),
                                data_->out_edges_.end());
     }
+   public:
 
     EdgeIterator InEdgeBegin() {
       assert(HasValue());
@@ -241,11 +243,13 @@ class SimpleSmallGraph {
       return this->InEdgeCBegin();
     }
 
+   private:
     EdgeConstIterator InEdgeCBegin() const {
       assert(HasValue());
       return EdgeConstIterator(graph_, data_->in_edges_.begin(),
                                data_->in_edges_.end());
     }
+   public:
 
     bool operator==(const _Vertex &b) const {
       if (!graph_) {
@@ -486,9 +490,11 @@ class SimpleSmallGraph {
     return this->VertexCBegin();
   }
 
+ private:
   VertexConstIterator VertexCBegin() const {
     return VertexConstIterator(this, vertices_.cbegin(), vertices_.cend());
   }
+ public:
 
   // VertexIterator VertexBegin(const VertexLabelType &label);
 
@@ -562,9 +568,11 @@ class SimpleSmallGraph {
     return this->EdgeCBegin();
   }
 
+ private:
   EdgeConstIterator EdgeCBegin() const {
     return EdgeConstIterator(this, edges_.cbegin(), edges_.cend());
   }
+ public:
 
   // bool EraseEdge(const EdgeIDType &id);
 

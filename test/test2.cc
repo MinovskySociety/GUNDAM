@@ -80,7 +80,7 @@ TEST(TestGUNDAM, GraphEdge) {
   ASSERT_TRUE(e1);
 
   auto e_it1 = v1->OutEdgeBegin();  
-  auto e_it_const1 = v1->OutEdgeCBegin();
+  auto e_it_const1 = v1->OutEdgeBegin();
 
   typename GUNDAM::EdgeHandle<GraphType1>::type e1_1 = e_it1;
   // GraphType1::EdgeConstPtr e1_const1 = e_it_const1;
@@ -91,7 +91,7 @@ TEST(TestGUNDAM, GraphEdge) {
   // ASSERT_EQ(e1->label(), e1_const1->label());
   // ASSERT_EQ(e1, e1_const1);
 
-  // auto e_it2 = v1->OutEdgeCBegin("a");
+  // auto e_it2 = v1->OutEdgeBegin("a");
   // GraphType1::EdgeConstPtr e1_const2{e_it2};
   // ASSERT_EQ(e1->id(), e1_const2->id());
   // ASSERT_EQ(e1->const_src_ptr(), e1_const2->const_src_ptr());

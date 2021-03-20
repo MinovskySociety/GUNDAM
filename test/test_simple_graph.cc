@@ -107,7 +107,7 @@ void PrintGraph1(const GraphType& g) {
 
   std::cout << "Vertex" << std::endl;
   count = 0;
-  for (it_v = g.VertexCBegin(); !it_v.IsDone(); it_v++) {
+  for (it_v = g.VertexBegin(); !it_v.IsDone(); it_v++) {
     std::cout << it_v->id() << " " << it_v->label() << std::endl;
     ++count;
   }
@@ -119,7 +119,7 @@ void PrintGraph1(const GraphType& g) {
 
   std::cout << "Edge" << std::endl;
   count = 0;
-  for (it_e = g.EdgeCBegin(); !it_e.IsDone(); it_e++) {
+  for (it_e = g.EdgeBegin(); !it_e.IsDone(); it_e++) {
     std::cout << it_e->id() << " " << it_e->label() << " " << it_e->src_id()
               << " " << it_e->dst_id() << std::endl;
     ++count;
@@ -163,9 +163,9 @@ void PrintGraphOutEdges(const GraphType& g) {
   int count_v = 0;
   int count_e = 0;
 
-  for (auto it_v = g.VertexCBegin(); !it_v.IsDone(); it_v++) {
+  for (auto it_v = g.VertexBegin(); !it_v.IsDone(); it_v++) {
     int count_out = 0;
-    for (auto it_e = it_v->OutEdgeCBegin(); !it_e.IsDone(); it_e++) {
+    for (auto it_e = it_v->OutEdgeBegin(); !it_e.IsDone(); it_e++) {
       std::cout << it_e->id() << " " << it_e->label() << " " << it_e->src_id() << " " << it_e->dst_id() << std::endl;
 
       ASSERT_EQ(it_e->src_ptr()->id(), it_e->src_id());

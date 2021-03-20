@@ -32,7 +32,7 @@ std::string& operator<<(std::string& out_string,
   out_string = std::move(out_string) + " <Graph ";
 
   out_string = std::move(out_string) + "vertex";
-  for (auto vertex_it = small_graph.VertexCBegin(); 
+  for (auto vertex_it = small_graph.VertexBegin(); 
            !vertex_it.IsDone();
             vertex_it++) {
     out_string = std::move(out_string) 
@@ -40,10 +40,10 @@ std::string& operator<<(std::string& out_string,
                + " " + ToString(vertex_it->label());
   }
   out_string = std::move(out_string) + " edge";
-  for (auto vertex_it = small_graph.VertexCBegin(); 
+  for (auto vertex_it = small_graph.VertexBegin(); 
            !vertex_it.IsDone();
             vertex_it++) {
-    for (auto edge_it = vertex_it->OutEdgeCBegin(); 
+    for (auto edge_it = vertex_it->OutEdgeBegin(); 
              !edge_it.IsDone();
               edge_it++) {
       out_string = std::move(out_string) 
@@ -343,13 +343,14 @@ class SmallGraph {
     EdgeConstIterator OutEdgeBegin() const {
       return this->OutEdgeCBegin();
     }
-
+   private:
     EdgeConstIterator OutEdgeCBegin() const {
       assert(HasValue());
       const auto &data = graph_->vertices_.Find(id_)->second;
       return EdgeConstIterator(graph_, data.out_edges_.cbegin(),
                                data.out_edges_.cend());
     }
+   public:
 
     EdgeIterator InEdgeBegin() {
       assert(HasValue());
@@ -361,12 +362,14 @@ class SmallGraph {
       return this->InEdgeCBegin();
     }
 
+   private:
     EdgeConstIterator InEdgeCBegin() const {
       assert(HasValue());
       const auto &data = graph_->vertices_.Find(id_)->second;
       return EdgeConstIterator(graph_, data.in_edges_.cbegin(),
                                data.in_edges_.cend());
     }
+   public:
 
     bool operator==(const _Vertex &b) const {
       if (!graph_) {
@@ -592,9 +595,11 @@ class SmallGraph {
     return this->VertexCBegin();
   }
 
+ private:
   VertexConstIterator VertexCBegin() const {
     return VertexConstIterator(this, vertices_.cbegin(), vertices_.cend());
   }
+ public:
 
   // VertexIterator VertexBegin(const VertexLabelType &label);
 
@@ -687,9 +692,15 @@ class SmallGraph {
     return EdgeIterator(this, edges_.begin(), edges_.end());
   }
 
+  EdgeConstIterator EdgeBegin() const {
+    return this->EdgeCBegin();
+  }
+
+ private:
   EdgeConstIterator EdgeCBegin() const {
     return EdgeConstIterator(this, edges_.cbegin(), edges_.cend());
   }
+ public:
 
   size_t EraseEdge(const EdgeIDType &id) {
     auto it1 = edges_.Find(id);
