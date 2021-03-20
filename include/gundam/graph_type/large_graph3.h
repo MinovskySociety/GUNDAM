@@ -43,11 +43,11 @@ class LargeGraph3 {
   };
 
   struct GetEdgeSrc {
-    constexpr VertexData *operator()(EdgeData &e) const { return e.src_ptr(); }
+    constexpr VertexData *operator()(EdgeData &e) const { return e.src_handle(); }
   };
 
   struct GetEdgeDst {
-    constexpr VertexData *operator()(EdgeData &e) const { return e.dst_ptr(); }
+    constexpr VertexData *operator()(EdgeData &e) const { return e.dst_handle(); }
   };
 
   using VertexDataContainer =
@@ -267,13 +267,13 @@ class LargeGraph3 {
 
     const VertexIDType &dst_id() const { return dst_->id(); }
 
-    VertexData *src_ptr() { return src_; }
+    VertexData *src_handle() { return src_; }
 
-    VertexData *dst_ptr() { return dst_; }
+    VertexData *dst_handle() { return dst_; }
 
-    const VertexData *const_src_ptr() const { return src_; }
+    const VertexData *const_src_handle() const { return src_; }
 
-    const VertexData *const_dst_ptr() const { return dst_; }
+    const VertexData *const_dst_handle() const { return dst_; }
 
    private:
     EdgeIDType id_;

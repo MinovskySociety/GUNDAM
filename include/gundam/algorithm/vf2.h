@@ -155,7 +155,7 @@ inline QueryVertexPtr DetermineMatchOrder(
 
     for (auto edge_iter = query_vertex_ptr->OutEdgeCBegin();
          !edge_iter.IsDone(); ++edge_iter) {
-      auto query_opp_vertex_ptr = edge_iter->const_dst_ptr();
+      auto query_opp_vertex_ptr = edge_iter->const_dst_handle();
       if (match_state.count(query_opp_vertex_ptr) == 0) {
         next_query_set.insert(query_opp_vertex_ptr);
       }
@@ -163,7 +163,7 @@ inline QueryVertexPtr DetermineMatchOrder(
 
     for (auto edge_iter = query_vertex_ptr->InEdgeCBegin(); !edge_iter.IsDone();
          ++edge_iter) {
-      auto query_opp_vertex_ptr = edge_iter->const_src_ptr();
+      auto query_opp_vertex_ptr = edge_iter->const_src_handle();
       if (match_state.count(query_opp_vertex_ptr) == 0) {
         next_query_set.insert(query_opp_vertex_ptr);
       }
@@ -213,8 +213,8 @@ inline QueryVertexPtr DetermineMatchOrder(
 //                                           query_vertex_ptr->OutEdgeCBegin());
 //       !query_edge_iter.IsDone(); query_edge_iter++) {
 //    QueryVertexPtr query_opp_vertex_ptr =
-//        (edge_state == EdgeState::kIn) ? query_edge_iter->const_src_ptr()
-//                                       : query_edge_iter->const_dst_ptr();
+//        (edge_state == EdgeState::kIn) ? query_edge_iter->const_src_handle()
+//                                       : query_edge_iter->const_dst_handle();
 //
 //    // if (match_state.count(query_opp_vertex_ptr) > 0) continue;
 //    // TargetVertexPtr query_opp_match_vertex_ptr =
@@ -230,8 +230,8 @@ inline QueryVertexPtr DetermineMatchOrder(
 //        [&query_opp_match_vertex_ptr,
 //         &find_target_flag](const TargetEdgePtr &edge_ptr) -> bool {
 //          auto target_opp_vertex_ptr = (edge_state == EdgeState::kIn)
-//                                           ? edge_ptr->const_src_ptr()
-//                                           : edge_ptr->const_dst_ptr();
+//                                           ? edge_ptr->const_src_handle()
+//                                           : edge_ptr->const_dst_handle();
 //          if (target_opp_vertex_ptr->id() == query_opp_match_vertex_ptr->id())
 //          {
 //            find_target_flag = true;
@@ -249,8 +249,8 @@ inline QueryVertexPtr DetermineMatchOrder(
 //    target_vertex_ptr->OutEdgeCBegin(query_edge_iter->label()));
 //    //     !target_edge_iter.IsDone(); target_edge_iter++) {
 //    //  auto target_opp_vertex_ptr = (edge_state == EdgeState::kIn)
-//    //                                   ? target_edge_iter->const_src_ptr()
-//    //                                   : target_edge_iter->const_dst_ptr();
+//    //                                   ? target_edge_iter->const_src_handle()
+//    //                                   : target_edge_iter->const_dst_handle();
 //
 //    //  if (target_opp_vertex_ptr->id() == query_opp_match_vertex_ptr->id()) {
 //    //    find_target_flag = true;
@@ -281,9 +281,9 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
     QueryVertexPtr query_opp_vertex_ptr;
 
     if constexpr (edge_state == EdgeState::kIn) {
-      query_opp_vertex_ptr = query_edge_iter->const_src_ptr();
+      query_opp_vertex_ptr = query_edge_iter->const_src_handle();
     } else {
-      query_opp_vertex_ptr = query_edge_iter->const_dst_ptr();
+      query_opp_vertex_ptr = query_edge_iter->const_dst_handle();
     }
 
     auto match_iter = match_state.find(query_opp_vertex_ptr);
@@ -303,8 +303,8 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
            !target_edge_iter.IsDone(); ++target_edge_iter) {
         if (used_edge.count(target_edge_iter->id()) > 0) continue;
         TargetVertexPtr target_opp_vertex_ptr =
-            (edge_state == EdgeState::kIn) ? target_edge_iter->const_src_ptr()
-                                           : target_edge_iter->const_dst_ptr();
+            (edge_state == EdgeState::kIn) ? target_edge_iter->const_src_handle()
+                                           : target_edge_iter->const_dst_handle();
         if (target_opp_vertex_ptr == query_opp_match_vertex_ptr) {
           find_target_flag = true;
           used_edge.insert(target_edge_iter->id());
@@ -318,8 +318,8 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
            !target_edge_iter.IsDone(); ++target_edge_iter) {
         if (used_edge.count(target_edge_iter->id()) > 0) continue;
         TargetVertexPtr target_opp_vertex_ptr =
-            (edge_state == EdgeState::kIn) ? target_edge_iter->const_src_ptr()
-                                           : target_edge_iter->const_dst_ptr();
+            (edge_state == EdgeState::kIn) ? target_edge_iter->const_src_handle()
+                                           : target_edge_iter->const_dst_handle();
         if (target_opp_vertex_ptr != query_opp_match_vertex_ptr) continue;
         if (edge_comp(query_edge_iter, target_edge_iter)) {
           find_target_flag = true;
@@ -361,9 +361,9 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
 //    QueryEdgePtr query_edge_ptr = query_edge_iter;
 //    QueryVertexPtr query_opp_vertex_ptr = (edge_state == EdgeState::kIn)
 //                                              ?
-//                                              query_edge_ptr->const_src_ptr()
+//                                              query_edge_ptr->const_src_handle()
 //                                              :
-//                                              query_edge_ptr->const_dst_ptr();
+//                                              query_edge_ptr->const_dst_handle();
 //
 //
 //    auto match_iter = match_state.find(query_opp_vertex_ptr);
@@ -377,8 +377,8 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
 //        [&query_opp_match_vertex_ptr,
 //         &find_target_flag](const TargetEdgePtr &target_edge_ptr) -> bool {
 //          auto target_opp_vertex_ptr = (edge_state == EdgeState::kIn)
-//                                           ? target_edge_ptr->const_src_ptr()
-//                                           : target_edge_ptr->const_dst_ptr();
+//                                           ? target_edge_ptr->const_src_handle()
+//                                           : target_edge_ptr->const_dst_handle();
 //          if (target_opp_vertex_ptr->id() == query_opp_match_vertex_ptr->id())
 //          {
 //            find_target_flag = true;
@@ -393,8 +393,8 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
 //    //                                  : target_vertex_ptr->OutEdgeCBegin());
 //    //     !target_edge_iter.IsDone(); target_edge_iter++) {
 //    //  auto target_opp_vertex_ptr = (edge_state == EdgeState::kIn)
-//    //                                   ? target_edge_iter->const_src_ptr()
-//    //                                   : target_edge_iter->const_dst_ptr();
+//    //                                   ? target_edge_iter->const_src_handle()
+//    //                                   : target_edge_iter->const_dst_handle();
 //    //  if (target_opp_vertex_ptr->id() == query_opp_match_vertex_ptr->id()) {
 //    //    // auto query_edge_ptr =
 //    //    //     (edge_state == EdgeState::kOut)

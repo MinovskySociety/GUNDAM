@@ -173,7 +173,7 @@ void TestConstGraph(const GraphType& g){
            !e_out_it.IsDone(); 
           ++e_out_it) {
     EdgeHandle edge_const_ptr = e_out_it;
-    ASSERT_EQ(edge_const_ptr->const_src_ptr(), v1);
+    ASSERT_EQ(edge_const_ptr->const_src_handle(), v1);
     ++count;
   }
   ASSERT_EQ(count, 3);
@@ -183,7 +183,7 @@ void TestConstGraph(const GraphType& g){
            !e_out_it.IsDone(); 
           ++e_out_it) {
     EdgeHandle edge_const_ptr = e_out_it;
-    ASSERT_EQ(edge_const_ptr->const_src_ptr(), v1);
+    ASSERT_EQ(edge_const_ptr->const_src_handle(), v1);
     ++count;
   }
   ASSERT_EQ(count, 3);
@@ -193,7 +193,7 @@ void TestConstGraph(const GraphType& g){
            !e_in_it.IsDone(); 
           ++e_in_it) {
     EdgeHandle edge_const_ptr = e_in_it;
-    ASSERT_EQ(edge_const_ptr->const_dst_ptr(), v1);
+    ASSERT_EQ(edge_const_ptr->const_dst_handle(), v1);
     ++count;
   }
   ASSERT_EQ(count, 3);
@@ -203,7 +203,7 @@ void TestConstGraph(const GraphType& g){
            !e_in_it.IsDone(); 
           ++e_in_it) {
     EdgeHandle edge_const_ptr = e_in_it;
-    ASSERT_EQ(edge_const_ptr->const_dst_ptr(), v1);
+    ASSERT_EQ(edge_const_ptr->const_dst_handle(), v1);
     ++count;
   }
   ASSERT_EQ(count, 3);
@@ -257,8 +257,8 @@ bool TestGraphSame(const GraphType& g1,
     for (auto edge_it = vertex_it->OutEdgeBegin();
              !edge_it.IsDone();
               edge_it++) {
-      auto ret = g1_edge_set.emplace(edge_it->const_src_ptr()->id(),
-                                     edge_it->const_dst_ptr()->id(),
+      auto ret = g1_edge_set.emplace(edge_it->const_src_handle()->id(),
+                                     edge_it->const_dst_handle()->id(),
                                      edge_it->label(),
                                      edge_it->id());
       // should have been added successfully
@@ -274,16 +274,16 @@ bool TestGraphSame(const GraphType& g1,
              !edge_it.IsDone();
               edge_it++) {
       auto temp_edge = std::make_tuple(
-                            edge_it->const_src_ptr()->id(),
-                            edge_it->const_dst_ptr()->id(),
+                            edge_it->const_src_handle()->id(),
+                            edge_it->const_dst_handle()->id(),
                             edge_it->label(),
                             edge_it->id()); 
       auto it = g1_edge_set.find(temp_edge);
       if (it == g1_edge_set.cend()){
         // g1 does not have this edge
         std::cout<<"edge: "<<std::endl
-                 <<"src_id: "<<edge_it->const_src_ptr()->id()<<std::endl
-                 <<"dst_id: "<<edge_it->const_dst_ptr()->id()<<std::endl
+                 <<"src_id: "<<edge_it->const_src_handle()->id()<<std::endl
+                 <<"dst_id: "<<edge_it->const_dst_handle()->id()<<std::endl
                  <<"edge_label: "<<edge_it->label()<<std::endl
                  <<"edge_id: "<<edge_it->id()<<std::endl
                  <<" cannot be found in g1"<<std::endl;
@@ -369,7 +369,7 @@ void TestGraphVertexEdge() {
   //          !e_out_it.IsDone(); 
   //         ++e_out_it) {
   //   EdgeHandle edge_const_ptr = e_out_it;
-  //   ASSERT_EQ(edge_const_ptr->const_src_ptr(), v1);
+  //   ASSERT_EQ(edge_const_ptr->const_src_handle(), v1);
   //   ++count;
   // }
   // ASSERT_EQ(count, 3);
@@ -379,9 +379,9 @@ void TestGraphVertexEdge() {
            !e_out_it.IsDone(); 
           ++e_out_it) {
     EdgeHandle edge_ptr = e_out_it;
-    ASSERT_EQ(edge_ptr->src_ptr(), v1);
+    ASSERT_EQ(edge_ptr->src_handle(), v1);
     // EdgeHandle edge_const_ptr = e_out_it;
-    // ASSERT_EQ(edge_const_ptr->const_src_ptr(), v1);
+    // ASSERT_EQ(edge_const_ptr->const_src_handle(), v1);
     ++count;
   }
   ASSERT_EQ(count, 3);
@@ -391,7 +391,7 @@ void TestGraphVertexEdge() {
   //          !e_in_it.IsDone(); 
   //         ++e_in_it) {
   //   // EdgeHandle edge_const_ptr = e_in_it;
-  //   // ASSERT_EQ(edge_const_ptr->const_dst_ptr(), v1);
+  //   // ASSERT_EQ(edge_const_ptr->const_dst_handle(), v1);
   //   ++count;
   // }
   // ASSERT_EQ(count, 3);
@@ -401,9 +401,9 @@ void TestGraphVertexEdge() {
            !e_in_it.IsDone(); 
           ++e_in_it) {
     EdgeHandle edge_ptr = e_in_it;
-    ASSERT_EQ(edge_ptr->dst_ptr(), v1);
+    ASSERT_EQ(edge_ptr->dst_handle(), v1);
     // EdgeHandle edge_const_ptr = e_in_it;
-    // ASSERT_EQ(edge_const_ptr->const_dst_ptr(), v1);
+    // ASSERT_EQ(edge_const_ptr->const_dst_handle(), v1);
     ++count;
   }
   ASSERT_EQ(count, 3);
@@ -502,7 +502,7 @@ void TestIndex() {
   for (auto e_out_it = v1->OutEdgeBegin("aaa");
            !e_out_it.IsDone(); e_out_it++){
     EdgeHandle edge_ptr = e_out_it;
-    ASSERT_EQ(edge_ptr->src_ptr(), v1);
+    ASSERT_EQ(edge_ptr->src_handle(), v1);
     ASSERT_EQ(edge_ptr->label(), "aaa");
     ++count;
   }
@@ -512,7 +512,7 @@ void TestIndex() {
   for (auto e_in_it = v1->InEdgeBegin("aaa");
            !e_in_it.IsDone(); e_in_it++){
     EdgeHandle edge_ptr = e_in_it;
-    ASSERT_EQ(edge_ptr->dst_ptr(), v1);
+    ASSERT_EQ(edge_ptr->dst_handle(), v1);
     ASSERT_EQ(edge_ptr->label(), "aaa");
     ++count;
   }
@@ -522,7 +522,7 @@ void TestIndex() {
   for (auto e_out_it = v1->OutEdgeBegin("ZZZ");
            !e_out_it.IsDone(); e_out_it++){
     EdgeHandle edge_ptr = e_out_it;
-    ASSERT_EQ(edge_ptr->src_ptr(), v1);
+    ASSERT_EQ(edge_ptr->src_handle(), v1);
     ASSERT_EQ(edge_ptr->label(), "ZZZ");
     ++count;
   }
@@ -532,7 +532,7 @@ void TestIndex() {
   for (auto e_in_it = v1->InEdgeBegin("ZZZ");
            !e_in_it.IsDone(); e_in_it++){
     EdgeHandle edge_ptr = e_in_it;
-    ASSERT_EQ(edge_ptr->dst_ptr(), v1);
+    ASSERT_EQ(edge_ptr->dst_handle(), v1);
     ASSERT_EQ(edge_ptr->label(), "ZZZ");
     ++count;
   }

@@ -8,11 +8,11 @@ void GetKStepAdj(VertexHandle vertex_ptr, int k, std::set<VertexHandle> &adj_lis
     return;
   }
   for (auto it = vertex_ptr->OutEdgeCBegin(); !it.IsDone(); it++) {
-    VertexHandle next_vertex_ptr = it->const_dst_ptr();
+    VertexHandle next_vertex_ptr = it->const_dst_handle();
     GetKStepAdj(next_vertex_ptr, k - 1, adj_list);
   }
   for (auto it = vertex_ptr->InEdgeCBegin(); !it.IsDone(); it++) {
-    VertexHandle next_vertex_ptr = it->const_src_ptr();
+    VertexHandle next_vertex_ptr = it->const_src_handle();
     GetKStepAdj(next_vertex_ptr, k - 1, adj_list);
   }
 }
@@ -24,7 +24,7 @@ bool SyntacticContainment(VertexHandle query_vertex_ptr,
   std::map<std::pair<EdgeLabelType, VertexHandle>, int> query_map, target_map;
   std::map<EdgeLabelType, int> query_num, target_num;
   for (auto it = query_vertex_ptr->OutEdgeCBegin(); !it.IsDone(); it++) {
-    VertexHandle dst_ptr = it->const_dst_ptr();
+    VertexHandle dst_ptr = it->const_dst_handle();
     if (dst_ptr == target_vertex_ptr) {
       query_num[it->label()]++;
     } else {
@@ -32,7 +32,7 @@ bool SyntacticContainment(VertexHandle query_vertex_ptr,
     }
   }
   for (auto it = target_vertex_ptr->OutEdgeCBegin(); !it.IsDone(); it++) {
-    VertexHandle dst_ptr = it->const_dst_ptr();
+    VertexHandle dst_ptr = it->const_dst_handle();
     if (dst_ptr == query_vertex_ptr) {
       target_num[it->label()]++;
     } else {
@@ -50,7 +50,7 @@ bool SyntacticContainment(VertexHandle query_vertex_ptr,
   target_num.clear();
   target_map.clear();
   for (auto it = query_vertex_ptr->InEdgeCBegin(); !it.IsDone(); it++) {
-    VertexHandle src_ptr = it->const_src_ptr();
+    VertexHandle src_ptr = it->const_src_handle();
     if (src_ptr == target_vertex_ptr) {
       query_num[it->label()]++;
     } else {
@@ -58,7 +58,7 @@ bool SyntacticContainment(VertexHandle query_vertex_ptr,
     }
   }
   for (auto it = target_vertex_ptr->InEdgeCBegin(); !it.IsDone(); it++) {
-    VertexHandle src_ptr = it->const_src_ptr();
+    VertexHandle src_ptr = it->const_src_handle();
     if (src_ptr == query_vertex_ptr) {
       target_num[it->label()]++;
     } else {
@@ -113,7 +113,7 @@ void ComputeAdaptedGraph(
             is_clique_value_map;
         for (auto edge_it = next_ptr->OutEdgeCBegin(); !edge_it.IsDone();
              edge_it++) {
-          if (edge_it->const_dst_ptr() == vertex_ptr) {
+          if (edge_it->const_dst_handle() == vertex_ptr) {
             is_clique_value_map[edge_it->label()]++;
           }
         }
@@ -145,7 +145,7 @@ void ComputeAdaptedGraph(
     if (!add_vertex.count(vertex_ptr)) continue;
     for (auto edge_it = vertex_ptr->OutEdgeCBegin(); !edge_it.IsDone();
          edge_it++) {
-      ret_graph.AddEdge(h[vertex_ptr], h[edge_it->const_dst_ptr()],
+      ret_graph.AddEdge(h[vertex_ptr], h[edge_it->const_dst_handle()],
                         edge_it->label(), ++edge_id);
     }
   }

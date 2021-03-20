@@ -143,7 +143,7 @@ inline size_t Bfs(GraphType&  graph,
     for (auto out_edge_it = current_vertex_handle->OutEdgeBegin();
              !out_edge_it.IsDone();
               out_edge_it++) {
-      if (visited.find(out_edge_it->dst_ptr()) != visited.end()){
+      if (visited.find(out_edge_it->dst_handle()) != visited.end()){
         // already visited
         continue;
       }
@@ -152,14 +152,14 @@ inline size_t Bfs(GraphType&  graph,
         std::is_convertible_v<
                   PruneCallBackType, 
                   std::function<bool(VertexHandleType)> >){
-        prune_ret = prune_callback(out_edge_it->dst_ptr());
+        prune_ret = prune_callback(out_edge_it->dst_handle());
       }
       if constexpr (
         std::is_convertible_v<
                   PruneCallBackType, 
                   std::function<bool(VertexHandleType, 
                                       EdgeHandleType)> >){
-        prune_ret = prune_callback(out_edge_it->dst_ptr(),
+        prune_ret = prune_callback(out_edge_it->dst_handle(),
                                    out_edge_it);
       }
       if constexpr (
@@ -168,7 +168,7 @@ inline size_t Bfs(GraphType&  graph,
                   std::function<bool(VertexHandleType, 
                                         EdgeHandleType,
                                     VertexCounterType)> >){
-        prune_ret = prune_callback(out_edge_it->dst_ptr(),
+        prune_ret = prune_callback(out_edge_it->dst_handle(),
                                    out_edge_it, bfs_idx);
       }
       if constexpr (
@@ -178,21 +178,21 @@ inline size_t Bfs(GraphType&  graph,
                                         EdgeHandleType,
                                     VertexCounterType,
                                     VertexCounterType)> >){
-        prune_ret = prune_callback(out_edge_it->dst_ptr(),
+        prune_ret = prune_callback(out_edge_it->dst_handle(),
                                    out_edge_it, bfs_idx, current_distance + 1);
       }
       if (prune_ret){
         // this vertex is pruned, does not be considered
         continue;
       }
-      visited.emplace(out_edge_it->dst_ptr());
-      vertex_handle_queue.emplace(out_edge_it->dst_ptr(), current_distance + 1);
+      visited.emplace(out_edge_it->dst_handle());
+      vertex_handle_queue.emplace(out_edge_it->dst_handle(), current_distance + 1);
     }
     if constexpr (bidirectional){
       for (auto in_edge_it = current_vertex_handle->InEdgeBegin();
                !in_edge_it.IsDone();
                 in_edge_it++) {
-        if (visited.find(in_edge_it->src_ptr()) != visited.end()){
+        if (visited.find(in_edge_it->src_handle()) != visited.end()){
           // already visited
           continue;
         }
@@ -201,14 +201,14 @@ inline size_t Bfs(GraphType&  graph,
           std::is_convertible_v<
                     PruneCallBackType, 
                     std::function<bool(VertexHandleType)> >){
-          prune_ret = prune_callback(in_edge_it->src_ptr());
+          prune_ret = prune_callback(in_edge_it->src_handle());
         }
         if constexpr (
           std::is_convertible_v<
                     PruneCallBackType, 
                     std::function<bool(VertexHandleType, 
                                         EdgeHandleType)> >){
-          prune_ret = prune_callback(in_edge_it->src_ptr(),
+          prune_ret = prune_callback(in_edge_it->src_handle(),
                                      in_edge_it);
         }
         if constexpr (
@@ -217,7 +217,7 @@ inline size_t Bfs(GraphType&  graph,
                     std::function<bool(VertexHandleType, 
                                          EdgeHandleType,
                                       VertexCounterType)> >){
-          prune_ret = prune_callback(in_edge_it->src_ptr(),
+          prune_ret = prune_callback(in_edge_it->src_handle(),
                                      in_edge_it, bfs_idx);
         }
         if constexpr (
@@ -227,7 +227,7 @@ inline size_t Bfs(GraphType&  graph,
                                          EdgeHandleType,
                                       VertexCounterType,
                                       VertexCounterType)> >){
-          prune_ret = prune_callback(in_edge_it->src_ptr(),
+          prune_ret = prune_callback(in_edge_it->src_handle(),
                                      in_edge_it, bfs_idx, current_distance + 1);
         }
 
@@ -235,8 +235,8 @@ inline size_t Bfs(GraphType&  graph,
           // this vertex is pruned, does not be considered
           continue;
         }
-        visited.emplace(in_edge_it->src_ptr());
-        vertex_handle_queue.emplace(in_edge_it->src_ptr(), current_distance + 1);
+        visited.emplace(in_edge_it->src_handle());
+        vertex_handle_queue.emplace(in_edge_it->src_handle(), current_distance + 1);
       }
     }
   }

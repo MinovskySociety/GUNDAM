@@ -912,8 +912,8 @@ void WriteAttributes(VertexEdgePtr& vertex_edge_ptr,
 //      std::vector<std::string> line_edge_info;
 //      line_edge_info.resize(edge_col_name.size());
 //      line_edge_info[0] = ToString(edge_it->id());
-//      line_edge_info[1] = ToString(edge_it->const_src_ptr()->id());
-//      line_edge_info[2] = ToString(edge_it->const_dst_ptr()->id());
+//      line_edge_info[1] = ToString(edge_it->const_src_handle()->id());
+//      line_edge_info[2] = ToString(edge_it->const_dst_handle()->id());
 //      line_edge_info[3] = ToString(edge_it->label());
 //      EdgeConstPtr edge_vertex_ptr = edge_it;
 //      if (graph.edge_has_attribute) {
@@ -1069,8 +1069,8 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
       std::vector<std::string> line;
       line.resize(key_str.size());
       line[0] = ToString(edge_it->id());
-      line[1] = ToString(edge_it->const_src_ptr()->id());
-      line[2] = ToString(edge_it->const_dst_ptr()->id());
+      line[1] = ToString(edge_it->const_src_handle()->id());
+      line[2] = ToString(edge_it->const_dst_handle()->id());
       line[3] = ToString(edge_it->label());
       if constexpr (write_attr) {
         WriteAttributes<GraphType::edge_has_attribute>(edge_it, attr_pos, line);

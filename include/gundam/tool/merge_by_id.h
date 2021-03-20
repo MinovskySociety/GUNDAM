@@ -56,8 +56,8 @@ inline bool MergeById(GraphType0& graph0,
              !out_edge_it.IsDone(); 
               out_edge_it++){
       auto [edge_handle, add_edge_ret] 
-        = graph0.AddEdge(out_edge_it->src_ptr()->id(),
-                         out_edge_it->dst_ptr()->id(),
+        = graph0.AddEdge(out_edge_it->src_handle()->id(),
+                         out_edge_it->dst_handle()->id(),
                          out_edge_it->label(),
                          out_edge_it->id());
       if (!add_edge_ret){

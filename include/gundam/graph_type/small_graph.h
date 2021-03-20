@@ -197,7 +197,7 @@ class SmallGraph {
     size_t CountOutVertex() const {
       std::set<VertexIDType> out_vertex_id_set;
       for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
-        out_vertex_id_set.insert(it->const_dst_ptr()->id());
+        out_vertex_id_set.insert(it->const_dst_handle()->id());
       }
       return out_vertex_id_set.size();
     }
@@ -205,14 +205,14 @@ class SmallGraph {
       std::set<VertexIDType> out_vertex_id_set;
       for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
         if (it->label() == edge_label)
-          out_vertex_id_set.insert(it->const_dst_ptr()->id());
+          out_vertex_id_set.insert(it->const_dst_handle()->id());
       }
       return out_vertex_id_set.size();
     }
     size_t CountInVertex() const {
       std::set<VertexIDType> in_vertex_id_set;
       for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
-        in_vertex_id_set.insert(it->const_src_ptr()->id());
+        in_vertex_id_set.insert(it->const_src_handle()->id());
       }
       return in_vertex_id_set.size();
     }
@@ -220,17 +220,17 @@ class SmallGraph {
       std::set<VertexIDType> in_vertex_id_set;
       for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
         if (it->label() == edge_label)
-          in_vertex_id_set.insert(it->const_src_ptr()->id());
+          in_vertex_id_set.insert(it->const_src_handle()->id());
       }
       return in_vertex_id_set.size();
     }
     size_t CountVertex() const {
       std::set<VertexIDType> vertex_id_set;
       for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
-        vertex_id_set.insert(it->dst_ptr()->id());
+        vertex_id_set.insert(it->dst_handle()->id());
       }
       for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
-        vertex_id_set.insert(it->src_ptr()->id());
+        vertex_id_set.insert(it->src_handle()->id());
       }
       return vertex_id_set.size();
     }
@@ -374,32 +374,32 @@ class SmallGraph {
       return dst_;
     }
 
-    VertexPtr src_ptr() {
+    VertexPtr src_handle() {
       assert(HasValue());
       return VertexPtr(Vertex(graph_, src_));
     }
 
-    VertexConstPtr src_ptr() const {
+    VertexConstPtr src_handle() const {
       assert(HasValue());
       return VertexConstPtr(ConstVertex(graph_, src_));
     }
 
-    VertexConstPtr const_src_ptr() const {
+    VertexConstPtr const_src_handle() const {
       assert(HasValue());
       return VertexConstPtr(ConstVertex(graph_, src_));
     }
 
-    VertexPtr dst_ptr() {
+    VertexPtr dst_handle() {
       assert(HasValue());
       return VertexPtr(Vertex(graph_, dst_));
     }
 
-    VertexConstPtr dst_ptr() const {
+    VertexConstPtr dst_handle() const {
       assert(HasValue());
       return VertexConstPtr(ConstVertex(graph_, dst_));
     }
 
-    VertexConstPtr const_dst_ptr() const {
+    VertexConstPtr const_dst_handle() const {
       assert(HasValue());
       return VertexConstPtr(ConstVertex(graph_, dst_));
     }

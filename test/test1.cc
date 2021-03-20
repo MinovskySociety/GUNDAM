@@ -148,8 +148,8 @@ void PrintGraph3(const GraphType& g) {
       std::cout << "  e - " << it_e->id() << " " << it_e->label() << " "
                 << it_e->src_id() << " " << it_e->dst_id() << std::endl;
 
-      ASSERT_EQ(it_e->src_ptr()->id(), it_e->src_id());
-      ASSERT_EQ(it_e->dst_ptr()->id(), it_e->dst_id());
+      ASSERT_EQ(it_e->src_handle()->id(), it_e->src_id());
+      ASSERT_EQ(it_e->dst_handle()->id(), it_e->dst_id());
 
       ++count_out;
     }
@@ -295,8 +295,8 @@ void TestGraph1() {
 
   //   int count = 0;
   //   for (it = g.EdgeBegin(); !it.IsDone(); ++it) {
-  //     std::cout << it->id() << " " << it->label() << " " << it->src_ptr()->id()
-  //               << " " << it->dst_ptr()->id() << std::endl;
+  //     std::cout << it->id() << " " << it->label() << " " << it->src_handle()->id()
+  //               << " " << it->dst_handle()->id() << std::endl;
   //     ++count;
   //   }
   //   std::cout << std::endl;
@@ -309,8 +309,8 @@ void TestGraph1() {
 
   //   int count = 0;
   //   for (it = g.EdgeBegin(); !it.IsDone(); it++) {
-  //     std::cout << it->id() << " " << it->label() << " " << it->src_ptr()->id()
-  //               << " " << it->dst_ptr()->id() << std::endl;
+  //     std::cout << it->id() << " " << it->label() << " " << it->src_handle()->id()
+  //               << " " << it->dst_handle()->id() << std::endl;
   //     ++count;
   //   }
   //   std::cout << std::endl;
@@ -353,8 +353,8 @@ void TestGraph1() {
 
   //   int count = 0;
   //   for (it = g.EdgeBegin(); !it.IsDone(); ++it) {
-  //     std::cout << it->id() << " " << it->label() << " " << it->src_ptr()->id()
-  //               << " " << it->dst_ptr()->id() << std::endl;
+  //     std::cout << it->id() << " " << it->label() << " " << it->src_handle()->id()
+  //               << " " << it->dst_handle()->id() << std::endl;
   //     ++count;
   //   }
   //   ASSERT_EQ(count, g.CountEdge());

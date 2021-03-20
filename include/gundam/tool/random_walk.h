@@ -130,14 +130,14 @@ inline size_t RandomWalk(GraphType&  graph,
           std::is_convertible_v<
                     PruneCallBackType, 
                     std::function<bool(VertexHandleType)> >){
-          prune_ret = prune_callback(in_edge_it->src_ptr());
+          prune_ret = prune_callback(in_edge_it->src_handle());
         }
         if constexpr (
           std::is_convertible_v<
                     PruneCallBackType, 
                     std::function<bool(VertexHandleType, 
                                          EdgeHandleType)> >){
-          prune_ret = prune_callback(in_edge_it->src_ptr(),
+          prune_ret = prune_callback(in_edge_it->src_handle(),
                                      in_edge_it);
         }
         if constexpr (
@@ -146,7 +146,7 @@ inline size_t RandomWalk(GraphType&  graph,
                     std::function<bool(VertexHandleType, 
                                          EdgeHandleType,
                                       VertexCounterType)> >){
-          prune_ret = prune_callback(in_edge_it->src_ptr(),
+          prune_ret = prune_callback(in_edge_it->src_handle(),
                                      in_edge_it, random_walk_idx);
         }
         if (prune_ret){
@@ -165,14 +165,14 @@ inline size_t RandomWalk(GraphType&  graph,
         std::is_convertible_v<
                   PruneCallBackType, 
                   std::function<bool(VertexHandleType)> >){
-        prune_ret = prune_callback(out_edge_it->dst_ptr());
+        prune_ret = prune_callback(out_edge_it->dst_handle());
       }
       if constexpr (
         std::is_convertible_v<
                   PruneCallBackType, 
                   std::function<bool(VertexHandleType, 
                                         EdgeHandleType)> >){
-        prune_ret = prune_callback(out_edge_it->dst_ptr(),
+        prune_ret = prune_callback(out_edge_it->dst_handle(),
                                    out_edge_it);
       }
       if constexpr (
@@ -181,7 +181,7 @@ inline size_t RandomWalk(GraphType&  graph,
                   std::function<bool(VertexHandleType, 
                                         EdgeHandleType,
                                     VertexCounterType)> >){
-        prune_ret = prune_callback(out_edge_it->dst_ptr(),
+        prune_ret = prune_callback(out_edge_it->dst_handle(),
                                    out_edge_it, random_walk_idx);
       }
       if (prune_ret){
@@ -210,7 +210,7 @@ inline size_t RandomWalk(GraphType&  graph,
           continue;
         }
         // this edge is selected
-        current_vertex_handle = in_edge_it->src_ptr();
+        current_vertex_handle = in_edge_it->src_handle();
         found_in_in_edge = true;
         break;
       }
@@ -227,7 +227,7 @@ inline size_t RandomWalk(GraphType&  graph,
         continue;
       }
       // this edge is selected
-      current_vertex_handle = out_edge_it->dst_ptr();
+      current_vertex_handle = out_edge_it->dst_handle();
       break;
     }
   }

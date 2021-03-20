@@ -90,7 +90,7 @@ inline size_t Dfs(GraphType& graph,
     for (auto edge_it = current_vertex_handle->OutEdgeBegin();
              !edge_it.IsDone();
               edge_it++) {
-      if (visited.find(edge_it->dst_ptr()) != visited.end()){
+      if (visited.find(edge_it->dst_handle()) != visited.end()){
         // already visited
         continue;
       }
@@ -100,7 +100,7 @@ inline size_t Dfs(GraphType& graph,
         std::is_convertible_v<
                   PruneCallBackType, 
                   std::function<bool(VertexHandleType)> >){
-        prune_ret = prune_callback(edge_it->dst_ptr());
+        prune_ret = prune_callback(edge_it->dst_handle());
       }
       if constexpr (
         // prune_callback(vertex_handle, edge_handle)
@@ -108,7 +108,7 @@ inline size_t Dfs(GraphType& graph,
                   PruneCallBackType, 
                   std::function<bool(VertexHandleType, 
                                        EdgeHandleType)> >){
-        prune_ret = prune_callback(edge_it->dst_ptr(),
+        prune_ret = prune_callback(edge_it->dst_handle(),
                                    edge_it);
       }
       if constexpr (
@@ -118,21 +118,21 @@ inline size_t Dfs(GraphType& graph,
                   std::function<bool(VertexHandleType, 
                                        EdgeHandleType,
                                     VertexCounterType)> >){
-        prune_ret = prune_callback(edge_it->dst_ptr(),
+        prune_ret = prune_callback(edge_it->dst_handle(),
                                    edge_it, dfs_idx);
       }
       if (prune_ret){
         // this vertex is pruned, does not be considered
         continue;
       }
-      visited.emplace(edge_it->dst_ptr());
-      vertex_handle_stack.emplace(edge_it->dst_ptr());
+      visited.emplace(edge_it->dst_handle());
+      vertex_handle_stack.emplace(edge_it->dst_handle());
     }
     if constexpr (bidirectional){
       for (auto edge_it = current_vertex_handle->InEdgeBegin();
                !edge_it.IsDone();
                 edge_it++) {
-        if (visited.find(edge_it->src_ptr()) != visited.end()){
+        if (visited.find(edge_it->src_handle()) != visited.end()){
           // already visited
           continue;
         }
@@ -141,22 +141,22 @@ inline size_t Dfs(GraphType& graph,
           std::is_convertible_v<
                     PruneCallBackType, 
                     std::function<bool(VertexHandleType)> >){
-          prune_ret = prune_callback(edge_it->src_ptr());
+          prune_ret = prune_callback(edge_it->src_handle());
         }
         if constexpr (
           std::is_convertible_v<
                     PruneCallBackType, 
                     std::function<bool(VertexHandleType, 
                                         EdgeHandleType)> >){
-          prune_ret = prune_callback(edge_it->src_ptr(),
+          prune_ret = prune_callback(edge_it->src_handle(),
                                      edge_it);
         }
         if (prune_ret){
           // this vertex is pruned, does not be considered
           continue;
         }
-        visited.emplace(edge_it->src_ptr());
-        vertex_handle_stack.emplace(edge_it->src_ptr());
+        visited.emplace(edge_it->src_handle());
+        vertex_handle_stack.emplace(edge_it->src_handle());
       }
     }
   }

@@ -30,8 +30,8 @@ EdgePtr及Edge迭代器可调用接口表如下所示:
 |label|VertexLabelType label()|得到该节点的label|
 |SetAttribute|pair<AttributePtr, bool> SetAttribute(key,value)<br><br>key:属性的key<br>value:属性的value<br>返回值:若该节点中存在键为key的属性则返回<指向修改后属性的指针, true>；否则，返回<NULL指针, false>|将该节点中键为key的属性的值设为value|
 |IsNull|bool IsNull()|判断指针是否非空|
-|src_ptr<br>const_src_ptr|VertexPtr src_ptr()<br><br>VertexConstPtr const_src_ptr()|得到这个边的起点的指针/常量指针|
-|dst_ptr<br>const_dst_ptr|VertexPtr dst_ptr()<br><br>VertexConstPtr const_dst_ptr()|得到这个边的终点的指针|
+|src_ptr<br>const_src_ptr|VertexPtr src_handle()<br><br>VertexConstPtr const_src_handle()|得到这个边的起点的指针/常量指针|
+|dst_ptr<br>const_dst_ptr|VertexPtr dst_handle()<br><br>VertexConstPtr const_dst_handle()|得到这个边的终点的指针|
 
 
 ### 1.3 示例程序
@@ -39,7 +39,7 @@ EdgePtr及Edge迭代器可调用接口表如下所示:
 GUNDAM::Graph<> g;
 EdgePtr edge_ptr = g.FindEdge(1);
 //print edge
-std::cout<<edge_ptr->src_ptr()->id()<<" "<<edge_ptr->dst_ptr()->id()<<" "<<edge_ptr->label()<<" "<<edge_ptr->id()<<std::endl;
+std::cout<<edge_ptr->src_handle()->id()<<" "<<edge_ptr->dst_handle()->id()<<" "<<edge_ptr->label()<<" "<<edge_ptr->id()<<std::endl;
 //add attribute
 edge_ptr->AddAttribute(key,value);
 //visit attribute

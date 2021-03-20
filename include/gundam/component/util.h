@@ -54,8 +54,8 @@ void PrintGraph(const GraphType& graph) {
   for (auto it = graph.VertexCBegin(); !it.IsDone(); it++) {
     for (auto edge_it = graph.FindConstVertex(it->id())->OutEdgeCBegin();
          !edge_it.IsDone(); edge_it++) {
-      std::cout << edge_it->const_src_ptr()->id() << " "
-                << edge_it->const_dst_ptr()->id() << " " << edge_it->label()
+      std::cout << edge_it->const_src_handle()->id() << " "
+                << edge_it->const_dst_handle()->id() << " " << edge_it->label()
                 << " ";
       if (graph.edge_has_attribute) {
         EdgeConstPtr edge_ptr = edge_it;

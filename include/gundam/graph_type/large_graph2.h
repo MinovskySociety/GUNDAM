@@ -387,7 +387,7 @@ class LargeGraph2 {
     ~VertexData() {}
 
     void AddOutEdge(EdgeData *e) {
-      assert(e->src_ptr() == this);
+      assert(e->src_handle() == this);
 
       auto ret1 = out_edges_.Insert(e);
       assert(ret1.second);
@@ -398,7 +398,7 @@ class LargeGraph2 {
       auto ret3 = ret2.first->second.Insert(e);
       assert(ret3.second);
 
-      auto dst = e->dst_ptr();
+      auto dst = e->dst_handle();
       auto ret4 = out_edges_by_dst_el_.Insert(dst);
       assert(ret4.first->first == dst);
       auto ret5 = ret4.first->second.Insert(edge_label);
@@ -415,7 +415,7 @@ class LargeGraph2 {
     }
 
     void AddInEdge(EdgeData *e) {
-      assert(e->dst_ptr() == this);
+      assert(e->dst_handle() == this);
 
       auto ret1 = in_edges_.Insert(e);
       assert(ret1.second);
@@ -426,7 +426,7 @@ class LargeGraph2 {
       auto ret3 = ret2.first->second.Insert(e);
       assert(ret3.second);
 
-      auto src = e->src_ptr();
+      auto src = e->src_handle();
       auto ret4 = in_edges_by_src_el_.Insert(src);
       assert(ret4.first->first == src);
       auto ret5 = ret4.first->second.Insert(edge_label);
@@ -443,7 +443,7 @@ class LargeGraph2 {
     }
 
     void RemoveOutEdge(EdgeData *e) {
-      assert(e->src_ptr() == this);
+      assert(e->src_handle() == this);
 
       auto it1 = out_edges_.Find(e);
       if (it1 == out_edges_.end()) return;
@@ -457,7 +457,7 @@ class LargeGraph2 {
       it2->second.Erase(it3);
       if (it2->second.Empty()) out_edges_by_el_.Erase(it2);
 
-      auto dst = e->dst_ptr();
+      auto dst = e->dst_handle();
       auto it4 = out_edges_by_dst_el_.Find(dst);
       assert(it4 != out_edges_by_dst_el_.end());
       auto it5 = it4->second.Find(edge_label);
@@ -484,7 +484,7 @@ class LargeGraph2 {
     }
 
     void RemoveInEdge(EdgeData *e) {
-      assert(e->dst_ptr() == this);
+      assert(e->dst_handle() == this);
 
       auto it1 = in_edges_.Find(e);
       if (it1 == in_edges_.end()) return;
@@ -498,7 +498,7 @@ class LargeGraph2 {
       it2->second.Erase(it3);
       if (it2->second.Empty()) in_edges_by_el_.Erase(it2);
 
-      auto src = e->src_ptr();
+      auto src = e->src_handle();
       auto it4 = in_edges_by_src_el_.Find(src);
       assert(it4 != in_edges_by_src_el_.end());
       auto it5 = it4->second.Find(edge_label);
@@ -575,17 +575,17 @@ class LargeGraph2 {
 
     const VertexIDType &dst_id() const { return dst_->id(); }
 
-    VertexData *src_ptr() { return src_; }
+    VertexData *src_handle() { return src_; }
 
-    VertexData *dst_ptr() { return dst_; }
+    VertexData *dst_handle() { return dst_; }
 
-    const VertexData *src_ptr() const { return this->const_src_ptr(); }
+    const VertexData *src_handle() const { return this->const_src_handle(); }
 
-    const VertexData *dst_ptr() const { return this->const_dst_ptr(); }
+    const VertexData *dst_handle() const { return this->const_dst_handle(); }
 
-    const VertexData *const_src_ptr() const { return src_; }
+    const VertexData *const_src_handle() const { return src_; }
 
-    const VertexData *const_dst_ptr() const { return dst_; }
+    const VertexData *const_dst_handle() const { return dst_; }
 
    private:
     EdgeIDType id_;
@@ -842,8 +842,8 @@ class LargeGraph2 {
     if (it == edges_.end()) return 0;
 
     EdgeData *e = it->second;
-    e->src_ptr()->RemoveOutEdge(e);
-    e->dst_ptr()->RemoveInEdge(e);
+    e->src_handle()->RemoveOutEdge(e);
+    e->dst_handle()->RemoveInEdge(e);
     delete e;
 
     edges_.Erase(it);

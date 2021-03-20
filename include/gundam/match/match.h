@@ -96,7 +96,7 @@ class Match {
    public:
     using InnerIteratorType::InnerIteratorType;
 
-    // inline SrcVertexConstHandle const_src_ptr() const {
+    // inline SrcVertexConstHandle const_src_handle() const {
     //   return InnerIteratorType::template get_const<
     //            src_idx_, depth_ - 1>();
     //   auto temp_vertex_ptr =
@@ -105,29 +105,29 @@ class Match {
     //   return SrcVertexConstHandle(temp_vertex_ptr);
     // }
 
-    inline SrcVertexHandleType src_ptr() const{
+    inline SrcVertexHandleType src_handle() const{
       return InnerIteratorType::template get_const<
                src_idx_, depth_ - 1>();
     }
 
-    // inline SrcVertexConstHandle src_ptr() const{
-    //   return this->const_src_ptr();
+    // inline SrcVertexConstHandle src_handle() const{
+    //   return this->const_src_handle();
     // }
 
-    // inline DstVertexConstHandle const_dst_ptr() const {
+    // inline DstVertexConstHandle const_dst_handle() const {
     //   auto temp_vertex_ptr =
     //       InnerIteratorType::template get_const<
     //            dst_idx_, depth_ - 1>();
     //   return DstVertexConstHandle(temp_vertex_ptr);
     // }
 
-    inline DstVertexHandleType dst_ptr() const{
+    inline DstVertexHandleType dst_handle() const{
       return InnerIteratorType::template get_const<
                dst_idx_, depth_ - 1>();
     }
 
-    // inline DstVertexConstHandle dst_ptr() const{
-    //   return this->const_dst_ptr();
+    // inline DstVertexConstHandle dst_handle() const{
+    //   return this->const_dst_handle();
     // }
   };
 

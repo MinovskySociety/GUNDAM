@@ -391,7 +391,7 @@ class LargeGraph {
     ~VertexData() {}
 
     void AddOutEdge(EdgeData *e) {
-      assert(e->src_ptr() == this);
+      assert(e->src_handle() == this);
 
       auto edge_label = e->label();
 
@@ -401,7 +401,7 @@ class LargeGraph {
       auto ret2 = out_edge_labels_[edge_label].insert(e);
       assert(ret2.second);
 
-      auto dst = e->dst_ptr();
+      auto dst = e->dst_handle();
 
       auto ret3 = out_vertices_[edge_label].insert(dst);
       // assert(ret3.second);
@@ -409,7 +409,7 @@ class LargeGraph {
       auto ret4 = out_edge_build_on_vertex_[dst][edge_label].insert(e);
       assert(ret4.second);
 
-      // auto dst = e->dst_ptr();
+      // auto dst = e->dst_handle();
 
       // out_vertices_.insert(dst);
 
@@ -418,7 +418,7 @@ class LargeGraph {
     }
 
     void AddInEdge(EdgeData *e) {
-      assert(e->dst_ptr() == this);
+      assert(e->dst_handle() == this);
       auto edge_label = e->label();
 
       auto ret1 = in_edges_.insert(e);
@@ -427,14 +427,14 @@ class LargeGraph {
       auto ret2 = in_edge_labels_[edge_label].insert(e);
       assert(ret2.second);
 
-      auto src = e->src_ptr();
+      auto src = e->src_handle();
 
       auto ret3 = in_vertices_[edge_label].insert(src);
       // assert(ret3.second);
 
       auto ret4 = in_edge_build_on_vertex_[src][edge_label].insert(e);
       assert(ret4.second);
-      // auto src = e->src_ptr();
+      // auto src = e->src_handle();
 
       // in_vertices_.insert(src);
 
@@ -443,7 +443,7 @@ class LargeGraph {
     }
 
     void RemoveOutEdge(EdgeData *e) {
-      assert(e->src_ptr() == this);
+      assert(e->src_handle() == this);
 
       auto it1 = out_edges_.find(e);
       if (it1 == out_edges_.end()) return;
@@ -457,7 +457,7 @@ class LargeGraph {
       if (it2->second.empty()) out_edge_labels_.erase(it2);
 
       // find VertexPtr
-      auto it4 = out_edge_build_on_vertex_.find(e->dst_ptr());
+      auto it4 = out_edge_build_on_vertex_.find(e->dst_handle());
       assert(it4 != out_edge_build_on_vertex_.end());
       // find (VertexPtr,label)
       auto it5 = it4->second.find(e->label());
@@ -469,19 +469,19 @@ class LargeGraph {
       //(VertexPtr,label) empty
       if (it5->second.empty()) {
         it4->second.erase(it5);
-        out_vertices_.find(e->label())->second.erase(e->dst_ptr());
+        out_vertices_.find(e->label())->second.erase(e->dst_handle());
         //(VertexPtr) empty
         if (it4->second.empty()) {
-          out_edge_build_on_vertex_.erase(e->dst_ptr());
-          // if (this->in_edge_build_on_vertex_.count(e->dst_ptr()) == 0) {
-          //  this->adj_vertex_.erase(e->dst_ptr());
+          out_edge_build_on_vertex_.erase(e->dst_handle());
+          // if (this->in_edge_build_on_vertex_.count(e->dst_handle()) == 0) {
+          //  this->adj_vertex_.erase(e->dst_handle());
           //}
         }
       }
     }
 
     void RemoveInEdge(EdgeData *e) {
-      assert(e->dst_ptr() == this);
+      assert(e->dst_handle() == this);
 
       auto it1 = in_edges_.find(e);
       if (it1 == in_edges_.end()) return;
@@ -494,7 +494,7 @@ class LargeGraph {
       it2->second.erase(it3);
       if (it2->second.empty()) in_edge_labels_.erase(it2);
 
-      auto it4 = in_edge_build_on_vertex_.find(e->src_ptr());
+      auto it4 = in_edge_build_on_vertex_.find(e->src_handle());
       assert(it4 != in_edge_build_on_vertex_.end());
       auto it5 = it4->second.find(e->label());
       assert(it5 != it4->second.end());
@@ -503,11 +503,11 @@ class LargeGraph {
       it5->second.erase(it6);
       if (it5->second.empty()) {
         it4->second.erase(it5);
-        in_vertices_.find(e->label())->second.erase(e->src_ptr());
+        in_vertices_.find(e->label())->second.erase(e->src_handle());
         //(VertexPtr) empty
         if (it4->second.empty()) {
-          in_edge_build_on_vertex_.erase(e->src_ptr());
-          // if (this->in_edge_build_on_vertex_.count(e->src_ptr()) == 0) {
+          in_edge_build_on_vertex_.erase(e->src_handle());
+          // if (this->in_edge_build_on_vertex_.count(e->src_handle()) == 0) {
           //  this->adj_vertex_.erase(e->src_ptr);
           //}
         }
@@ -580,17 +580,17 @@ class LargeGraph {
 
     const VertexIDType &dst_id() const { return dst_->id(); }
 
-    VertexData *src_ptr() { return src_; }
+    VertexData *src_handle() { return src_; }
 
-    VertexData *dst_ptr() { return dst_; }
+    VertexData *dst_handle() { return dst_; }
 
-    const VertexData *src_ptr() const { return this->const_src_ptr(); }
+    const VertexData *src_handle() const { return this->const_src_handle(); }
 
-    const VertexData *dst_ptr() const { return this->const_dst_ptr(); }
+    const VertexData *dst_handle() const { return this->const_dst_handle(); }
 
-    const VertexData *const_src_ptr() const { return src_; }
+    const VertexData *const_src_handle() const { return src_; }
 
-    const VertexData *const_dst_ptr() const { return dst_; }
+    const VertexData *const_dst_handle() const { return dst_; }
 
    private:
     EdgeIDType id_;
@@ -849,8 +849,8 @@ class LargeGraph {
     if (it == edges_.end()) return 0;
 
     EdgeData *e = it->second;
-    e->src_ptr()->RemoveOutEdge(e);
-    e->dst_ptr()->RemoveInEdge(e);
+    e->src_handle()->RemoveOutEdge(e);
+    e->dst_handle()->RemoveInEdge(e);
     delete e;
 
     edges_.Erase(it);

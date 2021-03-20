@@ -140,8 +140,8 @@ inline void GetAdjNotMatchedVertexSingleDirection(
                                          : query_vertex_hanlde->OutEdgeBegin());
        !edge_iter.IsDone(); edge_iter++) {
     QueryVertexHandle query_opp_vertex_handle = edge_state == EdgeState::kIn
-                                                    ? edge_iter->src_ptr()
-                                                    : edge_iter->dst_ptr();
+                                                    ? edge_iter->src_handle()
+                                                    : edge_iter->dst_handle();
     if (match_state.count(query_opp_vertex_handle) == 0 &&
         candidate_set.count(query_opp_vertex_handle)) {
       next_query_set.insert(query_opp_vertex_handle);
@@ -218,8 +218,8 @@ inline bool JoinableCheck(
        !query_edge_iter.IsDone(); query_edge_iter++) {
     QueryEdgeHandle query_edge_handle = query_edge_iter;
     QueryVertexHandle query_opp_vertex_handle =
-        (edge_state == EdgeState::kIn) ? query_edge_handle->src_ptr()
-                                       : query_edge_handle->dst_ptr();
+        (edge_state == EdgeState::kIn) ? query_edge_handle->src_handle()
+                                       : query_edge_handle->dst_handle();
     auto match_iter = match_state.find(query_opp_vertex_handle);
     if (match_iter == match_state.end()) continue;
 
@@ -298,8 +298,8 @@ inline void UpdateCandidateSetOneDirection(
                             : query_vertex_hanlde->OutEdgeBegin());
        !label_it.IsDone(); label_it++) {
     QueryVertexHandle temp_handle = (edge_state == EdgeState::kIn)
-                                        ? label_it->src_ptr()
-                                        : label_it->dst_ptr();
+                                        ? label_it->src_handle()
+                                        : label_it->dst_handle();
     if (match_state.count(temp_handle)) continue;
     if (!candidate_set.count(temp_handle)) continue;
     //枚举label
@@ -336,8 +336,8 @@ inline void UpdateCandidateSetOneDirection(
       if (vertex_it->label() != label_it->label()) continue;
 
       QueryVertexHandle temp_vertex_handle = (edge_state == EdgeState::kIn)
-                                                 ? vertex_it->src_ptr()
-                                                 : vertex_it->dst_ptr();
+                                                 ? vertex_it->src_handle()
+                                                 : vertex_it->dst_handle();
       if (used_vertex.count(temp_vertex_handle)) continue;
       if (!candidate_set.count(temp_vertex_handle)) continue;
       used_vertex.insert(temp_vertex_handle);
@@ -491,7 +491,7 @@ void UpdateParentSingleDirection(
                            : update_query_vertex_handle->OutEdgeBegin());
        !edge_it.IsDone(); edge_it++) {
     QueryVertexHandle update_query_adj_handle =
-        edge_state == EdgeState::kIn ? edge_it->src_ptr() : edge_it->dst_ptr();
+        edge_state == EdgeState::kIn ? edge_it->src_handle() : edge_it->dst_handle();
     if (match_state.find(update_query_adj_handle) == match_state.end())
       continue;
     auto &query_parent_set = parent.find(update_query_vertex_handle)->second;
@@ -802,7 +802,7 @@ inline void BFS(QueryGraph &query_graph, InDegreeContainer &in_degree) {
       for (auto edge_it = now_vertex_handle->OutEdgeBegin(); !edge_it.IsDone();
            edge_it++) {
         if (used_edge.count(edge_it->id())) continue;
-        QueryVertexHandle next_vertex_handle = edge_it->dst_ptr();
+        QueryVertexHandle next_vertex_handle = edge_it->dst_handle();
         used_edge.insert(edge_it->id());
         in_degree[next_vertex_handle]++;
         if (!used_vertex.count(next_vertex_handle)) {
@@ -813,7 +813,7 @@ inline void BFS(QueryGraph &query_graph, InDegreeContainer &in_degree) {
       for (auto edge_it = now_vertex_handle->InEdgeBegin(); !edge_it.IsDone();
            edge_it++) {
         if (used_edge.count(edge_it->id())) continue;
-        QueryVertexHandle next_vertex_handle = edge_it->src_ptr();
+        QueryVertexHandle next_vertex_handle = edge_it->src_handle();
         used_edge.insert(edge_it->id());
         in_degree[next_vertex_handle]++;
         if (!used_vertex.count(next_vertex_handle)) {
@@ -847,7 +847,7 @@ inline void TopuSort(QueryGraph &query_graph, InDegreeContainer &in_degree,
     for (auto edge_it = query_vertex_hanlde->OutEdgeBegin(); !edge_it.IsDone();
          edge_it++) {
       if (used_edge.count(edge_it->id())) continue;
-      QueryVertexHandle next_vertex_handle = edge_it->dst_ptr();
+      QueryVertexHandle next_vertex_handle = edge_it->dst_handle();
       in_degree[next_vertex_handle]--;
       used_edge.insert(edge_it->id());
       if (in_degree[next_vertex_handle] == 0) {
@@ -857,7 +857,7 @@ inline void TopuSort(QueryGraph &query_graph, InDegreeContainer &in_degree,
     for (auto edge_it = query_vertex_hanlde->InEdgeBegin(); !edge_it.IsDone();
          edge_it++) {
       if (used_edge.count(edge_it->id())) continue;
-      QueryVertexHandle next_vertex_handle = edge_it->src_ptr();
+      QueryVertexHandle next_vertex_handle = edge_it->src_handle();
       in_degree[next_vertex_handle]--;
       used_edge.insert(edge_it->id());
       if (in_degree[next_vertex_handle] == 0) {
@@ -917,7 +917,7 @@ inline bool CheckIsLegal(QueryVertexHandle query_vertex_hanlde,
                                        : query_vertex_hanlde->InEdgeBegin();
        !edge_it.IsDone(); edge_it++) {
     QueryVertexHandle next_vertex_handle =
-        is_out_direction ? edge_it->dst_ptr() : edge_it->src_ptr();
+        is_out_direction ? edge_it->dst_handle() : edge_it->src_handle();
     if (!used_vertex.count(next_vertex_handle)) continue;
     auto &l1 = candidate_set.find(next_vertex_handle)->second;
     bool find_flag = false;
@@ -963,7 +963,7 @@ inline bool DAGDP(
         in_edge_count, out_edge_count;
     for (auto edge_it = vertex_handle->OutEdgeBegin(); !edge_it.IsDone();
          edge_it++) {
-      QueryVertexHandle dst_handle = edge_it->dst_ptr();
+      QueryVertexHandle dst_handle = edge_it->dst_handle();
       if (!used_vertex.count(dst_handle)) {
         continue;
       }
@@ -971,7 +971,7 @@ inline bool DAGDP(
     }
     for (auto edge_it = vertex_handle->InEdgeBegin(); !edge_it.IsDone();
          edge_it++) {
-      QueryVertexHandle dst_handle = edge_it->src_ptr();
+      QueryVertexHandle dst_handle = edge_it->src_handle();
       if (!used_vertex.count(dst_handle)) {
         continue;
       }

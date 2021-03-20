@@ -832,7 +832,7 @@ class Graph {
         return this->template get_iterator<begin_depth_ + 2>();
       }
 
-      inline VertexPtrType src_ptr() {
+      inline VertexPtrType src_handle() {
         assert(!this->IsDone());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return this->vertex_ptr_;
@@ -840,11 +840,11 @@ class Graph {
         return this->VertexPtrContainerElement();
       }
 
-      inline VertexConstPtr src_ptr() const {
-        return this->const_src_ptr();
+      inline VertexConstPtr src_handle() const {
+        return this->const_src_handle();
       }
 
-      inline VertexConstPtr const_src_ptr() const {
+      inline VertexConstPtr const_src_handle() const {
         assert(!this->IsDone());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return this->vertex_ptr_;
@@ -852,7 +852,7 @@ class Graph {
         return this->VertexPtrContainerConstElement();
       }
       
-      inline VertexPtrType dst_ptr() {
+      inline VertexPtrType dst_handle() {
         assert(!this->IsDone());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return this->VertexPtrContainerElement();
@@ -860,11 +860,11 @@ class Graph {
         return this->vertex_ptr_;
       }
       
-      inline VertexConstPtr dst_ptr() const {
-        return this->const_dst_ptr();
+      inline VertexConstPtr dst_handle() const {
+        return this->const_dst_handle();
       }
       
-      inline VertexConstPtr const_dst_ptr() const {
+      inline VertexConstPtr const_dst_handle() const {
         assert(!this->IsDone());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return this->VertexPtrContainerConstElement();
@@ -1173,7 +1173,7 @@ class Graph {
         return;
       }
 
-      inline VertexPtrType src_ptr() {
+      inline VertexPtrType src_handle() {
         assert(!this->IsDone());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return InnerIteratorType::vertex_ptr();
@@ -1181,11 +1181,11 @@ class Graph {
         return this->VertexPtrContainerElement();
       }
       
-      inline VertexConstPtr src_ptr() const {
-        return this->const_src_ptr();
+      inline VertexConstPtr src_handle() const {
+        return this->const_src_handle();
       }
 
-      inline VertexConstPtr const_src_ptr() const {
+      inline VertexConstPtr const_src_handle() const {
         assert(!this->IsDone());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return InnerIteratorType::const_vertex_ptr();
@@ -1193,7 +1193,7 @@ class Graph {
         return this->VertexPtrContainerConstElement();
       }
       
-      inline VertexPtrType dst_ptr() {
+      inline VertexPtrType dst_handle() {
         assert(!this->IsDone());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return this->VertexPtrContainerElement();
@@ -1201,11 +1201,11 @@ class Graph {
         return InnerIteratorType::vertex_ptr();
       }
       
-      inline VertexConstPtr dst_ptr() const {
-        return this->const_dst_ptr();
+      inline VertexConstPtr dst_handle() const {
+        return this->const_dst_handle();
       }
       
-      inline VertexConstPtr const_dst_ptr() const {
+      inline VertexConstPtr const_dst_handle() const {
         assert(!this->IsDone());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return this->VertexPtrContainerConstElement();
@@ -1381,26 +1381,26 @@ class Graph {
         return this->decomposed_edge_iterator_.template get_const<kEdgeIDIdx>();
       }
 
-      inline VertexConstPtr const_src_ptr() const {
+      inline VertexConstPtr const_src_handle() const {
         assert(!this->IsNull());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return this->vertex_ptr_;
         return this->VertexPtrContainerConstElement();
       }
 
-      inline VertexConstPtr src_ptr() const {
-        return this->const_src_ptr();
+      inline VertexConstPtr src_handle() const {
+        return this->const_src_handle();
       }
 
-      inline VertexConstPtr const_dst_ptr() const {
+      inline VertexConstPtr const_dst_handle() const {
         assert(!this->IsNull());
         if (this->direction_ == EdgeDirection::OutputEdge)
           return this->VertexPtrContainerConstElement();
         return this->vertex_ptr_;
       }
 
-      inline VertexConstPtr dst_ptr() const {
-        return this->const_dst_ptr();
+      inline VertexConstPtr dst_handle() const {
+        return this->const_dst_handle();
       }
 
       template <typename ConcreteDataType>
@@ -1467,14 +1467,14 @@ class Graph {
      public:
       using EdgePtrContent::EdgePtrContent;
 
-      inline VertexPtr src_ptr() {
+      inline VertexPtr src_handle() {
         assert(!this->IsNull());
         if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
           return EdgePtrContent::vertex_ptr_;
         return this->VertexPtrContainerElement();
       }
 
-      inline VertexPtr dst_ptr() {
+      inline VertexPtr dst_handle() {
         assert(!this->IsNull());
         if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
           return this->VertexPtrContainerElement();
@@ -1809,10 +1809,10 @@ class Graph {
                            != EdgePtrContentType::id()) 
           || !((edge_ptr.InputEdgePtrContentType::label()
                            != EdgePtrContentType::label()) 
-            || (edge_ptr.InputEdgePtrContentType::const_src_ptr()
-                           != EdgePtrContentType::const_src_ptr()) 
-            || (edge_ptr.InputEdgePtrContentType::const_dst_ptr() 
-                           != EdgePtrContentType::const_dst_ptr())));
+            || (edge_ptr.InputEdgePtrContentType::const_src_handle()
+                           != EdgePtrContentType::const_src_handle()) 
+            || (edge_ptr.InputEdgePtrContentType::const_dst_handle() 
+                           != EdgePtrContentType::const_dst_handle())));
         return  edge_ptr.InputEdgePtrContentType::id()
                            == EdgePtrContentType::id();
       }
@@ -3279,9 +3279,9 @@ class Graph {
       VertexPtr temp_vertex_ptr = VertexPtr(temp_this_ptr);
       VertexPtr dst_ptr;
       if (edge_direction == EdgeDirection::OutputEdge) {
-        dst_ptr = edge_it_ptr->dst_ptr();
+        dst_ptr = edge_it_ptr->dst_handle();
       } else {
-        dst_ptr = edge_it_ptr->src_ptr();
+        dst_ptr = edge_it_ptr->src_handle();
       }
       enum EdgeDirection reverse_edge_direction;
       if (edge_direction == EdgeDirection::OutputEdge) {
@@ -3376,10 +3376,10 @@ class Graph {
       enum EdgeDirection reverse_edge_direction;
       if (edge_direction == EdgeDirection::OutputEdge) {
         reverse_edge_direction = EdgeDirection::InputEdge;
-        dst_ptr = edge_content_iterator_ptr->dst_ptr();
+        dst_ptr = edge_content_iterator_ptr->dst_handle();
       } else {
         reverse_edge_direction = EdgeDirection::OutputEdge;
-        dst_ptr = edge_content_iterator_ptr->src_ptr();
+        dst_ptr = edge_content_iterator_ptr->src_handle();
       }
       dst_ptr->EraseEdge(reverse_edge_direction, 
                                  edge_label, 
@@ -3925,8 +3925,8 @@ class Graph {
       for (auto edge_cit = vertex_cit->OutEdgeBegin(); 
                !edge_cit.IsDone(); 
                 edge_cit++) {
-        assert(vertex_ptr->id() == edge_cit->const_src_ptr()->id());
-        auto dst_ptr = this->FindVertex(edge_cit->const_dst_ptr()->id());
+        assert(vertex_ptr->id() == edge_cit->const_src_handle()->id());
+        auto dst_ptr = this->FindVertex(edge_cit->const_dst_handle()->id());
         /// <EdgePtr, bool>
         auto edge_ret = vertex_ptr->AddEdge(dst_ptr,
                                             edge_cit->label(), 
@@ -4028,8 +4028,8 @@ class Graph {
       for (auto edge_cit = vertex_cit->OutEdgeCBegin(); 
                !edge_cit.IsDone(); 
                 edge_cit++) {
-        assert(vertex_ptr->id() == edge_cit->const_src_ptr()->id());
-        auto dst_ptr = this->FindVertex(edge_cit->const_dst_ptr()->id());
+        assert(vertex_ptr->id() == edge_cit->const_src_handle()->id());
+        auto dst_ptr = this->FindVertex(edge_cit->const_dst_handle()->id());
         /// <EdgePtr, bool>
         auto edge_ret = vertex_ptr->AddEdge(dst_ptr,
                                             edge_cit->label(), 
@@ -4269,7 +4269,7 @@ class Graph {
            ++vertex_ptr_it) {
         EdgePtr edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
         VertexPtr src_ptr = vertex_ptr_it;
-        VertexPtr dst_ptr = edge_ptr->dst_ptr();
+        VertexPtr dst_ptr = edge_ptr->dst_handle();
         EdgeLabelType edge_label = edge_ptr->label();
         if (!edge_ptr.IsNull()) {
           find_flag = true;
