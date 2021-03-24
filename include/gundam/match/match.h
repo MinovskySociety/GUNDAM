@@ -630,6 +630,10 @@ class MatchSet {
     }
 
     if (record.size() != src_graph.CountVertex() + 1) {
+      std::cout << "record.size(): "
+                <<  record.size() << std::endl;
+      std::cout << "src_graph.CountVertex(): "
+                <<  src_graph.CountVertex() << std::endl;
       // illegal match_file
       std::cout << " illegal match file, colum mismatch! " << std::endl;
       return;
@@ -668,6 +672,10 @@ class MatchSet {
       }
 
       if (record.size() != src_graph.CountVertex() + 1) {
+        std::cout << "record.size(): "
+                  <<  record.size() << std::endl;
+        std::cout << "src_graph.CountVertex(): "
+                  <<  src_graph.CountVertex() << std::endl;
         // illegal match_file
         std::cout << " illegal match file, colum mismatch! " << std::endl;
         return;

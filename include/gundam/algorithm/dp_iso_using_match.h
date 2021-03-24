@@ -708,7 +708,7 @@ inline size_t DpisoUsingMatch(
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
           typename    QueryGraph, 
           typename   TargetGraph>
-inline int IncreamentDpisoUsingMatch(
+inline int IncrementalDpisoUsingMatch(
                       QueryGraph &query_graph, 
                      TargetGraph &target_graph,
      std::vector<typename VertexHandle<TargetGraph>::type> &delta_target_graph,
