@@ -12,6 +12,8 @@
 
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
+#include "gundam/type_getter/vertex_attribute_handle.h"
+#include "gundam/type_getter/edge_attribute_handle.h"
 
 #include "gundam/serialize/serialize.h"
 

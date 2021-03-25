@@ -13,6 +13,8 @@
 
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
+#include "gundam/type_getter/vertex_attribute_handle.h"
+#include "gundam/type_getter/edge_attribute_handle.h"
 
 #include "gundam/serialize/serialize.h"
 
@@ -47,6 +49,19 @@ class LargeGraph {
 
   class EdgeData;
 
+ private:
+  friend class VertexAttributeHandle<LargeGraph>;
+  friend class VertexAttributeHandle<const LargeGraph>;
+
+  friend class EdgeAttributeHandle<LargeGraph>;
+  friend class EdgeAttributeHandle<const LargeGraph>;
+
+  using VertexAttributePtr           = typename VertexData::AttributePtr;
+  using VertexAttributeConstPtr      = typename VertexData::AttributeConstPtr;
+  using   EdgeAttributePtr           = typename   EdgeData::AttributePtr;
+  using   EdgeAttributeConstPtr      = typename   EdgeData::AttributeConstPtr;
+
+ public:
   class VertexData
       : public Attribute_<AttributeType::kSeparated,
                           false, // not const

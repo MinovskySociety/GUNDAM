@@ -1603,8 +1603,9 @@ class Attribute_<AttributeType::kGrouped,
   }
 
   inline AttributeConstIterator AttributeBegin() const {
-    return this->attribute_container_group_ptr_
-               ->AttributeBegin(this->attribute_container_id_);
+    return static_cast<const AttributeContainerGroupType*>(
+                              this->attribute_container_group_ptr_)
+             ->AttributeBegin(this->attribute_container_id_);
   }
 
   inline AttributePtr FindAttribute(const AttributeKeyType_& key) {
@@ -1613,8 +1614,9 @@ class Attribute_<AttributeType::kGrouped,
   }
 
   inline AttributeConstPtr FindAttribute(const AttributeKeyType_& key) const {
-    return this->attribute_container_group_ptr_
-               ->FindAttribute(this->attribute_container_id_, key);
+    return static_cast<const AttributeContainerGroupType*>(
+                              this->attribute_container_group_ptr_)
+              ->FindAttribute(this->attribute_container_id_, key);
   }
 
   template <typename ConcreteDataType>

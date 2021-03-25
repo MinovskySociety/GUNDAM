@@ -14,6 +14,8 @@
 
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
+#include "gundam/type_getter/vertex_attribute_handle.h"
+#include "gundam/type_getter/edge_attribute_handle.h"
 
 #include "gundam/serialize/serialize.h"
 
@@ -195,13 +197,22 @@ class Graph {
   using VertexConstIteratorSpecifiedLabel
                  = Iterator_<VertexContentConstIteratorSpecifiedLabel>;
 
+ private:
+  friend class VertexAttributeHandle<Graph>;
+  friend class VertexAttributeHandle<const Graph>;
+
+  friend class EdgeAttributeHandle<Graph>;
+  friend class EdgeAttributeHandle<const Graph>;
+
   using VertexAttributePtr           = typename VertexAttributeType::AttributePtr;
-  using VertexAttributeIterator      = typename VertexAttributeType::AttributeIterator;
   using VertexAttributeConstPtr      = typename VertexAttributeType::AttributeConstPtr;
-  using VertexAttributeConstIterator = typename VertexAttributeType::AttributeConstIterator;
   using   EdgeAttributePtr           = typename   EdgeAttributeType::AttributePtr;
-  using   EdgeAttributeIterator      = typename   EdgeAttributeType::AttributeIterator;
   using   EdgeAttributeConstPtr      = typename   EdgeAttributeType::AttributeConstPtr;
+
+ public:
+  using VertexAttributeIterator      = typename VertexAttributeType::AttributeIterator;
+  using VertexAttributeConstIterator = typename VertexAttributeType::AttributeConstIterator;
+  using   EdgeAttributeIterator      = typename   EdgeAttributeType::AttributeIterator;
   using   EdgeAttributeConstIterator = typename   EdgeAttributeType::AttributeConstIterator;
   
   template <typename IDType_, 

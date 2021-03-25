@@ -7,6 +7,8 @@
 
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
+#include "gundam/type_getter/vertex_attribute_handle.h"
+#include "gundam/type_getter/edge_attribute_handle.h"
 
 #include "gundam/serialize/serialize.h"
 
@@ -37,6 +39,18 @@ class LargeGraph2 {
   class VertexData;
 
   class EdgeData;
+
+ private:
+  friend class VertexAttributeHandle<LargeGraph2>;
+  friend class VertexAttributeHandle<const LargeGraph2>;
+
+  friend class EdgeAttributeHandle<LargeGraph2>;
+  friend class EdgeAttributeHandle<const LargeGraph2>;
+
+  using VertexAttributePtr           = typename VertexData::AttributePtr;
+  using VertexAttributeConstPtr      = typename VertexData::AttributeConstPtr;
+  using   EdgeAttributePtr           = typename   EdgeData::AttributePtr;
+  using   EdgeAttributeConstPtr      = typename   EdgeData::AttributeConstPtr;
 
   using VertexIndexByID = SortedVectorDict<VertexIDType, VertexData *>;
 
