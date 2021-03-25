@@ -644,7 +644,7 @@ inline void WriteCSVLine(StreamType& s, std::vector<std::string>& cols) {
 //  for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
 //       ++vertex_it) {
 //    if (wv_callback(vertex_it->id(), vertex_it->label())) {
-//      for (auto attr_it = vertex_it->AttributeCBegin(); !attr_it.IsDone();
+//      for (auto attr_it = vertex_it->AttributeBegin(); !attr_it.IsDone();
 //           attr_it++) {
 //        auto p = std::make_pair(attr_it->key(), attr_it->value_type());
 //        if (std::find(attr_info.begin(), attr_info.end(), attr_key) !=
@@ -702,7 +702,7 @@ inline void WriteCSVLine(StreamType& s, std::vector<std::string>& cols) {
 //      if (edge_used_label.count(edge_it->label())) continue;
 //      edge_used_label.insert(edge_it->label());
 //      EdgeConstPtr edge_vertex_ptr = edge_it;
-//      for (auto edge_attr_it = edge_vertex_ptr->AttributeCBegin();
+//      for (auto edge_attr_it = edge_vertex_ptr->AttributeBegin();
 //           !edge_attr_it.IsDone(); edge_attr_it++) {
 //        EdgeAttributeKeyType attr_key = edge_attr_it->key();
 //        if (std::find(edge_attr_key.begin(), edge_attr_key.end(), attr_key) !=
@@ -734,7 +734,7 @@ template <bool write_attr, class VertexEdgePtr, class AttributeKeyType,
 void WriteAttributes(VertexEdgePtr& vertex_edge_ptr,
                      const std::map<AttributeKeyType, size_t>& attr_pos,
                      std::vector<std::string>& line) {
-  for (auto attr_it = vertex_edge_ptr->AttributeCBegin(); !attr_it.IsDone();
+  for (auto attr_it = vertex_edge_ptr->AttributeBegin(); !attr_it.IsDone();
        ++attr_it) {
     size_t pos = attr_pos.find(attr_it->key())->second;
     line[pos] = attr_it->value_str();
@@ -772,7 +772,7 @@ void WriteAttributes(VertexEdgePtr& vertex_edge_ptr,
 //  using EdgeConstPtr = typename GraphType::EdgeConstPtr;
 //  using AttributeKeyType = typename VertexType::AttributeKeyType;
 //  using EdgeAttributeKeyType = typename EdgeType::AttributeKeyType;
-//  for (auto attr_it = edge_vertex_ptr->AttributeCBegin(); !attr_it.IsDone();
+//  for (auto attr_it = edge_vertex_ptr->AttributeBegin(); !attr_it.IsDone();
 //       attr_it++) {
 //    int attr_key_pos = 0;
 //    EdgeAttributeKeyType attr_key = attr_it->key();
@@ -938,7 +938,7 @@ template <bool write_attr, class VertexEdgePtr, class AttributeKeyType,
 void GetWriteAttributeInfo(VertexEdgePtr ptr, std::vector<std::string>& key_str,
                            std::vector<std::string>& type_str,
                            std::map<AttributeKeyType, size_t>& attr_pos) {
-  for (auto attr_it = ptr->AttributeCBegin(); !attr_it.IsDone(); ++attr_it) {
+  for (auto attr_it = ptr->AttributeBegin(); !attr_it.IsDone(); ++attr_it) {
     auto attr_key = attr_it->key();
     if (attr_pos.emplace(attr_key, key_str.size()).second) {
       key_str.emplace_back(ToString(attr_key));

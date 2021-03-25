@@ -903,20 +903,20 @@ class Graph {
         return this->_attribute().AttributeBegin();
       }
 
-      inline EdgeAttributeConstIterator AttributeCBegin() const {
+      inline EdgeAttributeConstIterator AttributeBegin() const {
         assert(!this->IsDone());
-        return this->_const_attribute().AttributeCBegin();
+        return this->_const_attribute().AttributeBegin();
       }
 
-      inline EdgeAttributePtr FindAttributePtr(const EdgeAttributeKeyType& key) {
+      inline EdgeAttributePtr FindAttribute(const EdgeAttributeKeyType& key) {
         assert(!this->IsDone());
-        return this->_attribute().FindAttributePtr(key);
+        return this->_attribute().FindAttribute(key);
       }
 
-      inline EdgeAttributeConstPtr FindConstAttributePtr(
+      inline EdgeAttributeConstPtr FindAttribute(
           const EdgeAttributeKeyType& key) const {
         assert(!this->IsDone());
-        return this->_const_attribute().FindConstAttributePtr(key);
+        return this->_const_attribute().FindAttribute(key);
       }
 
       inline const std::string attribute_value_type_name(
@@ -1411,15 +1411,15 @@ class Graph {
            .template const_attribute<ConcreteDataType>(key);
       }
 
-      inline EdgeAttributeConstIterator AttributeCBegin() const {
+      inline EdgeAttributeConstIterator AttributeBegin() const {
         assert(!this->IsNull());
-        return this->const_attribute().AttributeCBegin();
+        return this->const_attribute().AttributeBegin();
       }
 
-      inline EdgeAttributeConstPtr FindConstAttributePtr(
+      inline EdgeAttributeConstPtr FindAttribute(
           const EdgeAttributeKeyType& key) const {
         assert(!this->IsNull());
-        return this->const_attribute().FindConstAttributePtr(key);
+        return this->const_attribute().FindAttribute(key);
       }
 
       inline const std::string attribute_value_type_name(
@@ -1492,10 +1492,10 @@ class Graph {
         return this->_attribute().AttributeBegin();
       }
 
-      inline EdgeAttributePtr FindAttributePtr(
+      inline EdgeAttributePtr FindAttribute(
           const EdgeAttributeKeyType& key) {
         assert(!this->IsNull());
-        return this->_attribute().FindAttributePtr(key);
+        return this->_attribute().FindAttribute(key);
       }
 
       template <typename ConcreteDataType>
@@ -3745,7 +3745,7 @@ class Graph {
       auto vertex_ret = this->AddVertex(vertex_cit->id(), 
                                         vertex_cit->label());
       assert(vertex_ret.second);
-      for (auto attr_cit = vertex_cit->AttributeCBegin();
+      for (auto attr_cit = vertex_cit->AttributeBegin();
                !attr_cit.IsDone();attr_cit++){
         switch(attr_cit->value_type()){
         case BasicDataType::kTypeString:
@@ -3797,7 +3797,7 @@ class Graph {
                                             edge_cit->label(), 
                                             edge_cit->id());
         assert(edge_ret.second);
-        for (auto attr_cit = edge_cit->AttributeCBegin();
+        for (auto attr_cit = edge_cit->AttributeBegin();
                  !attr_cit.IsDone(); attr_cit++){
           switch(attr_cit->value_type()){
           case BasicDataType::kTypeString:

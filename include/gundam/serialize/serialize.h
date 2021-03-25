@@ -21,8 +21,8 @@ std::string& operator<<(std::string& out_string,
                + " " + ToString(vertex_it->id()) 
                + " " + ToString(vertex_it->label());
     if constexpr (GraphType::vertex_has_attribute){
-      // AttributeCBegin method can be called
-      auto attr_it = vertex_it->AttributeCBegin();
+      // AttributeBegin method can be called
+      auto attr_it = vertex_it->AttributeBegin();
       if (attr_it.IsDone()){
         continue;
       }
@@ -50,8 +50,8 @@ std::string& operator<<(std::string& out_string,
                  + " " + ToString(edge_it->label())
                  + " " + ToString(edge_it->id());
       if constexpr (GraphType::edge_has_attribute){
-        // AttributeCBegin method can be called
-        auto attr_it = edge_it->AttributeCBegin();
+        // AttributeBegin method can be called
+        auto attr_it = edge_it->AttributeBegin();
         if (attr_it.IsDone()){
           continue;
         }

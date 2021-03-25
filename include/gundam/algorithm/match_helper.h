@@ -108,11 +108,11 @@ template <class QueryVertexHandle, class TargetVertexHandle>
 inline bool PruneCallBackCheckAttribute(
     const std::map<QueryVertexHandle, TargetVertexHandle> &m) {
   for (const auto &match_pair : m) {
-    for (auto attr_it = match_pair.first->AttributeCBegin(); !attr_it.IsDone();
+    for (auto attr_it = match_pair.first->AttributeBegin(); !attr_it.IsDone();
          attr_it++) {
       auto attr_key = attr_it->key();
       auto match_vertex_attributeptr =
-          match_pair.second->FindConstAttributePtr(attr_key);
+          match_pair.second->FindAttribute(attr_key);
       if (match_vertex_attributeptr->IsNull()) {
         return true;
       }
