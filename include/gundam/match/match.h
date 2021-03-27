@@ -716,6 +716,10 @@ class MatchSet {
                          this->match_set_. end ());
   }
 
+  inline MatchConstIterator MatchBegin() const {
+    return this->MatchCBegin();
+  }
+
   inline bool Empty() const { 
     return this->match_set_.empty(); 
   }

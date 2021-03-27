@@ -274,6 +274,10 @@ class Attribute_<AttributeType::kSeparated,
     //   const void* const temp_ptr = static_cast<const void*>(this);
     //   return static_cast<const AttributeContentPtrType*>(temp_ptr);
     // }
+
+    inline operator bool() const {
+      return !this->IsNull();
+    }
     
     inline bool IsNull() const { 
       return AttributeContentPtrType::IsNull(); 
@@ -891,6 +895,10 @@ class Attribute_<AttributeType::kGrouped,
 
       inline bool IsNull() const{
         return AttributeContentPtrType::IsNull();
+      }
+
+      inline operator bool() const {
+        return !this->IsNull();
       }
 
       template<bool judge = is_const_,
