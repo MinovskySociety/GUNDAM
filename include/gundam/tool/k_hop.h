@@ -16,14 +16,16 @@ GraphType KHop(GraphType& graph,
 
   GraphType k_hop;
 
-  auto hop_callback = [&k_hop, &k](
+  auto hop_callback = [&k_hop
+                      #ifndef NDEBUG
+                      ,&k
+                      #endif
+                      ](
         VertexHandleType vertex_handle,
         uint32_t bfs_idx,
         uint32_t distance
       ){
-    if (distance > k){
-      return false;
-    }
+    assert(distance <= k);
 
     auto [new_vertex_handle, ret] = k_hop.AddVertex(vertex_handle->id(),
                                                     vertex_handle->label());
@@ -43,7 +45,7 @@ GraphType KHop(GraphType& graph,
              !out_edge_it.IsDone(); 
               out_edge_it++) {
       auto k_hop_vertex_handle 
-         = k_hop.FindVertex(out_edge_it->dst_ptr()->id());
+         = k_hop.FindVertex(out_edge_it->dst_handle()->id());
       if (!k_hop_vertex_handle) {
         // the dst vertex does not exist in the k_hop, 
         // this edge does not need to be added into k_hop
@@ -51,8 +53,8 @@ GraphType KHop(GraphType& graph,
       }
       // this vertex should already be contained in sub graph
       auto [k_hop_edge_handle, ret] 
-          = k_hop.AddEdge(out_edge_it->src_ptr()->id(),
-                          out_edge_it->dst_ptr()->id(),
+          = k_hop.AddEdge(out_edge_it->src_handle()->id(),
+                          out_edge_it->dst_handle()->id(),
                           out_edge_it->label(),
                           out_edge_it->id());
       assert(k_hop_edge_handle);
@@ -70,7 +72,7 @@ GraphType KHop(GraphType& graph,
              !in_edge_it.IsDone(); 
               in_edge_it++) {
       auto k_hop_vertex_handle 
-         = k_hop.FindVertex(in_edge_it->src_ptr()->id());
+         = k_hop.FindVertex(in_edge_it->src_handle()->id());
       if (!k_hop_vertex_handle) {
         // the dst vertex does not exist in the k_hop, 
         // this edge does not need to be added into k_hop
@@ -78,8 +80,8 @@ GraphType KHop(GraphType& graph,
       }
       // this vertex should already be contained in sub graph
       auto [k_hop_edge_handle, ret] 
-          = k_hop.AddEdge(in_edge_it->src_ptr()->id(),
-                          in_edge_it->dst_ptr()->id(),
+          = k_hop.AddEdge(in_edge_it->src_handle()->id(),
+                          in_edge_it->dst_handle()->id(),
                           in_edge_it->label(),
                           in_edge_it->id());
       assert(k_hop_edge_handle);

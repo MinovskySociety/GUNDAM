@@ -63,8 +63,8 @@ void TestDPISOUsingMatch_1() {
     for (auto map_it = match_it->MapBegin();
              !map_it.IsDone();
               map_it++) {
-      std::cout << " " << map_it->src_ptr()->id()
-                << " " << map_it->dst_ptr()->id()
+      std::cout << " " << map_it->src_handle()->id()
+                << " " << map_it->dst_handle()->id()
                 << std::endl;
     }
     match_counter++;
@@ -89,8 +89,8 @@ void TestDPISOUsingMatch_1() {
     for (auto map_it = match_it->MapBegin();
              !map_it.IsDone();
               map_it++) {
-      std::cout << " " << map_it->src_ptr()->id()
-                << " " << map_it->dst_ptr()->id()
+      std::cout << " " << map_it->src_handle()->id()
+                << " " << map_it->dst_handle()->id()
                 << std::endl;
     }
     match_counter++;
@@ -116,8 +116,8 @@ void TestDPISOUsingMatch_1() {
     for (auto map_it = match_it->MapBegin();
              !map_it.IsDone();
               map_it++) {
-      std::cout << " " << map_it->src_ptr()->id()
-                << " " << map_it->dst_ptr()->id()
+      std::cout << " " << map_it->src_handle()->id()
+                << " " << map_it->dst_handle()->id()
                 << std::endl;
     }
     match_counter++;
@@ -143,8 +143,8 @@ void TestDPISOUsingMatch_1() {
     for (auto map_it = match_it->MapBegin();
              !map_it.IsDone();
               map_it++) {
-      std::cout << " " << map_it->src_ptr()->id()
-                << " " << map_it->dst_ptr()->id()
+      std::cout << " " << map_it->src_handle()->id()
+                << " " << map_it->dst_handle()->id()
                 << std::endl;
     }
     match_counter++;
@@ -257,8 +257,8 @@ void TestDPISOUsingMatch_2() {
     for (auto map_it = match_it->MapBegin();
              !map_it.IsDone();
               map_it++) {
-      std::cout << " " << map_it.src_ptr()->id()
-                << " " << map_it.dst_ptr()->id()
+      std::cout << " " << map_it.src_handle()->id()
+                << " " << map_it.dst_handle()->id()
                 << std::endl;
     }
     match_counter++;

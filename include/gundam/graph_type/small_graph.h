@@ -14,111 +14,16 @@
 
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
+#include "gundam/type_getter/vertex_attribute_handle.h"
+#include "gundam/type_getter/edge_attribute_handle.h"
+
+#include "gundam/serialize/serialize.h"
 
 namespace GUNDAM {
 
 template <class VertexIDType, class VertexLabelType, 
           class   EdgeIDType, class   EdgeLabelType>
 class SmallGraph;
-  
-template <class VertexIDType, class VertexLabelType, 
-          class   EdgeIDType, class   EdgeLabelType>
-std::string& operator<<(std::string& out_string, 
-      const SmallGraph<VertexIDType, 
-                    VertexLabelType,
-                         EdgeIDType,   
-                      EdgeLabelType>& small_graph) {
-
-  out_string = std::move(out_string) + " <Graph ";
-
-  out_string = std::move(out_string) + "vertex";
-  for (auto vertex_it = small_graph.VertexCBegin(); 
-           !vertex_it.IsDone();
-            vertex_it++) {
-    out_string = std::move(out_string) 
-               + " " + ToString(vertex_it->id()) 
-               + " " + ToString(vertex_it->label());
-  }
-  out_string = std::move(out_string) + " edge";
-  for (auto vertex_it = small_graph.VertexCBegin(); 
-           !vertex_it.IsDone();
-            vertex_it++) {
-    for (auto edge_it = vertex_it->OutEdgeCBegin(); 
-             !edge_it.IsDone();
-              edge_it++) {
-      out_string = std::move(out_string) 
-                 + " " + ToString(edge_it->src_id()) 
-                 + " " + ToString(edge_it->dst_id())
-                 + " " + ToString(edge_it->label())
-                 + " " + ToString(edge_it->id());
-    }
-  }
-  out_string = std::move(out_string) + " >";
-  return out_string;
-}
-  
-template <class VertexIDType, class VertexLabelType, 
-          class   EdgeIDType, class   EdgeLabelType>
-std::string& operator>>(std::string& in_string, 
-            SmallGraph<VertexIDType, 
-                    VertexLabelType,
-                         EdgeIDType,   
-                      EdgeLabelType>& small_graph) {
-  
-  using namespace GUNDAM;
-
-  std::stringstream ss;
-  ss << in_string;
-
-  std::string str;
-  
-  ss>>str;
-  assert(str == "<Graph");
-
-  ss>>str;
-  assert(str == "vertex");
-
-  small_graph.Clear();
-
-  while (ss>>str){
-    if (str == "edge")
-      break;
-    VertexIDType vertex_id
-      = StringToDataType<VertexIDType>(str);
-    ss>>str;
-    VertexLabelType vertex_label 
-      = StringToDataType<VertexLabelType>(str);
-    small_graph.AddVertex(vertex_id,
-                          vertex_label);
-  }
-
-  while (ss>>str){
-    if (str == ">"){
-      // end symbol
-      break;
-    }
-    VertexIDType src_id
-      = StringToDataType<VertexIDType>(str);
-    ss>>str;
-    VertexIDType dst_id
-      = StringToDataType<VertexIDType>(str);
-    ss>>str;
-    EdgeLabelType edge_label
-      = StringToDataType<EdgeLabelType>(str);
-    ss>>str;
-    EdgeIDType edge_id
-      = StringToDataType<EdgeIDType>(str);
- 
-    small_graph.AddEdge(src_id,
-                        dst_id,
-                       edge_label,
-                       edge_id);
-  }
-  getline(ss, in_string);
-  if (ss.fail())
-    in_string.clear();
-  return in_string;
-}
 
 template <class VertexIDType, class VertexLabelType, class EdgeIDType,
           class EdgeLabelType>
@@ -271,7 +176,7 @@ class SmallGraph {
 
     size_t CountOutEdge(const EdgeLabelType &edge_label) const {
       size_t out_edge_count = 0;
-      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->OutEdgeBegin(); !it.IsDone(); it++) {
         if (it->label() == edge_label) out_edge_count++;
       }
       return out_edge_count;
@@ -285,7 +190,7 @@ class SmallGraph {
 
     size_t CountInEdge(const EdgeLabelType &edge_label) const {
       size_t in_edge_count = 0;
-      for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->InEdgeBegin(); !it.IsDone(); it++) {
         if (it->label() == edge_label) in_edge_count++;
       }
       return in_edge_count;
@@ -293,41 +198,41 @@ class SmallGraph {
 
     size_t CountOutVertex() const {
       std::set<VertexIDType> out_vertex_id_set;
-      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
-        out_vertex_id_set.insert(it->const_dst_ptr()->id());
+      for (auto it = this->OutEdgeBegin(); !it.IsDone(); it++) {
+        out_vertex_id_set.insert(it->const_dst_handle()->id());
       }
       return out_vertex_id_set.size();
     }
     size_t CountOutVertex(const EdgeLabelType &edge_label) const {
       std::set<VertexIDType> out_vertex_id_set;
-      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->OutEdgeBegin(); !it.IsDone(); it++) {
         if (it->label() == edge_label)
-          out_vertex_id_set.insert(it->const_dst_ptr()->id());
+          out_vertex_id_set.insert(it->const_dst_handle()->id());
       }
       return out_vertex_id_set.size();
     }
     size_t CountInVertex() const {
       std::set<VertexIDType> in_vertex_id_set;
-      for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
-        in_vertex_id_set.insert(it->const_src_ptr()->id());
+      for (auto it = this->InEdgeBegin(); !it.IsDone(); it++) {
+        in_vertex_id_set.insert(it->const_src_handle()->id());
       }
       return in_vertex_id_set.size();
     }
     size_t CountInVertex(const EdgeLabelType &edge_label) const {
       std::set<VertexIDType> in_vertex_id_set;
-      for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
+      for (auto it = this->InEdgeBegin(); !it.IsDone(); it++) {
         if (it->label() == edge_label)
-          in_vertex_id_set.insert(it->const_src_ptr()->id());
+          in_vertex_id_set.insert(it->const_src_handle()->id());
       }
       return in_vertex_id_set.size();
     }
     size_t CountVertex() const {
       std::set<VertexIDType> vertex_id_set;
-      for (auto it = this->OutEdgeCBegin(); !it.IsDone(); it++) {
-        vertex_id_set.insert(it->dst_ptr()->id());
+      for (auto it = this->OutEdgeBegin(); !it.IsDone(); it++) {
+        vertex_id_set.insert(it->dst_handle()->id());
       }
-      for (auto it = this->InEdgeCBegin(); !it.IsDone(); it++) {
-        vertex_id_set.insert(it->src_ptr()->id());
+      for (auto it = this->InEdgeBegin(); !it.IsDone(); it++) {
+        vertex_id_set.insert(it->src_handle()->id());
       }
       return vertex_id_set.size();
     }
@@ -341,10 +246,6 @@ class SmallGraph {
     }
 
     EdgeConstIterator OutEdgeBegin() const {
-      return this->OutEdgeCBegin();
-    }
-
-    EdgeConstIterator OutEdgeCBegin() const {
       assert(HasValue());
       const auto &data = graph_->vertices_.Find(id_)->second;
       return EdgeConstIterator(graph_, data.out_edges_.cbegin(),
@@ -358,10 +259,6 @@ class SmallGraph {
     }
 
     EdgeConstIterator InEdgeBegin() const {
-      return this->InEdgeCBegin();
-    }
-
-    EdgeConstIterator InEdgeCBegin() const {
       assert(HasValue());
       const auto &data = graph_->vertices_.Find(id_)->second;
       return EdgeConstIterator(graph_, data.in_edges_.cbegin(),
@@ -468,32 +365,32 @@ class SmallGraph {
       return dst_;
     }
 
-    VertexPtr src_ptr() {
+    VertexPtr src_handle() {
       assert(HasValue());
       return VertexPtr(Vertex(graph_, src_));
     }
 
-    VertexConstPtr src_ptr() const {
+    VertexConstPtr src_handle() const {
       assert(HasValue());
       return VertexConstPtr(ConstVertex(graph_, src_));
     }
 
-    VertexConstPtr const_src_ptr() const {
+    VertexConstPtr const_src_handle() const {
       assert(HasValue());
       return VertexConstPtr(ConstVertex(graph_, src_));
     }
 
-    VertexPtr dst_ptr() {
+    VertexPtr dst_handle() {
       assert(HasValue());
       return VertexPtr(Vertex(graph_, dst_));
     }
 
-    VertexConstPtr dst_ptr() const {
+    VertexConstPtr dst_handle() const {
       assert(HasValue());
       return VertexConstPtr(ConstVertex(graph_, dst_));
     }
 
-    VertexConstPtr const_dst_ptr() const {
+    VertexConstPtr const_dst_handle() const {
       assert(HasValue());
       return VertexConstPtr(ConstVertex(graph_, dst_));
     }
@@ -544,7 +441,7 @@ class SmallGraph {
 
   SmallGraph() = default;
 
-  SmallGraph(const SmallGraph &other) = default;
+  explicit SmallGraph(const SmallGraph &other) = default;
 
   SmallGraph(SmallGraph &&) = default;
 
@@ -571,28 +468,17 @@ class SmallGraph {
     return VertexPtr(Vertex(this, *it));
   }
   
-  VertexConstPtr FindVertex(const typename VertexType
-                                             ::IDType& id) const{
-    return this->FindConstVertex(id);
-  }
-
- private:
-  VertexConstPtr FindConstVertex(const VertexIDType &id) const {
+  VertexConstPtr FindVertex(const VertexIDType &id) const {
     auto it = vertices_.Find(id);
     if (it == vertices_.end()) return VertexConstPtr();
     return VertexConstPtr(ConstVertex(this, *it));
   }
 
- public:
   VertexIterator VertexBegin() {
     return VertexIterator(this, vertices_.begin(), vertices_.end());
   }
 
   VertexConstIterator VertexBegin() const {
-    return this->VertexCBegin();
-  }
-
-  VertexConstIterator VertexCBegin() const {
     return VertexConstIterator(this, vertices_.cbegin(), vertices_.cend());
   }
 
@@ -675,19 +561,17 @@ class SmallGraph {
     return EdgePtr(Edge(this, *it));
   }
 
- private:
-  EdgeConstPtr FindConstEdge(const EdgeIDType &id) const {
+  EdgeConstPtr FindEdge(const EdgeIDType &id) const {
     auto it = edges_.Find(id);
     if (it == edges_.end()) return EdgeConstPtr();
     return EdgeConstPtr(Edge(this, *it));
   }
 
- public:
   EdgeIterator EdgeBegin() {
     return EdgeIterator(this, edges_.begin(), edges_.end());
   }
 
-  EdgeConstIterator EdgeCBegin() const {
+  EdgeConstIterator EdgeBegin() const {
     return EdgeConstIterator(this, edges_.cbegin(), edges_.cend());
   }
 

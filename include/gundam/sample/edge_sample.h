@@ -8,7 +8,7 @@ namespace GUNDAM{
 
 template<typename GraphType>
 GraphType EdgeSample(const GraphType& graph, double sample_ratio){
-  GraphType sampled_graph = graph;
+  GraphType sampled_graph(graph);
   std::vector<typename GraphType::EdgeType::IDType> remove_edge_id_set;
   for (auto vertex_it = graph.VertexBegin();
            !vertex_it.IsDone(); 

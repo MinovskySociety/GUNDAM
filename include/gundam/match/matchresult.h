@@ -66,7 +66,7 @@ void MatchSetToFile(MatchSet<SrcGraphType,
   for (auto map_it = match_it->MapBegin();
            !map_it.IsDone();
             map_it++){
-    src_vertex_handle_set.emplace_back(map_it->src_ptr());
+    src_vertex_handle_set.emplace_back(map_it->src_handle());
   }
 
   out << "match_id";

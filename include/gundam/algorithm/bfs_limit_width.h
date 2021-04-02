@@ -1,5 +1,5 @@
-#ifndef _GUNDAM_ALGORITHM_BFS_H
-#define _GUNDAM_ALGORITHM_BFS_H
+#ifndef _GUNDAM_ALGORITHM_BFS_LIMIT_WIDTH_H
+#define _GUNDAM_ALGORITHM_BFS_LIMIT_WIDTH_H
 
 #include <queue>
 #include <set>
@@ -47,8 +47,9 @@ template <bool bidirectional = false,
                                                typename   EdgeHandle<GraphType>::type,
                                                typename  GraphType::VertexCounterType,
                                                typename  GraphType::VertexCounterType)> >, bool> = false>
-inline size_t Bfs(GraphType&  graph,
+inline size_t BfsLimitWidth(GraphType&  graph,
   const std::set<typename VertexHandle<GraphType>::type>& src_vertex_handle_set,
+  typename GraphType::VertexCounterType width_limit,
            UserCallBackType  user_callback,
           PruneCallBackType prune_callback) {
   using VertexCounterType = typename  GraphType::VertexCounterType;
@@ -140,6 +141,8 @@ inline size_t Bfs(GraphType&  graph,
       // meets stopping condition, stop the matching process
       return bfs_idx;
     }
+
+    std::vector<VertexHandleType> qualified_neighbor;
     for (auto out_edge_it = current_vertex_handle->OutEdgeBegin();
              !out_edge_it.IsDone();
               out_edge_it++) {
@@ -186,7 +189,8 @@ inline size_t Bfs(GraphType&  graph,
         continue;
       }
       visited.emplace(out_edge_it->dst_handle());
-      vertex_handle_queue.emplace(out_edge_it->dst_handle(), current_distance + 1);
+      // does not add into queue directly
+      qualified_neighbor.emplace_back(out_edge_it->dst_handle());
     }
     if constexpr (bidirectional){
       for (auto in_edge_it = current_vertex_handle->InEdgeBegin();
@@ -236,10 +240,24 @@ inline size_t Bfs(GraphType&  graph,
           continue;
         }
         visited.emplace(in_edge_it->src_handle());
-        vertex_handle_queue.emplace(in_edge_it->src_handle(), current_distance + 1);
+        qualified_neighbor.emplace_back(in_edge_it->src_handle());
       }
     }
+    if (qualified_neighbor.size() <= width_limit) {
+      for (auto& neighbor_handle : qualified_neighbor) {
+        vertex_handle_queue.emplace(neighbor_handle, current_distance + 1);
+      }
+      continue;
+    }
+    assert(qualified_neighbor.size() > width_limit);
+    // need to randomly select width_limit vertex from qualified_neighbor
+    std::random_shuffle ( qualified_neighbor.begin(), 
+                          qualified_neighbor. end () );
+    for (VertexCounterType i = 0; i < width_limit; i++){
+      vertex_handle_queue.emplace(qualified_neighbor[i], current_distance + 1);
+    }
   }
+  
   return bfs_idx;
 }
 
@@ -271,20 +289,24 @@ template <bool bidirectional = false,
                                                typename   EdgeHandle<GraphType>::type,
                                                typename  GraphType::VertexCounterType,
                                                typename  GraphType::VertexCounterType)> >, bool> = false>
-inline size_t Bfs(GraphType&  graph,
+inline size_t BfsLimitWidth(GraphType&  graph,
   const typename VertexHandle<GraphType>::type& src_vertex_handle,
+  typename GraphType::VertexCounterType width_limit,
            UserCallBackType  user_callback,
           PruneCallBackType prune_callback) {
   const std::set<typename VertexHandle<GraphType>::type> src_vertex_handle_set = {src_vertex_handle};
-  return Bfs<bidirectional>(graph, src_vertex_handle_set, user_callback,
-                                                         prune_callback);
+  return BfsLimitWidth<bidirectional>(graph, src_vertex_handle_set, 
+                                                       width_limit,
+                                                     user_callback,
+                                                    prune_callback);
 }
 
 template <bool bidirectional = false,
           typename        GraphType,
           typename UserCallBackType>
-inline size_t Bfs(GraphType&  graph,
+inline size_t BfsLimitWidth(GraphType&  graph,
   const std::set<typename VertexHandle<GraphType>::type>& src_vertex_handle_set,
+  typename GraphType::VertexCounterType width_limit,
            UserCallBackType  user_callback,
            int distance_limit = -1) {
   using VertexCounterType = typename  GraphType::VertexCounterType;
@@ -307,8 +329,9 @@ inline size_t Bfs(GraphType&  graph,
     // does not reach the limit, do not prune
     return false;
   };
-  return Bfs<bidirectional>(graph,
+  return BfsLimitWidth<bidirectional>(graph,
                 src_vertex_handle_set, 
+                  width_limit,
                 user_callback, 
       prune_distance_callback); 
 }
@@ -316,20 +339,22 @@ inline size_t Bfs(GraphType&  graph,
 template<bool bidirectional = false,
          typename GraphType,
          typename UserCallBackType>
-inline size_t Bfs(GraphType& graph,
+inline size_t BfsLimitWidth(GraphType& graph,
         const typename VertexHandle<GraphType>::type& src_vertex_handle,
+  typename GraphType::VertexCounterType width_limit,
            UserCallBackType user_callback,
            int distance_limit = -1) {
   using VertexHandleType = typename VertexHandle<GraphType>::type;
   std::set<VertexHandleType> src_vertex_handle_set 
                           = {src_vertex_handle};
-  return Bfs<bidirectional>(graph, src_vertex_handle_set, user_callback, distance_limit);
+  return BfsLimitWidth<bidirectional>(graph, src_vertex_handle_set, width_limit, user_callback, distance_limit);
 }
 
 template<bool bidirectional = false,
          typename GraphType>
-inline size_t Bfs(GraphType& graph,
+inline size_t BfsLimitWidth(GraphType& graph,
         const typename VertexHandle<GraphType>::type& src_vertex_handle,
+  typename GraphType::VertexCounterType width_limit,
            int distance_limit = -1) {
 
   using VertexHandleType = typename VertexHandle<GraphType>::type;
@@ -338,9 +363,9 @@ inline size_t Bfs(GraphType& graph,
     // do nothing, continue matching
     return true;
   };
-  return Bfs<bidirectional>(graph, src_vertex_handle, do_nothing_callback, distance_limit);
+  return BfsLimitWidth<bidirectional>(graph, src_vertex_handle, width_limit, do_nothing_callback, distance_limit);
 }
 
 }  // namespace GUNDAM
 
-#endif // _BFS_H
+#endif // _BFS_LIMIT_WIDTH_H

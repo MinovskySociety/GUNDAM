@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/algorithm/bfs.h"
+#include "gundam/algorithm/bfs_limit_width.h"
 
 #include "gundam/graph_type/small_graph.h"
 #include "gundam/graph_type/large_graph.h"
@@ -12,7 +12,7 @@
 #include "gundam/type_getter/vertex_handle.h"
 
 template <class GraphType>
-void TestBfs() {
+void TestBfsLimitWidth() {
   GraphType g0;
 
   // 1 -> 2 -> 4
@@ -151,14 +151,14 @@ void TestBfs() {
     src_handle = g0.FindVertex(1);
 
   distance_tested = true;
-  auto ret = GUNDAM::Bfs(g0, src_handle);
+  auto ret = GUNDAM::BfsLimitWidth(g0, src_handle, 1000);
   ASSERT_EQ(ret, 9);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs(g0, src_handle, my_callback);
+  ret = GUNDAM::BfsLimitWidth(g0, src_handle, 1000, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 9);
-  ret = GUNDAM::Bfs(g0, src_handle, my_callback0);
+  ret = GUNDAM::BfsLimitWidth(g0, src_handle, 1000, my_callback0);
   ASSERT_EQ(ret, 9);
 
   const auto& g0_const_ref = g0;
@@ -182,26 +182,26 @@ void TestBfs() {
        src_handle_g0_const_ref = g0_const_ref.FindVertex(1);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs(g0_const_ref, 
-         src_handle_g0_const_ref);
+  ret = GUNDAM::BfsLimitWidth(g0_const_ref,
+                   src_handle_g0_const_ref, 1000);
   ASSERT_EQ(ret, 9);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs(g0_const_ref,
-         src_handle_g0_const_ref, 
-           my_callback_const_ref);
+  ret = GUNDAM::BfsLimitWidth(g0_const_ref,
+                   src_handle_g0_const_ref, 1000, 
+                     my_callback_const_ref);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 9);
-  ret = GUNDAM::Bfs(g0_const_ref, 
-         src_handle_g0_const_ref, 
-          my_callback0_const_ref);
+  ret = GUNDAM::BfsLimitWidth(g0_const_ref,
+                   src_handle_g0_const_ref, 1000, 
+                    my_callback0_const_ref);
   ASSERT_EQ(ret, 9);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g0, src_handle, my_callback);
+  ret = GUNDAM::BfsLimitWidth<false>(g0, src_handle, 1000, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 9);
-  ret = GUNDAM::Bfs<false>(g0, src_handle, my_callback0);
+  ret = GUNDAM::BfsLimitWidth<false>(g0, src_handle, 1000, my_callback0);
   ASSERT_EQ(ret, 9);
 
   auto my_callback2 = [&distance_tested](
@@ -217,17 +217,17 @@ void TestBfs() {
   distance_tested = true;
   typename GUNDAM::VertexHandle<decltype(g0)>::type 
     src_handle2 = g0.FindVertex(9);
-  ret = GUNDAM::Bfs<true>(g0, src_handle2, my_callback2);
+  ret = GUNDAM::BfsLimitWidth<true>(g0, src_handle2, 1000, my_callback2);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 9);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g0, src_handle2, my_callback2);
+  ret = GUNDAM::BfsLimitWidth<false>(g0, src_handle2, 1000, my_callback2);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 1);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g0, src_handle2, my_callback);
+  ret = GUNDAM::BfsLimitWidth<false>(g0, src_handle2, 1000, my_callback);
   ASSERT_TRUE(!distance_tested);
   ASSERT_EQ(ret, 1);
 
@@ -243,7 +243,7 @@ void TestBfs() {
   };
 
   distance_tested = true;
-  ret = GUNDAM::Bfs(g0, src_handle, my_callback3);
+  ret = GUNDAM::BfsLimitWidth(g0, src_handle, 1000, my_callback3);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, kVertexLimit);
 
@@ -339,42 +339,42 @@ void TestBfs() {
   ASSERT_TRUE(res2.second);
   
   src_handle = g1.FindVertex(1);
-  ret = GUNDAM::Bfs(g1, src_handle);
+  ret = GUNDAM::BfsLimitWidth(g1, src_handle, 1000);
   ASSERT_EQ(ret, 6);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs(g1, src_handle, my_callback);
+  ret = GUNDAM::BfsLimitWidth(g1, src_handle, 1000, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 6);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g1, src_handle, my_callback);
+  ret = GUNDAM::BfsLimitWidth<false>(g1, src_handle, 1000, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 6);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<true>(g1, src_handle, my_callback);
+  ret = GUNDAM::BfsLimitWidth<true>(g1, src_handle, 1000, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 9);
 
   src_handle2 = g1.FindVertex(9);
   distance_tested = true;
-  ret = GUNDAM::Bfs<true>(g1, src_handle2, my_callback2);
+  ret = GUNDAM::BfsLimitWidth<true>(g1, src_handle2, 1000, my_callback2);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 9);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g1, src_handle2, my_callback2);
+  ret = GUNDAM::BfsLimitWidth<false>(g1, src_handle2, 1000, my_callback2);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 6);
 
   distance_tested = true;
-  ret = GUNDAM::Bfs<false>(g1, src_handle2, my_callback);
+  ret = GUNDAM::BfsLimitWidth<false>(g1, src_handle2, 1000, my_callback);
   ASSERT_TRUE(!distance_tested);
   ASSERT_EQ(ret, 6);
   
   distance_tested = true;
-  ret = GUNDAM::Bfs(g1, src_handle, my_callback3);
+  ret = GUNDAM::BfsLimitWidth(g1, src_handle, 1000, my_callback3);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, kVertexLimit);
 
@@ -440,19 +440,19 @@ void TestBfs() {
 
   distance_tested = true;
   src_handle = g2.FindVertex(1);
-  ret = GUNDAM::Bfs<false>(g2, src_handle, my_callback);
+  ret = GUNDAM::BfsLimitWidth<false>(g2, src_handle, 1000, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 4);
 
   distance_tested = true;
   src_handle = g2.FindVertex(5);
-  ret = GUNDAM::Bfs<false>(g2, src_handle, my_callback);
+  ret = GUNDAM::BfsLimitWidth<false>(g2, src_handle, 1000, my_callback);
   ASSERT_TRUE(distance_tested);
   ASSERT_EQ(ret, 4);
   return;
 }
 
-TEST(TestGUNDAM, TestBfs) {
+TEST(TestGUNDAM, TestBfsLimitWidth) {
   using namespace GUNDAM;
 
   using G1 = LargeGraph<uint32_t, uint32_t, std::string, 
@@ -500,11 +500,11 @@ TEST(TestGUNDAM, TestBfs) {
                    SetVertexPtrContainerType<GUNDAM::ContainerType::Map>,
                    SetEdgeLabelContainerType<GUNDAM::ContainerType::Map>>;
 
-  TestBfs<G1>();
-  TestBfs<G2>();
-  TestBfs<G3>();
-  TestBfs<G4>();
-  TestBfs<G5>();
-  TestBfs<G6>();
-  TestBfs<G7>();
+  TestBfsLimitWidth<G1>();
+  TestBfsLimitWidth<G2>();
+  TestBfsLimitWidth<G3>();
+  TestBfsLimitWidth<G4>();
+  TestBfsLimitWidth<G5>();
+  TestBfsLimitWidth<G6>();
+  TestBfsLimitWidth<G7>();
 }
