@@ -337,7 +337,7 @@ void TestDPISO_3() {
   ASSERT_TRUE(target.AddEdge(1, 3, std::string("1"), 2).second);
   // ASSERT_TRUE(target.AddEdge(1, 2, std::string("1"), 3).second);
 
-  std::vector<std::map<typename GUNDAM::VertexHandle<QueryGraph>::type,
+  std::vector<std::map<typename GUNDAM::VertexHandle< QueryGraph>::type,
                        typename GUNDAM::VertexHandle<TargetGraph>::type>>
       match_result;
   int count =
@@ -348,7 +348,8 @@ void TestDPISO_3() {
   for (size_t i = 0; i < match_result.size(); i++) {
     std::cout << "match: " << i << std::endl;
     for (const auto& mapping : match_result[i]) {
-      std::cout << " " << mapping.first->id() << " " << mapping.second->id()
+      std::cout << " " << mapping.first ->id() 
+                << " " << mapping.second->id()
                 << std::endl;
     }
   }

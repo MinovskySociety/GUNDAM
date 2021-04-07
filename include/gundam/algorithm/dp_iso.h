@@ -1060,11 +1060,12 @@ inline int DPISO_Recursive(QueryGraph &query_graph, TargetGraph &target_graph,
 template <enum MatchSemantics match_semantics, typename QueryGraph,
           typename TargetGraph, class MatchCallback, class PruneCallback>
 inline int DPISO_Recursive(
-    QueryGraph &query_graph, TargetGraph &target_graph,
+     QueryGraph  &query_graph, 
+    TargetGraph &target_graph,
     std::map<typename VertexHandle<QueryGraph>::type,
              std::vector<typename VertexHandle<TargetGraph>::type>>
         &candidate_set,
-    std::map<typename VertexHandle<QueryGraph>::type,
+    std::map<typename VertexHandle< QueryGraph>::type,
              typename VertexHandle<TargetGraph>::type> &match_state,
     MatchCallback user_callback, PruneCallback prune_callback,
     double query_limit_time = 1200.0) {

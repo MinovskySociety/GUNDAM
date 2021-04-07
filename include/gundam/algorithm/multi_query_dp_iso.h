@@ -11,6 +11,8 @@
 #include "gundam/algorithm/dp_iso.h"
 #include "gundam/algorithm/dp_iso_using_match.h"
 
+#include "gundam/tool/same_pattern.h"
+
 namespace GUNDAM{
 
 namespace _multi_query_dp_iso{
@@ -19,6 +21,166 @@ template <typename VertexHandle>
 inline int GetPatternIdx(VertexHandle vertex_handle){
   return vertex_handle->id();
 }
+
+// template <typename TriVertexPatternType>
+// class Tls{
+//  public:
+//   Tls(const TriVertexPatternType& tri_vertex_pattern)
+//              :tri_vertex_pattern_(tri_vertex_pattern){
+//     auto automorphism = DpisoUsingMatch(this->tri_vertex_pattern_,
+//                                         this->tri_vertex_pattern_);
+//     assert(automorphism == 1
+//         || automorphism == 2);
+//     if (automorphism == 2){
+//       this->symmetrical_ = true;
+//       return;
+//     }
+//     this->symmetrical_ = false;
+//     return;
+//   }
+
+//   TriVertexPatternType& tri_vertex_pattern(){
+//     return this->tri_vertex_pattern_;
+//   }
+
+//   const TriVertexPatternType& tri_vertex_pattern() const{
+//     return this->tri_vertex_pattern_;
+//   }
+  
+//   inline bool symmetrical() const {
+//     return this->symmetrical_;
+//   }
+
+//   inline bool operator==(const Tls& tls) const {
+//     return SamePattern(this->tri_vertex_pattern_, 
+//                          tls.tri_vertex_pattern_);
+//   }
+
+//   inline bool operator!=(const Tls& tls) const {
+//     return !((*this) == tls);
+//   }
+
+//  private:
+//   TriVertexPatternType tri_vertex_pattern_;
+//   bool symmetrical_;
+// };
+
+// template <typename TriVertexPatternType>
+// class TlsSet{
+//  private:
+//   using TlsType = Tls<TriVertexPatternType>;
+
+//   using ContainerTlsContainerType 
+//       = Container<ContainerType::Vector,
+//                        SortType::Default,
+//                         TlsType>;
+
+//  public:
+//   using       iterator = typename ContainerTlsContainerType::      iterator;
+//   using const_iterator = typename ContainerTlsContainerType::const_iterator;
+
+//   TlsSet(){
+//     return;
+//   }
+
+//   inline std::pair<iterator, bool> AddTls(const TlsType& tls){
+//     return this->tls_set_.Insert(tls);
+//   }
+
+//   inline size_t Size() const{
+//     return this->tls_set_.size();
+//   }
+
+//   inline iterator TlsBegin() {
+//     return this->tls_set_.begin();
+//   }
+
+//   inline iterator TlsEnd() {
+//     return this->tls_set_.end();
+//   }
+
+//   inline const_iterator TlsBegin() const {
+//     return this->tls_set_.cbegin();
+//   }
+
+//   inline const_iterator TlsEnd() const {
+//     return this->tls_set_.cend();
+//   }
+
+//  private:
+//   ContainerTlsContainerType tls_set_;
+// };
+
+// template <typename TriVertexPatternType>
+// size_t Li(TriVertexPatternType&  q,
+//    TlsSet<TriVertexPatternType>& tls_set){
+//   size_t li_q_tls = 0;
+//   for (auto tls_it  = tls_set.TlsBegin();
+//             tls_it != tls_set.TlsEnd();
+//             tls_it++) {
+//     auto automorphism = DpisoUsingMatch(tls_it->tri_vertex_pattern(), q);
+//     if (tls_it->symmetrical()) {
+//       assert(automorphism % 2 == 0);
+//       automorphism /= 2;
+//     }
+//     li_q_tls += automorphism;
+//   }
+//   return li_q_tls;
+// }
+
+// template <typename TriVertexPatternType>
+// TlsSet<TriVertexPatternType> Intersect(TlsSet<TriVertexPatternType>& tls_qi_set,
+//                                        TlsSet<TriVertexPatternType>& tls_qj_set){
+//   auto qi_qj_tls_set = qi_tls_set;
+//   for (){
+
+//   }
+// }
+
+// template <typename TriVertexPatternType>
+// double Gf(TriVertexPatternType& qi, TlsSet<TriVertexPatternType>& tls_qi_set, size_t tls_qi_size,
+//           TriVertexPatternType& qj, TlsSet<TriVertexPatternType>& tls_qj_set, size_t tls_qj_size){
+
+//   TlsSet<TriVertexPatternType> tls_qi_qj_set 
+//                    = Intersect(tls_qi_set,
+//                                tls_qj_set);
+  
+//   size_t li_qi_tls_qi_qj = Li(qi, tls_qi_qj_set);
+//   size_t li_qj_tls_qi_qj = Li(qj, tls_qi_qj_set);
+
+//   size_t numerator = li_qi_tls_qi_qj < li_qj_tls_qi_qj?
+//                      li_qi_tls_qi_qj : li_qj_tls_qi_qj;
+
+//   size_t denominator = tls_qi_size < tls_qj_size?
+//                        tls_qi_size : tls_qj_size;
+
+//   return ((double)numerator) / ((double)denominator);
+// }
+
+// template<typename     GraphPatternType,
+//          typename TriVertexPatternType>
+// void BuildTls(GraphPatternType&  q,
+//    TlsSet<TriVertexPatternType>& q_tls_set){
+//   assert(q_tls_set.Size() == 0);
+
+//   for (auto vertex_it = q.VertexBegin();
+//            !vertex_it.IsDone();
+//             vertex_it++) {
+//     // enumerate the src vertex of the tri_vertex_pattern
+//     TriVertexPatternType tri_vertex_pattern;
+
+//     // construct the tri_vertex_pattern
+//     for () {
+      
+//     }
+
+//     assert(tri_vertex_pattern.CountVertex() == 3);
+//     q_tls_set.AddTls(tri_vertex_pattern);
+//   }  
+  
+
+//   return;
+// }
 
 template <typename GraphPatternType,
           typename    DataGraphType,
@@ -84,8 +246,8 @@ bool MatchFromParentToChild(
         std::map<typename VertexHandle< QueryGraph>::type,
      std::vector<typename VertexHandle<TargetGraph>::type>>>& candidate_set_list,
                             std::vector<QueryGraph>& query_graph_list,
-                            std::vector<bool>& call_match_callback,
-              std::vector<bool>& call_child_pattern_match_callback,
+                            std::vector<bool> call_match_callback,
+              std::vector<bool> call_child_pattern_match_callback,
                                          TargetGraph& target_graph,
   std::function<bool(int,
                      const std::map<typename VertexHandle< QueryGraph>::type, 
@@ -153,7 +315,8 @@ bool MatchFromParentToChild(
     return all_prune_return_true;
   };
 
-  // for each pattern, hold a flage to store whether the has been true
+  // for each pattern, hold a flage to store whether the return value
+  // has been true
   // and another flage stores whether all its children return true,
   // return false if and only if the match callback of this pattern
   // and all its child pattern return false
@@ -177,8 +340,8 @@ bool MatchFromParentToChild(
     // call match_callback only when the flage for this pattern
     // is not marked as false
     if (call_match_callback[current_pattern_idx]){
-      call_match_callback[current_pattern_idx]
-         = match_callback(current_pattern_idx, match);
+        call_match_callback[current_pattern_idx]
+           = match_callback(current_pattern_idx, match);
     }
 
     bool all_child_pattern_does_not_need_to_be_called = true;
@@ -217,7 +380,7 @@ bool MatchFromParentToChild(
                               candidate_set_list,
                                 query_graph_list,
                               call_match_callback,
-                              call_child_pattern_match_callback,
+                call_child_pattern_match_callback,
                                     target_graph,
                                   prune_callback,
                                   match_callback);
