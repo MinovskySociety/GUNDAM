@@ -250,6 +250,26 @@ template <enum MatchSemantics match_semantics
 inline size_t DpisoUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
+     Match<QueryGraph, 
+          TargetGraph>& partial_match,
+  MatchSet<QueryGraph, 
+          TargetGraph>& match_result,
+   int64_t max_match = -1,
+   double time_limit = -1.0){
+
+  return DPISO_UsingPatricalMatchAndMatchSet(query_graph, 
+                                             target_graph,
+                                             partial_match,
+                                             match_result);
+}
+
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t DpisoUsingMatch(
+   QueryGraph&  query_graph, 
+  TargetGraph& target_graph,
   MatchSet<QueryGraph, TargetGraph>& match_result,
    int64_t max_match = -1,
    double time_limit = -1.0) {

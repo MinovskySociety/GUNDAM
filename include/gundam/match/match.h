@@ -152,6 +152,11 @@ class Match {
   Match& operator=(Match&&) = default;
 
   Match(SrcGraphType& src_graph,
+        DstGraphType& dst_graph){
+    return;
+  }
+
+  Match(SrcGraphType& src_graph,
         DstGraphType& dst_graph,
         std::string construct_method) : match_container_(){
     assert(construct_method == "same_id_map");
