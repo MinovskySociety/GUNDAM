@@ -1121,8 +1121,9 @@ inline int DPISO_Recursive(
   } else {
     // partition next ptr's candiate
     auto &match_ptr_candidate = candidate_set.find(next_query_ptr)->second;
-#pragma omp parallel for schedule(dynamic)
-    for (auto &match_target_ptr : match_ptr_candidate) {
+    #pragma omp parallel for schedule(dynamic)
+    for (int i = 0; i < match_ptr_candidate.size(); i++) {
+      auto& match_target_ptr = match_ptr_candidate[i];
       if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
               next_query_ptr, match_target_ptr, match_state, target_matched)) {
         decltype(match_state) temp_match_state{match_state};
