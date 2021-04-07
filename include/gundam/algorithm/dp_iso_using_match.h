@@ -29,13 +29,17 @@ inline size_t DpisoUsingMatch(
        TargetGraph& target_graph,
   Match<QueryGraph,
        TargetGraph>& partial_match,
-  std::map<typename VertexHandle<QueryGraph>::type,
+  const std::map<typename VertexHandle<QueryGraph>::type,
            std::vector<typename VertexHandle<TargetGraph>::type>>& candidate_set,
   std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
                                     typename VertexHandle<TargetGraph>::type>&)> prune_callback,
   std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
                                     typename VertexHandle<TargetGraph>::type>&)> match_callback,
    double time_limit = -1.0) {
+
+
+   std::map<typename VertexHandle<QueryGraph>::type,
+            std::vector<typename VertexHandle<TargetGraph>::type>> temp_candidate_set = candidate_set;
 
   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
@@ -64,7 +68,7 @@ inline size_t DpisoUsingMatch(
     _dp_iso::_DPISO<match_semantics, 
                     QueryGraph, 
                    TargetGraph>(
-        candidate_set, match_state, target_matched, result_count, 
+        temp_candidate_set, match_state, target_matched, result_count, 
         match_callback,
         prune_callback, 
         clock(), time_limit);
@@ -84,7 +88,7 @@ inline size_t DpisoUsingMatch(
   _dp_iso::_DPISO<match_semantics, 
                   QueryGraph, 
                  TargetGraph>(
-      candidate_set, match_state, target_matched, parent, fail_set,
+      temp_candidate_set, match_state, target_matched, parent, fail_set,
       result_count,
       match_callback,
       prune_callback,
@@ -100,7 +104,7 @@ template <enum MatchSemantics match_semantics
 inline size_t DpisoUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
-  std::map<typename VertexHandle<QueryGraph>::type, 
+  const std::map<typename VertexHandle<QueryGraph>::type, 
             std::vector<typename VertexHandle<TargetGraph>::type>>& candidate_set,
   std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
                                     typename VertexHandle<TargetGraph>::type>&)> prune_callback,
