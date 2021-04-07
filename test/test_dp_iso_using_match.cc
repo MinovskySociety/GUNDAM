@@ -71,11 +71,9 @@ void TestDPISOUsingMatch_1() {
   }
 
   std::cout << "count: " << match_result1.size() << std::endl;
-
-  GUNDAM::MatchSet<const  QueryGraph, 
-                   const TargetGraph> match_result2;
   const auto&  query2 = query;
   const auto& target2 = target;
+  GUNDAM::MatchSet match_result2(query2, target2);
   count = GUNDAM::DpisoUsingMatch<MatchSemantics::kIsomorphism>(
                query2, target2, match_result2);
   ASSERT_EQ(count, 2);
@@ -100,8 +98,7 @@ void TestDPISOUsingMatch_1() {
 
   const auto& query3 = query;
   auto& target3 = target;
-  GUNDAM::MatchSet<decltype( query3), 
-                   decltype(target3)> match_result3;
+  GUNDAM::MatchSet match_result3(query3, target3);
   count = GUNDAM::DpisoUsingMatch<MatchSemantics::kIsomorphism>(
                query3, target3, match_result3);
                   
@@ -127,8 +124,7 @@ void TestDPISOUsingMatch_1() {
 
   auto& query4 = query;
   const auto& target4 = target;
-  GUNDAM::MatchSet<decltype( query4), 
-                   decltype(target4)> match_result4;
+  GUNDAM::MatchSet match_result4(query4, target4);
   count = GUNDAM::DpisoUsingMatch<MatchSemantics::kIsomorphism>(
                query4, target4, match_result4);
                   

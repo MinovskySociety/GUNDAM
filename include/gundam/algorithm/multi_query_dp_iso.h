@@ -1,8 +1,10 @@
-#ifdef _GUNDAM_ALGORITHM_MULTI_QUERY_DPISO_USING_MATCH_H
+#ifndef _GUNDAM_ALGORITHM_MULTI_QUERY_DPISO_USING_MATCH_H
 #define _GUNDAM_ALGORITHM_MULTI_QUERY_DPISO_USING_MATCH_H
 
-#include "graph_type/graph.h"
-#include "match/match.h"
+#include "gundam/graph_type/graph.h"
+#include "gundam/match/match.h"
+
+#include "gundam/algorithm/dp_iso.h"
 
 namespace GUNDAM{
 
@@ -35,6 +37,15 @@ template <typename      PcmTreeType,
 typename VertexHandle<PcmTreeType>::type 
              BuildPCM(PcmTreeType&  pcm_tree,
      std::vector<GraphPatternType>& query_graph_list) {
+
+  using PcmTreeVertexLabelType = typename PcmTreeType::VertexType::LabelType;
+  using   PcmTreeEdgeLabelType = typename PcmTreeType::  EdgeType::LabelType;
+
+  const PcmTreeVertexLabelType kDefaultVertexLabel = 0;
+  const   PcmTreeEdgeLabelType   kDefaultEdgeLabel = 0;
+
+  const std::string kMatchFromParentAttributeKey = "match_from_parent";
+  
   assert(!query_graph_list.empty());
   // only to compile pass
   for (int i = 0; i < query_graph_list.size(); i++) {
@@ -90,6 +101,9 @@ bool MatchFromParentToChild(
   using MatchMap = std::map<QueryVertexHandle,
                            TargetVertexHandle>;
 
+  using MatchPatternToPatternType   = Match<QueryGraph,  QueryGraph>;
+  using MatchPatternToDataGraphType = Match<QueryGraph, TargetGraph>;
+
   assert(candidate_set_list.size()
         == query_graph_list.size());
 
@@ -116,6 +130,7 @@ bool MatchFromParentToChild(
   auto current_pattern_prune_callback 
    = [&current_pattern_idx,
         &child_pattern_idx_set,
+        &call_match_callback,
         &prune_callback](const MatchMap& match){
 
     if (!call_match_callback[current_pattern_idx]) {
@@ -146,9 +161,12 @@ bool MatchFromParentToChild(
 
   auto current_pattern_match_callback 
    = [&current_pattern_idx,
+      &current_pattern_handle,
         &child_pattern_idx_set,
         &candidate_set_list,
           &query_graph_list,
+        &call_match_callback,
+        &target_graph,
         &prune_callback,
         &match_callback](const MatchMap& match){
                             
@@ -170,20 +188,21 @@ bool MatchFromParentToChild(
       assert(child_pattern_idx >= 0
           && child_pattern_idx < candidate_set_list.size());
       
-      auto& child_pattern = child_pattern_list[child_pattern_idx];
+      auto& child_pattern = query_graph_list[child_pattern_idx];
 
       MatchPatternToPatternType child_to_parent_match;
 
-      MatchPatternToDataGraphType parent_to_data_graph_match;
+      MatchPatternToDataGraphType parent_to_target_graph_match;
 
-      MatchPatternToDataGraphType child_to_data_graph_partial_match
-                                = parent_to_data_graph_match(
+      MatchPatternToDataGraphType child_to_target_graph_partial_match
+                                = parent_to_target_graph_match(
                                   child_to_parent_match);
       
       bool child_match_ret = MatchFromParentToChild(child_pattern,
-                                                    child_to_data_graph_partial_match, 
-                                                            data_graph,
-                                                    match_callback); 
+                                                    child_to_target_graph_partial_match, 
+                                                             target_graph,
+                                                    match_callback);
+
       if (call_match_callback[child_pattern_idx]){
         all_child_pattern_does_not_need_to_be_called = false;
       }
@@ -208,7 +227,7 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           typename  QueryGraph,
           typename TargetGraph>
-inline void DpisoUsingMatch(
+inline void MultiQueryDpiso(
   std::vector<QueryGraph>&  query_graph_list,
              TargetGraph & target_graph,
   std::function<bool(int,
@@ -219,7 +238,7 @@ inline void DpisoUsingMatch(
                                     typename VertexHandle<TargetGraph>::type>&)> match_callback,
    double time_limit = -1.0) {
 
-  using PcmTreeType = Graph;
+  using PcmTreeType = Graph<>;
   PcmTreeType pcm_tree;
   auto root_handle = BuildPCM(pcm_tree, query_graph_list);
   assert(root_handle);
