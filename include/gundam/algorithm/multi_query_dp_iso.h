@@ -2,9 +2,13 @@
 #define _GUNDAM_ALGORITHM_MULTI_QUERY_DPISO_USING_MATCH_H
 
 #include "gundam/graph_type/graph.h"
+#include "gundam/graph_type/large_graph2.h"
 #include "gundam/match/match.h"
 
+#include "gundam/type_getter/vertex_handle.h"
+
 #include "gundam/algorithm/dp_iso.h"
+#include "gundam/algorithm/dp_iso_using_match.h"
 
 namespace GUNDAM{
 
@@ -68,17 +72,15 @@ typename VertexHandle<PcmTreeType>::type
   return root_handle;
 }
 
-};
-
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
-          typename PatternTreeGraph,
+          typename PatternTreeVertexHandle,
           typename       QueryGraph,
           typename      TargetGraph>
 bool MatchFromParentToChild(
-            typename VertexHandle<PatternTreeGraph>::type current_pattern_handle,
-        std::map<typename VertexHandle< QueryGraph>::type,
-                 typename VertexHandle<TargetGraph>::type>& match,
+            PatternTreeVertexHandle current_pattern_handle,
+            Match<QueryGraph,
+                 TargetGraph> match,
      std::vector<
         std::map<typename VertexHandle< QueryGraph>::type,
      std::vector<typename VertexHandle<TargetGraph>::type>>>& candidate_set_list,
@@ -188,7 +190,7 @@ bool MatchFromParentToChild(
       assert(child_pattern_idx >= 0
           && child_pattern_idx < candidate_set_list.size());
       
-      auto& child_pattern = query_graph_list[child_pattern_idx];
+      auto& child_pattern =   query_graph_list[child_pattern_idx];
 
       MatchPatternToPatternType child_to_parent_match;
 
@@ -198,10 +200,15 @@ bool MatchFromParentToChild(
                                 = parent_to_target_graph_match(
                                   child_to_parent_match);
       
-      bool child_match_ret = MatchFromParentToChild(child_pattern,
-                                                    child_to_target_graph_partial_match, 
-                                                             target_graph,
-                                                    match_callback);
+      bool child_match_ret = MatchFromParentToChild(
+                              child_pattern_it, 
+                              child_to_target_graph_partial_match, 
+                              candidate_set_list,
+                                query_graph_list,
+                              call_match_callback,
+                                    target_graph,
+                                  prune_callback,
+                                  match_callback);
 
       if (call_match_callback[child_pattern_idx]){
         all_child_pattern_does_not_need_to_be_called = false;
@@ -218,10 +225,13 @@ bool MatchFromParentToChild(
 
   return DpisoUsingMatch(current_query_graph,
                                 target_graph,
+                                match,
                          current_candidate_set,
                          current_pattern_prune_callback,
                          current_pattern_match_callback);
 }
+
+};
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
@@ -238,9 +248,18 @@ inline void MultiQueryDpiso(
                                     typename VertexHandle<TargetGraph>::type>&)> match_callback,
    double time_limit = -1.0) {
 
-  using PcmTreeType = Graph<>;
+
+  using VertexIDType = uint32_t;
+  using   EdgeIDType = uint32_t;
+
+  using VertexLabelType = uint32_t;
+  using   EdgeLabelType = uint32_t;
+  
+  using PcmTreeType = GUNDAM::LargeGraph2<VertexIDType, VertexLabelType, std::string,
+                                            EdgeIDType,   EdgeLabelType, std::string>;
+
   PcmTreeType pcm_tree;
-  auto root_handle = BuildPCM(pcm_tree, query_graph_list);
+  auto root_handle = _multi_query_dp_iso::BuildPCM(pcm_tree, query_graph_list);
   assert(root_handle);
 
   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
@@ -286,9 +305,11 @@ inline void MultiQueryDpiso(
 
   std::vector<bool> call_match_callback(query_graph_list.size(), true);
   
-  MatchMap match;
+  Match<QueryGraph,
+       TargetGraph> match;
 
-  MatchFromParentToChild(root_handle, match, 
+  _multi_query_dp_iso::MatchFromParentToChild(
+                         root_handle, match, 
                          candidate_set_list,
                            query_graph_list,
                         call_match_callback,

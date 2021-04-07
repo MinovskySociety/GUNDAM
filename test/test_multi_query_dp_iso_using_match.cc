@@ -31,6 +31,12 @@ void TestMultiQueryDpiso() {
    QueryGraph  query;
   TargetGraph target;
 
+  using  QueryVertexHandle = typename GUNDAM::VertexHandle< QueryGraph>::type;
+  using TargetVertexHandle = typename GUNDAM::VertexHandle<TargetGraph>::type;
+
+  using MatchMap = std::map<QueryVertexHandle,
+                           TargetVertexHandle>;
+
   // query
   query.AddVertex(1, VertexLabelType(0));
   query.AddVertex(2, VertexLabelType(1));
@@ -51,7 +57,22 @@ void TestMultiQueryDpiso() {
 
   query_graph_list.emplace_back(query);
 
-  // MultiQueryDpiso
+  auto prune_callback = [](int pattern_idx,
+                           const MatchMap& match){
+    // does not prune
+    return false;
+  };
+
+  auto match_callback = [](int pattern_idx,
+                           const MatchMap& match){
+    // continue matching
+    return true;
+  };
+
+  GUNDAM::MultiQueryDpiso(query_graph_list,
+                          target,
+                          prune_callback,
+                          match_callback);
 }
 
 TEST(TestGUNDAM, MultiQueryDpiso_1) {
