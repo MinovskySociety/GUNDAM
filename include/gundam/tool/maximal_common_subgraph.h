@@ -9,6 +9,9 @@ template <typename GraphPatternType>
 std::vector<GraphPatternType> 
   MaximalCommonSubgraph(GraphPatternType& q0,
                         GraphPatternType& q1){
+  if (SamePattern(q0, q1)){
+    return std::vector<GraphPatternType>(q0);
+  }
   using VertexLabelType = typename GraphPatternType
                                        ::VertexType
                                         ::LabelType;

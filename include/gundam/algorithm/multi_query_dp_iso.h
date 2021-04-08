@@ -1,4 +1,4 @@
-#ifdef _GUNDAM_ALGORITHM_MULTI_QUERY_DPISO_USING_MATCH_H
+#ifndef _GUNDAM_ALGORITHM_MULTI_QUERY_DPISO_USING_MATCH_H
 #define _GUNDAM_ALGORITHM_MULTI_QUERY_DPISO_USING_MATCH_H
 
 #include "gundam/graph_type/graph.h"
@@ -284,16 +284,6 @@ inline Match<GraphPatternType,
   return attr_handle->template value<MatchType>();
 }
 
-template<typename GraphPatternType>
-GraphPatternType ComputeMCS(GraphPatternType& q0,
-                            GraphPatternType& q1){
-  GraphPatternType mcs;
-  for () {
-    
-  }
-  return;
-}
-
 template <typename      PcmTreeType,
           typename GraphPatternType>
 typename VertexHandle<PcmTreeType>::type 
@@ -333,12 +323,65 @@ typename VertexHandle<PcmTreeType>::type
   
   ObtainClique(m, cliques);
 
+  std::vector<int> next_level_group;
+
   for (const auto& clique : cliques) {
     for (const auto& query_graph_id : clique) {
       // enumerate the query_graph_id in this clique
-      next_level_graph = ;
+      next_level_group.clear();
+      std::vector<int> current_query_graph_id
+                             = query_graph_id;
+      while (true) {
+        next_level_group = ;
+
+        for (auto current_query_graph_id_it  = current_query_graph_id.begin();
+                  current_query_graph_id_it != current_query_graph_id.end();){
+          auto next_current_query_graph_id_it = current_query_graph_id_it;
+          next_current_query_graph_id_it++;
+          if (next_current_query_graph_id_it 
+                == current_query_graph_id.end()){
+            // is odd
+            assert(current_query_graph_id.size() % 2 == 1);
+            next_level_group.emplace_back(*current_query_graph_id_it);
+            continue;
+          }
+          auto qi_idx =      *current_query_graph_id_it;
+          auto qj_idx = *next_current_query_graph_id_it;
+
+          auto& qi;
+          auto& qj;
+
+          auto mas_qi_qj = MaximalCommonSubgraph(qi, qj);
+
+          
+
+          if (mas_qi_qj.empty()){
+            continue;
+          }
+
+          for (auto ){
+
+          }
+
+          // add one for them to be added 
+          for (auto vertex_it = pcm_tree;) {
+            
+          }
+          for (){
+
+          }
+          current_query_graph_id_it = ++next_current_query_graph_id_it;
+        }
+
+        if (next_level_group.size() <= 1){
+          break;
+        }
+        // next_level_group.size() > 1
+        current_query_graph_id.swap(next_level_group);
+      }
     }
   }
+  return VertexHandle();
 }
 
 template <enum MatchSemantics match_semantics 
