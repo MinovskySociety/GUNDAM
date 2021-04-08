@@ -1,4 +1,4 @@
-#ifndef _GUNDAM_ALGORITHM_MULTI_QUERY_DPISO_USING_MATCH_H
+#ifdef _GUNDAM_ALGORITHM_MULTI_QUERY_DPISO_USING_MATCH_H
 #define _GUNDAM_ALGORITHM_MULTI_QUERY_DPISO_USING_MATCH_H
 
 #include "gundam/graph_type/graph.h"
@@ -22,165 +22,253 @@ inline int GetPatternIdx(VertexHandle vertex_handle){
   return vertex_handle->id();
 }
 
-// template <typename TriVertexPatternType>
-// class Tls{
-//  public:
-//   Tls(const TriVertexPatternType& tri_vertex_pattern)
-//              :tri_vertex_pattern_(tri_vertex_pattern){
-//     auto automorphism = DpisoUsingMatch(this->tri_vertex_pattern_,
-//                                         this->tri_vertex_pattern_);
-//     assert(automorphism == 1
-//         || automorphism == 2);
-//     if (automorphism == 2){
-//       this->symmetrical_ = true;
-//       return;
-//     }
-//     this->symmetrical_ = false;
-//     return;
-//   }
+template <typename TriVertexPatternType>
+class Tls{
+ public:
+  Tls(const TriVertexPatternType& tri_vertex_pattern)
+             :tri_vertex_pattern_(tri_vertex_pattern){
+    auto automorphism = DpisoUsingMatch(this->tri_vertex_pattern_,
+                                        this->tri_vertex_pattern_);
+    assert(automorphism == 1
+        || automorphism == 2);
+    if (automorphism == 2){
+      this->symmetrical_ = true;
+      return;
+    }
+    this->symmetrical_ = false;
+    return;
+  }
 
-//   TriVertexPatternType& tri_vertex_pattern(){
-//     return this->tri_vertex_pattern_;
-//   }
+  TriVertexPatternType& tri_vertex_pattern(){
+    return this->tri_vertex_pattern_;
+  }
 
-//   const TriVertexPatternType& tri_vertex_pattern() const{
-//     return this->tri_vertex_pattern_;
-//   }
+  const TriVertexPatternType& tri_vertex_pattern() const{
+    return this->tri_vertex_pattern_;
+  }
   
-//   inline bool symmetrical() const {
-//     return this->symmetrical_;
-//   }
+  inline bool symmetrical() const {
+    return this->symmetrical_;
+  }
 
-//   inline bool operator==(const Tls& tls) const {
-//     return SamePattern(this->tri_vertex_pattern_, 
-//                          tls.tri_vertex_pattern_);
-//   }
+  inline bool operator==(const Tls& tls) const {
+    return SamePattern(this->tri_vertex_pattern_, 
+                         tls.tri_vertex_pattern_);
+  }
 
-//   inline bool operator!=(const Tls& tls) const {
-//     return !((*this) == tls);
-//   }
+  inline bool operator!=(const Tls& tls) const {
+    return !((*this) == tls);
+  }
 
-//  private:
-//   TriVertexPatternType tri_vertex_pattern_;
-//   bool symmetrical_;
-// };
+ private:
+  TriVertexPatternType tri_vertex_pattern_;
+  bool symmetrical_;
+};
 
-// template <typename TriVertexPatternType>
-// class TlsSet{
-//  private:
-//   using TlsType = Tls<TriVertexPatternType>;
+template <typename TriVertexPatternType>
+class TlsSet{
+ private:
+  using TlsType = Tls<TriVertexPatternType>;
 
-//   using ContainerTlsContainerType 
-//       = Container<ContainerType::Vector,
-//                        SortType::Default,
-//                         TlsType>;
+  using ContainerTlsContainerType 
+      = Container<ContainerType::Vector,
+                       SortType::Default,
+                        TlsType>;
 
-//  public:
-//   using       iterator = typename ContainerTlsContainerType::      iterator;
-//   using const_iterator = typename ContainerTlsContainerType::const_iterator;
+ public:
+  using       iterator = typename ContainerTlsContainerType::      iterator;
+  using const_iterator = typename ContainerTlsContainerType::const_iterator;
 
-//   TlsSet(){
-//     return;
-//   }
+  TlsSet(){
+    return;
+  }
 
-//   inline std::pair<iterator, bool> AddTls(const TlsType& tls){
-//     return this->tls_set_.Insert(tls);
-//   }
+  inline std::pair<iterator, bool> AddTls(const TlsType& tls){
+    return this->tls_set_.Insert(tls);
+  }
 
-//   inline size_t Size() const{
-//     return this->tls_set_.size();
-//   }
+  inline size_t Size() const{
+    return this->tls_set_.size();
+  }
 
-//   inline iterator TlsBegin() {
-//     return this->tls_set_.begin();
-//   }
+  inline iterator TlsBegin() {
+    return this->tls_set_.begin();
+  }
 
-//   inline iterator TlsEnd() {
-//     return this->tls_set_.end();
-//   }
+  inline iterator TlsEnd() {
+    return this->tls_set_.end();
+  }
 
-//   inline const_iterator TlsBegin() const {
-//     return this->tls_set_.cbegin();
-//   }
+  inline const_iterator TlsBegin() const {
+    return this->tls_set_.cbegin();
+  }
 
-//   inline const_iterator TlsEnd() const {
-//     return this->tls_set_.cend();
-//   }
+  inline const_iterator TlsEnd() const {
+    return this->tls_set_.cend();
+  }
 
-//  private:
-//   ContainerTlsContainerType tls_set_;
-// };
+ private:
+  ContainerTlsContainerType tls_set_;
+};
 
-// template <typename TriVertexPatternType>
-// size_t Li(TriVertexPatternType&  q,
-//    TlsSet<TriVertexPatternType>& tls_set){
-//   size_t li_q_tls = 0;
-//   for (auto tls_it  = tls_set.TlsBegin();
-//             tls_it != tls_set.TlsEnd();
-//             tls_it++) {
-//     auto automorphism = DpisoUsingMatch(tls_it->tri_vertex_pattern(), q);
-//     if (tls_it->symmetrical()) {
-//       assert(automorphism % 2 == 0);
-//       automorphism /= 2;
-//     }
-//     li_q_tls += automorphism;
-//   }
-//   return li_q_tls;
-// }
+template <typename     GraphPatternType,
+          typename TriVertexPatternType>
+size_t Li(GraphPatternType&  q,
+   TlsSet<TriVertexPatternType>& tls_set){
+  size_t li_q_tls = 0;
+  for (auto tls_it  = tls_set.TlsBegin();
+            tls_it != tls_set.TlsEnd();
+            tls_it++) {
+    auto automorphism = DpisoUsingMatch(tls_it->tri_vertex_pattern(), q);
+    if (tls_it->symmetrical()) {
+      assert(automorphism % 2 == 0);
+      automorphism /= 2;
+    }
+    li_q_tls += automorphism;
+  }
+  return li_q_tls;
+}
 
-// template <typename TriVertexPatternType>
-// TlsSet<TriVertexPatternType> Intersect(TlsSet<TriVertexPatternType>& tls_qi_set,
-//                                        TlsSet<TriVertexPatternType>& tls_qj_set){
-//   auto qi_qj_tls_set = qi_tls_set;
-//   for (){
+template <typename TriVertexPatternType>
+TlsSet<TriVertexPatternType> Intersect(TlsSet<TriVertexPatternType>& tls_qi_set,
+                                       TlsSet<TriVertexPatternType>& tls_qj_set){
+  auto qi_qj_tls_set = qi_tls_set;
+  for (){
 
-//   }
-// }
+  }
+}
 
-// template <typename TriVertexPatternType>
-// double Gf(TriVertexPatternType& qi, TlsSet<TriVertexPatternType>& tls_qi_set, size_t tls_qi_size,
-//           TriVertexPatternType& qj, TlsSet<TriVertexPatternType>& tls_qj_set, size_t tls_qj_size){
+template <typename TriVertexPatternType>
+double Gf(TriVertexPatternType& qi, TlsSet<TriVertexPatternType>& tls_qi_set, size_t tls_qi_size,
+          TriVertexPatternType& qj, TlsSet<TriVertexPatternType>& tls_qj_set, size_t tls_qj_size){
 
-//   TlsSet<TriVertexPatternType> tls_qi_qj_set 
-//                    = Intersect(tls_qi_set,
-//                                tls_qj_set);
+  TlsSet<TriVertexPatternType> tls_qi_qj_set 
+                   = Intersect(tls_qi_set,
+                               tls_qj_set);
   
-//   size_t li_qi_tls_qi_qj = Li(qi, tls_qi_qj_set);
-//   size_t li_qj_tls_qi_qj = Li(qj, tls_qi_qj_set);
+  size_t li_qi_tls_qi_qj = Li(qi, tls_qi_qj_set);
+  size_t li_qj_tls_qi_qj = Li(qj, tls_qi_qj_set);
 
-//   size_t numerator = li_qi_tls_qi_qj < li_qj_tls_qi_qj?
-//                      li_qi_tls_qi_qj : li_qj_tls_qi_qj;
+  size_t numerator = li_qi_tls_qi_qj < li_qj_tls_qi_qj?
+                     li_qi_tls_qi_qj : li_qj_tls_qi_qj;
 
-//   size_t denominator = tls_qi_size < tls_qj_size?
-//                        tls_qi_size : tls_qj_size;
+  size_t denominator = tls_qi_size < tls_qj_size?
+                       tls_qi_size : tls_qj_size;
 
-//   return ((double)numerator) / ((double)denominator);
-// }
+  return ((double)numerator) / ((double)denominator);
+}
 
-// template<typename     GraphPatternType,
-//          typename TriVertexPatternType>
-// void BuildTls(GraphPatternType&  q,
-//    TlsSet<TriVertexPatternType>& q_tls_set){
-//   assert(q_tls_set.Size() == 0);
+template <typename     GraphPatternType,
+          typename TriVertexPatternType>
+void BuildTls(GraphPatternType&  q,
+   TlsSet<TriVertexPatternType>& q_tls_set){
+  assert(q_tls_set.Size() == 0);
 
-//   for (auto vertex_it = q.VertexBegin();
-//            !vertex_it.IsDone();
-//             vertex_it++) {
-//     // enumerate the src vertex of the tri_vertex_pattern
-//     TriVertexPatternType tri_vertex_pattern;
+  using VertexHandleType = typename VertexHandle<GraphPatternType>::type;
+  using VertexIDType     = typename GraphPatternType::VertexType::IDType;
 
-//     // construct the tri_vertex_pattern
-//     for () {
-      
-//     }
+  std::vector<VertexIDType> vertex_id_set;
+  vertex_id_set.reserve(q.CountVertex());
+  for (auto vertex_it = q.VertexBegin();
+           !vertex_it.IsDone();
+            vertex_it++) {
+    vertex_id_set.emplace_back(vertex_it->id());
+  }
+  assert(vertex_id_set.size() == q.CountVertex());
 
-//     assert(tri_vertex_pattern.CountVertex() == 3);
-//     q_tls_set.AddTls(tri_vertex_pattern);
-//   }  
-  
+  for (auto vertex_it = q.VertexBegin();
+           !vertex_it.IsDone();
+            vertex_it++) {
+    // enumerate the src vertex of the tri_vertex_pattern
+    std::vector<VertexHandleType> tri_vertex_handle_set;
+    tri_vertex_handle_set.resize(3, VertexHandleType());
+    
+    // construct the tri_vertex_pattern
+    auto dfs_callback = [&tri_vertex_handle_set,
+                         &q,
+                         #ifndef NDEBUG
+                         &vertex_it,
+                         #endif // NDEBUG
+                         &vertex_id_set](
+                    VertexPtr vertex_handle, int dfs_idx, 
+                                             int dfs_depth){
+      assert(tri_vertex_handle_set.size() == 3);
+      assert(tri_vertex_handle_set.at(0) == vertex_it);
+      assert(0 <= dfs_depth && dfs_depth <= 2);
+      tri_vertex_handle_set.at(dfs_depth) = vertex_handle;
+      if (dfs_depth < 2) {
+        // does not need further process
+        return true;
+      }
+      // has already get a tri-vertex tuple
+      TriVertexPatternType tri_vertex_pattern(q);
+      // get a tri-vertex pattern, obtain it from the graph pattern
+      for (const auto& vertex_id : vertex_id_set) {
+        bool in_tri_vertex_pattern = false;
+        for (const auto& tri_vertex_handle
+                       : tri_vertex_handle_set) {
+          // should not be null
+          assert(tri_vertex_handle);
+          if (tri_vertex_handle->id() == vertex_id) {
+            in_tri_vertex_pattern = true;
+            break;
+          }
+        }
+        if (in_tri_vertex_pattern) {
+          // this vertex does not need to be removed
+          continue;
+        }
+        // this vertex is not contained in the tri-vertex-pattern
+        // need to be removed 
+        auto erase_size_ret = tri_vertex_pattern.EraseVertex(vertex_id);
+        // should have removed successfully
+        assert(erase_size_ret == 1);
+      }
+      assert(tri_vertex_pattern.CountVertex() == 3);
+      q_tls_set.AddTls(tri_vertex_pattern);
+      return true;
+    };
+    Dfs<true, true>(q, vertex_it, dfs_callback, 3);
+  }
+  return;
+}
 
-//   return;
-// }
+template <typename GraphPatternType>
+void TLSGroupMatrix(std::vector<GraphPatternType>& query_graph_list,
+                    std::map<int, std::vector<int>> m,
+                    double threshold){
+  assert(threshold >= 0.0
+      && threshold <= 1.0);
+  using TlsSetType = TlsSet<TriVertexPatternType>;
+  std::vector<std::pair<TlsSetType, size_t>> query_graph_tls_set_list;
+  query_graph_tls_set_list.reserve(query_graph_list.size());
+  for (auto& q : query_graph_list) {
+    TlsSetType q_tls_set;
+    BuildTls(q, q_tls_set);
+    auto li = Li(q, q_tls_set);
+    query_graph_tls_set_list.emplace_back(std::move(q_tls_set), std::move(li));
+  }
+  for (int i = 0; i < query_graph_list.size(); i++) {
+    for (int j = i + 1; j < query_graph_list.size(); j++) {
+      double gf_qi_qj = Gf(query_graph_list[i], 
+                           query_graph_tls_set_list[i].first,  
+                           query_graph_tls_set_list[i].second,
+                           query_graph_list[j], 
+                           query_graph_tls_set_list[j].first,  
+                           query_graph_tls_set_list[j].second);
+      if (gf_qi_qj >= threshold) {
+        m[i].emplace_back(j);
+      }
+    }
+  }
+  return;
+}
+
+template <typename GraphPatternType>
+void ObtainClique(std::map<int, std::vector<int>>& m,
+                    std::vector<std::vector<int>>& clique){
+  return;
+}
 
 template <typename GraphPatternType,
           typename    DataGraphType,
@@ -194,6 +282,16 @@ inline Match<GraphPatternType,
   auto attr_handle = vertex_handle->FindAttribute(kMatchFromParentAttributeKey);
   assert(attr_handle);
   return attr_handle->template value<MatchType>();
+}
+
+template<typename GraphPatternType>
+GraphPatternType ComputeMCS(GraphPatternType& q0,
+                            GraphPatternType& q1){
+  GraphPatternType mcs;
+  for () {
+    
+  }
+  return;
 }
 
 template <typename      PcmTreeType,
@@ -230,6 +328,17 @@ typename VertexHandle<PcmTreeType>::type
   auto root_handle = pcm_tree.FindVertex(0);
   assert(root_handle);
   return root_handle;
+
+  TLSGroupMatrix(query_graph_list, m, threshold);
+  
+  ObtainClique(m, cliques);
+
+  for (const auto& clique : cliques) {
+    for (const auto& query_graph_id : clique) {
+      // enumerate the query_graph_id in this clique
+      next_level_graph = ;
+    }
+  }
 }
 
 template <enum MatchSemantics match_semantics 
