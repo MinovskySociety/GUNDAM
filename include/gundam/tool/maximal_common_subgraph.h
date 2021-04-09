@@ -2,6 +2,7 @@
 #define _GUNDAM_TOOL_MAXIMAL_COMMON_SUBGRAPH
 
 #include "gundam/tool/unique_patterns.h"
+#include "gundam/tool/sub_graph_of.h"
 
 namespace GUNDAM{
 
@@ -9,8 +10,11 @@ template <typename GraphPatternType>
 std::vector<GraphPatternType> 
   MaximalCommonSubgraph(GraphPatternType& q0,
                         GraphPatternType& q1){
-  if (SamePattern(q0, q1)){
+  if (SubGraphOf(q0, q1)){
     return std::vector<GraphPatternType>(q0);
+  }
+  if (SubGraphOf(q1, q0)){
+    return std::vector<GraphPatternType>(q1);
   }
   using VertexLabelType = typename GraphPatternType
                                        ::VertexType

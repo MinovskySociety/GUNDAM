@@ -450,37 +450,100 @@ typename VertexHandle<PcmTreeType>::type
       while (query_graph_id_set.size() >= 2) {
         // randomly pick a pair of pattern in the remained
         // patterns in this clique
-        size_t query_graph_id_set_idx_0  = rand() % query_graph_id_set.size();
-        size_t query_graph_id_set_idx_1  = query_graph_id_set_idx_0;
-        while (query_graph_id_set_idx_1 == query_graph_id_set_idx_0){
-          query_graph_id_set_idx_1  = rand() % query_graph_id_set.size();
+        size_t query_graph_id_set_idx_i  = rand() % query_graph_id_set.size();
+        size_t query_graph_id_set_idx_j  = query_graph_id_set_idx_i;
+        while (query_graph_id_set_idx_j == query_graph_id_set_idx_i){
+          query_graph_id_set_idx_j  = rand() % query_graph_id_set.size();
         }
-        assert(query_graph_id_set_idx_0
-            != query_graph_id_set_idx_1);
+        assert(query_graph_id_set_idx_i
+            != query_graph_id_set_idx_j);
         // has picked a random pair from current clique 
+        std::pair<int, bool>
+          query_graph_id_i = query_graph_id_set[query_graph_id_set_idx_i],
+          query_graph_id_j = query_graph_id_set[query_graph_id_set_idx_j];
+
+        // removed the picked pair from current clique
+        query_graph_id_set.erase(query_graph_id_set.begin() 
+                               + query_graph_id_set_idx_i);
+        query_graph_id_set.erase(query_graph_id_set.begin() 
+                               + query_graph_id_set_idx_j);
+
+        auto& qi = GetPatternRef(query_graph_id_i, query_graph_list, 
+                                              additional_graph_list);
+        auto& qj = GetPatternRef(query_graph_id_j, query_graph_list,
+                                              additional_graph_list);
+
+        if (SubGraphOf(qi, qj)) {
+          // qi is the subgraph of qj
+          // add an edge from qj to qi
+          auto [edge_handle, 
+                edge_ret] = pcm_tree.AddEdge(query_graph_id_j,
+                                             query_graph_id_i,
+                                            kDefaultEdgeLabel,
+                                             edge_counter++);
+          assert(edge_ret);
+          // and add qj into next_level_group 
+          next_level_group.emplace_back(query_graph_id_j);
+          continue;
+        }
+        if (SubGraphOf(qj, qi)) {
+          // qj is the subgraph of qi
+          // add an edge from qj to qi
+          auto [edge_handle, 
+                edge_ret] = pcm_tree.AddEdge(query_graph_id_i,
+                                             query_graph_id_j,
+                                            kDefaultEdgeLabel,
+                                             edge_counter++);
+          assert(edge_ret);
+          // and add qi into next_level_group 
+          next_level_group.emplace_back(query_graph_id_i);
+          continue;
+        }
 
         auto mcs_qi_qj_set = MaximalCommonSubgraph(qi, qj);
         assert(!mcs_qi_qj_set.empty());
         bool has_been_contained = false;
-        for (const auto& mcs_qi_qj : mcs_qi_qj_set) {
+        for (const auto& mcs : mcs_qi_qj_set) {
           // to find whether the mcs has already been contained
           // in this clique or next_level_group
-          for (int i = 0; i < query_graph_id_set.size(); i++){
-            // find in this 
-            if () {
+          for (int query_graph_id_set_idx = 0;
+                   query_graph_id_set_idx < query_graph_id_set.size();
+                   query_graph_id_set_idx++){
+            const auto& query_graph_id 
+                      = query_graph_id_set[query_graph_id_set_idx];
+            // find in this clique to find a new
+            auto& query_graph = GetPatternRef(query_graph_id, 
+                                              query_graph_list, 
+                                              additional_graph_list);
+            if (SamePattern(query_graph, mcs)) {
+              // add an edge from query_graph_id to qi and qj
+              auto [edge_handle_i, 
+                    edge_ret_i] = pcm_tree.AddEdge(query_graph_id,
+                                                   query_graph_id_i,
+                                                  kDefaultEdgeLabel,
+                                                   edge_counter++);
+              assert(edge_ret_i);
+              auto [edge_handle_j, 
+                    edge_ret_j] = pcm_tree.AddEdge(query_graph_id,
+                                                   query_graph_id_j,
+                                                  kDefaultEdgeLabel,
+                                                   edge_counter++);
+              assert(edge_ret_j);
+              // remove query_graph_id from 
+              query_graph_id_set.erase(query_graph_id_set.begin() 
+                                     + query_graph_id_set_idx);
+              has_been_contained = true;
+              break;
             }
+          }
+          if (has_been_contained){
+            continue;
           }
         }
         // if 
         if (!has_been_contained) {
 
         }
-
-        // removed the picked pair
-        query_graph_id_set.erase(query_graph_id_set.begin() 
-                               + query_graph_id_set_idx_0);
-        query_graph_id_set.erase(query_graph_id_set.begin() 
-                               + query_graph_id_set_idx_1);
       }
       assert(query_graph_id_set.size() == 0
           || query_graph_id_set.size() == 1);
