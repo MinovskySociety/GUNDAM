@@ -280,7 +280,7 @@ inline void UpdateState(
     TargetVertexHandle target_vertex_handle,
     std::map<QueryVertexHandle, TargetVertexHandle> &match_state,
     std::set<TargetVertexHandle> &target_matched) {
-  assert(match_state.count(target_vertex_handle) == 0);
+  assert(match_state.count(query_vertex_handle) == 0);
   match_state.emplace(query_vertex_handle, target_vertex_handle);
   target_matched.emplace(target_vertex_handle);
   return;
@@ -471,8 +471,11 @@ bool _DPISO(std::map<typename VertexHandle<QueryGraph>::type,
   if (match_state.size() == candidate_set.size()) {
     return user_callback(match_state);
   }
+  std::cout << "before call NextMatchVertex_ 1" << std::endl;
   QueryVertexHandle next_query_vertex_handle =
       NextMatchVertex(candidate_set, match_state);
+  assert(match_state.count(next_query_vertex_handle) == 0);
+  std::cout << "after call NextMatchVertex_ 1" << std::endl;
   for (TargetVertexHandle &next_target_vertex_handle :
        candidate_set.find(next_query_vertex_handle)->second) {
     if (prune_callback(match_state)) {
@@ -579,8 +582,11 @@ bool _DPISO(
   if (prune_callback(match_state)) {
     return true;
   }
+  std::cout << "before call NextMatchVertex_ 2" << std::endl;
   QueryVertexHandle next_query_vertex_handle =
       NextMatchVertex(candidate_set, match_state);
+  assert(match_state.count(next_query_vertex_handle) == 0);
+  std::cout << "after call NextMatchVertex_ 2" << std::endl;
   // cal this vertex's  parent
   UpdateParent(match_state, next_query_vertex_handle, parent);
   std::vector<QueryVertexHandle> this_state_fail_set;
@@ -1102,8 +1108,11 @@ inline int DPISO_Recursive(
     omp_unset_lock(&prune_callback_lock);
     return ret_val;
   };
+  std::cout << "before call NextMatchVertex_ 3" << std::endl;
   QueryVertexHandle next_query_ptr =
       _dp_iso::NextMatchVertex(candidate_set, match_state);
+  assert(match_state.count(next_query_ptr) == 0);
+  std::cout << "after call NextMatchVertex_ 3" << std::endl;
   if (!next_query_ptr) {
     if (query_graph.CountEdge() >= large_query_edge) {
       std::map<QueryVertexHandle, std::vector<QueryVertexHandle>> parent;
