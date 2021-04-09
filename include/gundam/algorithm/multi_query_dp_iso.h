@@ -532,6 +532,8 @@ typename VertexHandle<PcmTreeType>::type
               // remove query_graph_id from 
               query_graph_id_set.erase(query_graph_id_set.begin() 
                                      + query_graph_id_set_idx);
+              // and add query_graph_id into next_level_group 
+              next_level_group.emplace_back(query_graph_id);
               has_been_contained = true;
               break;
             }
