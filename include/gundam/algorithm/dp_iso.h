@@ -1136,7 +1136,7 @@ inline int DPISO_Recursive(
           // user_callback_lock is read-only in this callback
           // and can only be set from false to true
           // omp_set_lock(&user_callback_lock);
-          // if (!user_callback_has_return_false){
+          if (!user_callback_has_return_false){
             auto& match_target_ptr = match_ptr_candidate[i];
             if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
                     next_query_ptr, match_target_ptr, match_state, target_matched)) {
@@ -1165,7 +1165,7 @@ inline int DPISO_Recursive(
                     query_limit_time);
               }
             }
-          // }
+          }
           // omp_unset_lock(&user_callback_lock);
         }
       }
