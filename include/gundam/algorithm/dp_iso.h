@@ -471,11 +471,9 @@ bool _DPISO(std::map<typename VertexHandle<QueryGraph>::type,
   if (match_state.size() == candidate_set.size()) {
     return user_callback(match_state);
   }
-  std::cout << "before call NextMatchVertex_ 1" << std::endl;
   QueryVertexHandle next_query_vertex_handle =
       NextMatchVertex(candidate_set, match_state);
   assert(match_state.count(next_query_vertex_handle) == 0);
-  std::cout << "after call NextMatchVertex_ 1" << std::endl;
   for (TargetVertexHandle &next_target_vertex_handle :
        candidate_set.find(next_query_vertex_handle)->second) {
     if (prune_callback(match_state)) {
@@ -582,11 +580,9 @@ bool _DPISO(
   if (prune_callback(match_state)) {
     return true;
   }
-  std::cout << "before call NextMatchVertex_ 2" << std::endl;
   QueryVertexHandle next_query_vertex_handle =
       NextMatchVertex(candidate_set, match_state);
   assert(match_state.count(next_query_vertex_handle) == 0);
-  std::cout << "after call NextMatchVertex_ 2" << std::endl;
   // cal this vertex's  parent
   UpdateParent(match_state, next_query_vertex_handle, parent);
   std::vector<QueryVertexHandle> this_state_fail_set;
@@ -1108,11 +1104,9 @@ inline int DPISO_Recursive(
     omp_unset_lock(&prune_callback_lock);
     return ret_val;
   };
-  std::cout << "before call NextMatchVertex_ 3" << std::endl;
   QueryVertexHandle next_query_ptr =
       _dp_iso::NextMatchVertex(candidate_set, match_state);
   assert(match_state.count(next_query_ptr) == 0);
-  std::cout << "after call NextMatchVertex_ 3" << std::endl;
   if (!next_query_ptr) {
     if (query_graph.CountEdge() >= large_query_edge) {
       std::map<QueryVertexHandle, std::vector<QueryVertexHandle>> parent;
@@ -1145,9 +1139,9 @@ inline int DPISO_Recursive(
       auto& match_target_ptr = match_ptr_candidate[i];
       if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
               next_query_ptr, match_target_ptr, match_state, target_matched)) {
-        decltype(match_state) temp_match_state{match_state};
-        decltype(target_matched) temp_target_matched{target_matched};
-        decltype(candidate_set) temp_candidate_set{candidate_set};
+        auto temp_match_state = match_state;
+        auto temp_target_matched = target_matched;
+        auto temp_candidate_set = candidate_set;
         _dp_iso::UpdateState(next_query_ptr, match_target_ptr, temp_match_state,
                              temp_target_matched);
         _dp_iso::UpdateCandidateSet<QueryGraph, TargetGraph>(
