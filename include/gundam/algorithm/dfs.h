@@ -19,6 +19,7 @@ namespace GUNDAM {
 //    user_callback(vertex_handle)
 //    user_callback(vertex_handle, dfs_idx)
 template <bool bidirectional = false,
+          bool remove_duplicate = true,
           typename         GraphType,
           typename  UserCallBackType,
           typename PruneCallBackType>
@@ -63,7 +64,9 @@ inline size_t Dfs(GraphType& graph,
   std::stack<VertexHandleType> vertex_handle_stack;
   std:: set <VertexHandleType> visited;
   vertex_handle_stack.emplace(src_vertex_handle);
-  visited.emplace(src_vertex_handle);
+  if constexpr (remove_duplicate){
+    visited.emplace(src_vertex_handle);
+  }
   while (!vertex_handle_stack.empty()) {
     auto current_vertex_handle = vertex_handle_stack.top();
     vertex_handle_stack.pop();
@@ -90,9 +93,11 @@ inline size_t Dfs(GraphType& graph,
     for (auto edge_it = current_vertex_handle->OutEdgeBegin();
              !edge_it.IsDone();
               edge_it++) {
-      if (visited.find(edge_it->dst_handle()) != visited.end()){
-        // already visited
-        continue;
+      if constexpr (remove_duplicate){
+        if (visited.find(edge_it->dst_handle()) != visited.end()){
+          // already visited
+          continue;
+        }
       }
       bool prune_ret = false;
       if constexpr (
@@ -125,16 +130,20 @@ inline size_t Dfs(GraphType& graph,
         // this vertex is pruned, does not be considered
         continue;
       }
-      visited.emplace(edge_it->dst_handle());
+      if constexpr (remove_duplicate){
+        visited.emplace(edge_it->dst_handle());
+      }
       vertex_handle_stack.emplace(edge_it->dst_handle());
     }
     if constexpr (bidirectional){
       for (auto edge_it = current_vertex_handle->InEdgeBegin();
                !edge_it.IsDone();
                 edge_it++) {
-        if (visited.find(edge_it->src_handle()) != visited.end()){
-          // already visited
-          continue;
+        if constexpr (remove_duplicate){
+          if (visited.find(edge_it->src_handle()) != visited.end()){
+            // already visited
+            continue;
+          }
         }
         bool prune_ret = false;
         if constexpr (
@@ -155,7 +164,9 @@ inline size_t Dfs(GraphType& graph,
           // this vertex is pruned, does not be considered
           continue;
         }
-        visited.emplace(edge_it->src_handle());
+        if constexpr (remove_duplicate){
+          visited.emplace(edge_it->src_handle());
+        }
         vertex_handle_stack.emplace(edge_it->src_handle());
       }
     }
@@ -164,6 +175,7 @@ inline size_t Dfs(GraphType& graph,
 }
 
 template <bool bidirectional = false,
+          bool remove_duplicate = true,
           typename        GraphType,
           typename UserCallBackType>
 inline size_t Dfs(GraphType& graph,
@@ -174,14 +186,16 @@ inline size_t Dfs(GraphType& graph,
     // prune nothing, continue matching
     return false;
   };
-  return Dfs<bidirectional>(graph,
-                src_vertex_handle, 
-                    user_callback, 
-           prune_nothing_callback); 
+  return Dfs<bidirectional,
+             remove_duplicate>(graph,
+                   src_vertex_handle,
+                       user_callback,
+              prune_nothing_callback); 
 }
 
-template<bool bidirectional = false,
-         typename GraphType>
+template <bool bidirectional = false,
+          bool remove_duplicate = true,
+          typename GraphType>
 inline size_t Dfs(GraphType& graph,
               typename VertexHandle<GraphType>::type& src_vertex_handle) {
   using VertexHandleType = typename VertexHandle<GraphType>::type;
@@ -190,7 +204,8 @@ inline size_t Dfs(GraphType& graph,
     // do nothing, continue matching
     return true;
   };
-  return Dfs<bidirectional>(graph, src_vertex_handle, do_nothing_callback);
+  return Dfs<bidirectional,
+             remove_duplicate>(graph, src_vertex_handle, do_nothing_callback);
 }
 
 }  // namespace GUNDAM

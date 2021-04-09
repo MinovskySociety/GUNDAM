@@ -8,6 +8,8 @@
 #include "gundam/type_getter/vertex_handle.h"
 
 #include "gundam/algorithm/bfs.h"
+#include "gundam/algorithm/dfs.h"
+
 #include "gundam/algorithm/dp_iso.h"
 #include "gundam/algorithm/dp_iso_using_match.h"
 
@@ -132,10 +134,27 @@ size_t Li(GraphPatternType&  q,
 template <typename TriVertexPatternType>
 TlsSet<TriVertexPatternType> Intersect(TlsSet<TriVertexPatternType>& tls_qi_set,
                                        TlsSet<TriVertexPatternType>& tls_qj_set){
-  auto qi_qj_tls_set = qi_tls_set;
-  for (){
-
+  TlsSet<TriVertexPatternType> tls_qi_qj_set;
+  
+  for (auto tls_qi_it  = tls_qi_set.TlsBegin();
+            tls_qi_it != tls_qi_set.TlsEnd();
+            tls_qi_it++) {
+    // to find whether this tls is contained in tls_qj_it
+    auto& tls_qi = *tls_qi_it;
+    for (auto tls_qj_it  = tls_qi_set.TlsBegin();
+              tls_qj_it != tls_qi_set.TlsEnd();
+              tls_qj_it++) {
+      if (SamePattern(tls_qi_it->tri_vertex_pattern(),
+                      tls_qj_it->tri_vertex_pattern())){
+        // this tri_vertex_pattern is contained in both 
+        // tls_qi_set and tls_qj_set
+        // add into tls_qi_qj_set
+        tls_qi_qj_set.AddTls(tls_qi_it->tri_vertex_pattern());
+        break;
+      }
+    }
   }
+  return tls_qi_qj_set;
 }
 
 template <typename TriVertexPatternType>
@@ -189,8 +208,9 @@ void BuildTls(GraphPatternType&  q,
                          #ifndef NDEBUG
                          &vertex_it,
                          #endif // NDEBUG
+                         &q_tls_set,
                          &vertex_id_set](
-                    VertexPtr vertex_handle, int dfs_idx, 
+             VertexHandleType vertex_handle, int dfs_idx, 
                                              int dfs_depth){
       assert(tri_vertex_handle_set.size() == 3);
       assert(tri_vertex_handle_set.at(0) == vertex_it);
@@ -228,17 +248,43 @@ void BuildTls(GraphPatternType&  q,
       q_tls_set.AddTls(tri_vertex_pattern);
       return true;
     };
-    Dfs<true, true>(q, vertex_it, dfs_callback, 3);
+    // use bidir edge, does not remove duplicated vertex
+    Dfs<true, false>(q, vertex_it, dfs_callback, 3);
   }
   return;
 }
 
 template <typename GraphPatternType>
 void TLSGroupMatrix(std::vector<GraphPatternType>& query_graph_list,
-                    std::map<int, std::vector<int>> m,
+                    std::vector<std::vector<std::pair<int, bool>>> clique_set,
                     double threshold){
-  assert(threshold >= 0.0
-      && threshold <= 1.0);
+  assert(threshold >= 0.0 && threshold <= 1.0);
+
+  using CliqueVertexLabelType = int;
+  using CliqueVertexIdType = int;
+
+  using CliqueEdgeLabelType = int;
+  using CliqueEdgeIdType = int;
+
+  using CliqueVertexAttrKeyType = std::string;
+  using CliqueEdgeAttrKeyType   = std::string;
+
+  using CliqueGraphType = LargeGraph<CliqueVertexIdType, 
+                                     CliqueVertexLabelType, 
+                                     CliqueVertexAttrKeyType,
+                                     CliqueEdgeIdType, 
+                                     CliqueEdgeLabelType, 
+                                     CliqueEdgeAttrKeyType>;
+  using ClusterVertexHandleType = typename VertexHandle<CliqueGraphType>::type;
+
+  CliqueGraphType m;
+
+  constexpr CliqueVertexLabelType kDefaultVertexLabel = 0;
+  constexpr   CliqueEdgeLabelType kDefaultEdgeLabel   = 0;
+  const   CliqueVertexAttrKeyType kAddedToCliqueKey   = "add_to_key";
+
+  using TriVertexPatternType = GraphPatternType;
+
   using TlsSetType = TlsSet<TriVertexPatternType>;
   std::vector<std::pair<TlsSetType, size_t>> query_graph_tls_set_list;
   query_graph_tls_set_list.reserve(query_graph_list.size());
@@ -248,6 +294,15 @@ void TLSGroupMatrix(std::vector<GraphPatternType>& query_graph_list,
     auto li = Li(q, q_tls_set);
     query_graph_tls_set_list.emplace_back(std::move(q_tls_set), std::move(li));
   }
+
+  for (int i = 0; i < query_graph_list.size(); i++) {
+    auto [ vertex_handle, 
+           vertex_ret ] = m.AddVertex(i, kDefaultVertexLabel);
+    // should add successfully
+    assert(vertex_ret);
+  }
+
+  CliqueEdgeIdType edge_id_counter = 0;
   for (int i = 0; i < query_graph_list.size(); i++) {
     for (int j = i + 1; j < query_graph_list.size(); j++) {
       double gf_qi_qj = Gf(query_graph_list[i], 
@@ -257,30 +312,85 @@ void TLSGroupMatrix(std::vector<GraphPatternType>& query_graph_list,
                            query_graph_tls_set_list[j].first,  
                            query_graph_tls_set_list[j].second);
       if (gf_qi_qj >= threshold) {
-        m[i].emplace_back(j);
+        // only add one direction would be enough
+        m.AddEdge(i, j, kDefaultEdgeLabel, edge_id_counter);
+        edge_id_counter++;
       }
     }
+  }
+
+  for (auto vertex_it = m.VertexBegin();
+           !vertex_it.IsDone(); vertex_it++) {
+    if (vertex_it->FindAttribute(kAddedToCliqueKey)) {
+      // this vertex has already been added into the cluster
+      continue;
+    }
+    // find 
+    auto& clique = clique_set.emplace_back();
+    auto dfs_callback = [&clique,
+                         &kAddedToCliqueKey](ClusterVertexHandleType vertex_handle){
+      // should not contain this vertex
+      assert(!vertex_handle->FindAttribute(kAddedToCliqueKey));
+      clique.emplace_back(vertex_handle->id(), true);
+      auto [attr_handle,
+            attr_ret] = vertex_handle->AddAttribute(kAddedToCliqueKey, 0);
+      // should add successfully
+      assert(attr_ret);
+      return true;
+    };
+    Dfs<true>(vertex_it, m, dfs_callback);
+    assert(!clique.empty());
   }
   return;
 }
 
-template <typename GraphPatternType>
-void ObtainClique(std::map<int, std::vector<int>>& m,
-                    std::vector<std::vector<int>>& clique){
-  return;
+template <typename GraphPatternType,
+          typename VertexHandle>
+inline Match<GraphPatternType,
+             GraphPatternType>&
+    GetMatchToParent(VertexHandle vertex_handle) {
+  const std::string kMatchToParentAttributeKey = "match_to_parent";
+  using MatchType = Match<GraphPatternType,
+                          GraphPatternType>;
+  auto attr_handle = vertex_handle->FindAttribute(kMatchToParentAttributeKey);
+  assert(attr_handle);
+  return attr_handle->template value<MatchType>();
 }
 
 template <typename GraphPatternType,
-          typename    DataGraphType,
           typename VertexHandle>
 inline Match<GraphPatternType,
-                DataGraphType>&
-    GetMatchToParent(VertexHandle vertex_handle) {
-  const std::string kMatchFromParentAttributeKey = "match_from_parent";
-  using MatchType = Match<GraphPatternType,
-                             DataGraphType>;
-  auto attr_handle = vertex_handle->FindAttribute(kMatchFromParentAttributeKey);
-  assert(attr_handle);
+             GraphPatternType>&
+    AddMatchToParent(VertexHandle vertex_handle,
+                GraphPatternType& parent_graph,
+                GraphPatternType&  child_graph) {
+
+  const std::string kMatchToParentAttributeKey = "match_to_parent";
+
+  using MatchType 
+      = Match<GraphPatternType,
+              GraphPatternType>;
+
+  using MatchSetType 
+      = MatchSet<GraphPatternType,
+                 GraphPatternType>;
+
+  MatchSetType match_set_parent_to_child;
+
+  auto match_counter = DpisoUsingMatch(parent_graph,
+                                        child_graph,
+                          match_set_parent_to_child, 1);
+  assert(match_counter == 1);
+  assert(match_set_parent_to_child.size() == 1);
+  
+  MatchType match_child_to_parent(*(match_set_parent_to_child.MatchBegin()),
+                                 "reverse");
+
+  auto [attr_handle,
+        attr_ret] = vertex_handle->AddAttribute(kMatchToParentAttributeKey,
+                                                 match_child_to_parent);
+  // should added successfully
+  assert(attr_ret);
   return attr_handle->template value<MatchType>();
 }
 
@@ -288,7 +398,10 @@ template <typename      PcmTreeType,
           typename GraphPatternType>
 typename VertexHandle<PcmTreeType>::type 
              BuildPCM(PcmTreeType&  pcm_tree,
-     std::vector<GraphPatternType>& query_graph_list) {
+             // to store the query graph
+     std::vector<GraphPatternType>&      query_graph_list,
+             // to store the additional graph
+     std::vector<GraphPatternType>& additional_graph_list) {
 
   using PcmTreeVertexLabelType = typename PcmTreeType::VertexType::LabelType;
   using   PcmTreeEdgeLabelType = typename PcmTreeType::  EdgeType::LabelType;
@@ -296,44 +409,111 @@ typename VertexHandle<PcmTreeType>::type
   const PcmTreeVertexLabelType kDefaultVertexLabel = 0;
   const   PcmTreeEdgeLabelType   kDefaultEdgeLabel = 0;
 
-  const std::string kMatchFromParentAttributeKey = "match_from_parent";
-  
-  assert(!query_graph_list.empty());
-  // only to compile pass
-  for (int i = 0; i < query_graph_list.size(); i++) {
-    auto [vertex_handle,
-          vertex_ret] = pcm_tree.AddVertex(i, kDefaultVertexLabel);
-    assert(vertex_handle);
-    assert(vertex_ret);
-    if (i == 0){
-      continue;
-    }
-    Match match_from_pattern(query_graph_list[i - 1],
-                             query_graph_list[i],
-                             "same_id_map");
-    vertex_handle->AddAttribute(kMatchFromParentAttributeKey, match_from_pattern);
-    pcm_tree.AddEdge(i - 1, i, kDefaultEdgeLabel, i - 1);
-  }
-  assert(pcm_tree.CountVertex() == query_graph_list.size());
-  auto root_handle = pcm_tree.FindVertex(0);
-  assert(root_handle);
-  return root_handle;
+  const std::string kMatchToParentAttributeKey = "match_to_parent";
 
-  TLSGroupMatrix(query_graph_list, m, threshold);
+  assert(    !query_graph_list.empty());
+  assert(additional_graph_list.empty());
   
-  ObtainClique(m, cliques);
+  // // only to compile pass
+  // for (int i = 0; i < query_graph_list.size(); i++) {
+  //   auto [ vertex_handle,
+  //          vertex_ret ] = pcm_tree.AddVertex(i, kDefaultVertexLabel);
+  //   assert(vertex_handle);
+  //   assert(vertex_ret);
+  //   if (i == 0){
+  //     continue;
+  //   }
+  //   Match match_from_pattern(query_graph_list[i - 1],
+  //                            query_graph_list[i],
+  //                            "same_id_map");
+  //   vertex_handle->AddAttribute(kMatchToParentAttributeKey, match_from_pattern);
+  //   pcm_tree.AddEdge(i - 1, i, kDefaultEdgeLabel, i - 1);
+  // }
+  // assert(pcm_tree.CountVertex() == query_graph_list.size());
+  // auto root_handle = pcm_tree.FindVertex(0);
+  // assert(root_handle);
+  // return root_handle;
 
-  std::vector<int> next_level_group;
+  std::vector<std::vector<std::pair<int, bool>>> cliques;
+
+  constexpr double threshold = 0.5;
+
+  TLSGroupMatrix(query_graph_list, cliques, threshold);
 
   for (const auto& clique : cliques) {
-    for (const auto& query_graph_id : clique) {
-      // enumerate the query_graph_id in this clique
-      next_level_group.clear();
-      std::vector<int> current_query_graph_id
-                             = query_graph_id;
-      while (true) {
-        next_level_group = ;
+    // the next level group
+    std::vector<std::pair<int, bool>> next_level_group;
+    std::vector<std::pair<int, bool>> query_graph_id_set = clique;
+    while (true) {
+      assert(next_level_group.empty());
+      assert(!query_graph_id_set.empty());
+      while (query_graph_id_set.size() >= 2) {
+        // randomly pick a pair of pattern in the remained
+        // patterns in this clique
+        size_t query_graph_id_set_idx_0  = rand() % query_graph_id_set.size();
+        size_t query_graph_id_set_idx_1  = query_graph_id_set_idx_0;
+        while (query_graph_id_set_idx_1 == query_graph_id_set_idx_0){
+          query_graph_id_set_idx_1  = rand() % query_graph_id_set.size();
+        }
+        assert(query_graph_id_set_idx_0
+            != query_graph_id_set_idx_1);
+        // has picked a random pair from current clique 
 
+        auto mcs_qi_qj_set = MaximalCommonSubgraph(qi, qj);
+        assert(!mcs_qi_qj_set.empty());
+        bool has_been_contained = false;
+        for (const auto& mcs_qi_qj : mcs_qi_qj_set) {
+          // to find whether the mcs has already been contained
+          // in this clique or next_level_group
+          for (int i = 0; i < query_graph_id_set.size(); i++){
+            // find in this 
+            if () {
+
+            }
+          }
+        }
+        // if 
+        if (!has_been_contained) {
+
+        }
+
+        // removed the picked pair
+        query_graph_id_set.erase(query_graph_id_set.begin() 
+                               + query_graph_id_set_idx_0);
+        query_graph_id_set.erase(query_graph_id_set.begin() 
+                               + query_graph_id_set_idx_1);
+      }
+      assert(query_graph_id_set.size() == 0
+          || query_graph_id_set.size() == 1);
+      
+      if (query_graph_id_set.size() == 1){
+        // there still one pattern remained in this clique
+        // add it into the next_level_group
+        next_level_group.emplace(*query_graph_id_set.begin());
+      }
+      if (next_level_group.size() == 1) {
+        // does not need further grouping
+        break;
+      }
+      query_graph_id_set.clear();
+      next_level_group.swap(query_graph_id_set);
+    }
+    
+    if () {
+
+    }
+    
+    auto query_graph_id_set = query_graph_id_set;
+    for (auto query_graph_it  = query_graph_id_set.begin();
+              query_graph_it != query_graph_id_set.end();
+              query_graph_it++) {
+      // enumerate the pattern pairs in this clique
+      // find mcs of them, if the mcs does not exist in
+      // the current clique, then add it into the additional_graph_list
+      next_level_group.clear();
+      auto query_graph_id = *query_graph_it;
+      while (true) {
+        // the 
         for (auto current_query_graph_id_it  = current_query_graph_id.begin();
                   current_query_graph_id_it != current_query_graph_id.end();){
           auto next_current_query_graph_id_it = current_query_graph_id_it;
@@ -351,11 +531,10 @@ typename VertexHandle<PcmTreeType>::type
           auto& qi;
           auto& qj;
 
-          auto mas_qi_qj = MaximalCommonSubgraph(qi, qj);
+          auto mcs_qi_qj = MaximalCommonSubgraph(qi, qj);
 
-          
-
-          if (mas_qi_qj.empty()){
+          // these two pattern does not have common subgraph
+          if (mcs_qi_qj.empty()){
             continue;
           }
 
@@ -605,7 +784,7 @@ inline void MultiQueryDpiso(
   for (auto& query_graph : query_graph_list){
 
     using CandidateSetType = std::map<QueryVertexHandle, 
-                        std::vector<TargetVertexHandle>>;
+                         std::vector<TargetVertexHandle>>;
 
     CandidateSetType candidate_set;
     if (!_dp_iso::InitCandidateSet<match_semantics>(query_graph,
