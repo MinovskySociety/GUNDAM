@@ -1126,44 +1126,50 @@ inline int DPISO_Recursive(
   } else {
     // partition next ptr's candiate
     auto &match_ptr_candidate = candidate_set.find(next_query_ptr)->second;
-    #pragma omp parallel for schedule(dynamic)
-    for (int i = 0; i < match_ptr_candidate.size(); i++) {
-      // it might be unnecessary to set the lock here
-      // user_callback_lock is read-only in this callback
-      // and can only be set from false to true
-      // omp_set_lock(&user_callback_lock);
-      if (user_callback_has_return_false){
-        continue;
-      }
-      // omp_unset_lock(&user_callback_lock);
-      auto& match_target_ptr = match_ptr_candidate[i];
-      if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
-              next_query_ptr, match_target_ptr, match_state, target_matched)) {
-        auto temp_match_state = match_state;
-        auto temp_target_matched = target_matched;
-        auto temp_candidate_set = candidate_set;
-        _dp_iso::UpdateState(next_query_ptr, match_target_ptr, temp_match_state,
-                             temp_target_matched);
-        _dp_iso::UpdateCandidateSet<QueryGraph, TargetGraph>(
-            next_query_ptr, match_target_ptr, temp_candidate_set,
-            temp_match_state, temp_target_matched);
-        if (query_graph.CountEdge() >= large_query_edge) {
-          std::map<QueryVertexHandle, std::vector<QueryVertexHandle>> parent;
-          for (auto &[query_ptr, target_ptr] : temp_match_state) {
-            _dp_iso::UpdateParent(temp_match_state, query_ptr, parent);
-          }
-          std::vector<QueryVertexHandle> fail_set;
-          _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
-              temp_candidate_set, temp_match_state, temp_target_matched, parent,
-              fail_set, par_user_callback, par_prune_callback,
-              clock(), query_limit_time);
-        } else {
-          _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
-              temp_candidate_set, temp_match_state, temp_target_matched,
-              par_user_callback, par_prune_callback, clock(),
-              query_limit_time);
+    #pragma omp parallel
+    #pragma omp single
+    {
+      for (int i = 0; i < match_ptr_candidate.size(); i++) {
+        #pragma omp task
+        {
+          // it might be unnecessary to set the lock here
+          // user_callback_lock is read-only in this callback
+          // and can only be set from false to true
+          // omp_set_lock(&user_callback_lock);
+          // if (!user_callback_has_return_false){
+            auto& match_target_ptr = match_ptr_candidate[i];
+            if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
+                    next_query_ptr, match_target_ptr, match_state, target_matched)) {
+              auto temp_match_state = match_state;
+              auto temp_target_matched = target_matched;
+              auto temp_candidate_set = candidate_set;
+              _dp_iso::UpdateState(next_query_ptr, match_target_ptr, temp_match_state,
+                                  temp_target_matched);
+              _dp_iso::UpdateCandidateSet<QueryGraph, TargetGraph>(
+                  next_query_ptr, match_target_ptr, temp_candidate_set,
+                  temp_match_state, temp_target_matched);
+              if (query_graph.CountEdge() >= large_query_edge) {
+                std::map<QueryVertexHandle, std::vector<QueryVertexHandle>> parent;
+                for (auto &[query_ptr, target_ptr] : temp_match_state) {
+                  _dp_iso::UpdateParent(temp_match_state, query_ptr, parent);
+                }
+                std::vector<QueryVertexHandle> fail_set;
+                _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
+                    temp_candidate_set, temp_match_state, temp_target_matched, parent,
+                    fail_set, par_user_callback, par_prune_callback,
+                    clock(), query_limit_time);
+              } else {
+                _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
+                    temp_candidate_set, temp_match_state, temp_target_matched,
+                    par_user_callback, par_prune_callback, clock(),
+                    query_limit_time);
+              }
+            }
+          // }
+          // omp_unset_lock(&user_callback_lock);
         }
       }
+      #pragma omp taskwait
     }
   }
   return static_cast<int>(result_count);

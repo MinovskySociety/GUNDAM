@@ -468,7 +468,6 @@ typename VertexHandle<PcmTreeType>::type
           for (int i = 0; i < query_graph_id_set.size(); i++){
             // find in this 
             if () {
-
             }
           }
         }
