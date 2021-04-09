@@ -32,17 +32,17 @@ constexpr size_t large_query_edge = 6;
 constexpr size_t adj_vertex_limit = 200000;
 
 template <typename QueryVertexHandle, typename TargetVertexHandle>
-inline bool DegreeFiltering(QueryVertexHandle &query_vertex_hanlde,
+inline bool DegreeFiltering(QueryVertexHandle &query_vertex_handle,
                             TargetVertexHandle &target_vertex_handle) {
-  if (query_vertex_hanlde->CountInEdge() > target_vertex_handle->CountInEdge())
+  if (query_vertex_handle->CountInEdge() > target_vertex_handle->CountInEdge())
     return false;
-  if (query_vertex_hanlde->CountOutEdge() >
+  if (query_vertex_handle->CountOutEdge() >
       target_vertex_handle->CountOutEdge())
     return false;
-  if (query_vertex_hanlde->CountInVertex() >
+  if (query_vertex_handle->CountInVertex() >
       target_vertex_handle->CountInVertex())
     return false;
-  if (query_vertex_hanlde->CountOutVertex() >
+  if (query_vertex_handle->CountOutVertex() >
       target_vertex_handle->CountOutVertex())
     return false;
   return true;
@@ -51,31 +51,33 @@ inline bool DegreeFiltering(QueryVertexHandle &query_vertex_hanlde,
 template <enum EdgeState edge_state, typename QueryVertexHandle,
           typename TargetVertexHandle>
 inline bool NeighborLabelFrequencyFilteringSingleDirection(
-    QueryVertexHandle &query_vertex_hanlde,
+    QueryVertexHandle &query_vertex_handle,
     TargetVertexHandle &target_vertex_handle) {
   for (auto edge_label_it =
-           (edge_state == EdgeState::kIn ? query_vertex_hanlde->InEdgeBegin()
-                                         : query_vertex_hanlde->OutEdgeBegin());
+           (edge_state == EdgeState::kIn ? query_vertex_handle->InEdgeBegin()
+                                         : query_vertex_handle->OutEdgeBegin());
        !edge_label_it.IsDone(); edge_label_it++) {
     auto query_count =
         (edge_state == EdgeState::kIn
-             ? query_vertex_hanlde->CountInVertex(edge_label_it->label())
-             : query_vertex_hanlde->CountOutVertex(edge_label_it->label()));
+             ? query_vertex_handle->CountInVertex(edge_label_it->label())
+             : query_vertex_handle->CountOutVertex(edge_label_it->label()));
     auto target_count =
         (edge_state == EdgeState::kIn
              ? target_vertex_handle->CountInVertex(edge_label_it->label())
              : target_vertex_handle->CountOutVertex(edge_label_it->label()));
+    assert(query_count >= 0 && target_count >= 0);
     if (query_count > target_count) {
       return false;
     }
     query_count =
         (edge_state == EdgeState::kIn
-             ? query_vertex_hanlde->CountInEdge(edge_label_it->label())
-             : query_vertex_hanlde->CountOutEdge(edge_label_it->label()));
+             ? query_vertex_handle->CountInEdge(edge_label_it->label())
+             : query_vertex_handle->CountOutEdge(edge_label_it->label()));
     target_count =
         (edge_state == EdgeState::kIn
              ? target_vertex_handle->CountInEdge(edge_label_it->label())
              : target_vertex_handle->CountOutEdge(edge_label_it->label()));
+    assert(query_count >= 0 && target_count >= 0);
     if (query_count > target_count) {
       return false;
     }
@@ -85,61 +87,70 @@ inline bool NeighborLabelFrequencyFilteringSingleDirection(
 
 template <typename QueryVertexHandle, typename TargetVertexHandle>
 inline bool NeighborLabelFrequencyFiltering(
-    QueryVertexHandle &query_vertex_hanlde,
+    QueryVertexHandle &query_vertex_handle,
     TargetVertexHandle &target_vertex_handle) {
   if (!NeighborLabelFrequencyFilteringSingleDirection<EdgeState::kIn>(
-          query_vertex_hanlde, target_vertex_handle)) {
+          query_vertex_handle, target_vertex_handle)) {
     return false;
   }
   if (!NeighborLabelFrequencyFilteringSingleDirection<EdgeState::kOut>(
-          query_vertex_hanlde, target_vertex_handle)) {
+          query_vertex_handle, target_vertex_handle)) {
     return false;
   }
   return true;
 }
 
 template <enum MatchSemantics match_semantics, typename QueryGraph,
-          typename TargetGraph, typename CandidateSetContainer>
-inline bool InitCandidateSet(QueryGraph &query_graph, TargetGraph &target_graph,
-                             CandidateSetContainer &candidate_set) {
+          typename TargetGraph>
+inline bool InitCandidateSet(
+    QueryGraph &query_graph, TargetGraph &target_graph,
+    std::map<typename VertexHandle<QueryGraph>::type,
+             std::vector<typename VertexHandle<TargetGraph>::type>>
+        &candidate_set) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
-
+  using CandidateContainer =
+      std::vector<typename VertexHandle<TargetGraph>::type>;
+  candidate_set.clear();
   for (auto query_vertex_iter = query_graph.VertexBegin();
        !query_vertex_iter.IsDone(); query_vertex_iter++) {
-    QueryVertexHandle query_vertex_hanlde = query_vertex_iter;
-    auto &l = candidate_set[query_vertex_iter];
+    QueryVertexHandle query_vertex_handle = query_vertex_iter;
+    CandidateContainer query_vertex_candidate;
     for (auto target_vertex_iter =
-             target_graph.VertexBegin(query_vertex_hanlde->label());
+             target_graph.VertexBegin(query_vertex_handle->label());
          !target_vertex_iter.IsDone(); target_vertex_iter++) {
       TargetVertexHandle target_vertex_handle = target_vertex_iter;
-      if (!DegreeFiltering(query_vertex_hanlde, target_vertex_handle)) {
+      if (!DegreeFiltering(query_vertex_handle, target_vertex_handle)) {
         continue;
       }
-      if (!NeighborLabelFrequencyFiltering(query_vertex_hanlde,
+      if (!NeighborLabelFrequencyFiltering(query_vertex_handle,
                                            target_vertex_handle)) {
         continue;
       }
-      l.emplace_back(target_vertex_handle);
+      query_vertex_candidate.emplace_back(target_vertex_handle);
     }
-    if (l.empty()) return false;
+    if (query_vertex_candidate.empty()) return false;
+    assert(candidate_set.find(query_vertex_handle) == candidate_set.end());
+    candidate_set.emplace(query_vertex_handle,
+                          std::move(query_vertex_candidate));
   }
-  for (auto &it : candidate_set) {
-    sort(it.second.begin(), it.second.end());
+  for (auto &[query_vertex_handle, query_vertex_candidate] : candidate_set) {
+    std::stable_sort(query_vertex_candidate.begin(),
+                     query_vertex_candidate.end());
   }
   return true;
 }
 
 template <enum EdgeState edge_state, typename QueryVertexHandle,
-          typename TargetVertexHandle, typename CandidateSetContainer>
+          typename TargetVertexHandle>
 inline void GetAdjNotMatchedVertexSingleDirection(
-    QueryVertexHandle &query_vertex_hanlde,
-    CandidateSetContainer &candidate_set,
+    QueryVertexHandle &query_vertex_handle,
+    std::map<QueryVertexHandle, std::vector<TargetVertexHandle>> &candidate_set,
     std::map<QueryVertexHandle, TargetVertexHandle> &match_state,
     std::set<QueryVertexHandle> &next_query_set) {
   for (auto edge_iter =
-           (edge_state == EdgeState::kIn ? query_vertex_hanlde->InEdgeBegin()
-                                         : query_vertex_hanlde->OutEdgeBegin());
+           (edge_state == EdgeState::kIn ? query_vertex_handle->InEdgeBegin()
+                                         : query_vertex_handle->OutEdgeBegin());
        !edge_iter.IsDone(); edge_iter++) {
     QueryVertexHandle query_opp_vertex_handle = edge_state == EdgeState::kIn
                                                     ? edge_iter->src_handle()
@@ -152,71 +163,65 @@ inline void GetAdjNotMatchedVertexSingleDirection(
   return;
 }
 
-template <typename QueryVertexHandle, typename TargetVertexHandle,
-          typename CandidateSetContainer>
+template <typename QueryVertexHandle, typename TargetVertexHandle>
 inline void GetAdjNotMatchedVertex(
-    QueryVertexHandle &query_vertex_hanlde,
-    CandidateSetContainer &candidate_set,
+    QueryVertexHandle query_vertex_handle,
+    std::map<QueryVertexHandle, std::vector<TargetVertexHandle>> &candidate_set,
     std::map<QueryVertexHandle, TargetVertexHandle> &match_state,
     std::set<QueryVertexHandle> &next_query_set) {
   GetAdjNotMatchedVertexSingleDirection<EdgeState::kOut>(
-      query_vertex_hanlde, candidate_set, match_state, next_query_set);
+      query_vertex_handle, candidate_set, match_state, next_query_set);
   GetAdjNotMatchedVertexSingleDirection<EdgeState::kIn>(
-      query_vertex_hanlde, candidate_set, match_state, next_query_set);
+      query_vertex_handle, candidate_set, match_state, next_query_set);
 }
-template <typename QueryVertexHandle, typename TargetVertexHandle,
-          typename CandidateSetContainer>
+template <typename QueryVertexHandle, typename TargetVertexHandle>
 inline QueryVertexHandle NextMatchVertex(
-    CandidateSetContainer &candidate_set,
+    std::map<QueryVertexHandle, std::vector<TargetVertexHandle>> &candidate_set,
     std::map<QueryVertexHandle, TargetVertexHandle> &match_state) {
   std::set<QueryVertexHandle> next_query_set;
-  for (auto &match_pair : match_state) {
-    QueryVertexHandle vertex_handle = match_pair.first;
-    GetAdjNotMatchedVertex(vertex_handle, candidate_set, match_state,
+  for (auto &[query_vertex_handle, target_vertex_handle] : match_state) {
+    auto temp_query_vertex_handle = query_vertex_handle;
+    GetAdjNotMatchedVertex(query_vertex_handle, candidate_set, match_state,
                            next_query_set);
   }
   if (next_query_set.empty()) {
-    for (auto &candidate_pair : candidate_set) {
-      auto &query_vertex_hanlde = candidate_pair.first;
-      if (match_state.count(query_vertex_hanlde) == 0) {
-        next_query_set.emplace(query_vertex_hanlde);
+    for (auto &[query_vertex_handle, query_vertex_candidate] : candidate_set) {
+      if (match_state.count(query_vertex_handle) == 0) {
+        next_query_set.emplace(query_vertex_handle);
       }
     }
   }
 
   QueryVertexHandle res;
   size_t min = SIZE_MAX;
-  for (auto &query_vertex_hanlde : next_query_set) {
+  for (auto &query_vertex_handle : next_query_set) {
+    assert(candidate_set.count(query_vertex_handle) > 0);
     size_t candidate_count =
-        candidate_set.find(query_vertex_hanlde)->second.size();
+        candidate_set.find(query_vertex_handle)->second.size();
     if (candidate_count < min) {
-      res = query_vertex_hanlde;
+      res = query_vertex_handle;
       min = candidate_count;
     }
   }
-  // assert(min >= 0 && !res.IsNull());
+  assert(min >= 0 && !res);
   return res;
 }
 
-template <enum EdgeState edge_state, typename QueryGraph, typename TargetGraph,
-          typename MatchStateMap>
+template <enum EdgeState edge_state, typename QueryGraph, typename TargetGraph>
 inline bool JoinableCheck(
-    typename VertexHandle<QueryGraph>::type &query_vertex_hanlde,
+    typename VertexHandle<QueryGraph>::type &query_vertex_handle,
     typename VertexHandle<TargetGraph>::type &target_vertex_handle,
-    MatchStateMap &match_state) {
+    std::map<typename VertexHandle<QueryGraph>::type,
+             typename VertexHandle<TargetGraph>::type> &match_state) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
   using QueryEdgeHandle = typename EdgeHandle<QueryGraph>::type;
   using TargetEdgeHandle = typename EdgeHandle<TargetGraph>::type;
-  using QueryEdgeMapPair = std::pair<typename QueryGraph::EdgeType::LabelType,
-                                     typename VertexHandle<QueryGraph>::type>;
-  using TargetEdgeMapPair = std::pair<typename TargetGraph::EdgeType::LabelType,
-                                      typename VertexHandle<TargetGraph>::type>;
   std::set<typename TargetGraph::EdgeType::IDType> used_edge;
   for (auto query_edge_iter = ((edge_state == EdgeState::kIn)
-                                   ? query_vertex_hanlde->InEdgeBegin()
-                                   : query_vertex_hanlde->OutEdgeBegin());
+                                   ? query_vertex_handle->InEdgeBegin()
+                                   : query_vertex_handle->OutEdgeBegin());
        !query_edge_iter.IsDone(); query_edge_iter++) {
     QueryEdgeHandle query_edge_handle = query_edge_iter;
     QueryVertexHandle query_opp_vertex_handle =
@@ -247,67 +252,71 @@ inline bool JoinableCheck(
 }
 
 template <enum MatchSemantics match_semantics, typename QueryGraph,
-          typename TargetGraph, typename MatchStateMap,
-          typename TargetVertexSet>
+          typename TargetGraph>
 inline bool IsJoinable(
-    typename VertexHandle<QueryGraph>::type query_vertex_hanlde,
+    typename VertexHandle<QueryGraph>::type query_vertex_handle,
     typename VertexHandle<TargetGraph>::type target_vertex_handle,
-    MatchStateMap &match_state, TargetVertexSet &target_matched) {
+    std::map<typename VertexHandle<QueryGraph>::type,
+             typename VertexHandle<TargetGraph>::type> &match_state,
+    std::set<typename VertexHandle<TargetGraph>::type> &target_matched) {
   if (match_semantics == MatchSemantics::kIsomorphism &&
       target_matched.count(target_vertex_handle) > 0) {
     return false;
   }
   if (!JoinableCheck<EdgeState::kIn, QueryGraph, TargetGraph>(
-          query_vertex_hanlde, target_vertex_handle, match_state)) {
+          query_vertex_handle, target_vertex_handle, match_state)) {
     return false;
   }
   if (!JoinableCheck<EdgeState::kOut, QueryGraph, TargetGraph>(
-          query_vertex_hanlde, target_vertex_handle, match_state)) {
+          query_vertex_handle, target_vertex_handle, match_state)) {
     return false;
   }
   return true;
 }
 
-template <typename QueryVertexHandle, typename TargetVertexHandle,
-          typename MatchStateMap, typename TargetVertexSet>
-inline void UpdateState(QueryVertexHandle query_vertex_hanlde,
-                        TargetVertexHandle target_vertex_handle,
-                        MatchStateMap &match_state,
-                        TargetVertexSet &target_matched) {
-  match_state.insert(std::make_pair(query_vertex_hanlde, target_vertex_handle));
-  target_matched.insert(target_vertex_handle);
+template <typename QueryVertexHandle, typename TargetVertexHandle>
+inline void UpdateState(
+    QueryVertexHandle query_vertex_handle,
+    TargetVertexHandle target_vertex_handle,
+    std::map<QueryVertexHandle, TargetVertexHandle> &match_state,
+    std::set<TargetVertexHandle> &target_matched) {
+  assert(match_state.count(query_vertex_handle) == 0);
+  match_state.emplace(query_vertex_handle, target_vertex_handle);
+  target_matched.emplace(target_vertex_handle);
   return;
 }
 
-template <enum EdgeState edge_state, typename QueryGraph, typename TargetGraph,
-          typename MatchStateMap, typename TargetVertexSet,
-          typename CandidateSetContainer>
+template <enum EdgeState edge_state, typename QueryGraph, typename TargetGraph>
 inline void UpdateCandidateSetOneDirection(
-    typename VertexHandle<QueryGraph>::type query_vertex_hanlde,
+    typename VertexHandle<QueryGraph>::type query_vertex_handle,
     typename VertexHandle<TargetGraph>::type target_vertex_handle,
-    CandidateSetContainer &candidate_set, MatchStateMap &match_state,
-    TargetVertexSet &target_matched) {
+    std::map<typename VertexHandle<QueryGraph>::type,
+             std::vector<typename VertexHandle<TargetGraph>::type>>
+        &candidate_set,
+    std::map<typename VertexHandle<QueryGraph>::type,
+             typename VertexHandle<TargetGraph>::type> &match_state,
+    std::set<typename VertexHandle<TargetGraph>::type> &target_matched) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
-
-  std::map<typename TargetGraph::VertexType::LabelType,
-           std::vector<TargetVertexHandle>>
-      temp_adj_vertex;
+  using CandidateContainerType =
+      std::vector<typename VertexHandle<TargetGraph>::type>;
   std::set<typename QueryGraph::EdgeType::LabelType> used_edge_label;
 
   for (auto label_it = ((edge_state == EdgeState::kIn)
-                            ? query_vertex_hanlde->InEdgeBegin()
-                            : query_vertex_hanlde->OutEdgeBegin());
+                            ? query_vertex_handle->InEdgeBegin()
+                            : query_vertex_handle->OutEdgeBegin());
        !label_it.IsDone(); label_it++) {
     QueryVertexHandle temp_handle = (edge_state == EdgeState::kIn)
                                         ? label_it->src_handle()
                                         : label_it->dst_handle();
-    if (match_state.count(temp_handle)) continue;
-    if (!candidate_set.count(temp_handle)) continue;
+    if (match_state.count(temp_handle) > 0) continue;
+    if (candidate_set.count(temp_handle) == 0) continue;
     //枚举label
-    if (used_edge_label.count(label_it->label())) continue;
+    if (used_edge_label.count(label_it->label()) > 0) continue;
     used_edge_label.insert(label_it->label());
-    temp_adj_vertex.clear();
+    std::map<typename TargetGraph::VertexType::LabelType,
+             std::vector<TargetVertexHandle>>
+        temp_adj_vertex;
     size_t adj_count =
         (edge_state == EdgeState::kIn)
             ? target_vertex_handle->CountInVertex(label_it->label())
@@ -321,18 +330,26 @@ inline void UpdateCandidateSetOneDirection(
                   : target_vertex_handle->OutVertexBegin(label_it->label()));
          !it.IsDone(); it++) {
       TargetVertexHandle temp_target_handle = it;
-      temp_adj_vertex[temp_target_handle->label()].push_back(
-          temp_target_handle);
+      auto temp_target_handle_it =
+          temp_adj_vertex.find(temp_target_handle->label());
+      if (temp_target_handle_it == temp_adj_vertex.end()) {
+        CandidateContainerType target_handle_candidate{temp_target_handle};
+        temp_adj_vertex.emplace(temp_target_handle->label(),
+                                std::move(target_handle_candidate));
+      } else {
+        temp_target_handle_it->second.emplace_back(temp_target_handle);
+      }
     }
-    for (auto &it : temp_adj_vertex) {
-      std::sort(it.second.begin(), it.second.end());
-      auto erase_it = std::unique(it.second.begin(), it.second.end());
-      it.second.erase(erase_it, it.second.end());
+    for (auto &[vertex_label, vertex_label_candidate] : temp_adj_vertex) {
+      std::sort(vertex_label_candidate.begin(), vertex_label_candidate.end());
+      auto erase_it = std::unique(vertex_label_candidate.begin(),
+                                  vertex_label_candidate.end());
+      vertex_label_candidate.erase(erase_it, vertex_label_candidate.end());
     }
     std::set<QueryVertexHandle> used_vertex;
     for (auto vertex_it = ((edge_state == EdgeState::kIn)
-                               ? query_vertex_hanlde->InEdgeBegin()
-                               : query_vertex_hanlde->OutEdgeBegin());
+                               ? query_vertex_handle->InEdgeBegin()
+                               : query_vertex_handle->OutEdgeBegin());
          !vertex_it.IsDone(); vertex_it++) {
       //枚举Vertex
       if (vertex_it->label() != label_it->label()) continue;
@@ -340,47 +357,57 @@ inline void UpdateCandidateSetOneDirection(
       QueryVertexHandle temp_vertex_handle = (edge_state == EdgeState::kIn)
                                                  ? vertex_it->src_handle()
                                                  : vertex_it->dst_handle();
-      if (used_vertex.count(temp_vertex_handle)) continue;
-      if (!candidate_set.count(temp_vertex_handle)) continue;
+      if (used_vertex.count(temp_vertex_handle) > 0) continue;
+      if (candidate_set.count(temp_vertex_handle) == 0) continue;
       used_vertex.insert(temp_vertex_handle);
       std::vector<TargetVertexHandle> res_candidate;
-      if (match_state.count(temp_vertex_handle)) continue;
-      std::set_intersection(
-          temp_adj_vertex[temp_vertex_handle->label()].begin(),
-          temp_adj_vertex[temp_vertex_handle->label()].end(),
-          candidate_set[temp_vertex_handle].begin(),
-          candidate_set[temp_vertex_handle].end(),
-          inserter(res_candidate, res_candidate.begin()));
-      candidate_set[temp_vertex_handle] = res_candidate;
+      if (match_state.count(temp_vertex_handle) > 0) continue;
+      if (temp_adj_vertex.count(temp_vertex_handle->label()) == 0) {
+        // intersection result is empty
+        candidate_set.find(temp_vertex_handle)->second.clear();
+      } else {
+        std::set_intersection(
+            temp_adj_vertex.find(temp_vertex_handle->label())->second.begin(),
+            temp_adj_vertex.find(temp_vertex_handle->label())->second.end(),
+            candidate_set.find(temp_vertex_handle)->second.begin(),
+            candidate_set.find(temp_vertex_handle)->second.end(),
+            inserter(res_candidate, res_candidate.begin()));
+        std::swap(candidate_set.find(temp_vertex_handle)->second,
+                  res_candidate);
+      }
     }
   }
   return;
 }
 
-template <typename QueryGraph, typename TargetGraph, typename MatchStateMap,
-          typename TargetVertexSet, typename CandidateSetContainer>
+template <typename QueryGraph, typename TargetGraph>
 inline void UpdateCandidateSet(
-    typename VertexHandle<QueryGraph>::type query_vertex_hanlde,
+    typename VertexHandle<QueryGraph>::type query_vertex_handle,
     typename VertexHandle<TargetGraph>::type target_vertex_handle,
-    CandidateSetContainer &candidate_set, MatchStateMap &match_state,
-    TargetVertexSet &target_matched) {
-  // test liantong data:
+    std::map<typename VertexHandle<QueryGraph>::type,
+             std::vector<typename VertexHandle<TargetGraph>::type>>
+        &candidate_set,
+    std::map<typename VertexHandle<QueryGraph>::type,
+             typename VertexHandle<TargetGraph>::type> &match_state,
+    std::set<typename VertexHandle<TargetGraph>::type> &target_matched) {
   UpdateCandidateSetOneDirection<EdgeState::kIn, QueryGraph, TargetGraph>(
-      query_vertex_hanlde, target_vertex_handle, candidate_set, match_state,
+      query_vertex_handle, target_vertex_handle, candidate_set, match_state,
       target_matched);
   UpdateCandidateSetOneDirection<EdgeState::kOut, QueryGraph, TargetGraph>(
-      query_vertex_hanlde, target_vertex_handle, candidate_set, match_state,
+      query_vertex_handle, target_vertex_handle, candidate_set, match_state,
       target_matched);
   return;
 }
 
-template <typename QueryVertexHandle, typename TargetVertexHandle,
-          typename MatchStateMap, typename TargetVertexSet>
-inline void RestoreState(QueryVertexHandle query_vertex_hanlde,
-                         TargetVertexHandle target_vertex_handle,
-                         MatchStateMap &match_state,
-                         TargetVertexSet &target_matched) {
-  match_state.erase(query_vertex_hanlde);
+template <typename QueryVertexHandle, typename TargetVertexHandle>
+inline void RestoreState(
+    QueryVertexHandle query_vertex_handle,
+    TargetVertexHandle target_vertex_handle,
+    std::map<QueryVertexHandle, TargetVertexHandle> &match_state,
+    std::set<TargetVertexHandle> &target_matched) {
+  assert(match_state.count(query_vertex_handle) > 0 &&
+         target_matched.count(target_vertex_handle) > 0);
+  match_state.erase(query_vertex_handle);
   target_matched.erase(target_vertex_handle);
   return;
 }
@@ -389,9 +416,9 @@ template <typename QueryVertexHandle, typename TargetVertexHandle,
           typename ResultContainer>
 inline bool MatchCallbackSaveSupp(
     std::map<QueryVertexHandle, TargetVertexHandle> &m,
-    QueryVertexHandle *query_vertex_hanlde, ResultContainer *r) {
+    QueryVertexHandle *query_vertex_handle, ResultContainer *r) {
   if (r) {
-    r->insert(m[*query_vertex_hanlde]);
+    r->insert(m[*query_vertex_handle]);
   }
   return true;
 }
@@ -400,9 +427,9 @@ template <typename QueryVertexHandle, typename TargetVertexHandle,
           typename SuppContainer>
 inline bool PruneSuppCallback(
     std::map<QueryVertexHandle, TargetVertexHandle> &m,
-    QueryVertexHandle *query_vertex_hanlde, SuppContainer *r) {
+    QueryVertexHandle *query_vertex_handle, SuppContainer *r) {
   if (r) {
-    auto it = m.find(*query_vertex_hanlde);
+    auto it = m.find(*query_vertex_handle);
     if (it == m.end()) {
       return false;
     }
@@ -421,9 +448,10 @@ inline bool PruneCallbackEmpty(
 }
 
 template <enum MatchSemantics match_semantics, typename QueryGraph,
-          typename TargetGraph, typename CandidateSetContainer,
-          typename MatchCallback, typename PruneCallback>
-bool _DPISO(CandidateSetContainer &candidate_set,
+          typename TargetGraph, typename MatchCallback, typename PruneCallback>
+bool _DPISO(std::map<typename VertexHandle<QueryGraph>::type,
+                     std::vector<typename VertexHandle<TargetGraph>::type>>
+                &candidate_set,
             std::map<typename VertexHandle<QueryGraph>::type,
                      typename VertexHandle<TargetGraph>::type> &match_state,
             std::set<typename VertexHandle<TargetGraph>::type> &target_matched,
@@ -437,10 +465,6 @@ bool _DPISO(CandidateSetContainer &candidate_set,
       ((clock() - begin_time) / CLOCKS_PER_SEC) > query_limit_time) {
     return false;
   }
-  // for (auto &it : match_state) {
-  //  std::cout << it.first->id() << " " << it.second->id() << std::endl;
-  //}
-  // std::cout << std::endl;
   if (prune_callback(match_state)) {
     return true;
   }
@@ -459,17 +483,12 @@ bool _DPISO(CandidateSetContainer &candidate_set,
             next_query_vertex_handle, next_target_vertex_handle, match_state,
             target_matched)) {
       std::map<QueryVertexHandle, std::vector<TargetVertexHandle>>
-          temp_candidate_set = candidate_set;
+          temp_candidate_set{candidate_set};
       UpdateState(next_query_vertex_handle, next_target_vertex_handle,
                   match_state, target_matched);
-      auto t_begin = clock();
       UpdateCandidateSet<QueryGraph, TargetGraph>(
           next_query_vertex_handle, next_target_vertex_handle,
           temp_candidate_set, match_state, target_matched);
-      auto t_end = clock();
-      // std::cout << "update1 time = " << (1.0 * t_end - t_begin) /
-      // CLOCKS_PER_SEC
-      //          << std::endl;
       if (!_DPISO<match_semantics, QueryGraph, TargetGraph>(
               temp_candidate_set, match_state, target_matched, result_count,
               user_callback, prune_callback, begin_time, query_limit_time)) {
@@ -492,10 +511,12 @@ void UpdateParentSingleDirection(
                            ? update_query_vertex_handle->InEdgeBegin()
                            : update_query_vertex_handle->OutEdgeBegin());
        !edge_it.IsDone(); edge_it++) {
-    QueryVertexHandle update_query_adj_handle =
-        edge_state == EdgeState::kIn ? edge_it->src_handle() : edge_it->dst_handle();
+    QueryVertexHandle update_query_adj_handle = edge_state == EdgeState::kIn
+                                                    ? edge_it->src_handle()
+                                                    : edge_it->dst_handle();
     if (match_state.find(update_query_adj_handle) == match_state.end())
       continue;
+    assert(parent.find(update_query_vertex_handle) != parent.end());
     auto &query_parent_set = parent.find(update_query_vertex_handle)->second;
     auto find_it = parent.find(update_query_adj_handle);
     if (find_it != parent.end()) {
@@ -512,7 +533,11 @@ void UpdateParent(
     std::map<QueryVertexHandle, TargetVertexHandle> &match_state,
     QueryVertexHandle update_query_vertex_handle,
     std::map<QueryVertexHandle, std::vector<QueryVertexHandle>> &parent) {
-  parent[update_query_vertex_handle].push_back(update_query_vertex_handle);
+  std::vector<QueryVertexHandle> update_query_vertex_parent{
+      update_query_vertex_handle};
+  assert(parent.count(update_query_vertex_handle) == 0);
+  parent.emplace(update_query_vertex_handle,
+                 std::move(update_query_vertex_parent));
   UpdateParentSingleDirection<EdgeState::kIn>(
       match_state, update_query_vertex_handle, parent);
   UpdateParentSingleDirection<EdgeState::kOut>(
@@ -526,10 +551,11 @@ void UpdateParent(
 
 // using Fail Set
 template <enum MatchSemantics match_semantics, class QueryGraph,
-          typename TargetGraph, class CandidateSetContainer,
-          class MatchCallback, class PruneCallback>
+          typename TargetGraph, class MatchCallback, class PruneCallback>
 bool _DPISO(
-    CandidateSetContainer &candidate_set,
+    std::map<typename VertexHandle<QueryGraph>::type,
+             std::vector<typename VertexHandle<TargetGraph>::type>>
+        &candidate_set,
     std::map<typename VertexHandle<QueryGraph>::type,
              typename VertexHandle<TargetGraph>::type> &match_state,
     std::set<typename VertexHandle<TargetGraph>::type> &target_matched,
@@ -585,16 +611,15 @@ bool _DPISO(
       // find u' satisfy that match_state[u']=next_target_vertex_handle
       // next_state_fail_set = anc[u] union anc[u']
       std::vector<QueryVertexHandle> next_state_fail_set;
-      for (auto &it : match_state) {
-        if (it.second == next_target_vertex_handle) {
+      for (auto &[query_ptr, target_ptr] : match_state) {
+        if (target_ptr == next_target_vertex_handle) {
           std::vector<QueryVertexHandle> temp_next_state_fail_set;
-          std::set_union(
-              std::begin(parent.find(next_query_vertex_handle)->second),
-              std::end(parent.find(next_query_vertex_handle)->second),
-              std::begin(parent.find(it.first)->second),
-              std::end(parent.find(it.first)->second),
-              inserter(temp_next_state_fail_set,
-                       temp_next_state_fail_set.begin()));
+          std::set_union(parent.find(next_query_vertex_handle)->second.begin(),
+                         parent.find(next_query_vertex_handle)->second.end(),
+                         parent.find(query_ptr)->second.begin(),
+                         parent.find(query_ptr)->second.end(),
+                         inserter(temp_next_state_fail_set,
+                                  temp_next_state_fail_set.begin()));
           std::swap(next_state_fail_set, temp_next_state_fail_set);
           break;
         }
@@ -603,8 +628,8 @@ bool _DPISO(
       // anc[u] must contain u ,so union fail set
       std::vector<QueryVertexHandle> temp_this_state_fail_set;
       std::set_union(
-          std::begin(next_state_fail_set), std::end(next_state_fail_set),
-          std::begin(this_state_fail_set), std::end(this_state_fail_set),
+          next_state_fail_set.begin(), next_state_fail_set.end(),
+          this_state_fail_set.begin(), this_state_fail_set.end(),
           inserter(temp_this_state_fail_set, temp_this_state_fail_set.begin()));
       std::swap(this_state_fail_set, temp_this_state_fail_set);
     }
@@ -612,7 +637,7 @@ bool _DPISO(
             next_query_vertex_handle, next_target_vertex_handle, match_state,
             target_matched)) {
       std::map<QueryVertexHandle, std::vector<TargetVertexHandle>>
-          temp_candidate_set = candidate_set;
+          temp_candidate_set{candidate_set};
       UpdateState(next_query_vertex_handle, next_target_vertex_handle,
                   match_state, target_matched);
       UpdateCandidateSet<QueryGraph, TargetGraph>(
@@ -643,11 +668,10 @@ bool _DPISO(
         this_state_fail_set = next_state_fail_set;
       } else if (!find_fail_set_flag) {
         std::vector<QueryVertexHandle> temp_this_state_fail_set;
-        std::set_union(
-            std::begin(next_state_fail_set), std::end(next_state_fail_set),
-            std::begin(this_state_fail_set), std::end(this_state_fail_set),
-            inserter(temp_this_state_fail_set,
-                     temp_this_state_fail_set.begin()));
+        std::set_union(next_state_fail_set.begin(), next_state_fail_set.end(),
+                       this_state_fail_set.begin(), this_state_fail_set.end(),
+                       inserter(temp_this_state_fail_set,
+                                temp_this_state_fail_set.begin()));
         std::swap(temp_this_state_fail_set, this_state_fail_set);
       }
     }
@@ -667,13 +691,13 @@ template <class QueryVertexHandle, class TargetVertexHandle,
           class CandidateSetContainer>
 bool UpdateCandidateCallback(
     CandidateSetContainer &candidate_set,
-    QueryVertexHandle *query_vertex_hanlde,
+    QueryVertexHandle *query_vertex_handle,
     std::vector<TargetVertexHandle> &possible_candidate) {
   if (possible_candidate.empty()) {
     return true;
   }
   std::vector<TargetVertexHandle> res_candidate;
-  auto &query_vertex_candidate = candidate_set[*query_vertex_hanlde];
+  auto &query_vertex_candidate = candidate_set[*query_vertex_handle];
   std::set_intersection(query_vertex_candidate.begin(),
                         query_vertex_candidate.end(),
                         possible_candidate.begin(), possible_candidate.end(),
@@ -792,12 +816,12 @@ inline void BFS(QueryGraph &query_graph, InDegreeContainer &in_degree) {
   std::set<QueryEdgeIDType> used_edge;
   // bfs get indegree (build dag but not really get new graph)
   for (auto it = query_graph.VertexBegin(); !it.IsDone(); it++) {
-    QueryVertexHandle query_vertex_hanlde = it;
-    if (used_vertex.count(query_vertex_hanlde)) continue;
+    QueryVertexHandle query_vertex_handle = it;
+    if (used_vertex.count(query_vertex_handle)) continue;
     std::queue<QueryVertexHandle> bfs_queue;
-    in_degree[query_vertex_hanlde] = 0;
-    used_vertex.insert(query_vertex_hanlde);
-    bfs_queue.push(query_vertex_hanlde);
+    in_degree[query_vertex_handle] = 0;
+    used_vertex.insert(query_vertex_handle);
+    bfs_queue.push(query_vertex_handle);
     while (!bfs_queue.empty()) {
       QueryVertexHandle now_vertex_handle = bfs_queue.front();
       bfs_queue.pop();
@@ -837,16 +861,16 @@ inline void TopuSort(QueryGraph &query_graph, InDegreeContainer &in_degree,
   std::set<QueryEdgeIDType> used_edge;
   // topu sort
   for (auto it = query_graph.VertexBegin(); !it.IsDone(); it++) {
-    QueryVertexHandle query_vertex_hanlde = it;
-    if (in_degree[query_vertex_hanlde] == 0) {
-      topu_sort_queue.push(query_vertex_hanlde);
+    QueryVertexHandle query_vertex_handle = it;
+    if (in_degree[query_vertex_handle] == 0) {
+      topu_sort_queue.push(query_vertex_handle);
     }
   }
   while (!topu_sort_queue.empty()) {
-    QueryVertexHandle query_vertex_hanlde = topu_sort_queue.front();
+    QueryVertexHandle query_vertex_handle = topu_sort_queue.front();
     topu_sort_queue.pop();
-    topu_seq.emplace_back(query_vertex_hanlde);
-    for (auto edge_it = query_vertex_hanlde->OutEdgeBegin(); !edge_it.IsDone();
+    topu_seq.emplace_back(query_vertex_handle);
+    for (auto edge_it = query_vertex_handle->OutEdgeBegin(); !edge_it.IsDone();
          edge_it++) {
       if (used_edge.count(edge_it->id())) continue;
       QueryVertexHandle next_vertex_handle = edge_it->dst_handle();
@@ -856,7 +880,7 @@ inline void TopuSort(QueryGraph &query_graph, InDegreeContainer &in_degree,
         topu_sort_queue.push(next_vertex_handle);
       }
     }
-    for (auto edge_it = query_vertex_hanlde->InEdgeBegin(); !edge_it.IsDone();
+    for (auto edge_it = query_vertex_handle->InEdgeBegin(); !edge_it.IsDone();
          edge_it++) {
       if (used_edge.count(edge_it->id())) continue;
       QueryVertexHandle next_vertex_handle = edge_it->src_handle();
@@ -882,7 +906,7 @@ inline void GetTopuSeq(QueryGraph &query_graph, TopuSeqContainer &topu_seq) {
 
 template <class QueryVertexHandle, class TargetVertexHandle,
           class EdgeCountContainer>
-inline bool EdgeCheck(QueryVertexHandle &query_vertex_hanlde,
+inline bool EdgeCheck(QueryVertexHandle &query_vertex_handle,
                       QueryVertexHandle &temp_query_vertex_handle,
                       TargetVertexHandle &target_vertex_handle,
                       TargetVertexHandle &temp_target_vertex_handle,
@@ -909,14 +933,14 @@ inline bool EdgeCheck(QueryVertexHandle &query_vertex_hanlde,
 template <bool is_out_direction, class QueryVertexHandle,
           class TargetVertexHandle, class CandidateSetContainer,
           class EdgeCountContainer>
-inline bool CheckIsLegal(QueryVertexHandle query_vertex_hanlde,
+inline bool CheckIsLegal(QueryVertexHandle query_vertex_handle,
                          TargetVertexHandle target_vertex_handle,
                          std::set<QueryVertexHandle> &used_vertex,
                          EdgeCountContainer &out_edge_count,
                          EdgeCountContainer &in_edge_count,
                          CandidateSetContainer &candidate_set) {
-  for (auto edge_it = is_out_direction ? query_vertex_hanlde->OutEdgeBegin()
-                                       : query_vertex_hanlde->InEdgeBegin();
+  for (auto edge_it = is_out_direction ? query_vertex_handle->OutEdgeBegin()
+                                       : query_vertex_handle->InEdgeBegin();
        !edge_it.IsDone(); edge_it++) {
     QueryVertexHandle next_vertex_handle =
         is_out_direction ? edge_it->dst_handle() : edge_it->src_handle();
@@ -929,7 +953,7 @@ inline bool CheckIsLegal(QueryVertexHandle query_vertex_hanlde,
                  : target_vertex_handle->InVertexBegin(edge_it->label());
          !target_edge_it.IsDone(); target_edge_it++) {
       TargetVertexHandle temp_target_vertex_handle = target_edge_it;
-      if (!EdgeCheck(query_vertex_hanlde, next_vertex_handle,
+      if (!EdgeCheck(query_vertex_handle, next_vertex_handle,
                      target_vertex_handle, temp_target_vertex_handle,
                      out_edge_count, in_edge_count))
         continue;
@@ -1017,46 +1041,6 @@ inline bool RefineCandidateSet(QueryGraph &query_graph,
   };
   return true;
 }
-
-template <enum MatchSemantics match_semantics, typename QueryGraph,
-          typename TargetGraph, class MatchCallback, class PruneCallback,
-          class UpdateCandidateCallback>
-inline int DPISO_Recursive(QueryGraph &query_graph, TargetGraph &target_graph,
-                           MatchCallback user_callback,
-                           PruneCallback prune_callback,
-                           UpdateCandidateCallback update_candidate_callback,
-                           double query_limit_time = 1200) {
-  using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
-  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
-
-  std::map<QueryVertexHandle, std::vector<TargetVertexHandle>> candidate_set;
-  if (!InitCandidateSet<match_semantics>(query_graph, target_graph,
-                                         candidate_set)) {
-    return 0;
-  }
-  if (!RefineCandidateSet(query_graph, target_graph, candidate_set)) {
-    return 0;
-  }
-  if (!update_candidate_callback(candidate_set)) {
-    return 0;
-  }
-  std::map<QueryVertexHandle, TargetVertexHandle> match_state;
-  std::set<TargetVertexHandle> target_matched;
-  size_t result_count = 0;
-  if (query_graph.CountEdge() < large_query_edge) {
-    _DPISO<match_semantics, QueryGraph, TargetGraph>(
-        candidate_set, match_state, target_matched, result_count, user_callback,
-        prune_callback, clock(), query_limit_time);
-  } else {
-    std::map<QueryVertexHandle, std::vector<QueryVertexHandle>> parent;
-    std::vector<QueryVertexHandle> fail_set;
-    _DPISO<match_semantics, QueryGraph, TargetGraph>(
-        candidate_set, match_state, target_matched, parent, fail_set,
-        result_count, user_callback, prune_callback, clock(), query_limit_time);
-  }
-  return static_cast<int>(result_count);
-}
-
 template <enum MatchSemantics match_semantics, typename QueryGraph,
           typename TargetGraph, class MatchCallback, class PruneCallback>
 inline int DPISO_Recursive(
@@ -1071,12 +1055,12 @@ inline int DPISO_Recursive(
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
   std::set<TargetVertexHandle> target_matched;
-  for (auto &match : match_state) {
-    target_matched.insert(match.second);
+  for (auto &[query_ptr, target_ptr] : match_state) {
+    target_matched.insert(target_ptr);
   }
-  for (auto &match : match_state) {
+  for (auto &[query_ptr, target_ptr] : match_state) {
     UpdateCandidateSet<QueryGraph, TargetGraph>(
-        match.first, match.second, candidate_set, match_state, target_matched);
+        query_ptr, target_ptr, candidate_set, match_state, target_matched);
   }
   size_t result_count = 0;
   // add lock to user_callback and prune_callback
@@ -1100,13 +1084,11 @@ inline int DPISO_Recursive(
   };
   QueryVertexHandle next_query_ptr =
       _dp_iso::NextMatchVertex(candidate_set, match_state);
-  // tip:large_graph::VertexPtr has no member 'IsNull',so use
-  // match_state.size()==candidate_set.size() check IsNull
-  if (match_state.size() == candidate_set.size()) {
+  if (!next_query_ptr) {
     if (query_graph.CountEdge() >= large_query_edge) {
       std::map<QueryVertexHandle, std::vector<QueryVertexHandle>> parent;
-      for (auto &match : match_state) {
-        _dp_iso::UpdateParent(match_state, match.first, parent);
+      for (auto &[query_ptr, target_ptr] : match_state) {
+        _dp_iso::UpdateParent(match_state, query_ptr, parent);
       }
       std::vector<QueryVertexHandle> fail_set;
       _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
@@ -1135,8 +1117,8 @@ inline int DPISO_Recursive(
             temp_match_state, temp_target_matched);
         if (query_graph.CountEdge() >= large_query_edge) {
           std::map<QueryVertexHandle, std::vector<QueryVertexHandle>> parent;
-          for (auto &match : temp_match_state) {
-            _dp_iso::UpdateParent(temp_match_state, match.first, parent);
+          for (auto &[query_ptr, target_ptr] : temp_match_state) {
+            _dp_iso::UpdateParent(temp_match_state, query_ptr, parent);
           }
           std::vector<QueryVertexHandle> fail_set;
           _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
@@ -1154,7 +1136,33 @@ inline int DPISO_Recursive(
   }
   return static_cast<int>(result_count);
 }
+template <enum MatchSemantics match_semantics, typename QueryGraph,
+          typename TargetGraph, class MatchCallback, class PruneCallback,
+          class UpdateCandidateCallback>
+inline int DPISO_Recursive(QueryGraph &query_graph, TargetGraph &target_graph,
+                           MatchCallback user_callback,
+                           PruneCallback prune_callback,
+                           UpdateCandidateCallback update_candidate_callback,
+                           double query_limit_time = 1200) {
+  using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
+  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
+  std::map<QueryVertexHandle, std::vector<TargetVertexHandle>> candidate_set;
+  if (!InitCandidateSet<match_semantics>(query_graph, target_graph,
+                                         candidate_set)) {
+    return 0;
+  }
+  if (!RefineCandidateSet(query_graph, target_graph, candidate_set)) {
+    return 0;
+  }
+  if (!update_candidate_callback(candidate_set)) {
+    return 0;
+  }
+  std::map<QueryVertexHandle, TargetVertexHandle> match_state;
+  return DPISO_Recursive<match_semantics>(
+      query_graph, target_graph, candidate_set, match_state, user_callback,
+      prune_callback, query_limit_time);
+}
 template <enum MatchSemantics match_semantics, typename QueryGraph,
           typename TargetGraph, class MatchCallback, class PruneCallback>
 inline int DPISO_Recursive(
@@ -1187,14 +1195,13 @@ inline int DPISO_Recursive(
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
   std::map<QueryVertexHandle, std::vector<TargetVertexHandle>> candidate_set;
-  // std::cout << "begin" << std::endl;
   if (!InitCandidateSet<match_semantics>(query_graph, target_graph,
                                          candidate_set)) {
     return 0;
   }
-  for (auto &match : match_state) {
-    candidate_set[match.first].clear();
-    candidate_set[match.first].push_back(match.second);
+  for (auto &[query_ptr, target_ptr] : match_state) {
+    candidate_set[query_ptr].clear();
+    candidate_set[query_ptr].emplace_back(target_ptr);
   }
   if (!RefineCandidateSet(query_graph, target_graph, candidate_set)) {
     return 0;
@@ -1294,7 +1301,7 @@ inline int DPISO(
     size_t result_count = 0;
     std::map<QueryVertexHandle, TargetVertexHandle> match_state;
     std::map<QueryVertexHandle, std::vector<TargetVertexHandle>>
-        temp_candidate_set = candidate_set;
+        temp_candidate_set{candidate_set};
     auto prune_callback = std::bind(
         _dp_iso::PruneCallbackEmpty<QueryVertexHandle, TargetVertexHandle>,
         std::placeholders::_1);
@@ -1467,18 +1474,15 @@ inline int DPISO(QueryGraph &query_graph, TargetGraph &target_graph,
   return static_cast<int>(match_result.size());
 }
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
-          typename  QueryGraph, 
-          typename TargetGraph, 
-             class MatchCallback>
-inline int IncreamentDPISO(QueryGraph &query_graph, 
-                          TargetGraph &target_graph,
-                           std::vector<typename VertexHandle<TargetGraph>::type> &delta_target_graph,
-                           MatchCallback match_callback,
-                           double query_limit_time = -1) {
-  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+          typename QueryGraph, typename TargetGraph, class MatchCallback>
+inline int IncreamentDPISO(
+    QueryGraph &query_graph, TargetGraph &target_graph,
+    std::vector<typename VertexHandle<TargetGraph>::type> &delta_target_graph,
+    MatchCallback match_callback, double query_limit_time = -1) {
+  using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
-  using CandidateSet = std::map<QueryVertexHandle, 
-                                std::vector<TargetVertexHandle>>;
+  using CandidateSet =
+      std::map<QueryVertexHandle, std::vector<TargetVertexHandle>>;
   CandidateSet candidate_set;
   if (!GUNDAM::_dp_iso::InitCandidateSet<match_semantics>(
           query_graph, target_graph, candidate_set)) {
@@ -1487,8 +1491,7 @@ inline int IncreamentDPISO(QueryGraph &query_graph,
   if (!_dp_iso::RefineCandidateSet(query_graph, target_graph, candidate_set)) {
     return 0;
   }
-  std::sort(delta_target_graph.begin(), 
-            delta_target_graph.end());
+  std::sort(delta_target_graph.begin(), delta_target_graph.end());
   std::vector<QueryVertexHandle> has_delta_target_graph_pattern_vertex;
   for (auto &[query_ptr, target_list] : candidate_set) {
     bool find_new_vertex_flag = false;
@@ -1510,8 +1513,7 @@ inline int IncreamentDPISO(QueryGraph &query_graph,
   for (int mask = 1; mask < total_mask; mask++) {
     std::vector<QueryVertexHandle> this_mask_vertex;
     for (int bit_pos = 0;
-             bit_pos < has_delta_target_graph_pattern_vertex.size(); 
-             bit_pos++) {
+         bit_pos < has_delta_target_graph_pattern_vertex.size(); bit_pos++) {
       if (mask & (1 << bit_pos)) {
         this_mask_vertex.emplace_back(
             has_delta_target_graph_pattern_vertex[bit_pos]);
@@ -1519,8 +1521,7 @@ inline int IncreamentDPISO(QueryGraph &query_graph,
     }
     CandidateSet copy_candidate_set{candidate_set};
     for (auto &[query_ptr, target_list] : copy_candidate_set) {
-      if (std::binary_search(this_mask_vertex.begin(), 
-                             this_mask_vertex.end(),
+      if (std::binary_search(this_mask_vertex.begin(), this_mask_vertex.end(),
                              query_ptr)) {
         std::vector<TargetVertexHandle> this_vertex_target_list;
         for (auto &target_ptr : target_list) {
