@@ -1044,11 +1044,12 @@ inline bool RefineCandidateSet(QueryGraph &query_graph,
 template <enum MatchSemantics match_semantics, typename QueryGraph,
           typename TargetGraph, class MatchCallback, class PruneCallback>
 inline int DPISO_Recursive(
-    QueryGraph &query_graph, TargetGraph &target_graph,
+     QueryGraph  &query_graph, 
+    TargetGraph &target_graph,
     std::map<typename VertexHandle<QueryGraph>::type,
              std::vector<typename VertexHandle<TargetGraph>::type>>
         &candidate_set,
-    std::map<typename VertexHandle<QueryGraph>::type,
+    std::map<typename VertexHandle< QueryGraph>::type,
              typename VertexHandle<TargetGraph>::type> &match_state,
     MatchCallback user_callback, PruneCallback prune_callback,
     double query_limit_time = 1200.0) {
@@ -1103,8 +1104,9 @@ inline int DPISO_Recursive(
   } else {
     // partition next ptr's candiate
     auto &match_ptr_candidate = candidate_set.find(next_query_ptr)->second;
-#pragma omp parallel for schedule(dynamic)
-    for (auto &match_target_ptr : match_ptr_candidate) {
+    #pragma omp parallel for schedule(dynamic)
+    for (int i = 0; i < match_ptr_candidate.size(); i++) {
+      auto& match_target_ptr = match_ptr_candidate[i];
       if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
               next_query_ptr, match_target_ptr, match_state, target_matched)) {
         decltype(match_state) temp_match_state{match_state};

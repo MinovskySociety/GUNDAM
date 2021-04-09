@@ -152,6 +152,11 @@ class Match {
   Match& operator=(Match&&) = default;
 
   Match(SrcGraphType& src_graph,
+        DstGraphType& dst_graph){
+    return;
+  }
+
+  Match(SrcGraphType& src_graph,
         DstGraphType& dst_graph,
         std::string construct_method) : match_container_(){
     assert(construct_method == "same_id_map");
@@ -355,150 +360,6 @@ Match(SrcGraphType& src_graph,
             DstGraphType,
            ContainerType::Vector,
                 SortType::Default>;
-
-// remove reference from SrcGraphType
-template <typename SrcGraphType,
-          typename DstGraphType,
-          enum ContainerType map_container_type,
-          enum SortType map_container_sort_type>
-class Match<SrcGraphType&,
-            DstGraphType,
-            map_container_type,
-            map_container_sort_type> 
-  : public Match<SrcGraphType,
-                 DstGraphType,
-                 map_container_type,
-                 map_container_sort_type>{
- private:
-  using InnerMatchType 
-           = Match<SrcGraphType,
-                   DstGraphType,
-                   map_container_type,
-                   map_container_sort_type>;
-
- public:
-  using InnerMatchType::InnerMatchType;
-
-  Match(const Match&) = default;
-  Match(Match&&) = default;
-
-  Match& operator=(const Match&) = default;
-  Match& operator=(Match&&) = default;
-
-  Match(const InnerMatchType& match) 
-    : Match(static_cast<const Match&>(match)){
-    return;
-  }
-
-  Match(InnerMatchType&& match) 
-    : Match(static_cast<const Match&&>(match)){
-    return;
-  }
-
-  Match& operator=(const InnerMatchType& match){
-    return this->operator=(static_cast<const Match&>(match));
-  }
-
-  Match& operator=(InnerMatchType&& match){
-    return this->operator=(static_cast<Match&&>(match));
-  }
-};
-
-// remove reference from DstGraphType
-template <typename SrcGraphType,
-          typename DstGraphType,
-          enum ContainerType map_container_type,
-          enum SortType map_container_sort_type>
-class Match<SrcGraphType,
-            DstGraphType&,
-            map_container_type,
-            map_container_sort_type> 
-  : public Match<SrcGraphType,
-                 DstGraphType,
-                 map_container_type,
-                 map_container_sort_type>{
- private:
-  using InnerMatchType 
-           = Match<SrcGraphType,
-                   DstGraphType,
-                   map_container_type,
-                   map_container_sort_type>;
-
- public:
-  using InnerMatchType::InnerMatchType;
-
-  Match(const Match&) = default;
-  Match(Match&&) = default;
-
-  Match& operator=(const Match&) = default;
-  Match& operator=(Match&&) = default;
-
-  Match(const InnerMatchType& match) 
-    : Match(static_cast<const Match&>(match)){
-    return;
-  }
-
-  Match(InnerMatchType&& match) 
-    : Match(static_cast<const Match&&>(match)){
-    return;
-  }
-
-  Match& operator=(const InnerMatchType& match){
-    return this->operator=(static_cast<const Match&>(match));
-  }
-
-  Match& operator=(InnerMatchType&& match){
-    return this->operator=(static_cast<Match&&>(match));
-  }
-};
-
-// remove reference from both SrcGraphType and DstGraphType
-template <typename SrcGraphType,
-          typename DstGraphType,
-          enum ContainerType map_container_type,
-          enum SortType map_container_sort_type>
-class Match<SrcGraphType&,
-            DstGraphType&,
-            map_container_type,
-            map_container_sort_type> 
-  : public Match<SrcGraphType,
-                 DstGraphType,
-                 map_container_type,
-                 map_container_sort_type>{
- private:
-  using InnerMatchType 
-           = Match<SrcGraphType,
-                   DstGraphType,
-                   map_container_type,
-                   map_container_sort_type>;
-
- public:
-  using InnerMatchType::InnerMatchType;
-
-  Match(const Match&) = default;
-  Match(Match&&) = default;
-
-  Match& operator=(const Match&) = default;
-  Match& operator=(Match&&) = default;
-
-  Match(const InnerMatchType& match) 
-    : Match(static_cast<const Match&>(match)){
-    return;
-  }
-
-  Match(InnerMatchType&& match) 
-    : Match(static_cast<const Match&&>(match)){
-    return;
-  }
-
-  Match& operator=(const InnerMatchType& match){
-    return this->operator=(static_cast<const Match&>(match));
-  }
-
-  Match& operator=(InnerMatchType&& match){
-    return this->operator=(static_cast<Match&&>(match));
-  }
-};
 
 template <typename SrcGraphType,
           typename DstGraphType,
@@ -756,79 +617,7 @@ MatchSet(SrcGraphType& src_graph,
                DstGraphType,
               ContainerType::Vector,
                    SortType::Default>;
-
-// remove reference from SrcGraphType
-template <typename SrcGraphType,
-          typename DstGraphType,
-          enum ContainerType match_container_type,
-          enum SortType match_container_sort_type>
-class MatchSet<SrcGraphType&,
-               DstGraphType,
-               match_container_type,
-               match_container_sort_type> 
-  : public MatchSet<SrcGraphType,
-                    DstGraphType,
-                    match_container_type,
-                    match_container_sort_type>{
- private:
-  using InnerMatchSetType 
-           = MatchSet<SrcGraphType,
-                      DstGraphType,
-                      match_container_type,
-                      match_container_sort_type>;
-
- public:
-  using InnerMatchSetType::InnerMatchSetType;
-};
-
-// remove reference from DstGraphType
-template <typename SrcGraphType,
-          typename DstGraphType,
-          enum ContainerType match_container_type,
-          enum SortType match_container_sort_type>
-class MatchSet<SrcGraphType,
-               DstGraphType&,
-               match_container_type,
-               match_container_sort_type> 
-  : public MatchSet<SrcGraphType,
-                    DstGraphType,
-                    match_container_type,
-                    match_container_sort_type>{
- private:
-  using InnerMatchSetType 
-           = MatchSet<SrcGraphType,
-                      DstGraphType,
-                      match_container_type,
-                      match_container_sort_type>;
-
- public:
-  using InnerMatchSetType::InnerMatchSetType;
-};
-
-// remove reference from both SrcGraphType and DstGraphType
-template <typename SrcGraphType,
-          typename DstGraphType,
-          enum ContainerType match_container_type,
-          enum SortType match_container_sort_type>
-class MatchSet<SrcGraphType&,
-               DstGraphType&,
-               match_container_type,
-               match_container_sort_type> 
-  : public MatchSet<SrcGraphType,
-                    DstGraphType,
-                    match_container_type,
-                    match_container_sort_type>{
- private:
-  using InnerMatchSetType 
-           = MatchSet<SrcGraphType,
-                      DstGraphType,
-                      match_container_type,
-                      match_container_sort_type>;
-
- public:
-  using InnerMatchSetType::InnerMatchSetType;
-};
-
+                   
 }  // namespace GUNDAM
 
 #endif

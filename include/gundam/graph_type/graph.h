@@ -3872,6 +3872,10 @@ class Graph {
     return;
   }
 
+  Graph(Graph &&) = default;
+
+  Graph &operator=(Graph &&) = default;
+
   Graph& operator=(const Graph& graph) {
     this->CanConvertTo(graph);
     this->Deconstruct();

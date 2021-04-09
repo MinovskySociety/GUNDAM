@@ -21,8 +21,10 @@ inline bool SamePattern(GraphType0& graph_0,
   auto ret = GUNDAM::DpisoUsingMatch(graph_0, graph_1, 1);
 
   if (ret == 0){
+    assert(!SamePattern(graph_1, graph_0));
     return false;
   }
+  assert(SamePattern(graph_1, graph_0));
   return true;
 }
 
