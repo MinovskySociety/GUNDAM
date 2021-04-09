@@ -1361,11 +1361,11 @@ inline int DPISO(
 
       _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
           temp_candidate_set, match_state, target_matched, parent, fail_set,
-          result_count, user_callback, prune_callback, clock(),
+          user_callback, prune_callback, clock(),
           single_query_limit_time);
     } else {
       _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
-          temp_candidate_set, match_state, target_matched, result_count,
+          temp_candidate_set, match_state, target_matched, 
           user_callback, prune_callback, clock(), single_query_limit_time);
     }
 
@@ -1648,7 +1648,7 @@ inline int DPISO_UsingPatricalMatchAndMatchSet(QueryGraph &query_graph,
       std::placeholders::_1, &max_result, &match_result);
   if (query_graph.CountEdge() < _dp_iso::large_query_edge) {
     _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
-        candidate_set, match_state, target_matched, result_count, user_callback,
+        candidate_set, match_state, target_matched, user_callback,
         [](auto &match_state) { return false; }, clock(), -1);
   } else {
     using FailSetContainer = std::vector<QueryVertexHandle>;
@@ -1661,7 +1661,7 @@ inline int DPISO_UsingPatricalMatchAndMatchSet(QueryGraph &query_graph,
     }
     _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
         candidate_set, match_state, target_matched, parent, fail_set,
-        result_count, user_callback, [](auto &match_state) { return false; },
+        user_callback, [](auto &match_state) { return false; },
         clock(), -1.0);
   }
 
