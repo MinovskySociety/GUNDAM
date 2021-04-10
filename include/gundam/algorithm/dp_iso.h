@@ -197,6 +197,10 @@ inline QueryVertexHandle NextMatchVertex(
     }
   }
 
+  if (next_query_set.empty()){
+    return QueryVertexHandle();
+  }
+
   QueryVertexHandle res = QueryVertexHandle();
   assert(!res);
   size_t min = std::numeric_limits<size_t>::max();
