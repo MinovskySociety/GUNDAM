@@ -14,15 +14,40 @@ namespace GUNDAM {
 //    prune_callback(vertex_handle)
 //    prune_callback(vertex_handle, edge_handle)
 //    prune_callback(vertex_handle, edge_handle, dfs_idx)
+//    prune_callback(vertex_handle, edge_handle, dfs_idx, dfs_depth)
 //
 // legal user_callback forms:
 //    user_callback(vertex_handle)
 //    user_callback(vertex_handle, dfs_idx)
+//    user_callback(vertex_handle, dfs_idx, dfs_depth)
 template <bool bidirectional = false,
           bool remove_duplicate = true,
           typename         GraphType,
           typename  UserCallBackType,
-          typename PruneCallBackType>
+          typename PruneCallBackType,
+          typename std::enable_if_t< 
+                   // prune_callback(next_vertex_handle)
+                   std::is_convertible_v<
+                            PruneCallBackType, 
+                            std::function<bool(typename VertexHandle<GraphType>::type)> >
+                || // prune_callback(next_vertex_handle, next_edge_handle)
+                   std::is_convertible_v<
+                            PruneCallBackType, 
+                            std::function<bool(typename VertexHandle<GraphType>::type, 
+                                               typename   EdgeHandle<GraphType>::type)> >
+                || // prune_callback(next_vertex_handle, next_edge_handle, current_dfs_idx)
+                   std::is_convertible_v<
+                            PruneCallBackType, 
+                            std::function<bool(typename VertexHandle<GraphType>::type, 
+                                               typename   EdgeHandle<GraphType>::type,
+                                               typename  GraphType::VertexCounterType)> >
+                || // prune_callback(next_vertex_handle, next_edge_handle, current_dfs_idx, current_distance)
+                   std::is_convertible_v<
+                            PruneCallBackType, 
+                            std::function<bool(typename VertexHandle<GraphType>::type, 
+                                               typename   EdgeHandle<GraphType>::type,
+                                               typename  GraphType::VertexCounterType,
+                                               typename  GraphType::VertexCounterType)> >, bool> = false>
 inline size_t Dfs(GraphType& graph,
               typename VertexHandle<GraphType>::type& src_vertex_handle,
            UserCallBackType  user_callback,
@@ -39,6 +64,12 @@ inline size_t Dfs(GraphType& graph,
       std::is_convertible_v<
                 UserCallBackType, 
                 std::function<bool(VertexHandleType, 
+                                   VertexCounterType)> >
+    || // user_callback(vertex_handle, dfs_idx, dfs_depth)
+      std::is_convertible_v<
+                UserCallBackType, 
+                std::function<bool(VertexHandleType, 
+                                   VertexCounterType, 
                                    VertexCounterType)> >,
       "illegal callback type, only allows one of user_callback(vertex_handle) and user_callback(vertex_handle, dfs_idx)");
 
@@ -57,6 +88,13 @@ inline size_t Dfs(GraphType& graph,
                 PruneCallBackType, 
                 std::function<bool(VertexHandleType, 
                                      EdgeHandleType,
+                                  VertexCounterType)> >
+    || // prune_callback(vertex_handle, edge_handle, dfs_idx, dfs_depth)
+      std::is_convertible_v<
+                PruneCallBackType, 
+                std::function<bool(VertexHandleType, 
+                                     EdgeHandleType,
+                                  VertexCounterType,
                                   VertexCounterType)> >,
       "illegal callback type, only allows one of prune_callback(vertex_handle), prune_callback(vertex_handle, edge_handle) and prune_callback(vertex_handle, edge_handle, dfs_idx)");
 
@@ -176,25 +214,6 @@ inline size_t Dfs(GraphType& graph,
 
 template <bool bidirectional = false,
           bool remove_duplicate = true,
-          typename        GraphType,
-          typename UserCallBackType>
-inline size_t Dfs(GraphType& graph,
-              typename VertexHandle<GraphType>::type& src_vertex_handle,
-           UserCallBackType  user_callback) {
-  using VertexHandleType = typename VertexHandle<GraphType>::type;
-  auto prune_nothing_callback = [](VertexHandleType vertex_handle){
-    // prune nothing, continue matching
-    return false;
-  };
-  return Dfs<bidirectional,
-             remove_duplicate>(graph,
-                   src_vertex_handle,
-                       user_callback,
-              prune_nothing_callback); 
-}
-
-template <bool bidirectional = false,
-          bool remove_duplicate = true,
           typename GraphType>
 inline size_t Dfs(GraphType& graph,
               typename VertexHandle<GraphType>::type& src_vertex_handle) {
@@ -206,6 +225,41 @@ inline size_t Dfs(GraphType& graph,
   };
   return Dfs<bidirectional,
              remove_duplicate>(graph, src_vertex_handle, do_nothing_callback);
+}
+
+template <bool bidirectional = false,
+          bool remove_duplicate = true,
+          typename        GraphType,
+          typename UserCallBackType>
+inline size_t Dfs(GraphType&  graph,
+  typename VertexHandle<GraphType>::type src_vertex_handle,
+           UserCallBackType  user_callback,
+           int distance_limit = -1) {
+  using VertexCounterType = typename  GraphType::VertexCounterType;
+  using  VertexHandleType = typename VertexHandle<GraphType>::type;
+  using    EdgeHandleType = typename   EdgeHandle<GraphType>::type;
+  auto prune_distance_callback = [&distance_limit](
+         VertexHandleType  vertex_handle,
+           EdgeHandleType    edge_handle,
+        VertexCounterType current_idx,
+        VertexCounterType current_distance){
+    if (distance_limit == -1){
+      // distance limit is not set, prune nothing
+      return false;
+    }
+    assert(current_distance <= distance_limit + 1);
+    if (current_distance > distance_limit) {
+      // reach the distance limit, prune this vertex
+      return true;
+    }
+    // does not reach the limit, do not prune
+    return false;
+  };
+  return Dfs<bidirectional,
+             remove_duplicate>(graph,
+                   src_vertex_handle, 
+                       user_callback, 
+             prune_distance_callback); 
 }
 
 }  // namespace GUNDAM

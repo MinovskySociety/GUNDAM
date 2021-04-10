@@ -130,12 +130,12 @@ TEST(TestGUNDAM, MultiQueryDpiso_1) {
   TestMultiQueryDpiso<LG, G2>();
   TestMultiQueryDpiso<LG, G3>();
   TestMultiQueryDpiso<LG, LG>();
-  TestMultiQueryDpiso<SG, G1>();
-  TestMultiQueryDpiso<SG, G2>();
-  TestMultiQueryDpiso<SG, G3>();
-  TestMultiQueryDpiso<SG, LG>();
-  TestMultiQueryDpiso<SSG, G1>();
-  TestMultiQueryDpiso<SSG, G2>();
-  TestMultiQueryDpiso<SSG, G3>();
-  TestMultiQueryDpiso<SSG, LG>();
+  // TestMultiQueryDpiso<SG, G1>();
+  // TestMultiQueryDpiso<SG, G2>();
+  // TestMultiQueryDpiso<SG, G3>();
+  // TestMultiQueryDpiso<SG, LG>();
+  // TestMultiQueryDpiso<SSG, G1>();
+  // TestMultiQueryDpiso<SSG, G2>();
+  // TestMultiQueryDpiso<SSG, G3>();
+  // TestMultiQueryDpiso<SSG, LG>();
 }
