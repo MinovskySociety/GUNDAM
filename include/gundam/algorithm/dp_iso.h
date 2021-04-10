@@ -15,6 +15,8 @@
 #include <type_traits>
 #include <vector>
 
+#include "assert.h"
+
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_handle.h"
 #include "match_helper.h"
@@ -179,21 +181,25 @@ inline QueryVertexHandle NextMatchVertex(
     std::map<QueryVertexHandle, std::vector<TargetVertexHandle>> &candidate_set,
     std::map<QueryVertexHandle, TargetVertexHandle> &match_state) {
   std::set<QueryVertexHandle> next_query_set;
-  for (auto &[query_vertex_handle, target_vertex_handle] : match_state) {
-    auto temp_query_vertex_handle = query_vertex_handle;
+  for (auto &[query_vertex_handle, 
+             target_vertex_handle] : match_state) {
+    auto temp_query_vertex_handle 
+            = query_vertex_handle;
     GetAdjNotMatchedVertex(query_vertex_handle, candidate_set, match_state,
                            next_query_set);
   }
   if (next_query_set.empty()) {
-    for (auto &[query_vertex_handle, query_vertex_candidate] : candidate_set) {
+    for (auto &[query_vertex_handle, 
+                query_vertex_candidate] : candidate_set) {
       if (match_state.count(query_vertex_handle) == 0) {
         next_query_set.emplace(query_vertex_handle);
       }
     }
   }
 
-  QueryVertexHandle res;
-  size_t min = SIZE_MAX;
+  QueryVertexHandle res = QueryVertexHandle();
+  assert(!res);
+  size_t min = std::numeric_limits<size_t>::max();
   for (auto &query_vertex_handle : next_query_set) {
     assert(candidate_set.count(query_vertex_handle) > 0);
     size_t candidate_count =
@@ -203,7 +209,8 @@ inline QueryVertexHandle NextMatchVertex(
       min = candidate_count;
     }
   }
-  assert(min >= 0 && res);
+  assert(min >= 0 && min < std::numeric_limits<size_t>::max());
+  assert(res);
   return res;
 }
 
@@ -1116,12 +1123,12 @@ inline int DPISO_Recursive(
       std::vector<QueryVertexHandle> fail_set;
       _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
           candidate_set, match_state, target_matched, parent, fail_set,
-          user_callback, prune_callback, clock(),
+          par_user_callback, par_prune_callback, clock(),
           query_limit_time);
     } else {
       _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
           candidate_set, match_state, target_matched,
-          user_callback, prune_callback, clock(), query_limit_time);
+          par_user_callback, par_prune_callback, clock(), query_limit_time);
     }
   } else {
     // partition next ptr's candiate
