@@ -63,16 +63,27 @@ void TestMultiQueryDpiso() {
     return false;
   };
 
-  auto match_callback = [](int pattern_idx,
-                           const MatchMap& match){
+  int single_match_counter = 0;
+  bool pattern_idx_is_not_zero = false;
+
+  auto match_callback_single = [&single_match_counter,
+                                &pattern_idx_is_not_zero](int pattern_idx,
+                                const MatchMap& match) -> bool {
+    if (pattern_idx != 0){
+      pattern_idx_is_not_zero = true;
+    }
     // continue matching
+    single_match_counter++;
     return true;
   };
 
   GUNDAM::MultiQueryDpiso(query_graph_list,
                           target,
                           prune_callback,
-                          match_callback);
+                          match_callback_single);
+  ASSERT_EQ(single_match_counter, 2);
+  ASSERT_FALSE(pattern_idx_is_not_zero);
+  return;
 }
 
 TEST(TestGUNDAM, MultiQueryDpiso_1) {
@@ -112,8 +123,10 @@ TEST(TestGUNDAM, MultiQueryDpiso_1) {
            SetEdgeLabelType<uint32_t>,
            SetEdgeAttributeKeyType<std::string>>;
 
-  using LG = LargeGraph<uint32_t, uint32_t, std::string, 
-                        uint32_t, uint32_t, std::string>;
+  using LG  = LargeGraph<uint32_t, uint32_t, std::string, 
+                         uint32_t, uint32_t, std::string>;
+  using LG2 = LargeGraph2<uint32_t, uint32_t, std::string, 
+                          uint32_t, uint32_t, std::string>;
   using SG  =       SmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
   using SSG = SimpleSmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
 
@@ -130,6 +143,12 @@ TEST(TestGUNDAM, MultiQueryDpiso_1) {
   TestMultiQueryDpiso<LG, G2>();
   TestMultiQueryDpiso<LG, G3>();
   TestMultiQueryDpiso<LG, LG>();
+  TestMultiQueryDpiso<LG, LG2>();
+  TestMultiQueryDpiso<LG2, G1>();
+  TestMultiQueryDpiso<LG2, G2>();
+  TestMultiQueryDpiso<LG2, G3>();
+  TestMultiQueryDpiso<LG2, LG>();
+  TestMultiQueryDpiso<LG2, LG2>();
   // TestMultiQueryDpiso<SG, G1>();
   // TestMultiQueryDpiso<SG, G2>();
   // TestMultiQueryDpiso<SG, G3>();

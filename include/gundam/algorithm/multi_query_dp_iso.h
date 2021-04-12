@@ -258,15 +258,16 @@ void BuildTls(GraphPatternType&  q,
 
 template <typename GraphPatternType>
 void TLSGroupMatrix(std::vector<GraphPatternType>& query_graph_list,
-                    std::vector<std::vector<std::pair<int, bool>>> clique_set,
+                    std::vector<std::vector<std::pair<int, bool>>>& clique_set,
                     double threshold){
-  assert(threshold >= 0.0 && threshold <= 1.0);
+  assert(threshold >= 0.0 
+      && threshold <= 1.0);
 
   using CliqueVertexLabelType = int;
-  using CliqueVertexIdType = int;
+  using CliqueVertexIdType    = int;
 
   using CliqueEdgeLabelType = int;
-  using CliqueEdgeIdType = int;
+  using CliqueEdgeIdType    = int;
 
   using CliqueVertexAttrKeyType = std::string;
   using CliqueEdgeAttrKeyType   = std::string;
@@ -323,7 +324,8 @@ void TLSGroupMatrix(std::vector<GraphPatternType>& query_graph_list,
   }
 
   for (auto vertex_it = m.VertexBegin();
-           !vertex_it.IsDone(); vertex_it++) {
+           !vertex_it.IsDone(); 
+            vertex_it++) {
     if (vertex_it->FindAttribute(kAddedToCliqueKey)) {
       // this vertex has already been added into the cluster
       continue;
@@ -341,10 +343,10 @@ void TLSGroupMatrix(std::vector<GraphPatternType>& query_graph_list,
       assert(attr_ret);
       return true;
     };
-    ClusterVertexHandleType vertex_handle = vertex_it;
-    Dfs<true>(m, vertex_handle, dfs_callback);
+    Dfs<true>(m, vertex_it, dfs_callback);
     assert(!clique.empty());
   }
+  assert(!clique_set.empty());
   return;
 }
 
@@ -470,7 +472,7 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
 
   std::vector<std::vector<std::pair<int, bool>>> cliques;
 
-  constexpr double threshold = 0.5;
+  constexpr double threshold = 0.0;
 
   TLSGroupMatrix(query_graph_list, cliques, threshold);
 
@@ -481,6 +483,13 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
     // the next level group
     std::vector<std::pair<int, bool>> next_level_graph;
     std::vector<std::pair<int, bool>> query_graph_id_set = clique;
+    for (const auto& query_graph_id 
+                   : query_graph_id_set) {
+      auto [ vertex_handle,
+             vertex_ret ] = pcm_tree.AddVertex(query_graph_id, 
+                                               kDefaultVertexLabel);
+      assert(vertex_ret);
+    }
     while (true) {
       assert(next_level_graph.empty());
       assert(!query_graph_id_set.empty());
@@ -742,6 +751,7 @@ bool MatchFromParentToChild(
   using  TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
   using CandidateSetType = std::map<QueryVertexHandle,
+       
                        std::vector<TargetVertexHandle>>;
 
   using MatchMap = std::map<QueryVertexHandle,
