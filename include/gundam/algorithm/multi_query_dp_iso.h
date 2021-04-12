@@ -398,13 +398,30 @@ inline Match<GraphPatternType,
   return attr_handle->template value<MatchType>();
 }
 
+template <typename  QueryGraphHandleType,
+          typename TargetGraphHandleType>
+inline std::map< QueryGraphHandleType,
+     std::vector<TargetGraphHandleType>>& 
+  GetCandidateRef(const std::pair<int, bool>& graph_idx,
+     std::vector<std::map< QueryGraphHandleType,
+              std::vector<TargetGraphHandleType>>>&            candidate_set_list,
+     std::vector<std::map< QueryGraphHandleType,
+              std::vector<TargetGraphHandleType>>>& additional_candidate_set_list){
+  if (graph_idx.second){
+    assert(graph_idx.first < candidate_set_list.size()
+        && graph_idx.first >= 0);
+    return candidate_set_list[graph_idx.first];
+  }
+  assert(graph_idx.first < additional_candidate_set_list.size()
+      && graph_idx.first >= 0);
+  return additional_candidate_set_list[graph_idx.first];
+}
+
 template <typename GraphPatternType>
-GraphPatternType& GetPatternRef(const std::pair<typename GraphPatternType
-                                                       ::VertexType
-                                                           ::IDType, 
-                                          bool>& graph_idx,
-                                std::vector<GraphPatternType>&      query_graph_list,
-                                std::vector<GraphPatternType>& additional_graph_list){
+inline GraphPatternType& GetPatternRef(
+            const std::pair<int, bool>& graph_idx,
+            std::vector<GraphPatternType>&      query_graph_list,
+            std::vector<GraphPatternType>& additional_graph_list){
   if (graph_idx.second){
     assert(graph_idx.first < query_graph_list.size()
         && graph_idx.first >= 0);
@@ -413,6 +430,20 @@ GraphPatternType& GetPatternRef(const std::pair<typename GraphPatternType
   assert(graph_idx.first < additional_graph_list.size()
       && graph_idx.first >= 0);
   return additional_graph_list[graph_idx.first];
+}
+
+inline bool NeedToCallChildPatternMatchCallback(
+            const std::pair<int, bool>& graph_idx,
+            const std::vector<bool>&            call_child_pattern_match_callback,
+            const std::vector<bool>& additional_call_child_pattern_match_callback){
+  if (graph_idx.second){
+    assert(graph_idx.first < call_child_pattern_match_callback.size()
+        && graph_idx.first >= 0);
+    return call_child_pattern_match_callback[graph_idx.first];
+  }
+  assert(graph_idx.first < additional_call_child_pattern_match_callback.size()
+      && graph_idx.first >= 0);
+  return additional_call_child_pattern_match_callback[graph_idx.first];
 }
 
 template <typename      PcmTreeType,
@@ -689,11 +720,16 @@ bool MatchFromParentToChild(
                          TargetGraph> match,
      std::vector<
         std::map<typename VertexHandle< QueryGraph>::type,
-     std::vector<typename VertexHandle<TargetGraph>::type>>>& candidate_set_list,
-                            std::vector<QueryGraph>& query_graph_list,
+     std::vector<typename VertexHandle<TargetGraph>::type>>>&            candidate_set_list,
+     std::vector<
+        std::map<typename VertexHandle< QueryGraph>::type,
+     std::vector<typename VertexHandle<TargetGraph>::type>>>& additional_candidate_set_list,
+                            std::vector<QueryGraph>&      query_graph_list,
+                            std::vector<QueryGraph>& additional_graph_list,
                             std::vector<bool> call_match_callback,
-              std::vector<bool> call_child_pattern_match_callback,
-                                         TargetGraph& target_graph,
+   std::vector<bool>            call_child_pattern_match_callback,
+   std::vector<bool> additional_call_child_pattern_match_callback,
+                                        TargetGraph& target_graph,
   std::function<bool(int,
                      const std::map<typename VertexHandle< QueryGraph>::type, 
                                     typename VertexHandle<TargetGraph>::type>&)> prune_callback,
@@ -714,21 +750,27 @@ bool MatchFromParentToChild(
   using MatchPatternToPatternType   = Match<QueryGraph,  QueryGraph>;
   using MatchPatternToDataGraphType = Match<QueryGraph, TargetGraph>;
 
-  assert(candidate_set_list.size()
-        == query_graph_list.size());
-
+  assert( candidate_set_list.size()
+         == query_graph_list.size());
   assert(call_match_callback.size()
          == query_graph_list.size());
 
+  assert(additional_candidate_set_list.size()
+              == additional_graph_list.size());
+  assert(additional_call_child_pattern_match_callback.size()
+                             == additional_graph_list.size());
+
   auto current_pattern_idx = GetPatternIdx(current_pattern_handle);
-  assert(current_pattern_idx >= 0
-      && current_pattern_idx < candidate_set_list.size());
 
   // the hold the current match from parent pattern to child pattern
   // the match from parent patten to data graph can be viewed as a
-  // parital match from the child pattern to data graph                              
-  auto& current_candidate_set = candidate_set_list[current_pattern_idx];
-  auto&   current_query_graph =   query_graph_list[current_pattern_idx];
+  // parital match from the child pattern to data graph
+  auto& current_candidate_set = GetCandidateRef(current_pattern_idx, 
+                                                 candidate_set_list, 
+                                      additional_candidate_set_list);
+  auto&   current_query_graph = GetPatternRef(current_pattern_idx, 
+                                                 query_graph_list, 
+                                            additional_graph_list);
 
   // for each pattern, 
   // the current match need to be prune if and only if the prune_callback
@@ -736,7 +778,7 @@ bool MatchFromParentToChild(
   auto current_pattern_prune_callback 
    = [&current_pattern_handle,
              &prune_callback,
-             &pcm_tree](const MatchMap& match){
+             &pcm_tree](const MatchMap& match) -> bool {
     // one-direction bfs at this vertex, if meet one prune_callback return false,
     // then end matching
     bool all_prune_return_true = true;
@@ -745,7 +787,14 @@ bool MatchFromParentToChild(
                          &match,
                          &pcm_tree](PcmTreeVertexHandle pcm_tree_vertex_handle) {
       auto pattern_idx = GetPatternIdx(pcm_tree_vertex_handle);
-      if (!prune_callback(pattern_idx, match)) {
+      if (!pattern_idx.second){
+        // this pattern is an additional pattern
+        // does not need to call prune_callback
+        return false;
+      }
+      // this pattern is not additional pattern
+      // call the callback on it
+      if (!prune_callback(pattern_idx.first, match)) {
         // has found a pattern that cannot prune at this 
         // partial match, mark all_prune_return_true as false
         // and end the bfs process
@@ -772,44 +821,62 @@ bool MatchFromParentToChild(
    = [&current_pattern_idx,
       &current_pattern_handle,
         &candidate_set_list,
-          &query_graph_list,
+        &additional_candidate_set_list,
+        &query_graph_list,
+        &additional_graph_list,
         &pcm_tree,
         &call_match_callback,
         &call_child_pattern_match_callback,
+        &additional_call_child_pattern_match_callback,
         &target_graph,
         &prune_callback,
-        &match_callback](const MatchMap& match){
-      
-    assert(call_child_pattern_match_callback[current_pattern_idx]);
+        &match_callback](const MatchMap& match) -> bool {
+     
+    #ifndef NDEBUG
+    if (current_pattern_idx.second){
+      assert(current_pattern_idx.first >= 0 
+          && current_pattern_idx.first < call_child_pattern_match_callback.size());
+      assert(call_child_pattern_match_callback[current_pattern_idx.first]);
+    }
+    if (!current_pattern_idx.second){
+      assert(current_pattern_idx.first >= 0 
+          && current_pattern_idx.first < additional_call_child_pattern_match_callback.size());
+      assert(additional_call_child_pattern_match_callback[current_pattern_idx.first]);
+    }
+    #endif // NDEBUG
     
     // call match_callback only when the flage for this pattern
     // is not marked as false
-    if (call_match_callback[current_pattern_idx]){
-        call_match_callback[current_pattern_idx]
-           = match_callback(current_pattern_idx, match);
+    if (current_pattern_idx.second // the order cannot be changed
+     && call_match_callback[current_pattern_idx.first]){
+        call_match_callback[current_pattern_idx.first]
+           = match_callback(current_pattern_idx.first, match);
     }
 
-    bool all_child_pattern_does_not_need_to_be_called = true;
+    bool all_child_pattern_need_to_be_called = false;
     // get a match from parent pattern to child pattern
-    for (auto child_pattern_it = current_pattern_handle->OutVertexBegin();
-             !child_pattern_it.IsDone();
-              child_pattern_it++) {
+    for (auto child_edge_it = current_pattern_handle->OutEdgeBegin();
+             !child_edge_it.IsDone();
+              child_edge_it++) {
+            
+      auto child_handle = child_edge_it->dst_handle();
+      assert(child_handle);
 
       assert(candidate_set_list.size()
             == query_graph_list.size());
 
-      auto child_pattern_idx = GetPatternIdx(child_pattern_it);
-      assert(child_pattern_idx >= 0
-          && child_pattern_idx < candidate_set_list.size());
+      auto child_pattern_idx = GetPatternIdx(child_handle);
 
-      if (!call_child_pattern_match_callback[child_pattern_idx]) {
+      if (!NeedToCallChildPatternMatchCallback(child_pattern_idx,
+                               call_child_pattern_match_callback,
+                    additional_call_child_pattern_match_callback)){
         // the match_callback of this child pattern
         // does not need to be called 
         continue;
       }
 
       MatchPatternToPatternType child_to_parent_match 
-             = GetMatchToParent<QueryGraph>(child_pattern_it);
+             = GetMatchToParent<QueryGraph>(child_handle);
 
       MatchPatternToDataGraphType parent_to_target_graph_match;
 
@@ -819,28 +886,49 @@ bool MatchFromParentToChild(
       
       bool child_match_ret = MatchFromParentToChild(
                               pcm_tree,
-                              child_pattern_it, 
+                              child_handle, 
                               child_to_target_graph_partial_match, 
                               candidate_set_list,
+                   additional_candidate_set_list,
                                 query_graph_list,
+                           additional_graph_list,
                               call_match_callback,
                 call_child_pattern_match_callback,
+     additional_call_child_pattern_match_callback,
                                     target_graph,
                                   prune_callback,
                                   match_callback);
 
-      if (call_match_callback[child_pattern_idx]){
-        all_child_pattern_does_not_need_to_be_called = false;
+      if (NeedToCallChildPatternMatchCallback(child_pattern_idx,
+                               call_child_pattern_match_callback,
+                    additional_call_child_pattern_match_callback)){
+        // the match_callback of this child pattern or its children
+        // still needs to be called
+        all_child_pattern_need_to_be_called = true;
       }
     }
 
-    assert(call_child_pattern_match_callback[current_pattern_idx]);
+    assert(NeedToCallChildPatternMatchCallback(current_pattern_idx,
+                                 call_child_pattern_match_callback,
+                      additional_call_child_pattern_match_callback));
 
-    call_child_pattern_match_callback[current_pattern_idx]
-                = call_match_callback[current_pattern_idx]
-                  && all_child_pattern_does_not_need_to_be_called;
-
-    return call_child_pattern_match_callback[current_pattern_idx];
+    if (current_pattern_idx.second){
+      // this pattern is not an additional pattern
+      assert(current_pattern_idx.first >= 0
+          && current_pattern_idx.first < call_child_pattern_match_callback.size());
+      call_child_pattern_match_callback[current_pattern_idx.first]
+                  = call_match_callback[current_pattern_idx.first]
+                     || all_child_pattern_need_to_be_called;
+      return call_child_pattern_match_callback[current_pattern_idx.first];
+    }
+    // this pattern is an additional pattern
+    assert(current_pattern_idx.first >= 0
+        && current_pattern_idx.first < additional_call_child_pattern_match_callback.size());
+    // only consider whether the match callback for the
+    // child patten of it needs to be called
+    additional_call_child_pattern_match_callback[current_pattern_idx.first]
+              = all_child_pattern_need_to_be_called;
+    return additional_call_child_pattern_match_callback[current_pattern_idx.first];
   };
 
   return DpisoUsingMatch(current_query_graph,
@@ -957,21 +1045,26 @@ inline void MultiQueryDpiso(
   std::vector<bool> call_match_callback(query_graph_list.size(), true),
       // to mark whether the match_callback for the child patterns need to be called
       call_child_pattern_match_callback(query_graph_list.size(), true);
+
+  std::vector<bool> additional_call_child_pattern_match_callback(additional_graph_list.size(), true);
   
   Match<QueryGraph, TargetGraph> match;
 
-  // for (auto& root_handle : root_handle_set){
-  //   _multi_query_dp_iso::MatchFromParentToChild(
-  //                         pcm_tree,
-  //                         root_handle, match, 
-  //                         candidate_set_list,
-  //                           query_graph_list,
-  //                         call_match_callback,
-  //           call_child_pattern_match_callback,
-  //                               target_graph,
-  //                             prune_callback,
-  //                             match_callback);
-  // }
+  for (auto& root_handle : root_handle_set){
+    _multi_query_dp_iso::MatchFromParentToChild(
+                          pcm_tree,
+                          root_handle, match, 
+                          candidate_set_list,
+               additional_candidate_set_list,
+                            query_graph_list,
+                       additional_graph_list,
+                          call_match_callback,
+            call_child_pattern_match_callback,
+ additional_call_child_pattern_match_callback,
+                                target_graph,
+                              prune_callback,
+                              match_callback);
+  }
   return;
 }
 
