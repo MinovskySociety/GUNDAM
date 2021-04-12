@@ -99,14 +99,16 @@ inline size_t Dfs(GraphType& graph,
       "illegal callback type, only allows one of prune_callback(vertex_handle), prune_callback(vertex_handle, edge_handle) and prune_callback(vertex_handle, edge_handle, dfs_idx)");
 
   VertexCounterType dfs_idx = 0;
-  std::stack<VertexHandleType> vertex_handle_stack;
+  std::stack<std::pair<VertexHandleType, 
+                       VertexCounterType>> vertex_handle_stack;
   std:: set <VertexHandleType> visited;
-  vertex_handle_stack.emplace(src_vertex_handle);
+  vertex_handle_stack.emplace(src_vertex_handle, 0);
   if constexpr (remove_duplicate){
     visited.emplace(src_vertex_handle);
   }
   while (!vertex_handle_stack.empty()) {
-    auto current_vertex_handle = vertex_handle_stack.top();
+    auto [current_vertex_handle,
+          current_dfs_depth] = vertex_handle_stack.top();
     vertex_handle_stack.pop();
     bool ret = false;
     if constexpr (
@@ -122,6 +124,16 @@ inline size_t Dfs(GraphType& graph,
                                   VertexCounterType)> >){
       ret = user_callback(current_vertex_handle,
                           dfs_idx);
+    }
+    if constexpr (
+      std::is_convertible_v<
+                UserCallBackType, 
+                std::function<bool(VertexHandleType,
+                                  VertexCounterType,
+                                  VertexCounterType)> >){
+      ret = user_callback(current_vertex_handle,
+                          dfs_idx,
+                          current_dfs_depth);
     }
     dfs_idx++;
     if (!ret){
@@ -164,6 +176,18 @@ inline size_t Dfs(GraphType& graph,
         prune_ret = prune_callback(edge_it->dst_handle(),
                                    edge_it, dfs_idx);
       }
+      if constexpr (
+        // prune_callback(vertex_handle, edge_handle, dfs_idx, dfs_depth)
+        std::is_convertible_v<
+                  PruneCallBackType, 
+                  std::function<bool(VertexHandleType, 
+                                       EdgeHandleType,
+                                    VertexCounterType,
+                                    VertexCounterType)> >){
+        prune_ret = prune_callback(edge_it->dst_handle(),
+                                   edge_it, dfs_idx,
+                                   current_dfs_depth + 1);
+      }
       if (prune_ret){
         // this vertex is pruned, does not be considered
         continue;
@@ -171,7 +195,8 @@ inline size_t Dfs(GraphType& graph,
       if constexpr (remove_duplicate){
         visited.emplace(edge_it->dst_handle());
       }
-      vertex_handle_stack.emplace(edge_it->dst_handle());
+      vertex_handle_stack.emplace(edge_it->dst_handle(),
+                                  current_dfs_depth + 1);
     }
     if constexpr (bidirectional){
       for (auto edge_it = current_vertex_handle->InEdgeBegin();
@@ -198,6 +223,26 @@ inline size_t Dfs(GraphType& graph,
           prune_ret = prune_callback(edge_it->src_handle(),
                                      edge_it);
         }
+        if constexpr (
+          std::is_convertible_v<
+                    PruneCallBackType, 
+                    std::function<bool(VertexHandleType, 
+                                         EdgeHandleType,
+                                      VertexCounterType)> >){
+          prune_ret = prune_callback(edge_it->src_handle(),
+                                     edge_it, dfs_idx);
+        }
+        if constexpr (
+          std::is_convertible_v<
+                    PruneCallBackType, 
+                    std::function<bool(VertexHandleType, 
+                                         EdgeHandleType,
+                                      VertexCounterType,
+                                      VertexCounterType)> >){
+          prune_ret = prune_callback(edge_it->src_handle(),
+                                     edge_it, dfs_idx,
+                                     current_dfs_depth + 1);
+        }
         if (prune_ret){
           // this vertex is pruned, does not be considered
           continue;
@@ -205,7 +250,8 @@ inline size_t Dfs(GraphType& graph,
         if constexpr (remove_duplicate){
           visited.emplace(edge_it->src_handle());
         }
-        vertex_handle_stack.emplace(edge_it->src_handle());
+        vertex_handle_stack.emplace(edge_it->src_handle(),
+                                    current_dfs_depth + 1);
       }
     }
   }

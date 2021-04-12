@@ -49,9 +49,11 @@ void TestMultiQueryDpiso() {
   target.AddVertex(1, VertexLabelType(0));
   target.AddVertex(2, VertexLabelType(1));
   target.AddVertex(3, VertexLabelType(0));
+  target.AddVertex(4, VertexLabelType(2));
   target.AddEdge(1, 2, EdgeLabelType(1), 1);
   target.AddEdge(3, 2, EdgeLabelType(1), 2);
   target.AddEdge(3, 1, EdgeLabelType(1), 3);
+  target.AddEdge(4, 3, EdgeLabelType(1), 4);
 
   std::vector<QueryGraph> query_graph_list;
 
@@ -111,7 +113,8 @@ void TestMultiQueryDpiso() {
   ASSERT_FALSE(pattern_idx_is_not_zero);
 
   QueryGraph query2(query);
-  query2.AddEdge(3, 1, EdgeLabelType(1), 3);
+  query2.AddVertex(4, VertexLabelType(2));
+  query2.AddEdge(4, 3, EdgeLabelType(1), 4);
   query_graph_list.emplace_back(query2);
 
   std::vector<int> multi_match_counter(2, 0);
@@ -127,6 +130,9 @@ void TestMultiQueryDpiso() {
       pattern_idx_exceed_limit = true;
       return false;
     }
+    std::cout << "##########" << std::endl
+              << "#\t" << pattern_idx << std::endl
+              << "##########" << std::endl;
     multi_match_counter[pattern_idx]++;
     // continue matching
     return true;
