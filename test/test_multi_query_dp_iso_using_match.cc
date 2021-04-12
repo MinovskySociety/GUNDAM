@@ -200,8 +200,6 @@ void TestMultiQueryDpiso() {
   assert(query_graph_list.size() == 2);
   multi_match_counter.clear();
   multi_match_counter.resize(2, 0);
-  std::cout << "two query pattern, the mcs of them does not contained in these two patterns"
-            << std::endl;
   // two query pattern, the mcs of them does not contained in these two patterns
   GUNDAM::MultiQueryDpiso(query_graph_list,
                           target,

@@ -124,7 +124,7 @@ template <typename     GraphPatternType,
 size_t Li(GraphPatternType&  q,
    TlsSet<TriVertexPatternType>& tls_set){
   size_t li_q_tls = 0;
-  std::cout << "tls_set.size(): " << tls_set.Size() << std::endl;
+  // std::cout << "tls_set.size(): " << tls_set.Size() << std::endl;
   for (auto tls_it  = tls_set.TlsBegin();
             tls_it != tls_set.TlsEnd();
             tls_it++) {
@@ -237,9 +237,9 @@ void BuildTls(GraphPatternType&  q,
              VertexHandleType vertex_handle, int dfs_idx, 
                                              int dfs_depth){
 
-      std::cout << "dfs_depth: "
-                <<  dfs_depth
-                << std::endl;
+      // std::cout << "dfs_depth: "
+      //           <<  dfs_depth
+      //           << std::endl;
 
       assert(0 <= dfs_depth && dfs_depth <= 2);
 
@@ -255,14 +255,14 @@ void BuildTls(GraphPatternType&  q,
         // does not need further process
         return true;
       }
-      std::cout << "tri vertex id: " << std::endl;
+      // std::cout << "tri vertex id: " << std::endl;
       for (const auto& tri_vertex_handle
                      : tri_vertex_handle_set) {
         // should not be null
         assert(tri_vertex_handle);
-        std::cout << "\t" << tri_vertex_handle->id();
+        // std::cout << "\t" << tri_vertex_handle->id();
       }
-      std::cout << std::endl;
+      // std::cout << std::endl;
       // has already get a tri-vertex tuple
       TriVertexPatternType tri_vertex_pattern(q);
       // get a tri-vertex pattern, obtain it from the graph pattern
@@ -287,9 +287,9 @@ void BuildTls(GraphPatternType&  q,
         // should have removed successfully
         assert(erase_size_ret >= 1);
       }
-      std::cout << "tri_vertex_pattern.CountVertex(): "
-                <<  tri_vertex_pattern.CountVertex()
-                << std::endl;
+      // std::cout << "tri_vertex_pattern.CountVertex(): "
+      //           <<  tri_vertex_pattern.CountVertex()
+      //           << std::endl;
       assert(tri_vertex_pattern.CountVertex() == 3);
       q_tls_set.AddTls(tri_vertex_pattern);
       return true;
@@ -342,8 +342,8 @@ void TLSGroupMatrix(std::vector<GraphPatternType>& query_graph_list,
     TlsSetType q_tls_set;
     BuildTls(q, q_tls_set);
     auto li = Li(q, q_tls_set);
-    std::cout << "q_tls_set.size(): "
-              <<  q_tls_set.Size() << std::endl;
+    // std::cout << "q_tls_set.size(): "
+    //           <<  q_tls_set.Size() << std::endl;
     query_graph_tls_set_list.emplace_back(std::move(q_tls_set), li);
   }
 
@@ -363,11 +363,11 @@ void TLSGroupMatrix(std::vector<GraphPatternType>& query_graph_list,
                            query_graph_list[j], 
                            query_graph_tls_set_list[j].first,  
                            query_graph_tls_set_list[j].second);
-      std::cout << "gf_qi_qj: "
-                <<  gf_qi_qj << std::endl;
+      // std::cout << "gf_qi_qj: "
+      //           <<  gf_qi_qj << std::endl;
       if (gf_qi_qj >= threshold) {
         // only add one direction would be enough
-        std::cout << "m AddedEdge" << std::endl;
+        // std::cout << "m AddedEdge" << std::endl;
         m.AddEdge(i, j, kDefaultEdgeLabel, edge_id_counter);
         edge_id_counter++;
       }
@@ -443,9 +443,9 @@ inline Match<GraphPatternType,
   auto match_counter = DpisoUsingMatch(parent_graph,
                                         child_graph,
                           match_set_parent_to_child, 1);
-  std::cout << "match_counter: "
-            <<  match_counter
-            << std::endl;
+  // std::cout << "match_counter: "
+  //           <<  match_counter
+  //           << std::endl;
   assert(match_counter == 1);
   assert(match_set_parent_to_child.size() == 1);
   
@@ -536,7 +536,7 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
 
   TLSGroupMatrix(query_graph_list, cliques, threshold);
 
-  std::cout << "cliques.size(): " << cliques.size() << std::endl;
+  // std::cout << "cliques.size(): " << cliques.size() << std::endl;
 
   std::vector<std::pair<int, bool>> root_idx_set;
   root_idx_set.reserve(cliques.size());
@@ -966,13 +966,13 @@ bool MatchFromParentToChild(
         &prune_callback,
         &match_callback](const MatchMap& match) -> bool {
 
-    std::cout << "## match ##" << std::endl;
-    std::cout << "current_pattern_handle->id().first: "
-              <<  current_pattern_handle->id().first
-              << std::endl
-              << "current_pattern_handle->id().second: "
-              <<  current_pattern_handle->id().second
-              << std::endl;
+    // std::cout << "## match ##" << std::endl;
+    // std::cout << "current_pattern_handle->id().first: "
+    //           <<  current_pattern_handle->id().first
+    //           << std::endl
+    //           << "current_pattern_handle->id().second: "
+    //           <<  current_pattern_handle->id().second
+    //           << std::endl;
 
     #ifndef NDEBUG
     if (current_pattern_idx.second){
@@ -1004,13 +1004,13 @@ bool MatchFromParentToChild(
       auto child_handle = child_edge_it->dst_handle();
       assert(child_handle);
 
-      std::cout << "## call match ##" << std::endl;
-      std::cout << "child_handle->id().first: "
-                <<  child_handle->id().first
-                << std::endl
-                << "child_handle->id().second: "
-                <<  child_handle->id().second
-                << std::endl;
+      // std::cout << "## call match ##" << std::endl;
+      // std::cout << "child_handle->id().first: "
+      //           <<  child_handle->id().first
+      //           << std::endl
+      //           << "child_handle->id().second: "
+      //           <<  child_handle->id().second
+      //           << std::endl;
 
       assert(candidate_set_list.size()
             == query_graph_list.size());
