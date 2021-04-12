@@ -72,8 +72,8 @@ void TestMultiQueryDpiso() {
     if (pattern_idx != 0){
       pattern_idx_is_not_zero = true;
     }
-    // continue matching
     single_match_counter++;
+    // continue matching
     return true;
   };
 
@@ -93,12 +93,12 @@ void TestMultiQueryDpiso() {
     if (pattern_idx != 0){
       pattern_idx_is_not_zero = true;
     }
-    // continue matching
     single_match_counter++;
     if (single_match_counter == match_limit){
       // no longer need to matching
       return false;
     }
+    // continue matching
     return true;
   };
 
@@ -109,6 +109,36 @@ void TestMultiQueryDpiso() {
                           match_callback_single_with_match_limit);
   ASSERT_EQ(single_match_counter, match_limit);
   ASSERT_FALSE(pattern_idx_is_not_zero);
+
+  QueryGraph query2(query);
+  query2.AddEdge(3, 1, EdgeLabelType(1), 3);
+  query_graph_list.emplace_back(query2);
+
+  std::vector<int> multi_match_counter(2, 0);
+
+  bool pattern_idx_exceed_limit = false;
+  auto match_callback_multi
+                  = [&multi_match_counter,
+                     &match_limit,
+                     &pattern_idx_exceed_limit](int pattern_idx,
+                                const MatchMap& match) -> bool {
+    if (pattern_idx < 0
+     || pattern_idx >= multi_match_counter.size()){
+      pattern_idx_exceed_limit = true;
+      return false;
+    }
+    multi_match_counter[pattern_idx]++;
+    // continue matching
+    return true;
+  };
+
+  GUNDAM::MultiQueryDpiso(query_graph_list,
+                          target,
+                          prune_callback,
+                          match_callback_multi);
+  ASSERT_EQ(multi_match_counter[0], 2);
+  ASSERT_EQ(multi_match_counter[1], 1);
+  ASSERT_FALSE(pattern_idx_exceed_limit);
   return;
 }
 
