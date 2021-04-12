@@ -162,12 +162,12 @@ std::vector<GraphPatternType> ExpandPattern(
     for (auto vertex_it = current_graph_pattern.VertexBegin();
              !vertex_it.IsDone();
               vertex_it++) {
-      new_vertex_id = new_vertex_id < vertex_it->id()?
+      new_vertex_id = new_vertex_id > vertex_it->id()?
                       new_vertex_id : vertex_it->id();
       for (auto edge_it = vertex_it->OutEdgeBegin();
                !edge_it.IsDone();
                 edge_it++) {
-        new_edge_id = new_edge_id < edge_it->id()?
+        new_edge_id = new_edge_id > edge_it->id()?
                       new_edge_id : edge_it->id();
       }
     }
@@ -287,7 +287,6 @@ std::vector<GraphPatternType>
 
   while (true) {
     std::vector<GraphPatternType> expanded_graph_patterns;
-
     expanded_graph_patterns = _maximal_common_subgraph::ExpandPattern(
                                                 current_graph_patterns,
                                                 q0_intersect_q1_vertex_label_set,

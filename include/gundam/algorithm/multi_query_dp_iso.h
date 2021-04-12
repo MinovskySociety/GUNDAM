@@ -565,20 +565,16 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
         // randomly pick a pair of pattern in the remained
         // patterns in this clique
         size_t query_graph_id_set_idx_i  = rand() % query_graph_id_set.size();
-        size_t query_graph_id_set_idx_j  = query_graph_id_set_idx_i;
-        while (query_graph_id_set_idx_j == query_graph_id_set_idx_i){
-          query_graph_id_set_idx_j  = rand() % query_graph_id_set.size();
-        }
-        assert(query_graph_id_set_idx_i
-            != query_graph_id_set_idx_j);
-        // has picked a random pair from current clique 
         std::pair<int, bool>
-          query_graph_id_i = query_graph_id_set[query_graph_id_set_idx_i],
-          query_graph_id_j = query_graph_id_set[query_graph_id_set_idx_j];
-
-        // removed the picked pair from current clique
+        query_graph_id_i = query_graph_id_set[query_graph_id_set_idx_i];
+        // removed the selected graph from current clique
         query_graph_id_set.erase(query_graph_id_set.begin() 
                                + query_graph_id_set_idx_i);
+                               
+        size_t query_graph_id_set_idx_j  = rand() % query_graph_id_set.size();
+        std::pair<int, bool>
+        query_graph_id_j = query_graph_id_set[query_graph_id_set_idx_j];
+        // removed the selected graph from current clique
         query_graph_id_set.erase(query_graph_id_set.begin() 
                                + query_graph_id_set_idx_j);
 
@@ -614,6 +610,10 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
           continue;
         }
         // neither qi can be contained in qj nor qj can be contained in qi
+        std::cout << "qi: " << query_graph_id_i.first 
+                    << "\t" << query_graph_id_i.second << std::endl
+                  << "qj: " << query_graph_id_j.first 
+                    << "\t" << query_graph_id_j.second << std::endl;
         auto mcs_qi_qj_set = MaximalCommonSubgraph(qi, qj);
         assert(!mcs_qi_qj_set.empty());
         bool has_been_contained = false;
@@ -628,7 +628,7 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
             // find in this clique to find a new
             auto& query_graph = GetPatternRef(query_graph_id, 
                                               query_graph_list, 
-                                              additional_graph_list);
+                                         additional_graph_list);
             if (SamePattern(query_graph, mcs)) {
               // add an edge from query_graph_id to qi and qj
               auto [edge_handle_i, 
@@ -791,6 +791,17 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
       auto parent_vertex_handle = parent_edge_it->src_handle();
       #ifndef NDEBUG
       parent_edge_it++;
+      std::cout << "pcm_vertex_handle->id(): "
+                <<  pcm_vertex_handle->id().first
+                << std::endl;
+      std::cout << "parent_vertex_handle->id(): "
+                <<  parent_vertex_handle->id().first
+                << std::endl;
+      if (!parent_edge_it.IsDone()){
+        std::cout << "parent_edge_it->src_handle()->id(): "
+                  <<  parent_edge_it->src_handle()->id().first
+                  << std::endl;
+      }
       // should have only one parent
       assert(parent_edge_it.IsDone());
       #endif

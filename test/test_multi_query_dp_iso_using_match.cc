@@ -105,7 +105,6 @@ void TestMultiQueryDpiso() {
     // continue matching
     return true;
   };
-
   single_match_counter = 0;
   GUNDAM::MultiQueryDpiso(query_graph_list,
                           target,
@@ -135,7 +134,7 @@ void TestMultiQueryDpiso() {
     // continue matching
     return true;
   };
-
+  // two query pattern, one is contained in the other
   GUNDAM::MultiQueryDpiso(query_graph_list,
                           target,
                           prune_callback,
@@ -165,7 +164,7 @@ void TestMultiQueryDpiso() {
     // continue matching
     return true;
   };
-
+  // two query pattern, one is contained in the other
   GUNDAM::MultiQueryDpiso(query_graph_list,
                           target,
                           prune_callback,
@@ -174,7 +173,6 @@ void TestMultiQueryDpiso() {
   ASSERT_EQ(multi_match_counter[1], match_limit);
   ASSERT_FALSE(pattern_idx_exceed_limit);
 
-  query_graph_list.clear();
   QueryGraph query3(query);
   query3.AddVertex(5, VertexLabelType(3));
   query3.AddEdge(5, 1, EdgeLabelType(1), 5);
@@ -182,7 +180,7 @@ void TestMultiQueryDpiso() {
   assert(query_graph_list.size() == 3);
   multi_match_counter.clear();
   multi_match_counter.resize(3, 0);
-
+  // three query pattern, one is contained in the other two patterns
   GUNDAM::MultiQueryDpiso(query_graph_list,
                           target,
                           prune_callback,
@@ -191,6 +189,21 @@ void TestMultiQueryDpiso() {
   ASSERT_EQ(multi_match_counter[1], 1);
   ASSERT_EQ(multi_match_counter[2], 1);
   ASSERT_FALSE(pattern_idx_exceed_limit);
+
+  // query_graph_list.clear();
+  // query_graph_list.emplace_back(query2);
+  // query_graph_list.emplace_back(query3);
+  // assert(query_graph_list.size() == 2);
+  // multi_match_counter.clear();
+  // multi_match_counter.resize(2, 0);
+  // // two query pattern, the mcs of them does not contained in these two patterns
+  // GUNDAM::MultiQueryDpiso(query_graph_list,
+  //                         target,
+  //                         prune_callback,
+  //                         match_callback_multi);
+  // ASSERT_EQ(multi_match_counter[0], 1);
+  // ASSERT_EQ(multi_match_counter[1], 1);
+  // ASSERT_FALSE(pattern_idx_exceed_limit);
   return;
 }
 
