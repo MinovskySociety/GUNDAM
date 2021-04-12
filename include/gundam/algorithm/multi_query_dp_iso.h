@@ -864,6 +864,15 @@ bool MatchFromParentToChild(
 
   using MatchPatternToPatternType   = Match<QueryGraph,  QueryGraph>;
   using MatchPatternToDataGraphType = Match<QueryGraph, TargetGraph>;
+
+  std::cout << "##############################" << std::endl;
+  std::cout << "current_pattern_handle->id().first: "
+            <<  current_pattern_handle->id().first
+            << std::endl
+            << "current_pattern_handle->id().second: "
+            <<  current_pattern_handle->id().second
+            << std::endl;
+  std::cout << "##############################" << std::endl;
   
   std::cout << "# Match #" << std::endl;
   for (auto map_it = match.MapBegin();
@@ -913,12 +922,13 @@ bool MatchFromParentToChild(
       if (!pattern_idx.second){
         // this pattern is an additional pattern
         // does not need to call prune_callback
-        return false;
+        // contine searching on pcm_tree
+        return true;
       }
       // this pattern is not additional pattern
       // call the callback on it
       if (!prune_callback(pattern_idx.first, match)) {
-        // has found a pattern that cannot prune at this 
+        // has found a pattern that cannot be pruned at this 
         // partial match, mark all_prune_return_true as false
         // and end the bfs process
         all_prune_return_true = false;
@@ -927,8 +937,9 @@ bool MatchFromParentToChild(
       return true;
     };
 
-    Bfs(pcm_tree, current_pattern_handle, bfs_callback);
+    Bfs<false>(pcm_tree, current_pattern_handle, bfs_callback);
 
+    // return true if all prune return true
     return all_prune_return_true;
   };
 
@@ -954,7 +965,15 @@ bool MatchFromParentToChild(
         &target_graph,
         &prune_callback,
         &match_callback](const MatchMap& match) -> bool {
-     
+
+    std::cout << "## match ##" << std::endl;
+    std::cout << "current_pattern_handle->id().first: "
+              <<  current_pattern_handle->id().first
+              << std::endl
+              << "current_pattern_handle->id().second: "
+              <<  current_pattern_handle->id().second
+              << std::endl;
+
     #ifndef NDEBUG
     if (current_pattern_idx.second){
       assert(current_pattern_idx.first >= 0 
@@ -984,6 +1003,14 @@ bool MatchFromParentToChild(
             
       auto child_handle = child_edge_it->dst_handle();
       assert(child_handle);
+
+      std::cout << "## call match ##" << std::endl;
+      std::cout << "child_handle->id().first: "
+                <<  child_handle->id().first
+                << std::endl
+                << "child_handle->id().second: "
+                <<  child_handle->id().second
+                << std::endl;
 
       assert(candidate_set_list.size()
             == query_graph_list.size());

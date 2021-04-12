@@ -130,6 +130,10 @@ void TestMultiQueryDpiso() {
       pattern_idx_exceed_limit = true;
       return false;
     }
+    std::cout << "###########" << std::endl
+              << "pattern_idx: "
+              <<  pattern_idx
+              << std::endl;
     multi_match_counter[pattern_idx]++;
     // continue matching
     return true;
@@ -190,20 +194,22 @@ void TestMultiQueryDpiso() {
   ASSERT_EQ(multi_match_counter[2], 1);
   ASSERT_FALSE(pattern_idx_exceed_limit);
 
-  // query_graph_list.clear();
-  // query_graph_list.emplace_back(query2);
-  // query_graph_list.emplace_back(query3);
-  // assert(query_graph_list.size() == 2);
-  // multi_match_counter.clear();
-  // multi_match_counter.resize(2, 0);
-  // // two query pattern, the mcs of them does not contained in these two patterns
-  // GUNDAM::MultiQueryDpiso(query_graph_list,
-  //                         target,
-  //                         prune_callback,
-  //                         match_callback_multi);
-  // ASSERT_EQ(multi_match_counter[0], 1);
-  // ASSERT_EQ(multi_match_counter[1], 1);
-  // ASSERT_FALSE(pattern_idx_exceed_limit);
+  query_graph_list.clear();
+  query_graph_list.emplace_back(query2);
+  query_graph_list.emplace_back(query3);
+  assert(query_graph_list.size() == 2);
+  multi_match_counter.clear();
+  multi_match_counter.resize(2, 0);
+  std::cout << "two query pattern, the mcs of them does not contained in these two patterns"
+            << std::endl;
+  // two query pattern, the mcs of them does not contained in these two patterns
+  GUNDAM::MultiQueryDpiso(query_graph_list,
+                          target,
+                          prune_callback,
+                          match_callback_multi);
+  ASSERT_EQ(multi_match_counter[0], 1);
+  ASSERT_EQ(multi_match_counter[1], 1);
+  ASSERT_FALSE(pattern_idx_exceed_limit);
   return;
 }
 
