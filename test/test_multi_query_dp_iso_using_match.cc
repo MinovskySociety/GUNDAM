@@ -50,10 +50,12 @@ void TestMultiQueryDpiso() {
   target.AddVertex(2, VertexLabelType(1));
   target.AddVertex(3, VertexLabelType(0));
   target.AddVertex(4, VertexLabelType(2));
+  target.AddVertex(5, VertexLabelType(3));
   target.AddEdge(1, 2, EdgeLabelType(1), 1);
   target.AddEdge(3, 2, EdgeLabelType(1), 2);
   target.AddEdge(3, 1, EdgeLabelType(1), 3);
   target.AddEdge(4, 3, EdgeLabelType(1), 4);
+  target.AddEdge(5, 1, EdgeLabelType(1), 5);
 
   std::vector<QueryGraph> query_graph_list;
 
@@ -172,25 +174,23 @@ void TestMultiQueryDpiso() {
   ASSERT_EQ(multi_match_counter[1], match_limit);
   ASSERT_FALSE(pattern_idx_exceed_limit);
 
-  // query_graph_list.clear();
-  // multi_match_counter.clear();
-  // multi_match_counter.resize(2, 0);
-  // QueryGraph query3;
-  // query3.AddVertex(1, VertexLabelType(0));
-  // query3.AddVertex(2, VertexLabelType(1));
-  // query3.AddVertex(3, VertexLabelType(0));
-  // query3.AddEdge(1, 2, EdgeLabelType(1), 1);
-  // query3.AddEdge(3, 1, EdgeLabelType(1), 3);
-  // query_graph_list.emplace_back(query);
-  // query_graph_list.emplace_back(query3);
+  query_graph_list.clear();
+  QueryGraph query3(query);
+  query3.AddVertex(5, VertexLabelType(3));
+  query3.AddEdge(5, 1, EdgeLabelType(1), 5);
+  query_graph_list.emplace_back(query3);
+  assert(query_graph_list.size() == 3);
+  multi_match_counter.clear();
+  multi_match_counter.resize(3, 0);
 
-  // GUNDAM::MultiQueryDpiso(query_graph_list,
-  //                         target,
-  //                         prune_callback,
-  //                         match_callback_multi);
-  // ASSERT_EQ(multi_match_counter[0], 2);
-  // ASSERT_EQ(multi_match_counter[1], 1);
-  // ASSERT_FALSE(pattern_idx_exceed_limit);
+  GUNDAM::MultiQueryDpiso(query_graph_list,
+                          target,
+                          prune_callback,
+                          match_callback_multi);
+  ASSERT_EQ(multi_match_counter[0], 2);
+  ASSERT_EQ(multi_match_counter[1], 1);
+  ASSERT_EQ(multi_match_counter[2], 1);
+  ASSERT_FALSE(pattern_idx_exceed_limit);
   return;
 }
 
