@@ -83,6 +83,32 @@ void TestMultiQueryDpiso() {
                           match_callback_single);
   ASSERT_EQ(single_match_counter, 2);
   ASSERT_FALSE(pattern_idx_is_not_zero);
+
+  int match_limit = 1;
+  auto match_callback_single_with_match_limit 
+                  = [&single_match_counter,
+                     &match_limit,
+                     &pattern_idx_is_not_zero](int pattern_idx,
+                                const MatchMap& match) -> bool {
+    if (pattern_idx != 0){
+      pattern_idx_is_not_zero = true;
+    }
+    // continue matching
+    single_match_counter++;
+    if (single_match_counter == match_limit){
+      // no longer need to matching
+      return false;
+    }
+    return true;
+  };
+
+  single_match_counter = 0;
+  GUNDAM::MultiQueryDpiso(query_graph_list,
+                          target,
+                          prune_callback,
+                          match_callback_single_with_match_limit);
+  ASSERT_EQ(single_match_counter, match_limit);
+  ASSERT_FALSE(pattern_idx_is_not_zero);
   return;
 }
 
