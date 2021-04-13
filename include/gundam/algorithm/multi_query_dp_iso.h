@@ -434,18 +434,9 @@ inline Match<GraphPatternType,
 
   MatchSetType match_set_parent_to_child;
 
-  WriteCSVGraph(parent_graph, "parent_graph_v.csv",
-                              "parent_graph_e.csv");
-
-  WriteCSVGraph(child_graph, "child_graph_v.csv",
-                             "child_graph_e.csv");
-
   auto match_counter = DpisoUsingMatch(parent_graph,
                                         child_graph,
                           match_set_parent_to_child, 1);
-  // std::cout << "match_counter: "
-  //           <<  match_counter
-  //           << std::endl;
   assert(match_counter == 1);
   assert(match_set_parent_to_child.size() == 1);
   
@@ -620,25 +611,8 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
           continue;
         }
         // neither qi can be contained in qj nor qj can be contained in qi
-        // std::cout << "qi: " << query_graph_id_i.first 
-        //             << "\t" << query_graph_id_i.second << std::endl
-        //           << "qj: " << query_graph_id_j.first 
-        //             << "\t" << query_graph_id_j.second << std::endl;
-        WriteCSVGraph(GetPatternRef(query_graph_id_i, 
-                                    query_graph_list, 
-                               additional_graph_list), "qi_v.csv", 
-                                                       "qi_e.csv");
-        WriteCSVGraph(GetPatternRef(query_graph_id_j, 
-                                    query_graph_list, 
-                               additional_graph_list), "qj_v.csv", 
-                                                       "qj_e.csv");
         auto mcs_qi_qj_set = MaximalCommonSubgraph(qi, qj);
         assert(!mcs_qi_qj_set.empty());
-        for (int mcs_idx = 0; mcs_idx < mcs_qi_qj_set.size(); mcs_idx++) {          
-          WriteCSVGraph(mcs_qi_qj_set[mcs_idx], 
-                       "mcs_" + std::to_string(mcs_idx) + "_v.csv", 
-                       "mcs_" + std::to_string(mcs_idx) + "_e.csv");
-        }
         bool has_been_contained = false;
         for (const auto& mcs : mcs_qi_qj_set) {
           // to find whether the mcs has already been contained
