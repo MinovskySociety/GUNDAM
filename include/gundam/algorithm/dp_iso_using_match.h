@@ -37,64 +37,38 @@ inline size_t DpisoUsingMatch(
                                     typename VertexHandle<TargetGraph>::type>&)> match_callback,
    double time_limit = -1.0) {
 
-
-   std::map<typename VertexHandle<QueryGraph>::type,
-            std::vector<typename VertexHandle<TargetGraph>::type>> temp_candidate_set = candidate_set;
-
   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
   using MatchMap = std::map<QueryVertexHandle, 
                            TargetVertexHandle>;
 
-  using MatchContainer = std::vector<MatchMap>;
+  std::map<typename VertexHandle<QueryGraph>::type,
+          std::vector<typename VertexHandle<TargetGraph>::type>> temp_candidate_set = candidate_set;
 
   MatchMap match_state;
-  std::set<TargetVertexHandle> target_matched;
-  for (auto vertex_it = query_graph.VertexBegin(); 
-           !vertex_it.IsDone();
-            vertex_it++) {
-    const QueryVertexHandle src_ptr = vertex_it;
-    if (!partial_match.HasMap(src_ptr)) {
-      continue;
+  if (!partial_match.empty()){
+    for (auto vertex_it = query_graph.VertexBegin(); 
+             !vertex_it.IsDone();
+              vertex_it++) {
+      const QueryVertexHandle src_handle = vertex_it;
+      if (!partial_match.HasMap(src_handle)) {
+        continue;
+      }
+      const auto dst_handle = partial_match.MapTo(src_handle);
+      assert(dst_handle);
+      match_state.emplace(src_handle, dst_handle);
     }
-    const auto dst_ptr = partial_match.MapTo(src_ptr);
-    match_state.emplace(src_ptr, dst_ptr);
-    target_matched.insert(dst_ptr);
   }
 
-  if (query_graph.CountEdge() < _dp_iso::large_query_edge) {
-    size_t result_count = 0;
-    _dp_iso::_DPISO<match_semantics, 
-                    QueryGraph, 
-                   TargetGraph>(
-        temp_candidate_set, match_state, target_matched, result_count, 
-        match_callback,
-        prune_callback, 
-        clock(), time_limit);
-    return result_count;
-  }
-
-  using FailSetContainer = std::vector<QueryVertexHandle>;
-  using  ParentContainer = std::  map <QueryVertexHandle,
-                                    std::vector<QueryVertexHandle>>;
-  FailSetContainer fail_set;
-   ParentContainer parent;
-  for (const auto &map : match_state) {
-    _dp_iso::UpdateParent(match_state, map.first, parent);
-  }
-
-  size_t result_count = 0;
-  _dp_iso::_DPISO<match_semantics, 
-                  QueryGraph, 
-                 TargetGraph>(
-      temp_candidate_set, match_state, target_matched, parent, fail_set,
-      result_count,
-      match_callback,
-      prune_callback,
-      clock(), time_limit);
-    
-  return result_count;
+  return _dp_iso::DPISO_Recursive<match_semantics>(
+                     query_graph,
+                    target_graph,
+                    temp_candidate_set, 
+                      match_state, 
+                      match_callback, 
+                      prune_callback, 
+                      time_limit);
 }
 
 template <enum MatchSemantics match_semantics 
@@ -117,7 +91,8 @@ inline size_t DpisoUsingMatch(
 
   Match<QueryGraph, TargetGraph> match_state;
 
-  return DpisoUsingMatch(query_graph,
+  return DpisoUsingMatch<match_semantics>(
+                         query_graph,
                         target_graph,
                          match_state,
                        candidate_set,
@@ -158,7 +133,8 @@ inline size_t DpisoUsingMatch(
     return 0;
   }
 
-  return DpisoUsingMatch(query_graph,
+  return DpisoUsingMatch<match_semantics>(
+                         query_graph,
                         target_graph,
                        partial_match,
                        candidate_set,
@@ -185,7 +161,8 @@ inline size_t DpisoUsingMatch(
 
   Match<QueryGraph, TargetGraph> partial_match;
 
-  return DpisoUsingMatch(query_graph,
+  return DpisoUsingMatch<match_semantics>(
+                         query_graph,
                         target_graph,
                        partial_match,
                       prune_callback,
@@ -235,7 +212,8 @@ inline size_t DpisoUsingMatch(
   // the initial partial match is empty
   Match<QueryGraph, TargetGraph> match_state;
 
-  return DpisoUsingMatch(query_graph,
+  return DpisoUsingMatch<match_semantics>(
+                         query_graph,
                         target_graph,
                          match_state,
                       prune_callback,
@@ -257,7 +235,7 @@ inline size_t DpisoUsingMatch(
    int64_t max_match = -1,
    double time_limit = -1.0){
 
-  return DPISO_UsingPatricalMatchAndMatchSet(query_graph, 
+  return DPISO_UsingPatricalMatchAndMatchSet<match_semantics>(query_graph, 
                                              target_graph,
                                              partial_match,
                                              match_result);
@@ -303,7 +281,8 @@ inline size_t DpisoUsingMatch(
   // the initial partial match is empty
   Match<QueryGraph, TargetGraph> match_state;
 
-  return DpisoUsingMatch(query_graph,
+  return DpisoUsingMatch<match_semantics>(
+                         query_graph,
                         target_graph,
                          match_state,
                       prune_callback,
@@ -321,7 +300,8 @@ inline int IncrementalDpisoUsingMatch(
   std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
                                     typename VertexHandle<TargetGraph>::type>&)> match_callback,
                            double query_limit_time = -1){
-  return IncreamentDPISO(query_graph, 
+  return IncreamentDPISO<match_semantics>(
+                         query_graph, 
                         target_graph,
                   delta_target_graph,
                          match_callback,

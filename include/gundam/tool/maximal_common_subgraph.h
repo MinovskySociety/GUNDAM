@@ -2,15 +2,210 @@
 #define _GUNDAM_TOOL_MAXIMAL_COMMON_SUBGRAPH
 
 #include "gundam/tool/unique_patterns.h"
+#include "gundam/tool/sub_graph_of.h"
 
 namespace GUNDAM{
+
+namespace _maximal_common_subgraph{
+
+template <typename GraphPatternType>
+inline void AddNewEdgeInPattern(
+                          GraphPatternType&   current_pattern,
+              std::vector<GraphPatternType>& expanded_patterns,
+                 typename GraphPatternType
+                                ::EdgeType
+                                  ::IDType& new_edge_id,
+        std::set<typename GraphPatternType
+                                ::EdgeType
+                               ::LabelType>& edge_label_set,
+        std::set<std::tuple<
+                 typename GraphPatternType
+                              ::VertexType
+                               ::LabelType,
+                 typename GraphPatternType
+                                ::EdgeType
+                               ::LabelType,
+                 typename GraphPatternType
+                              ::VertexType
+                               ::LabelType>>& edge_type_set) {
+
+  for (auto src_vertex_iter = current_pattern.VertexBegin();
+           !src_vertex_iter.IsDone();
+            src_vertex_iter++) {
+    for (auto dst_vertex_iter = current_pattern.VertexBegin();
+             !dst_vertex_iter.IsDone(); 
+              dst_vertex_iter++) {
+      // not add self loop
+      if (src_vertex_iter->id() == dst_vertex_iter->id()) 
+        continue;
+      for (const auto &edge_label : edge_label_set) {
+        // not add edge which does not exist in data graph
+        if (!edge_type_set.count(std::tuple(
+                src_vertex_iter->label(),
+                edge_label, 
+                dst_vertex_iter->label()))) {
+          continue;
+        }
+        GraphPatternType expand_pattern(current_pattern);
+        auto [edge_handle,
+              edge_ret] = expand_pattern.AddEdge(src_vertex_iter->id(), 
+                                                 dst_vertex_iter->id(),
+                                                 edge_label, 
+                                                 new_edge_id);
+        assert(edge_ret);
+        expanded_patterns.emplace_back(std::move(expand_pattern));
+      }
+    }
+  }
+  return;
+}
+
+template <typename GraphPatternType>
+inline void AddNewEdgeOutPattern(
+                          GraphPatternType&   current_pattern,
+              std::vector<GraphPatternType>& expanded_patterns,
+                 typename GraphPatternType
+                              ::VertexType
+                                  ::IDType& new_vertex_id,
+                 typename GraphPatternType
+                                ::EdgeType
+                                  ::IDType& new_edge_id,
+        std::set<typename GraphPatternType
+                              ::VertexType
+                               ::LabelType>& vertex_label_set,
+        std::set<typename GraphPatternType
+                                ::EdgeType
+                               ::LabelType>& edge_label_set,
+        std::set<std::tuple<
+                 typename GraphPatternType
+                              ::VertexType
+                               ::LabelType,
+                 typename GraphPatternType
+                                ::EdgeType
+                               ::LabelType,
+                 typename GraphPatternType
+                              ::VertexType
+                               ::LabelType>>& edge_type_set) {
+
+  for (auto vertex_iter = current_pattern.VertexBegin(); 
+           !vertex_iter.IsDone();
+            vertex_iter++) {
+    for (const auto &vertex_label : vertex_label_set) {
+      for (const auto &edge_label :   edge_label_set) {
+        // not add edge which does not exist in data graph
+        if (edge_type_set.count(std::tuple(
+                                vertex_iter->label(),
+                                        edge_label,
+                                      vertex_label))) {
+          GraphPatternType expand_pattern(current_pattern);
+          expand_pattern.AddVertex(new_vertex_id,
+                                       vertex_label);
+          expand_pattern.AddEdge(vertex_iter->id(), 
+                                 new_vertex_id,
+                                       edge_label, 
+                                   new_edge_id);
+          expanded_patterns.emplace_back(std::move(expand_pattern));
+        }
+        if (edge_type_set.count(std::tuple(
+                                      vertex_label,
+                                        edge_label, 
+                                vertex_iter->label()))) {
+          GraphPatternType expand_pattern(current_pattern);
+          expand_pattern.AddVertex(new_vertex_id, vertex_label);
+          expand_pattern.AddEdge(new_vertex_id, 
+                                 vertex_iter->id(),
+                                       edge_label,
+                                   new_edge_id);
+          expanded_patterns.emplace_back(std::move(expand_pattern));
+        }
+      }
+    }
+  }
+  return;
+}
+
+template <typename GraphPatternType>
+std::vector<GraphPatternType> ExpandPattern(
+        std::vector<GraphPatternType>& current_graph_patterns,
+        std::set<typename GraphPatternType
+                              ::VertexType
+                               ::LabelType>& vertex_label_set,
+        std::set<typename GraphPatternType
+                                ::EdgeType
+                               ::LabelType>& edge_label_set,
+        std::set<std::tuple<
+                  typename GraphPatternType
+                               ::VertexType
+                                ::LabelType,
+                  typename GraphPatternType
+                                 ::EdgeType
+                                ::LabelType,
+                  typename GraphPatternType
+                               ::VertexType
+                                ::LabelType>>& edge_type_set){
+  
+  using VertexIDType = typename GraphPatternType
+                                    ::VertexType
+                                        ::IDType;
+
+  using   EdgeIDType = typename GraphPatternType
+                                      ::EdgeType
+                                        ::IDType;
+
+  std::vector<GraphPatternType> expanded_graph_patterns;
+  
+  for (auto& current_graph_pattern : current_graph_patterns){
+
+    VertexIDType new_vertex_id = 0;
+      EdgeIDType new_edge_id   = 0;
+
+    for (auto vertex_it = current_graph_pattern.VertexBegin();
+             !vertex_it.IsDone();
+              vertex_it++) {
+      new_vertex_id = new_vertex_id > vertex_it->id()?
+                      new_vertex_id : vertex_it->id();
+      for (auto edge_it = vertex_it->OutEdgeBegin();
+               !edge_it.IsDone();
+                edge_it++) {
+        new_edge_id = new_edge_id > edge_it->id()?
+                      new_edge_id : edge_it->id();
+      }
+    }
+    new_vertex_id++;
+    new_edge_id++;
+
+    AddNewEdgeInPattern(current_graph_pattern,
+                       expanded_graph_patterns,
+                        new_edge_id,
+                            edge_label_set,
+                            edge_type_set);
+
+    AddNewEdgeOutPattern(current_graph_pattern,
+                        expanded_graph_patterns,
+                         new_vertex_id,
+                         new_edge_id,
+                         vertex_label_set,
+                           edge_label_set,
+                            edge_type_set);
+  }
+  return std::move(expanded_graph_patterns);
+}
+
+};
 
 template <typename GraphPatternType>
 std::vector<GraphPatternType> 
   MaximalCommonSubgraph(GraphPatternType& q0,
                         GraphPatternType& q1){
-  if (SamePattern(q0, q1)){
-    return std::vector<GraphPatternType>(q0);
+  if (SubGraphOf(q0, q1)){
+    std::vector<GraphPatternType> ret;
+    ret.emplace_back(q0);
+    return std::move(ret);
+  }
+  if (SubGraphOf(q1, q0)){
+    std::vector<GraphPatternType> ret;
+    ret.emplace_back(q1);
+    return std::move(ret);
   }
   using VertexLabelType = typename GraphPatternType
                                        ::VertexType
@@ -19,6 +214,7 @@ std::vector<GraphPatternType>
                                          ::EdgeType
                                         ::LabelType;
   std::set<VertexLabelType> q0_vertex_label_set;
+  std::set<  EdgeLabelType>   q0_edge_label_set;
   std::set<std::tuple<VertexLabelType,
                         EdgeLabelType,
                       VertexLabelType>> q0_edge_type_set;
@@ -32,9 +228,11 @@ std::vector<GraphPatternType>
       q0_edge_type_set.emplace(edge_it->src_handle()->label(),
                                edge_it->label(),
                                edge_it->dst_handle()->label());
+      q0_edge_label_set.emplace(edge_it->label());
     }
   }
   std::set<VertexLabelType> q1_vertex_label_set;
+  std::set<  EdgeLabelType>   q1_edge_label_set;
   std::set<std::tuple<VertexLabelType,
                         EdgeLabelType,
                       VertexLabelType>> q1_edge_type_set;
@@ -48,22 +246,29 @@ std::vector<GraphPatternType>
       q1_edge_type_set.emplace(edge_it->src_handle()->label(),
                                edge_it->label(),
                                edge_it->dst_handle()->label());
+      q1_edge_label_set.emplace(edge_it->label());
     }
   }
 
   std::set<VertexLabelType> q0_intersect_q1_vertex_label_set;
- 
   std::set_intersection(q0_vertex_label_set.begin(), q0_vertex_label_set.end(),
                         q1_vertex_label_set.begin(), q1_vertex_label_set.end(),
-                        std::back_inserter(q0_intersect_q1_vertex_label_set));
+                        std::inserter(q0_intersect_q1_vertex_label_set,
+                                      q0_intersect_q1_vertex_label_set.begin()));
+
+  std::set<EdgeLabelType> q0_intersect_q1_edge_label_set;
+  std::set_intersection(q0_edge_label_set.begin(), q0_edge_label_set.end(),
+                        q1_edge_label_set.begin(), q1_edge_label_set.end(),
+                        std::inserter(q0_intersect_q1_edge_label_set,
+                                      q0_intersect_q1_edge_label_set.begin()));
 
   std::set<std::tuple<VertexLabelType,
                         EdgeLabelType,
                       VertexLabelType>> q0_intersect_q1_edge_type_set;
- 
   std::set_intersection(q0_edge_type_set.begin(), q0_edge_type_set.end(),
                         q1_edge_type_set.begin(), q1_edge_type_set.end(),
-                        std::back_inserter(q0_intersect_q1_edge_type_set));
+                        std::inserter(q0_intersect_q1_edge_type_set,
+                                      q0_intersect_q1_edge_type_set.begin()));
   
   if (q0_intersect_q1_vertex_label_set.empty()
    || q0_intersect_q1_edge_type_set.empty()){
@@ -82,10 +287,11 @@ std::vector<GraphPatternType>
 
   while (true) {
     std::vector<GraphPatternType> expanded_graph_patterns;
-
-    expanded_graph_patterns = ExpandPattern(current_graph_patterns,
-                                  q0_intersect_q1_vertex_label_set,
-                                  q0_intersect_q1_edge_type_set);
+    expanded_graph_patterns = _maximal_common_subgraph::ExpandPattern(
+                                                current_graph_patterns,
+                                                q0_intersect_q1_vertex_label_set,
+                                                q0_intersect_q1_edge_label_set,
+                                                q0_intersect_q1_edge_type_set);
 
     UniquePatterns(expanded_graph_patterns);
 

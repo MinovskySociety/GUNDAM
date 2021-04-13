@@ -15,6 +15,7 @@
 #include <type_traits>
 #include <vector>
 
+#include "assert.h"
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_handle.h"
 #include "match_helper.h"
@@ -192,8 +193,13 @@ inline QueryVertexHandle NextMatchVertex(
     }
   }
 
-  QueryVertexHandle res;
-  size_t min = SIZE_MAX;
+  if (next_query_set.empty()) {
+    return QueryVertexHandle();
+  }
+
+  QueryVertexHandle res = QueryVertexHandle();
+  assert(!res);
+  size_t min = std::numeric_limits<size_t>::max();
   for (auto &query_vertex_handle : next_query_set) {
     assert(candidate_set.count(query_vertex_handle) > 0);
     size_t candidate_count =
@@ -203,7 +209,8 @@ inline QueryVertexHandle NextMatchVertex(
       min = candidate_count;
     }
   }
-  assert(min >= 0 && res);
+  assert(min >= 0 && min < std::numeric_limits<size_t>::max());
+  assert(res);
   return res;
 }
 
@@ -455,9 +462,8 @@ bool _DPISO(std::map<typename VertexHandle<QueryGraph>::type,
             std::map<typename VertexHandle<QueryGraph>::type,
                      typename VertexHandle<TargetGraph>::type> &match_state,
             std::set<typename VertexHandle<TargetGraph>::type> &target_matched,
-            size_t &result_count, MatchCallback user_callback,
-            PruneCallback prune_callback, time_t begin_time,
-            double query_limit_time = 1200) {
+            MatchCallback user_callback, PruneCallback prune_callback,
+            time_t begin_time, double query_limit_time = 1200) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
@@ -469,11 +475,11 @@ bool _DPISO(std::map<typename VertexHandle<QueryGraph>::type,
     return true;
   }
   if (match_state.size() == candidate_set.size()) {
-    result_count++;
     return user_callback(match_state);
   }
   QueryVertexHandle next_query_vertex_handle =
       NextMatchVertex(candidate_set, match_state);
+  assert(match_state.count(next_query_vertex_handle) == 0);
   for (TargetVertexHandle &next_target_vertex_handle :
        candidate_set.find(next_query_vertex_handle)->second) {
     if (prune_callback(match_state)) {
@@ -490,8 +496,8 @@ bool _DPISO(std::map<typename VertexHandle<QueryGraph>::type,
           next_query_vertex_handle, next_target_vertex_handle,
           temp_candidate_set, match_state, target_matched);
       if (!_DPISO<match_semantics, QueryGraph, TargetGraph>(
-              temp_candidate_set, match_state, target_matched, result_count,
-              user_callback, prune_callback, begin_time, query_limit_time)) {
+              temp_candidate_set, match_state, target_matched, user_callback,
+              prune_callback, begin_time, query_limit_time)) {
         return false;
       }
       RestoreState(next_query_vertex_handle, next_target_vertex_handle,
@@ -562,9 +568,8 @@ bool _DPISO(
     std::map<typename VertexHandle<QueryGraph>::type,
              std::vector<typename VertexHandle<QueryGraph>::type>> &parent,
     std::vector<typename VertexHandle<QueryGraph>::type> &fail_set,
-    size_t &result_count, MatchCallback user_callback,
-    PruneCallback prune_callback, time_t begin_time,
-    double query_limit_time = 1200) {
+    MatchCallback user_callback, PruneCallback prune_callback,
+    time_t begin_time, double query_limit_time = 1200) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
@@ -575,7 +580,6 @@ bool _DPISO(
   if (match_state.size() == candidate_set.size()) {
     // find match ,so fail set is empty
     fail_set.clear();
-    result_count++;
     return user_callback(match_state);
   }
   if (prune_callback(match_state)) {
@@ -583,6 +587,7 @@ bool _DPISO(
   }
   QueryVertexHandle next_query_vertex_handle =
       NextMatchVertex(candidate_set, match_state);
+  assert(match_state.count(next_query_vertex_handle) == 0);
   // cal this vertex's  parent
   UpdateParent(match_state, next_query_vertex_handle, parent);
   std::vector<QueryVertexHandle> this_state_fail_set;
@@ -646,8 +651,8 @@ bool _DPISO(
       std::vector<QueryVertexHandle> next_state_fail_set;
       if (!_DPISO<match_semantics, QueryGraph, TargetGraph>(
               temp_candidate_set, match_state, target_matched, parent,
-              next_state_fail_set, result_count, user_callback, prune_callback,
-              begin_time, query_limit_time)) {
+              next_state_fail_set, user_callback, prune_callback, begin_time,
+              query_limit_time)) {
         return false;
       }
 
@@ -1066,24 +1071,44 @@ inline int DPISO_Recursive(
   // add lock to user_callback and prune_callback
   omp_lock_t user_callback_lock;
   omp_init_lock(&user_callback_lock);
-  auto par_user_callback = [&user_callback,
-                            &user_callback_lock](auto &match_state) {
-    omp_set_lock(&user_callback_lock);
-    auto ret_val = user_callback(match_state);
-    omp_unset_lock(&user_callback_lock);
-    return ret_val;
-  };
+  bool user_callback_has_return_false = false;
+  auto par_user_callback =
+      [&result_count, &user_callback, &user_callback_lock,
+       &user_callback_has_return_false](auto &match_state) {
+        omp_set_lock(&user_callback_lock);
+        bool ret_val = false;
+        if (!user_callback_has_return_false) {
+          ret_val = user_callback(match_state);
+          if (!ret_val) {
+            user_callback_has_return_false = true;
+          }
+          result_count++;
+        }
+        omp_unset_lock(&user_callback_lock);
+        return ret_val;
+      };
   omp_lock_t prune_callback_lock;
   omp_init_lock(&prune_callback_lock);
-  auto par_prune_callback = [&prune_callback_lock,
-                             &prune_callback](auto &match_state) {
-    omp_set_lock(&prune_callback_lock);
-    auto ret_val = prune_callback(match_state);
-    omp_unset_lock(&prune_callback_lock);
-    return ret_val;
-  };
+  auto par_prune_callback =
+      [&prune_callback_lock, &prune_callback,
+       //  &user_callback_lock,
+       &user_callback_has_return_false](auto &match_state) {
+        // it might be unnecessary to set the lock here
+        // user_callback_lock is read-only in this callback
+        // and can only be set from false to true
+        // omp_set_lock(&user_callback_lock);
+        if (user_callback_has_return_false) {
+          return true;
+        }
+        // omp_unset_lock(&user_callback_lock);
+        omp_set_lock(&prune_callback_lock);
+        auto ret_val = prune_callback(match_state);
+        omp_unset_lock(&prune_callback_lock);
+        return ret_val;
+      };
   QueryVertexHandle next_query_ptr =
       _dp_iso::NextMatchVertex(candidate_set, match_state);
+  assert(match_state.count(next_query_ptr) == 0);
   if (!next_query_ptr) {
     if (query_graph.CountEdge() >= large_query_edge) {
       std::map<QueryVertexHandle, std::vector<QueryVertexHandle>> parent;
@@ -1093,46 +1118,61 @@ inline int DPISO_Recursive(
       std::vector<QueryVertexHandle> fail_set;
       _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
           candidate_set, match_state, target_matched, parent, fail_set,
-          result_count, user_callback, prune_callback, clock(),
-          query_limit_time);
+          par_user_callback, par_prune_callback, clock(), query_limit_time);
     } else {
       _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
-          candidate_set, match_state, target_matched, result_count,
-          user_callback, prune_callback, clock(), query_limit_time);
+          candidate_set, match_state, target_matched, par_user_callback,
+          par_prune_callback, clock(), query_limit_time);
     }
   } else {
     // partition next ptr's candiate
     auto &match_ptr_candidate = candidate_set.find(next_query_ptr)->second;
-#pragma omp parallel for schedule(dynamic)
-    for (int i = 0; i < match_ptr_candidate.size(); i++) {
-      auto &match_target_ptr = match_ptr_candidate[i];
-      if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
-              next_query_ptr, match_target_ptr, match_state, target_matched)) {
-        decltype(match_state) temp_match_state{match_state};
-        decltype(target_matched) temp_target_matched{target_matched};
-        decltype(candidate_set) temp_candidate_set{candidate_set};
-        _dp_iso::UpdateState(next_query_ptr, match_target_ptr, temp_match_state,
-                             temp_target_matched);
-        _dp_iso::UpdateCandidateSet<QueryGraph, TargetGraph>(
-            next_query_ptr, match_target_ptr, temp_candidate_set,
-            temp_match_state, temp_target_matched);
-        if (query_graph.CountEdge() >= large_query_edge) {
-          std::map<QueryVertexHandle, std::vector<QueryVertexHandle>> parent;
-          for (auto &[query_ptr, target_ptr] : temp_match_state) {
-            _dp_iso::UpdateParent(temp_match_state, query_ptr, parent);
+#pragma omp parallel
+#pragma omp single
+    {
+      for (int i = 0; i < match_ptr_candidate.size(); i++) {
+#pragma omp task
+        {
+          // it might be unnecessary to set the lock here
+          // user_callback_lock is read-only in this callback
+          // and can only be set from false to true
+          // omp_set_lock(&user_callback_lock);
+          if (!user_callback_has_return_false) {
+            auto &match_target_ptr = match_ptr_candidate[i];
+            if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
+                    next_query_ptr, match_target_ptr, match_state,
+                    target_matched)) {
+              auto temp_match_state = match_state;
+              auto temp_target_matched = target_matched;
+              auto temp_candidate_set = candidate_set;
+              _dp_iso::UpdateState(next_query_ptr, match_target_ptr,
+                                   temp_match_state, temp_target_matched);
+              _dp_iso::UpdateCandidateSet<QueryGraph, TargetGraph>(
+                  next_query_ptr, match_target_ptr, temp_candidate_set,
+                  temp_match_state, temp_target_matched);
+              if (query_graph.CountEdge() >= large_query_edge) {
+                std::map<QueryVertexHandle, std::vector<QueryVertexHandle>>
+                    parent;
+                for (auto &[query_ptr, target_ptr] : temp_match_state) {
+                  _dp_iso::UpdateParent(temp_match_state, query_ptr, parent);
+                }
+                std::vector<QueryVertexHandle> fail_set;
+                _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
+                    temp_candidate_set, temp_match_state, temp_target_matched,
+                    parent, fail_set, par_user_callback, par_prune_callback,
+                    clock(), query_limit_time);
+              } else {
+                _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
+                    temp_candidate_set, temp_match_state, temp_target_matched,
+                    par_user_callback, par_prune_callback, clock(),
+                    query_limit_time);
+              }
+            }
           }
-          std::vector<QueryVertexHandle> fail_set;
-          _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
-              temp_candidate_set, temp_match_state, temp_target_matched, parent,
-              fail_set, result_count, par_user_callback, par_prune_callback,
-              clock(), query_limit_time);
-        } else {
-          _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
-              temp_candidate_set, temp_match_state, temp_target_matched,
-              result_count, par_user_callback, par_prune_callback, clock(),
-              query_limit_time);
+          // omp_unset_lock(&user_callback_lock);
         }
       }
+#pragma omp taskwait
     }
   }
   return static_cast<int>(result_count);
@@ -1324,12 +1364,11 @@ inline int DPISO(
 
       _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
           temp_candidate_set, match_state, target_matched, parent, fail_set,
-          result_count, user_callback, prune_callback, clock(),
-          single_query_limit_time);
+          user_callback, prune_callback, clock(), single_query_limit_time);
     } else {
       _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
-          temp_candidate_set, match_state, target_matched, result_count,
-          user_callback, prune_callback, clock(), single_query_limit_time);
+          temp_candidate_set, match_state, target_matched, user_callback,
+          prune_callback, clock(), single_query_limit_time);
     }
 
     if (max_result == 0) {
@@ -1611,7 +1650,7 @@ inline int DPISO_UsingPatricalMatchAndMatchSet(QueryGraph &query_graph,
       std::placeholders::_1, &max_result, &match_result);
   if (query_graph.CountEdge() < _dp_iso::large_query_edge) {
     _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
-        candidate_set, match_state, target_matched, result_count, user_callback,
+        candidate_set, match_state, target_matched, user_callback,
         [](auto &match_state) { return false; }, clock(), -1);
   } else {
     using FailSetContainer = std::vector<QueryVertexHandle>;
@@ -1624,8 +1663,7 @@ inline int DPISO_UsingPatricalMatchAndMatchSet(QueryGraph &query_graph,
     }
     _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
         candidate_set, match_state, target_matched, parent, fail_set,
-        result_count, user_callback, [](auto &match_state) { return false; },
-        clock(), -1.0);
+        user_callback, [](auto &match_state) { return false; }, clock(), -1.0);
   }
 
   for (auto &single_match : match_result) {
