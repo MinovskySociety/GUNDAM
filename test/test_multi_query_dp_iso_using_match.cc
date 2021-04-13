@@ -227,6 +227,31 @@ void TestMultiQueryDpiso() {
   ASSERT_EQ(multi_match_counter[1], 1);
   ASSERT_EQ(multi_match_counter[2], 1);
   ASSERT_FALSE(pattern_idx_exceed_limit);
+
+  auto prune_3_callback = [](int pattern_idx,
+                             const MatchMap& match){
+    // prune pattern with idx 0
+    if (pattern_idx == 3){
+      return true;
+    }
+    return false;
+  };
+
+  query_graph_list.emplace_back(query);
+  multi_match_counter.clear();
+  multi_match_counter.resize(4, 0);
+  // three query pattern, both query_graph_list[0] and query_graph_list[1]
+  // are contained in query_graph_list[2], the mcs of query_graph_list[0]
+  // and query_graph_list[1] is not contained in query_graph_list
+  GUNDAM::MultiQueryDpiso(query_graph_list,
+                          target,
+                          prune_3_callback,
+                          match_callback_multi);
+  ASSERT_EQ(multi_match_counter[0], 1);
+  ASSERT_EQ(multi_match_counter[1], 1);
+  ASSERT_EQ(multi_match_counter[2], 1);
+  ASSERT_EQ(multi_match_counter[3], 0);
+  ASSERT_FALSE(pattern_idx_exceed_limit);
   return;
 }
 
