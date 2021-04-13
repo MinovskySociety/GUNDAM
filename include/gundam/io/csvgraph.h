@@ -7,12 +7,11 @@
 #include <sstream>
 #include <string>
 
-#include "gundam/data_type/datatype.h"
 #include "gundam/component/generator.h"
+#include "gundam/data_type/datatype.h"
 #include "gundam/io/rapidcsv.h"
-
-#include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
+#include "gundam/type_getter/vertex_handle.h"
 
 namespace GUNDAM {
 
@@ -195,8 +194,8 @@ inline bool ReadAttribues(
 //          typename std::enable_if<!GraphType::vertex_has_attribute,
 //                                  bool>::type = false>
 // bool LoadVertexAttribue(GraphType& graph,
-//                        typename GUNDAM::VertexHandle<GraphType>::type& vertex_ptr,
-//                        rapidcsv::Document& vertex_file,
+//                        typename GUNDAM::VertexHandle<GraphType>::type&
+//                        vertex_ptr, rapidcsv::Document& vertex_file,
 //                        std::vector<std::string>& after_parse_col_name,
 //                        std::vector<std::string>& after_parse_value_type,
 //                        int row_pos) {
@@ -208,8 +207,8 @@ inline bool ReadAttribues(
 //          =
 //              false>
 // bool LoadVertexAttribue(GraphType& graph,
-//                        typename GUNDAM::VertexHandle<GraphType>::type& vertex_ptr,
-//                        rapidcsv::Document& vertex_file,
+//                        typename GUNDAM::VertexHandle<GraphType>::type&
+//                        vertex_ptr, rapidcsv::Document& vertex_file,
 //                        std::vector<std::string>& after_parse_col_name,
 //                        std::vector<std::string>& after_parse_value_type,
 //                        int row_pos) {
@@ -261,12 +260,108 @@ inline bool ReadAttribues(
 //  return true;
 //}
 
-//inline bool IsFileExisted(const std::string file) {
+// inline bool IsFileExisted(const std::string file) {
 //  std::ifstream check(file);
 //  if (!check) return false;
 //  check.close();
 //  return true;
 //}
+
+template <bool read_attr = true, class GraphType, class ReadVertexCallback>
+int ReadCSVVertexSetFileWithCallback(const std::string& v_set_file,
+                                     std::vector<GraphType>& graph_set,
+                                     ReadVertexCallback callback) {
+  std::cout << "read vertex set" << std::endl;
+  // read vertex set file(csv)
+  // file format: (vertex_id,label_id,graph_id,...)
+  using VertexIDType = typename GraphType::VertexType::IDType;
+  using VertexLabelType = typename GraphType::VertexType::LabelType;
+  using VertexAttributeKeyType =
+      typename GraphType::VertexType::AttributeKeyType;
+  using VertexPtr = typename GUNDAM::VertexHandle<GraphType>::type;
+  try {
+    std::cout << v_set_file << std::endl;
+
+    rapidcsv::Document vertex_set_file(v_set_file,
+                                       rapidcsv::LabelParams(0, -1));
+
+    // phase column names
+    std::vector<std::string> col_name = vertex_set_file.GetColumnNames();
+    std::vector<std::pair<VertexAttributeKeyType, enum BasicDataType>>
+        attr_info;
+
+    // erase graph_id column,because graph_id is not attribute
+    for (auto it = col_name.begin(); it != col_name.end();) {
+      if ((*it).find("graph_id") != (*it).npos) {
+        it = col_name.erase(it);
+      } else {
+        it++;
+      }
+    }
+    std::cout << "col name = " << std::endl;
+    for (auto& it : col_name) {
+      std::cout << it << " ";
+    }
+    std::cout << std::endl;
+    if (!GetAttributeInfo(col_name, attr_info)) {
+      std::cout << "Attribute key type is not correct!" << std::endl;
+      return -1;
+    }
+
+    size_t col_num = attr_info.size();
+    // check col num >= 2
+    if (col_num < 2 || attr_info[0].first != "vertex_id" ||
+        attr_info[1].first != "label_id") {
+      std::cout << "Vertex file does not have vertex_id or label_id!"
+                << std::endl;
+      return -1;
+    }
+    // check attributes
+    if constexpr (read_attr && !GraphType::vertex_has_attribute) {
+      if (col_num >= 3) {
+        std::cout << "vertex file has attribute but graph does not support!"
+                  << std::endl;
+        return -1;
+      }
+    }
+
+    const std::vector<VertexIDType> vertex_id =
+        vertex_set_file.GetColumn<VertexIDType>(0);
+    const std::vector<VertexLabelType> label_id =
+        vertex_set_file.GetColumn<VertexLabelType>(1);
+    const std::vector<int> graph_id = vertex_set_file.GetColumn<int>(2);
+
+    int count_success = 0;
+    int count_fail = 0;
+    size_t sz = vertex_id.size();
+    for (size_t row = 0; row < sz; row++) {
+      int id = graph_id[row];
+      auto [vertex_ptr, r] =
+          graph_set[id].AddVertex(vertex_id[row], label_id[row]);
+      if (r) {
+        if constexpr (read_attr) {
+          r = ReadAttribues<GraphType::vertex_has_attribute>(
+              graph_set[id], vertex_ptr, vertex_set_file, attr_info, 2, row);
+        }
+      }
+
+      if (r) {
+        if constexpr (!std::is_null_pointer_v<ReadVertexCallback>) {
+          if (!callback(vertex_ptr)) return -2;
+        }
+        ++count_success;
+      } else {
+        ++count_fail;
+      }
+    }
+    if (count_fail > 0) {
+      std::cout << "Failed: " << count_fail << std::endl;
+    }
+    return count_success;
+  } catch (...) {
+    return -1;
+  }
+}
 
 template <bool read_attr = true, class GraphType, class ReadVertexCallback>
 int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
@@ -282,8 +377,7 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
   try {
     std::cout << v_file << std::endl;
 
-    rapidcsv::Document vertex_file(v_file,
-                                   rapidcsv::LabelParams(0, -1));
+    rapidcsv::Document vertex_file(v_file, rapidcsv::LabelParams(0, -1));
 
     // phase column names
     std::vector<std::string> col_name = vertex_file.GetColumnNames();
@@ -337,10 +431,9 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
       if (r) {
         if constexpr (!std::is_null_pointer_v<ReadVertexCallback>) {
           if (!callback(vertex_ptr)) return -2;
-        }        
+        }
         ++count_success;
-      }        
-      else {      
+      } else {
         ++count_fail;
       }
     }
@@ -419,7 +512,104 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
 //}
 
 template <bool read_attr = true, class GraphType, class ReadEdgeCallback>
-int ReadCSVEdgeFileWithCallback(const std::string &e_file, GraphType& graph,
+int ReadCSVEdgeSetFileWithCallback(const std::string& e_set_file,
+                                   std::vector<GraphType>& graph_set,
+                                   ReadEdgeCallback callback) {
+  std::cout << "read edge set" << std::endl;
+  // read edge set file(csv)
+  // file format: (edge_id,source_id,target_id,label_id,graph_id,......)
+  using VertexIDType = typename GraphType::VertexType::IDType;
+  using EdgeIDType = typename GraphType::EdgeType::IDType;
+  using EdgeLabelType = typename GraphType::EdgeType::LabelType;
+  using EdgeAttributeKeyType = typename GraphType::EdgeType::AttributeKeyType;
+  using EdgePtr = typename GUNDAM::EdgeHandle<GraphType>::type;
+
+  try {
+    std::cout << e_set_file << std::endl;
+
+    rapidcsv::Document edge_set_file(e_set_file, rapidcsv::LabelParams(0, -1));
+
+    // phase column names
+    std::vector<std::string> col_name = edge_set_file.GetColumnNames();
+
+    std::vector<std::pair<EdgeAttributeKeyType, enum BasicDataType>> attr_info;
+
+    // erase graph_id column,because graph_id is not attribute
+    for (auto it = col_name.begin(); it != col_name.end();) {
+      if ((*it).find("graph_id") != (*it).npos) {
+        it = col_name.erase(it);
+      } else {
+        it++;
+      }
+    }
+
+    if (!GetAttributeInfo(col_name, attr_info)) {
+      std::cout << "Attribute key type is not correct!" << std::endl;
+      return -1;
+    }
+
+    size_t col_num = attr_info.size();
+    // check col_num >= 4
+    if (col_num < 4 || attr_info[0].first != "edge_id" ||
+        attr_info[1].first != "source_id" ||
+        attr_info[2].first != "target_id" || attr_info[3].first != "label_id") {
+      std::cout << "edge file is not correct!(col num must >=4)" << std::endl;
+      return -1;
+    }
+    if constexpr (read_attr && !GraphType::edge_has_attribute) {
+      if (col_num >= 5) {
+        std::cout << "Edge file has attribute but graph does not support!"
+                  << std::endl;
+        return -1;
+      }
+    }
+
+    const std::vector<EdgeIDType> edge_id =
+        edge_set_file.GetColumn<EdgeIDType>(0);
+    const std::vector<VertexIDType> source_id =
+        edge_set_file.GetColumn<VertexIDType>(1);
+    const std::vector<VertexIDType> target_id =
+        edge_set_file.GetColumn<VertexIDType>(2);
+    const std::vector<EdgeLabelType> label_id =
+        edge_set_file.GetColumn<EdgeLabelType>(3);
+    const std::vector<int> graph_id = edge_set_file.GetColumn<int>(4);
+
+    int count_success = 0;
+    int count_fail = 0;
+    size_t sz = edge_id.size();
+    for (size_t row = 0; row < sz; row++) {
+      bool r;
+      EdgePtr edge_ptr;
+      int id = graph_id[row];
+      std::tie(edge_ptr, r) = graph_set[id].AddEdge(
+          source_id[row], target_id[row], label_id[row], edge_id[row]);
+      if (r) {
+        if constexpr (read_attr) {
+          r = ReadAttribues<GraphType::edge_has_attribute>(
+              graph_set[id], edge_ptr, edge_set_file, attr_info, 4, row);
+        }
+      }
+
+      if (r) {
+        if constexpr (!std::is_null_pointer_v<ReadEdgeCallback>) {
+          if (!callback(edge_ptr)) return -2;
+        }
+        ++count_success;
+      } else {
+        ++count_fail;
+      }
+    }
+    if (count_fail > 0) {
+      std::cout << "Failed: " << count_fail << std::endl;
+    }
+    return count_success;
+  } catch (...) {
+    return -1;
+  }
+}
+
+template <bool read_attr = true, class GraphType, class ReadEdgeCallback>
+int ReadCSVEdgeFileWithCallback(const std::string& e_file, GraphType& graph,
                                 ReadEdgeCallback callback) {
   // read edge file(csv)
   // file format: (edge_id,source_id,target_id,label_id,......)
@@ -428,7 +618,7 @@ int ReadCSVEdgeFileWithCallback(const std::string &e_file, GraphType& graph,
   using EdgeLabelType = typename GraphType::EdgeType::LabelType;
   using EdgeAttributeKeyType = typename GraphType::EdgeType::AttributeKeyType;
   using EdgePtr = typename GUNDAM::EdgeHandle<GraphType>::type;
-  
+
   try {
     std::cout << e_file << std::endl;
 
@@ -473,13 +663,13 @@ int ReadCSVEdgeFileWithCallback(const std::string &e_file, GraphType& graph,
       bool r;
       EdgePtr edge_ptr;
       std::tie(edge_ptr, r) = graph.AddEdge(source_id[row], target_id[row],
-                                              label_id[row], edge_id[row]);
+                                            label_id[row], edge_id[row]);
       if (r) {
         if constexpr (read_attr) {
           r = ReadAttribues<GraphType::edge_has_attribute>(
               graph, edge_ptr, edge_file, attr_info, 4, row);
         }
-      }      
+      }
 
       if (r) {
         if constexpr (!std::is_null_pointer_v<ReadEdgeCallback>) {
@@ -497,6 +687,36 @@ int ReadCSVEdgeFileWithCallback(const std::string &e_file, GraphType& graph,
   } catch (...) {
     return -1;
   }
+}
+
+template <class GraphType, class ReadVertexCallback, class ReadEdgeCallback>
+int ReadCSVGraphSetWithCallback(std::vector<GraphType>& graph_set,
+                                const std::vector<std::string>& v_list,
+                                const std::vector<std::string>& e_list,
+                                ReadVertexCallback rv_callback,
+                                ReadEdgeCallback re_callback) {
+  for (auto& graph : graph_set) {
+    graph.Clear();
+  }
+
+  int count_v = 0;
+  for (const auto& v_file : v_list) {
+    int res = ReadCSVVertexSetFileWithCallback(v_file, graph_set, rv_callback);
+    if (res < 0) return res;
+    count_v += res;
+  }
+
+  int count_e = 0;
+  for (const auto& e_file : e_list) {
+    int res = ReadCSVEdgeSetFileWithCallback(e_file, graph_set, re_callback);
+    if (res < 0) return res;
+    count_e += res;
+  }
+
+  std::cout << " Vertex: " << count_v << std::endl;
+  std::cout << "   Edge: " << count_e << std::endl;
+
+  return count_v + count_e;
 }
 
 template <class GraphType, class ReadVertexCallback, class ReadEdgeCallback>
@@ -528,6 +748,19 @@ int ReadCSVGraphWithCallback(GraphType& graph,
 }
 
 template <class GraphType>
+inline int ReadCSVGraphSet(std::vector<GraphType>& graph_set,
+                           const std::vector<std::string>& v_list,
+                           const std::vector<std::string>& e_list) {
+  using VertexIDType = typename GraphType::VertexType::IDType;
+  using VertexLabelType = typename GraphType::VertexType::LabelType;
+  using EdgeIDType = typename GraphType::EdgeType::IDType;
+  using EdgeLabelType = typename GraphType::EdgeType::LabelType;
+
+  return ReadCSVGraphSetWithCallback(graph_set, v_list, e_list, nullptr,
+                                     nullptr);
+}
+
+template <class GraphType>
 inline int ReadCSVGraph(GraphType& graph,
                         const std::vector<std::string>& v_list,
                         const std::vector<std::string>& e_list) {
@@ -536,13 +769,22 @@ inline int ReadCSVGraph(GraphType& graph,
   using EdgeIDType = typename GraphType::EdgeType::IDType;
   using EdgeLabelType = typename GraphType::EdgeType::LabelType;
 
-  return ReadCSVGraphWithCallback(
-      graph, v_list, e_list, nullptr, nullptr);
+  return ReadCSVGraphWithCallback(graph, v_list, e_list, nullptr, nullptr);
 }
 
 template <class GraphType>
-inline int ReadCSVGraph(GraphType& graph, const std::string &v_file,
-                        const std::string &e_file) {
+inline int ReadCSVGraphSet(std::vector<GraphType>& graph_set,
+                           const std::string& v_file,
+                           const std::string& e_file) {
+  std::vector<std::string> v_list, e_list;
+  v_list.push_back(v_file);
+  e_list.push_back(e_file);
+  return ReadCSVGraphSet(graph_set, v_list, e_list);
+}
+
+template <class GraphType>
+inline int ReadCSVGraph(GraphType& graph, const std::string& v_file,
+                        const std::string& e_file) {
   std::vector<std::string> v_list, e_list;
   v_list.push_back(v_file);
   e_list.push_back(e_file);
@@ -591,8 +833,8 @@ inline int ReadCSVGraph(GraphType& graph,
 }
 
 template <class GraphType, class VertexIDGenerator, class EdgeIDGenerator>
-inline int ReadCSVGraph(GraphType& graph, const std::string &v_file,
-                        const std::string &e_file, VertexIDGenerator& vidgen,
+inline int ReadCSVGraph(GraphType& graph, const std::string& v_file,
+                        const std::string& e_file, VertexIDGenerator& vidgen,
                         EdgeIDGenerator& eidgen) {
   std::vector<std::string> v_list, e_list;
   v_list.push_back(v_file);
@@ -948,6 +1190,79 @@ void GetWriteAttributeInfo(VertexEdgePtr ptr, std::vector<std::string>& key_str,
 }
 
 template <bool write_attr = true, class GraphType, class WriteVertexCallback>
+int WriteCSVVertexSetFileWithCallback(const std::vector<GraphType>& graph_set,
+                                      const std::string& v_set_file,
+                                      WriteVertexCallback wv_callback) {
+  // write vertex set file(csv)
+  // file format: (vertex_id,label_id,graph_id,......)
+  using VertexIDType = typename GraphType::VertexType::IDType;
+  using VertexLabelType = typename GraphType::VertexType::LabelType;
+  using VertexAttributeKeyType =
+      typename GraphType::VertexType::AttributeKeyType;
+
+  // get columns
+  std::vector<std::string> key_str, type_str;
+  std::map<VertexAttributeKeyType, size_t> attr_pos;
+  int number_of_graph = graph_set.size();
+  for (int i = 0; i < number_of_graph; i++) {
+    auto& graph = graph_set[i];
+    for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
+         ++vertex_it) {
+      if constexpr (!std::is_null_pointer_v<WriteVertexCallback>) {
+        if (!wv_callback(vertex_it)) continue;
+      }
+      if (key_str.empty()) {
+        key_str.emplace_back("vertex_id");
+        key_str.emplace_back("label_id");
+        // add graph_id
+        key_str.emplace_back("graph_id");
+        type_str.emplace_back(TypeToString<VertexIDType>());
+        type_str.emplace_back(TypeToString<VertexLabelType>());
+        type_str.emplace_back(TypeToString<int>());
+      }
+      if constexpr (write_attr) {
+        GetWriteAttributeInfo<GraphType::vertex_has_attribute>(
+            vertex_it, key_str, type_str, attr_pos);
+      }
+    }
+    if (key_str.empty()) {
+      return 0;
+    }
+  }
+
+  std::cout << v_set_file << std::endl;
+
+  std::ofstream vertex_set_file(v_set_file);
+
+  WriteCSVColumns(vertex_set_file, key_str, type_str);
+
+  // write each vertex
+  int count = 0;
+  for (int i = 0; i < number_of_graph; i++) {
+    auto& graph = graph_set[i];
+    for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
+         ++vertex_it) {
+      if constexpr (!std::is_null_pointer_v<WriteVertexCallback>) {
+        if (!wv_callback(vertex_it)) continue;
+      }
+      std::vector<std::string> line;
+      line.resize(key_str.size());
+      line[0] = ToString(vertex_it->id());
+      line[1] = ToString(vertex_it->label());
+      line[2] = ToString(i);
+      if constexpr (write_attr) {
+        WriteAttributes<GraphType::vertex_has_attribute>(vertex_it, attr_pos,
+                                                         line);
+      }
+      WriteCSVLine(vertex_set_file, line);
+      ++count;
+    }
+  }
+
+  return count;
+}
+
+template <bool write_attr = true, class GraphType, class WriteVertexCallback>
 int WriteCSVVertexFileWithCallback(const GraphType& graph,
                                    const std::string& v_file,
                                    WriteVertexCallback wv_callback) {
@@ -961,8 +1276,7 @@ int WriteCSVVertexFileWithCallback(const GraphType& graph,
   // get columns
   std::vector<std::string> key_str, type_str;
   std::map<VertexAttributeKeyType, size_t> attr_pos;
-  for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
-       ++vertex_it) {
+  for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone(); ++vertex_it) {
     if constexpr (!std::is_null_pointer_v<WriteVertexCallback>) {
       if (!wv_callback(vertex_it)) continue;
     }
@@ -989,8 +1303,7 @@ int WriteCSVVertexFileWithCallback(const GraphType& graph,
 
   // write each vertex
   int count = 0;
-  for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
-       ++vertex_it) {
+  for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone(); ++vertex_it) {
     if constexpr (!std::is_null_pointer_v<WriteVertexCallback>) {
       if (!wv_callback(vertex_it)) continue;
     }
@@ -1004,6 +1317,99 @@ int WriteCSVVertexFileWithCallback(const GraphType& graph,
     }
     WriteCSVLine(vertex_file, line);
     ++count;
+  }
+
+  return count;
+}
+
+template <bool write_attr = true, class GraphType, class WriteEdgeCallback>
+int WriteCSVEdgeSetFileWithCallback(const std::vector<GraphType>& graph_set,
+                                    const std::string& e_file,
+                                    WriteEdgeCallback we_callback) {
+  // write edge set file(csv)
+  // file format: (edge_id,source_id,target_id,label_id,graph_id,......)
+  using VertexIDType = typename GraphType::VertexType::IDType;
+  using EdgeIDType = typename GraphType::EdgeType::IDType;
+  using EdgeLabelType = typename GraphType::EdgeType::LabelType;
+  using EdgeAttributeKeyType = typename GraphType::EdgeType::AttributeKeyType;
+
+  // get columns
+  std::vector<std::string> key_str, type_str;
+  std::map<EdgeAttributeKeyType, size_t> attr_pos;
+  // for (auto edge_it = graph.EdgeBegin(); !edge_it.IsDone(); ++edge_it) {
+  /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in
+  /// vertex){} }
+  int number_of_graph = graph_set.size();
+  for (int i = 0; i < number_of_graph; i++) {
+    auto& graph = graph_set[i];
+    for (auto vertex_cit = graph.VertexBegin(); !vertex_cit.IsDone();
+         ++vertex_cit) {
+      for (auto edge_it = vertex_cit->OutEdgeBegin(); !edge_it.IsDone();
+           ++edge_it) {
+        if constexpr (!std::is_null_pointer_v<WriteEdgeCallback>) {
+          if (!we_callback(edge_it)) continue;
+        }
+        if (key_str.empty()) {
+          assert(type_str.empty());
+          key_str.emplace_back("edge_id");
+          key_str.emplace_back("source_id");
+          key_str.emplace_back("target_id");
+          key_str.emplace_back("label_id");
+          key_str.emplace_back("graph_id");
+          type_str.emplace_back(TypeToString<EdgeIDType>());
+          type_str.emplace_back(TypeToString<VertexIDType>());
+          type_str.emplace_back(TypeToString<VertexIDType>());
+          type_str.emplace_back(TypeToString<EdgeLabelType>());
+          type_str.emplace_back(TypeToString<int>());
+        }
+        if constexpr (write_attr) {
+          GetWriteAttributeInfo<GraphType::edge_has_attribute>(
+              edge_it, key_str, type_str, attr_pos);
+        }
+      }
+    }
+  }
+
+  if (key_str.empty()) {
+    std::cout << "empty" << std::endl;
+    return 0;
+  }
+
+  std::cout << e_file << std::endl;
+
+  std::ofstream edge_set_file(e_file);
+
+  WriteCSVColumns(edge_set_file, key_str, type_str);
+
+  // write each edge
+  int count = 0;
+  // for (auto edge_it = graph.EdgeBegin(); !edge_it.IsDone(); ++edge_it) {
+  /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in
+  /// vertex){} }
+  for (int i = 0; i < number_of_graph; i++) {
+    auto& graph = graph_set[i];
+    for (auto vertex_cit = graph.VertexBegin(); !vertex_cit.IsDone();
+         ++vertex_cit) {
+      for (auto edge_it = vertex_cit->OutEdgeBegin(); !edge_it.IsDone();
+           ++edge_it) {
+        if constexpr (!std::is_null_pointer_v<WriteEdgeCallback>) {
+          if (!we_callback(edge_it)) continue;
+        }
+        std::vector<std::string> line;
+        line.resize(key_str.size());
+        line[0] = ToString(edge_it->id());
+        line[1] = ToString(edge_it->const_src_handle()->id());
+        line[2] = ToString(edge_it->const_dst_handle()->id());
+        line[3] = ToString(edge_it->label());
+        line[4] = ToString(i);
+        if constexpr (write_attr) {
+          WriteAttributes<GraphType::edge_has_attribute>(edge_it, attr_pos,
+                                                         line);
+        }
+        WriteCSVLine(edge_set_file, line);
+        ++count;
+      }
+    }
   }
 
   return count;
@@ -1024,9 +1430,12 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
   std::vector<std::string> key_str, type_str;
   std::map<EdgeAttributeKeyType, size_t> attr_pos;
   // for (auto edge_it = graph.EdgeBegin(); !edge_it.IsDone(); ++edge_it) {
-  /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in vertex){} }
-  for (auto vertex_cit = graph.VertexBegin(); !vertex_cit.IsDone(); ++vertex_cit) {
-    for (auto edge_it = vertex_cit->OutEdgeBegin(); !edge_it.IsDone(); ++edge_it) {
+  /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in
+  /// vertex){} }
+  for (auto vertex_cit = graph.VertexBegin(); !vertex_cit.IsDone();
+       ++vertex_cit) {
+    for (auto edge_it = vertex_cit->OutEdgeBegin(); !edge_it.IsDone();
+         ++edge_it) {
       if constexpr (!std::is_null_pointer_v<WriteEdgeCallback>) {
         if (!we_callback(edge_it)) continue;
       }
@@ -1042,8 +1451,8 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
         type_str.emplace_back(TypeToString<EdgeLabelType>());
       }
       if constexpr (write_attr) {
-        GetWriteAttributeInfo<GraphType::edge_has_attribute>(edge_it, key_str,
-                                                            type_str, attr_pos);
+        GetWriteAttributeInfo<GraphType::edge_has_attribute>(
+            edge_it, key_str, type_str, attr_pos);
       }
     }
   }
@@ -1060,9 +1469,12 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
   // write each edge
   int count = 0;
   // for (auto edge_it = graph.EdgeBegin(); !edge_it.IsDone(); ++edge_it) {
-  /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in vertex){} }
-  for (auto vertex_cit = graph.VertexBegin(); !vertex_cit.IsDone(); ++vertex_cit) {
-   for (auto edge_it = vertex_cit->OutEdgeBegin(); !edge_it.IsDone(); ++edge_it) {
+  /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in
+  /// vertex){} }
+  for (auto vertex_cit = graph.VertexBegin(); !vertex_cit.IsDone();
+       ++vertex_cit) {
+    for (auto edge_it = vertex_cit->OutEdgeBegin(); !edge_it.IsDone();
+         ++edge_it) {
       if constexpr (!std::is_null_pointer_v<WriteEdgeCallback>) {
         if (!we_callback(edge_it)) continue;
       }
@@ -1082,7 +1494,33 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
 
   return count;
 }
+template <bool write_attr = true, class GraphType>
+int WriteCSVGraphSet(const std::vector<GraphType>& graph_set,
+                     const std::string& v_file, const std::string& e_file) {
+  using VertexIDType = typename GraphType::VertexType::IDType;
+  using VertexLabelType = typename GraphType::VertexType::LabelType;
+  using VertexAttributeKeyType =
+      typename GraphType::VertexType::AttributeKeyType;
+  using EdgeIDType = typename GraphType::EdgeType::IDType;
+  using EdgeLabelType = typename GraphType::EdgeType::LabelType;
+  using EdgeAttributeKeyType = typename GraphType::EdgeType::AttributeKeyType;
 
+  int res;
+  int count_v, count_e;
+
+  res =
+      WriteCSVVertexSetFileWithCallback<write_attr>(graph_set, v_file, nullptr);
+  if (res < 0) return res;
+
+  count_v = res;
+
+  res = WriteCSVEdgeSetFileWithCallback<write_attr>(graph_set, e_file, nullptr);
+  if (res < 0) return res;
+
+  count_e = res;
+
+  return count_v + count_e;
+}
 template <bool write_attr = true, class GraphType>
 int WriteCSVGraph(const GraphType& graph, const std::string& v_file,
                   const std::string& e_file) {

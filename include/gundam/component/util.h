@@ -1,8 +1,9 @@
 #ifndef _GUNDAM_COMPONENT_UTIL_H
 #define _GUNDAM_COMPONENT_UTIL_H
 
-#include <iostream>
+#include <gundam/data_type/datatype.h>
 
+#include <iostream>
 namespace GUNDAM {
 
 template <class GraphType>
@@ -25,7 +26,8 @@ void PrintGraph(const GraphType& graph) {
     if (graph.vertex_has_attribute) {
       for (auto attr_it = node_ptr->AttributeBegin(); !attr_it.IsDone();
            attr_it++) {
-        enum BasicDataType value_type = it->attribute_value_type(attr_it->key());
+        enum BasicDataType value_type =
+            it->attribute_value_type(attr_it->key());
         std::cout << attr_it->key() << ":";
         switch (value_type) {
           case BasicDataType::kTypeInt:
@@ -33,7 +35,7 @@ void PrintGraph(const GraphType& graph) {
             break;
           case BasicDataType::kTypeDouble:
             std::cout << attr_it->template const_value<double>();
-            break;          
+            break;
           case BasicDataType::kTypeString:
             std::cout << attr_it->template const_value<std::string>();
             break;

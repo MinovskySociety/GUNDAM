@@ -3,18 +3,16 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "gundam/io/csvgraph.h"
-#include "gundam/graph_type/large_graph.h"
 #include "gundam/component/util.h"
 #include "gundam/graph_type/graph.h"
+#include "gundam/graph_type/large_graph.h"
+#include "gundam/io/csvgraph.h"
 
 inline uint64_t GetTime() { return clock() * 1000 / CLOCKS_PER_SEC; }
 
-template<class      GraphType, 
-         class VertexFileList, 
-         class   EdgeFileList>
+template <class GraphType, class VertexFileList, class EdgeFileList>
 void TestReadCSVGraph(const VertexFileList &v_list,
-                      const   EdgeFileList &e_list) {
+                      const EdgeFileList &e_list) {
   using namespace GUNDAM;
 
   auto begin_time = GetTime();
@@ -33,35 +31,34 @@ void TestReadCSVGraph(const VertexFileList &v_list,
 
   ASSERT_TRUE(true);
 }
-
+template <class GraphType>
+void TestCsvGraphSet(std::vector<GraphType> &graph_set, std::string &v_set_file,
+                     std::string &e_set_file) {
+  GUNDAM::ReadCSVGraphSet(graph_set, v_set_file, e_set_file);
+  for (auto &graph : graph_set) {
+    ASSERT_TRUE(graph.CountVertex() == 2);
+    ASSERT_TRUE(graph.CountEdge() == 1);
+  }
+  std::string res_v_file = "/Users/apple/Desktop/res_v.csv";
+  std::string res_e_file = "/Users/apple/Desktop/res_e.csv";
+  GUNDAM::WriteCSVGraphSet(graph_set, res_v_file, res_e_file);
+}
 TEST(TestGUNDAM, ReadCSVGraph) {
   using namespace GUNDAM;
 
   using G1 = Graph<SetVertexIDType<uint32_t>, SetVertexLabelType<uint32_t>,
-                  SetEdgeIDType<uint32_t>, SetEdgeLabelType<uint32_t>,
-                  SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
-                  SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>,
-                  SetVertexAttributeKeyType<std::string>,
-                  SetEdgeAttributeKeyType<std::string>>;
+                   SetEdgeIDType<uint32_t>, SetEdgeLabelType<uint32_t>,
+                   SetAllowMultipleEdge<true>, SetAllowDuplicateEdge<true>,
+                   SetVertexHasAttribute<true>, SetEdgeHasAttribute<true>,
+                   SetVertexAttributeKeyType<std::string>,
+                   SetEdgeAttributeKeyType<std::string>>;
 
   using G2 = LargeGraph<uint64_t, uint32_t, std::string, uint64_t, uint32_t,
                         std::string>;
 
-  // std::vector<std::string> v_list{
-  //    "D://Work/cu100/liantong_n_attr_user.csv",
-  //    "D://Work/cu100/liantong_n_attr_faketype.csv",
-  //    "D://Work/cu100/liantong_n_attr_phone.csv",
-  //    "D://Work/cu100/liantong_n_attr_web.csv"};
-
-  // std::vector<std::string> e_list{
-  //    "D://Work/cu100/liantong_e_attr_call.csv",
-  //    "D://Work/cu100/liantong_e_attr_send_message.csv",
-  //    "D://Work/cu100/liantong_e_attr_visit.csv"};
-
-  std::vector<std::string> v_list{
-      "/mnt/d/Work/cu4999/liantong_v_user.csv",      
-      "/mnt/d/Work/cu4999/liantong_v_phone.csv",
-      "/mnt/d/Work/cu4999/liantong_v_web.csv"};
+  std::vector<std::string> v_list{"/mnt/d/Work/cu4999/liantong_v_user.csv",
+                                  "/mnt/d/Work/cu4999/liantong_v_phone.csv",
+                                  "/mnt/d/Work/cu4999/liantong_v_web.csv"};
 
   std::vector<std::string> e_list{
       "/mnt/d/Work/cu4999/liantong_e_call.csv",
@@ -71,8 +68,16 @@ TEST(TestGUNDAM, ReadCSVGraph) {
   // const char *v_list = "D://Work/cu5000/liantong_n.csv";
   // const char *e_list = "D://Work/cu5000/liantong_e.csv";
 
-  TestReadCSVGraph<G1>(v_list, e_list);
-  TestReadCSVGraph<G2>(v_list, e_list);
+  // TestReadCSVGraph<G1>(v_list, e_list);
+  // TestReadCSVGraph<G2>(v_list, e_list);
+
+  G2 g1, g2;
+  std::vector<G2> graph_set;
+  graph_set.push_back(g1);
+  graph_set.push_back(g2);
+  std::string v_file = "/Users/apple/Desktop/test_v.csv";
+  std::string e_file = "/Users/apple/Desktop/test_e.csv";
+  TestCsvGraphSet(graph_set, v_file, e_file);
 }
 
 // template <class GraphType>
