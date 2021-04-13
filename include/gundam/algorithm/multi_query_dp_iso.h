@@ -826,6 +826,7 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           typename PatternTree,
           typename  QueryGraph,
+          template<typename> typename QueryGraphContainerType,
           typename TargetGraph>
 bool MatchFromParentToChild(
             PatternTree& pcm_tree,
@@ -838,7 +839,7 @@ bool MatchFromParentToChild(
      std::vector<
         std::map<typename VertexHandle< QueryGraph>::type,
      std::vector<typename VertexHandle<TargetGraph>::type>>>& additional_candidate_set_list,
-                            std::vector<QueryGraph>&      query_graph_list,
+                QueryGraphContainerType<QueryGraph>&      query_graph_list,
                             std::vector<QueryGraph>& additional_graph_list,
                             std::vector<bool> call_match_callback,
    std::vector<bool>            call_child_pattern_match_callback,
@@ -1137,9 +1138,10 @@ void CandidateSetForPatternList(
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
           typename  QueryGraph,
+          template<typename> typename QueryGraphContainerType,
           typename TargetGraph>
 inline void MultiQueryDpiso(
-  std::vector<QueryGraph>&  query_graph_list,
+  QueryGraphContainerType<QueryGraph>&  query_graph_list,
              TargetGraph & target_graph,
   std::function<bool(int,
                      const std::map<typename VertexHandle< QueryGraph>::type, 
