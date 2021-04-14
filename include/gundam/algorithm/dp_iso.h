@@ -214,13 +214,15 @@ inline QueryVertexHandle NextMatchVertex(
   return res;
 }
 
-template <enum EdgeState edge_state, typename QueryGraph, typename TargetGraph>
+template <enum EdgeState edge_state, 
+          typename  QueryGraph, 
+          typename TargetGraph>
 inline bool JoinableCheck(
-    typename VertexHandle<QueryGraph>::type &query_vertex_handle,
-    typename VertexHandle<TargetGraph>::type &target_vertex_handle,
-    std::map<typename VertexHandle<QueryGraph>::type,
+    typename VertexHandle< QueryGraph>::type  query_vertex_handle,
+    typename VertexHandle<TargetGraph>::type target_vertex_handle,
+    std::map<typename VertexHandle< QueryGraph>::type,
              typename VertexHandle<TargetGraph>::type> &match_state) {
-  using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
   using QueryEdgeHandle = typename EdgeHandle<QueryGraph>::type;
@@ -1046,11 +1048,14 @@ inline bool RefineCandidateSet(QueryGraph &query_graph,
   };
   return true;
 }
-template <enum MatchSemantics match_semantics, typname QueryGraph,
-          typename TargetGraph, typename QueryVertexHandle,
+template <enum MatchSemantics match_semantics, 
+          typename  QueryGraph,
+          typename TargetGraph, 
+          typename  QueryVertexHandle,
           typename TargetVertexHandle>
 bool CheckMatchIsLegal(
-    std::map<QueryVertexHandle, TargetVertexHandle> &match_state) {
+    std::map<QueryVertexHandle, 
+            TargetVertexHandle> &match_state) {
   std::set<TargetVertexHandle> target_matched;
   for (auto &[query_ptr, target_ptr] : match_state) {
     target_matched.insert(target_ptr);
@@ -1059,7 +1064,7 @@ bool CheckMatchIsLegal(
       target_matched.size() != match_state.size()) {
     return false;
   }
-  for (auto &[query_ptr, target_ptr] : match_state) {
+  for (auto& [query_ptr, target_ptr] : match_state) {
     if (!_dp_iso::JoinableCheck<EdgeState::kIn, QueryGraph, TargetGraph>(
             query_ptr, target_ptr, match_state)) {
       return false;
