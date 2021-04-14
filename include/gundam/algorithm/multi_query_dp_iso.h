@@ -434,18 +434,9 @@ inline Match<GraphPatternType,
 
   MatchSetType match_set_parent_to_child;
 
-  WriteCSVGraph(parent_graph, "parent_graph_v.csv",
-                              "parent_graph_e.csv");
-
-  WriteCSVGraph(child_graph, "child_graph_v.csv",
-                             "child_graph_e.csv");
-
   auto match_counter = DpisoUsingMatch(parent_graph,
                                         child_graph,
                           match_set_parent_to_child, 1);
-  // std::cout << "match_counter: "
-  //           <<  match_counter
-  //           << std::endl;
   assert(match_counter == 1);
   assert(match_set_parent_to_child.size() == 1);
   
@@ -593,6 +584,11 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
                                              edge_counter++);
           assert(edge_ret);
           // and add qj into next_level_graph 
+          // std::cout << "add to next_level_graph:" << std::endl
+          //           << " query_graph_id_i.first: "
+          //           <<   query_graph_id_i.first  << std::endl
+          //           << " query_graph_id_i.second: "
+          //           <<   query_graph_id_i.second << std::endl;
           next_level_graph.emplace_back(query_graph_id_i);
           continue;
         }
@@ -606,14 +602,15 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
                                              edge_counter++);
           assert(edge_ret);
           // and add qi into next_level_graph 
+          // std::cout << "add to next_level_graph:" << std::endl
+          //           << " query_graph_id_j.first: "
+          //           <<   query_graph_id_j.first  << std::endl
+          //           << " query_graph_id_j.second: "
+          //           <<   query_graph_id_j.second << std::endl;
           next_level_graph.emplace_back(query_graph_id_j);
           continue;
         }
         // neither qi can be contained in qj nor qj can be contained in qi
-        std::cout << "qi: " << query_graph_id_i.first 
-                    << "\t" << query_graph_id_i.second << std::endl
-                  << "qj: " << query_graph_id_j.first 
-                    << "\t" << query_graph_id_j.second << std::endl;
         auto mcs_qi_qj_set = MaximalCommonSubgraph(qi, qj);
         assert(!mcs_qi_qj_set.empty());
         bool has_been_contained = false;
@@ -623,8 +620,8 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
           for (int query_graph_id_set_idx = 0;
                    query_graph_id_set_idx < query_graph_id_set.size();
                    query_graph_id_set_idx++){
-            const auto& query_graph_id 
-                      = query_graph_id_set[query_graph_id_set_idx];
+            const auto query_graph_id 
+                     = query_graph_id_set[query_graph_id_set_idx];
             // find in this clique to find a new
             auto& query_graph = GetPatternRef(query_graph_id, 
                                               query_graph_list, 
@@ -647,6 +644,19 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
               query_graph_id_set.erase(query_graph_id_set.begin() 
                                      + query_graph_id_set_idx);
               // and add query_graph_id into next_level_graph 
+
+              // std::cout << "add to next_level_graph:" << std::endl
+              //           << " query_graph_id.first: "
+              //           <<   query_graph_id.first  << std::endl
+              //           << " query_graph_id.second: "
+              //           <<   query_graph_id.second << std::endl;
+
+              #ifndef NDEBUG
+              auto vertex_handle = pcm_tree.FindVertex(query_graph_id);
+              assert(vertex_handle);
+              assert(vertex_handle->CountOutVertex() >= 2);
+              #endif
+
               next_level_graph.emplace_back(query_graph_id);
               has_been_contained = true;
               break;
@@ -721,6 +731,11 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
                                          query_graph_list, 
                                          additional_graph_list)));
         // find another
+        // std::cout << "add to next_level_graph:" << std::endl
+        //           << " next_level_graph_id.first: "
+        //           <<   next_level_graph_id.first  << std::endl
+        //           << " next_level_graph_id.second: "
+        //           <<   next_level_graph_id.second << std::endl;
         next_level_graph.emplace_back(next_level_graph_id);
         // add a new vertex in the pcm_tree
         auto [vertex_handle,
@@ -741,13 +756,19 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
                                             kDefaultEdgeLabel,
                                               edge_counter++);
         assert(edge_ret_j);
-        mcs_qi_qj_set;
       }
       assert(query_graph_id_set.size() == 0
           || query_graph_id_set.size() == 1);
       #ifndef NDEBUG
       for (const auto& next_level_graph_id 
                      : next_level_graph) {
+
+        // std::cout << "next_level_graph_id.first: "
+        //           <<  next_level_graph_id.first
+        //           << std::endl
+        //           << "next_level_graph_id.second: "
+        //           <<  next_level_graph_id.second
+        //           << std::endl;
         auto vertex_handle = pcm_tree.FindVertex(next_level_graph_id);
         assert(vertex_handle);
         assert(vertex_handle->CountOutVertex() > 0);
@@ -791,17 +812,17 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
       auto parent_vertex_handle = parent_edge_it->src_handle();
       #ifndef NDEBUG
       parent_edge_it++;
-      std::cout << "pcm_vertex_handle->id(): "
-                <<  pcm_vertex_handle->id().first
-                << std::endl;
-      std::cout << "parent_vertex_handle->id(): "
-                <<  parent_vertex_handle->id().first
-                << std::endl;
-      if (!parent_edge_it.IsDone()){
-        std::cout << "parent_edge_it->src_handle()->id(): "
-                  <<  parent_edge_it->src_handle()->id().first
-                  << std::endl;
-      }
+      // std::cout << "pcm_vertex_handle->id(): "
+      //           <<  pcm_vertex_handle->id().first
+      //           << std::endl;
+      // std::cout << "parent_vertex_handle->id(): "
+      //           <<  parent_vertex_handle->id().first
+      //           << std::endl;
+      // if (!parent_edge_it.IsDone()){
+      //   std::cout << "parent_edge_it->src_handle()->id(): "
+      //             <<  parent_edge_it->src_handle()->id().first
+      //             << std::endl;
+      // }
       // should have only one parent
       assert(parent_edge_it.IsDone());
       #endif
@@ -826,6 +847,7 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           typename PatternTree,
           typename  QueryGraph,
+          template<typename> typename QueryGraphContainerType,
           typename TargetGraph>
 bool MatchFromParentToChild(
             PatternTree& pcm_tree,
@@ -838,7 +860,7 @@ bool MatchFromParentToChild(
      std::vector<
         std::map<typename VertexHandle< QueryGraph>::type,
      std::vector<typename VertexHandle<TargetGraph>::type>>>& additional_candidate_set_list,
-                            std::vector<QueryGraph>&      query_graph_list,
+                QueryGraphContainerType<QueryGraph>&      query_graph_list,
                             std::vector<QueryGraph>& additional_graph_list,
                             std::vector<bool> call_match_callback,
    std::vector<bool>            call_child_pattern_match_callback,
@@ -865,22 +887,22 @@ bool MatchFromParentToChild(
   using MatchPatternToPatternType   = Match<QueryGraph,  QueryGraph>;
   using MatchPatternToDataGraphType = Match<QueryGraph, TargetGraph>;
 
-  std::cout << "##############################" << std::endl;
-  std::cout << "current_pattern_handle->id().first: "
-            <<  current_pattern_handle->id().first
-            << std::endl
-            << "current_pattern_handle->id().second: "
-            <<  current_pattern_handle->id().second
-            << std::endl;
-  std::cout << "##############################" << std::endl;
+  // std::cout << "##############################" << std::endl;
+  // std::cout << "current_pattern_handle->id().first: "
+  //           <<  current_pattern_handle->id().first
+  //           << std::endl
+  //           << "current_pattern_handle->id().second: "
+  //           <<  current_pattern_handle->id().second
+  //           << std::endl;
+  // std::cout << "##############################" << std::endl;
   
-  std::cout << "# Match #" << std::endl;
-  for (auto map_it = match.MapBegin();
-           !map_it.IsDone();
-            map_it++){
-    std::cout << "src id: " << map_it->src_handle()->id() << std::endl
-              << "dst id: " << map_it->dst_handle()->id() << std::endl;
-  }
+  // std::cout << "# Match #" << std::endl;
+  // for (auto map_it = match.MapBegin();
+  //          !map_it.IsDone();
+  //           map_it++){
+  //   std::cout << "src id: " << map_it->src_handle()->id() << std::endl
+  //             << "dst id: " << map_it->dst_handle()->id() << std::endl;
+  // }
 
   assert( candidate_set_list.size()
          == query_graph_list.size());
@@ -909,6 +931,7 @@ bool MatchFromParentToChild(
   // of it and all its children return true
   auto current_pattern_prune_callback 
    = [&current_pattern_handle,
+      &call_match_callback,
              &prune_callback,
              &pcm_tree](const MatchMap& match) -> bool {
     // one-direction bfs at this vertex, if meet one prune_callback return false,
@@ -916,6 +939,8 @@ bool MatchFromParentToChild(
     bool all_prune_return_true = true;
     auto bfs_callback = [&all_prune_return_true,
                          &prune_callback,
+                         &call_match_callback,
+                         &current_pattern_handle,
                          &match,
                          &pcm_tree](PcmTreeVertexHandle pcm_tree_vertex_handle) {
       auto pattern_idx = GetPatternIdx(pcm_tree_vertex_handle);
@@ -930,10 +955,17 @@ bool MatchFromParentToChild(
       if (!prune_callback(pattern_idx.first, match)) {
         // has found a pattern that cannot be pruned at this 
         // partial match, mark all_prune_return_true as false
-        // and end the bfs process
         all_prune_return_true = false;
-        return false;
+        // the bfs process cannot be stopped, to verify 
+        // whether the match callback for the child pattern
+        // needs to be called
+        return true;
       }
+      assert(pattern_idx.second);
+      // has been pruned, the match_callback for this pattern
+      // does not need to be called
+      call_match_callback[pattern_idx.first] = false;
+      // needs to be prune
       return true;
     };
 
@@ -1137,9 +1169,10 @@ void CandidateSetForPatternList(
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
           typename  QueryGraph,
+          template<typename> typename QueryGraphContainerType,
           typename TargetGraph>
 inline void MultiQueryDpiso(
-  std::vector<QueryGraph>&  query_graph_list,
+  QueryGraphContainerType<QueryGraph>&  query_graph_list,
              TargetGraph & target_graph,
   std::function<bool(int,
                      const std::map<typename VertexHandle< QueryGraph>::type, 
