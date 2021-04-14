@@ -37,6 +37,16 @@ class Tls{
              :tri_vertex_pattern_(tri_vertex_pattern){
     auto automorphism = DpisoUsingMatch(this->tri_vertex_pattern_,
                                         this->tri_vertex_pattern_);
+    // std::cout << "tri_vertex_pattern.CountVertex(): "
+    //           <<  tri_vertex_pattern.CountVertex()
+    //           << std::endl
+    //           << "tri_vertex_pattern.CountEdge(): "
+    //           <<  tri_vertex_pattern.CountEdge()
+    //           << std::endl;
+    // std::cout << "automorphism: "
+    //           <<  automorphism
+    //           << std::endl;
+    assert(tri_vertex_pattern.CountVertex() == 3);
     assert(automorphism == 1
         || automorphism == 2);
     if (automorphism == 2){
@@ -440,8 +450,7 @@ inline Match<GraphPatternType,
   assert(match_counter == 1);
   assert(match_set_parent_to_child.size() == 1);
   
-  MatchType match_child_to_parent(*(match_set_parent_to_child.MatchBegin()),
-                                 "reverse");
+  MatchType match_child_to_parent(match_set_parent_to_child.MatchBegin()->Reverse());
 
   auto [attr_handle,
         attr_ret] = vertex_handle->AddAttribute(kMatchToParentAttributeKey,

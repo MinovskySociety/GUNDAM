@@ -1087,10 +1087,11 @@ inline int DPISO_Recursive(
              typename VertexHandle<TargetGraph>::type> &match_state,
     MatchCallback user_callback, PruneCallback prune_callback,
     double query_limit_time = 1200.0) {
-  using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
   std::set<TargetVertexHandle> target_matched;
-  if (CheckMatchIsLegal<match_semantics, QueryGraph, TargetGraph>(
+  if (!CheckMatchIsLegal<match_semantics, QueryGraph, 
+                                         TargetGraph>(
           match_state)) {
     // partial match is not legal.
     return false;
@@ -1162,11 +1163,11 @@ inline int DPISO_Recursive(
   } else {
     // partition next ptr's candiate
     auto &match_ptr_candidate = candidate_set.find(next_query_ptr)->second;
-// #pragma omp parallel
-// #pragma omp single
+#pragma omp parallel
+#pragma omp single
     {
       for (int i = 0; i < match_ptr_candidate.size(); i++) {
-// #pragma omp task
+#pragma omp task
         {
           // it might be unnecessary to set the lock here
           // user_callback_lock is read-only in this callback
@@ -1177,9 +1178,9 @@ inline int DPISO_Recursive(
             if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
                     next_query_ptr, match_target_ptr, match_state,
                     target_matched)) {
-              auto temp_match_state = match_state;
+              auto temp_match_state    = match_state;
               auto temp_target_matched = target_matched;
-              auto temp_candidate_set = candidate_set;
+              auto temp_candidate_set  = candidate_set;
               _dp_iso::UpdateState(next_query_ptr, match_target_ptr,
                                    temp_match_state, temp_target_matched);
               _dp_iso::UpdateCandidateSet<QueryGraph, TargetGraph>(
@@ -1207,7 +1208,7 @@ inline int DPISO_Recursive(
           // omp_unset_lock(&user_callback_lock);
         }
       }
-// #pragma omp taskwait
+#pragma omp taskwait
     }
   }
   return static_cast<int>(result_count);
