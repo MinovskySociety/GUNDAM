@@ -1046,6 +1046,31 @@ inline bool RefineCandidateSet(QueryGraph &query_graph,
   };
   return true;
 }
+template <enum MatchSemantics match_semantics, typname QueryGraph,
+          typename TargetGraph, typename QueryVertexHandle,
+          typename TargetVertexHandle>
+bool CheckMatchIsLegal(
+    std::map<QueryVertexHandle, TargetVertexHandle> &match_state) {
+  std::set<TargetVertexHandle> target_matched;
+  for (auto &[query_ptr, target_ptr] : match_state) {
+    target_matched.insert(target_ptr);
+  }
+  if (match_semantics == MatchSemantics::kIsomorphism &&
+      target_matched.size() != match_state.size()) {
+    return false;
+  }
+  for (auto &[query_ptr, target_ptr] : match_state) {
+    if (!_dp_iso::JoinableCheck<EdgeState::kIn, QueryGraph, TargetGraph>(
+            query_ptr, target_ptr, match_state)) {
+      return false;
+    }
+    if (!_dp_iso::JoinableCheck<EdgeState::kOut, QueryGraph, TargetGraph>(
+            query_ptr, target_ptr, match_state)) {
+      return false;
+    }
+  }
+  return true;
+}
 template <enum MatchSemantics match_semantics, typename QueryGraph,
           typename TargetGraph, class MatchCallback, class PruneCallback>
 inline int DPISO_Recursive(
@@ -1060,6 +1085,11 @@ inline int DPISO_Recursive(
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
   std::set<TargetVertexHandle> target_matched;
+  if (CheckMatchIsLegal<match_semantics, QueryGraph, TargetGraph>(
+          match_state)) {
+    // partial match is not legal.
+    return false;
+  }
   for (auto &[query_ptr, target_ptr] : match_state) {
     target_matched.insert(target_ptr);
   }
