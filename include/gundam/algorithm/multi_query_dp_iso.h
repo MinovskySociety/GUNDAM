@@ -460,6 +460,45 @@ inline Match<GraphPatternType,
   return attr_handle->template value<MatchType>();
 }
 
+// template <typename GraphPatternType,
+//           typename VertexHandle>
+// inline Match<GraphPatternType,
+//              GraphPatternType>&
+//     AddMatchToParent(VertexHandle vertex_handle,
+//                 GraphPatternType& parent_graph,
+//                 GraphPatternType&  child_graph,
+//           Match<GraphPatternType,
+//                 GraphPatternType>& partial_match_parent_to_child) {
+
+//   const std::string kMatchToParentAttributeKey = "match_to_parent";
+
+//   using MatchType 
+//       = Match<GraphPatternType,
+//               GraphPatternType>;
+
+//   using MatchSetType 
+//       = MatchSet<GraphPatternType,
+//                  GraphPatternType>;
+
+//   MatchSetType match_set_parent_to_child;
+
+//   auto match_counter = DpisoUsingMatch(parent_graph,
+//                                         child_graph,
+//                       partial_match_parent_to_child,
+//                           match_set_parent_to_child, 1);
+//   assert(match_counter == 1);
+//   assert(match_set_parent_to_child.size() == 1);
+  
+//   MatchType match_child_to_parent(match_set_parent_to_child.MatchBegin()->Reverse());
+
+//   auto [attr_handle,
+//         attr_ret] = vertex_handle->AddAttribute(kMatchToParentAttributeKey,
+//                                                  match_child_to_parent);
+//   // should added successfully
+//   assert(attr_ret);
+//   return attr_handle->template value<MatchType>();
+// }
+
 template <typename GraphPatternType>
 inline GraphPatternType& GetPatternRef(
             const std::pair<int, bool>& graph_idx,
@@ -507,6 +546,353 @@ inline bool NeedToCallChildPatternMatchCallback(
       && graph_idx.first >= 0);
   return additional_call_child_pattern_match_callback[graph_idx.first];
 }
+
+// template <typename      PcmTreeType,
+//           typename GraphPatternType>
+// std::vector<typename VertexHandle<PcmTreeType>::type>
+//   BuildPcm(PcmTreeType& pcm_tree,
+//              // to store the query graph
+//      std::vector<GraphPatternType>&      query_graph_list,
+//              // to store the additional graph
+//      std::vector<GraphPatternType>& additional_graph_list,
+//      std::vector<Match<QueryGraph,
+//                        QueryGraph>>& paritial_match_to_common_graph_list) {
+
+//   using PcmTreeVertexLabelType = typename PcmTreeType::VertexType::LabelType;
+//   using   PcmTreeEdgeLabelType = typename PcmTreeType::  EdgeType::LabelType;
+
+//   using PcmVertexHandleType = typename VertexHandle<PcmTreeType>::type;
+
+//   const PcmTreeVertexLabelType kDefaultVertexLabel = 0;
+//   const   PcmTreeEdgeLabelType   kDefaultEdgeLabel = 0;
+
+//   const std::string kMatchToParentAttributeKey = "match_to_parent";
+
+//   assert(    !query_graph_list.empty());
+//   assert(additional_graph_list.empty());
+
+//   std::vector<std::vector<std::pair<int, bool>>> cliques;
+
+//   constexpr double threshold = 0.0;
+
+//   TLSGroupMatrix(query_graph_list, cliques, threshold);
+
+//   // std::cout << "cliques.size(): " << cliques.size() << std::endl;
+
+//   std::vector<std::pair<int, bool>> root_idx_set;
+//   root_idx_set.reserve(cliques.size());
+//   size_t edge_counter = 0;
+//   for (const auto& clique : cliques) {
+//     // the next level group
+//     std::vector<std::pair<int, bool>> next_level_graph;
+//     std::vector<std::pair<int, bool>> query_graph_id_set = clique;
+//     for (const auto& query_graph_id 
+//                    : query_graph_id_set) {
+//       auto [ vertex_handle,
+//              vertex_ret ] = pcm_tree.AddVertex(query_graph_id, 
+//                                                kDefaultVertexLabel);
+//       assert(vertex_ret);
+//     }
+//     while (true) {
+//       assert(next_level_graph.empty());
+//       assert(!query_graph_id_set.empty());
+//       #ifndef NDEBUG
+//       for (const auto& query_graph_id 
+//                      : query_graph_id_set) {
+//         assert(pcm_tree.FindVertex(query_graph_id));
+//       }
+//       #endif // NDEBUG
+//       while (query_graph_id_set.size() >= 2) {
+//         // randomly pick a pair of pattern in the remained
+//         // patterns in this clique
+//         size_t query_graph_id_set_idx_i  = rand() % query_graph_id_set.size();
+//         std::pair<int, bool>
+//         query_graph_id_i = query_graph_id_set[query_graph_id_set_idx_i];
+//         // removed the selected graph from current clique
+//         query_graph_id_set.erase(query_graph_id_set.begin() 
+//                                + query_graph_id_set_idx_i);
+                               
+//         size_t query_graph_id_set_idx_j  = rand() % query_graph_id_set.size();
+//         std::pair<int, bool>
+//         query_graph_id_j = query_graph_id_set[query_graph_id_set_idx_j];
+//         // removed the selected graph from current clique
+//         query_graph_id_set.erase(query_graph_id_set.begin() 
+//                                + query_graph_id_set_idx_j);
+
+//         auto& qi = GetPatternRef(query_graph_id_i, query_graph_list, 
+//                                               additional_graph_list);
+//         auto& qj = GetPatternRef(query_graph_id_j, query_graph_list,
+//                                               additional_graph_list);
+//         // to find whether on graph is contained in another
+//         if (SubGraphOf(qi, qj)) {
+//           // qi is the subgraph of qj
+//           // add an edge from qi to qj
+//           auto [edge_handle, 
+//                 edge_ret] = pcm_tree.AddEdge(query_graph_id_i,
+//                                              query_graph_id_j,
+//                                             kDefaultEdgeLabel,
+//                                              edge_counter++);
+//           assert(edge_ret);
+//           // and add qj into next_level_graph 
+//           // std::cout << "add to next_level_graph:" << std::endl
+//           //           << " query_graph_id_i.first: "
+//           //           <<   query_graph_id_i.first  << std::endl
+//           //           << " query_graph_id_i.second: "
+//           //           <<   query_graph_id_i.second << std::endl;
+//           next_level_graph.emplace_back(query_graph_id_i);
+//           continue;
+//         }
+//         if (SubGraphOf(qj, qi)) {
+//           // qj is the subgraph of qi
+//           // add an edge from qj to qi
+//           auto [edge_handle, 
+//                 edge_ret] = pcm_tree.AddEdge(query_graph_id_j,
+//                                              query_graph_id_i,
+//                                             kDefaultEdgeLabel,
+//                                              edge_counter++);
+//           assert(edge_ret);
+//           // and add qi into next_level_graph 
+//           // std::cout << "add to next_level_graph:" << std::endl
+//           //           << " query_graph_id_j.first: "
+//           //           <<   query_graph_id_j.first  << std::endl
+//           //           << " query_graph_id_j.second: "
+//           //           <<   query_graph_id_j.second << std::endl;
+//           next_level_graph.emplace_back(query_graph_id_j);
+//           continue;
+//         }
+//         // neither qi can be contained in qj nor qj can be contained in qi
+//         auto mcs_qi_qj_set = MaximalCommonSubgraph(qi, qj, partial_match_qi_to_qj);
+//         assert(!mcs_qi_qj_set.empty());
+//         bool has_been_contained = false;
+//         for (const auto& mcs : mcs_qi_qj_set) {
+//           // to find whether the mcs has already been contained
+//           // in this clique or next_level_graph
+//           for (int query_graph_id_set_idx = 0;
+//                    query_graph_id_set_idx < query_graph_id_set.size();
+//                    query_graph_id_set_idx++){
+//             const auto query_graph_id 
+//                      = query_graph_id_set[query_graph_id_set_idx];
+//             // find in this clique to find a new
+//             auto& query_graph = GetPatternRef(query_graph_id, 
+//                                               query_graph_list, 
+//                                          additional_graph_list);
+//             if (SamePattern(query_graph, mcs)) {
+//               // add an edge from query_graph_id to qi and qj
+//               auto [edge_handle_i, 
+//                     edge_ret_i] = pcm_tree.AddEdge(query_graph_id,
+//                                                    query_graph_id_i,
+//                                                   kDefaultEdgeLabel,
+//                                                    edge_counter++);
+//               assert(edge_ret_i);
+//               auto [edge_handle_j, 
+//                     edge_ret_j] = pcm_tree.AddEdge(query_graph_id,
+//                                                    query_graph_id_j,
+//                                                   kDefaultEdgeLabel,
+//                                                    edge_counter++);
+//               assert(edge_ret_j);
+//               // remove query_graph_id from 
+//               query_graph_id_set.erase(query_graph_id_set.begin() 
+//                                      + query_graph_id_set_idx);
+//               // and add query_graph_id into next_level_graph 
+
+//               // std::cout << "add to next_level_graph:" << std::endl
+//               //           << " query_graph_id.first: "
+//               //           <<   query_graph_id.first  << std::endl
+//               //           << " query_graph_id.second: "
+//               //           <<   query_graph_id.second << std::endl;
+
+//               #ifndef NDEBUG
+//               auto vertex_handle = pcm_tree.FindVertex(query_graph_id);
+//               assert(vertex_handle);
+//               assert(vertex_handle->CountOutVertex() >= 2);
+//               #endif
+
+//               next_level_graph.emplace_back(query_graph_id);
+//               has_been_contained = true;
+//               break;
+//             }
+//           }
+//           if (has_been_contained){
+//             // this vertex has been contained in this clique
+//             break;
+//           }
+//         }
+//         // the msc has been contained in this clique, has been processed
+//         if (has_been_contained) {
+//           // to process the next graph pair
+//           continue;
+//         }
+//         // to find whether there is a msc that has already been
+//         // contained in next level
+//         for (const auto& mcs : mcs_qi_qj_set) {
+//           // to find whether the mcs has already been contained
+//           // in this clique or next_level_graph
+//           for (int next_level_group_idx = 0;
+//                    next_level_group_idx < next_level_graph.size();
+//                    next_level_group_idx++){
+//             const auto& next_level_graph_id 
+//                       = next_level_graph[next_level_group_idx];
+//             // find in this clique to find a new
+//             auto& query_graph = GetPatternRef(next_level_graph_id, 
+//                                               query_graph_list, 
+//                                               additional_graph_list);
+//             if (SamePattern(query_graph, mcs)) {
+//               // the msc is the same as next_level_graph_id
+//               // add an edge from next_level_graph_id to both qi and qj
+//               auto [edge_handle_i, 
+//                     edge_ret_i] = pcm_tree.AddEdge(next_level_graph_id,
+//                                                    query_graph_id_i,
+//                                                   kDefaultEdgeLabel,
+//                                                    edge_counter++);
+//               assert(edge_ret_i);
+//               auto [edge_handle_j, 
+//                     edge_ret_j] = pcm_tree.AddEdge(next_level_graph_id,
+//                                                    query_graph_id_j,
+//                                                   kDefaultEdgeLabel,
+//                                                    edge_counter++);
+//               assert(edge_ret_j);
+//               // does not need to remove anything
+//               // and add query_graph_id into next_level_graph 
+//               has_been_contained = true;
+//               break;
+//             }
+//           }
+//           if (has_been_contained){
+//             // this vertex has been contained in this clique
+//             break;
+//           }
+//         }
+//         // the msc has been contained in this clique, has been processed
+//         if (has_been_contained) {
+//           // to process the next graph pair
+//           continue;
+//         }
+//         // the msc does not contained in the current clique 
+//         // nor next level group
+//         // select a graph from mcs_qi_qj_set
+//         size_t selected_mcs_idx = rand() % mcs_qi_qj_set.size();
+//         auto& mcs = mcs_qi_qj_set.at(selected_mcs_idx);
+//         // add this pattern into the additional_graph_list
+//         additional_graph_list.emplace_back(std::move(mcs));
+//         // add an idx that is not contained in the next level
+//         std::pair next_level_graph_id(additional_graph_list.size() - 1, false);
+//         assert(SamePattern(additional_graph_list.back(),
+//                            GetPatternRef(next_level_graph_id, 
+//                                          query_graph_list, 
+//                                          additional_graph_list)));
+//         // find another
+//         // std::cout << "add to next_level_graph:" << std::endl
+//         //           << " next_level_graph_id.first: "
+//         //           <<   next_level_graph_id.first  << std::endl
+//         //           << " next_level_graph_id.second: "
+//         //           <<   next_level_graph_id.second << std::endl;
+//         next_level_graph.emplace_back(next_level_graph_id);
+//         // add a new vertex in the pcm_tree
+//         auto [vertex_handle,
+//               vertex_ret] = pcm_tree.AddVertex(next_level_graph_id,
+//                                               kDefaultVertexLabel);
+//         assert(vertex_ret);
+//         // add an edge from next_level_graph_id to both qi and qj
+        
+//         auto [edge_handle_i, 
+//               edge_ret_i] = pcm_tree.AddEdge(next_level_graph_id,
+//                                                   query_graph_id_i,
+//                                             kDefaultEdgeLabel,
+//                                               edge_counter++);
+//         assert(edge_ret_i);
+//         auto [edge_handle_j, 
+//               edge_ret_j] = pcm_tree.AddEdge(next_level_graph_id,
+//                                                   query_graph_id_j,
+//                                             kDefaultEdgeLabel,
+//                                               edge_counter++);
+//         assert(edge_ret_j);
+//       }
+//       assert(query_graph_id_set.size() == 0
+//           || query_graph_id_set.size() == 1);
+//       #ifndef NDEBUG
+//       for (const auto& next_level_graph_id 
+//                      : next_level_graph) {
+
+//         // std::cout << "next_level_graph_id.first: "
+//         //           <<  next_level_graph_id.first
+//         //           << std::endl
+//         //           << "next_level_graph_id.second: "
+//         //           <<  next_level_graph_id.second
+//         //           << std::endl;
+//         auto vertex_handle = pcm_tree.FindVertex(next_level_graph_id);
+//         assert(vertex_handle);
+//         assert(vertex_handle->CountOutVertex() > 0);
+//       }
+//       #endif // NDEBUG
+      
+//       if (query_graph_id_set.size() == 1){
+//         // there still one pattern remained in this clique
+//         // add it into the next_level_graph
+//         next_level_graph.emplace_back(*query_graph_id_set.begin());
+//       }
+//       if (next_level_graph.size() == 1) {
+//         // does not need further grouping
+//         root_idx_set.emplace_back(*next_level_graph.begin());
+//         break;
+//       }
+//       query_graph_id_set.clear();
+//       next_level_graph.swap(query_graph_id_set);
+//     }
+//   }
+//   assert(root_idx_set.size() == cliques.size());
+//   std::vector<PcmVertexHandleType> root_handle_set;
+//   root_handle_set.reserve(root_idx_set.size());
+//   for (const auto& root_idx : root_idx_set) {
+//     auto root_handle = pcm_tree.FindVertex(root_idx);
+//     assert(root_handle);
+//     auto add_match_to_parent_callback = [
+//       &query_graph_list,
+//       &additional_graph_list
+//       #ifndef NDEBUG
+//       ,&root_handle
+//       #endif // NDEBUG
+//       ](PcmVertexHandleType pcm_vertex_handle){
+//       auto parent_edge_it = pcm_vertex_handle->InEdgeBegin();
+//       if (parent_edge_it.IsDone()){
+//         // only the root vertex does not have parent
+//         assert(pcm_vertex_handle == root_handle);
+//         // does not have parent
+//         return true;
+//       }
+//       auto parent_vertex_handle = parent_edge_it->src_handle();
+//       #ifndef NDEBUG
+//       parent_edge_it++;
+//       // std::cout << "pcm_vertex_handle->id(): "
+//       //           <<  pcm_vertex_handle->id().first
+//       //           << std::endl;
+//       // std::cout << "parent_vertex_handle->id(): "
+//       //           <<  parent_vertex_handle->id().first
+//       //           << std::endl;
+//       // if (!parent_edge_it.IsDone()){
+//       //   std::cout << "parent_edge_it->src_handle()->id(): "
+//       //             <<  parent_edge_it->src_handle()->id().first
+//       //             << std::endl;
+//       // }
+//       // should have only one parent
+//       assert(parent_edge_it.IsDone());
+//       #endif
+//       auto& parent_pattern = GetPatternRef(parent_vertex_handle->id(),
+//                                            query_graph_list,
+//                                       additional_graph_list);
+//       auto&  child_pattern = GetPatternRef(pcm_vertex_handle->id(),
+//                                             query_graph_list,
+//                                        additional_graph_list);
+//       AddMatchToParent(pcm_vertex_handle, parent_pattern,
+//                                            child_pattern);
+//       // continue dfs
+//       return true;
+//     };
+//     Dfs(pcm_tree, root_handle, add_match_to_parent_callback);
+//     root_handle_set.emplace_back(root_handle);
+//   }
+//   return root_handle_set;
+// }
+
 
 template <typename      PcmTreeType,
           typename GraphPatternType>
@@ -1174,6 +1560,148 @@ void CandidateSetForPatternList(
 }
 
 };
+
+// // with partial match 
+// template <enum MatchSemantics match_semantics 
+//              = MatchSemantics::kIsomorphism,
+//           typename  QueryGraph,
+//           template<typename> typename QueryGraphContainerType,
+//           typename TargetGraph>
+// inline void MultiQueryDpiso(
+//   QueryGraphContainerType<QueryGraph>&  query_graph_list,
+//              TargetGraph & target_graph,
+//                     QueryGraph& common_graph,
+//   std::vector<Match<QueryGraph,
+//                     QueryGraph>>& paritial_match_to_common_graph_list,
+//   std::function<bool(int,
+//                      const std::map<typename VertexHandle< QueryGraph>::type, 
+//                                     typename VertexHandle<TargetGraph>::type>&)> prune_callback,
+//   std::function<bool(int,
+//                      const std::map<typename VertexHandle< QueryGraph>::type, 
+//                                     typename VertexHandle<TargetGraph>::type>&)> match_callback,
+//    double time_limit = -1.0) {
+
+//   using VertexIDType = uint32_t;
+//   using   EdgeIDType = uint32_t;
+
+//   using VertexLabelType = uint32_t;
+//   using   EdgeLabelType = uint32_t;
+
+//   using PcmTreeVertexHandle = typename VertexHandle<PatternTree>::type;
+//   using   QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+//   using  TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
+
+//   using CandidateSetType = std::map<QueryVertexHandle,
+//                        std::vector<TargetVertexHandle>>;
+
+//   using MatchMap = std::map<QueryVertexHandle,
+//                            TargetVertexHandle>;
+
+//   using MatchPatternToPatternType   = Match<QueryGraph,  QueryGraph>;
+//   using MatchPatternToDataGraphType = Match<QueryGraph, TargetGraph>;
+
+//   assert(query_graph_list.size() == paritial_match_to_common_graph_list.size());
+//   #ifndef NDEBUG
+//   for (int i = 0; i < query_graph_list.size(); i++) {
+//     auto& query_graph = query_graph_list[i];
+//     assert(common_graph.CountVertex()
+//          <= query_graph.CountVertex());
+//     assert(common_graph.CountEdge()
+//          <= query_graph.CountEdge());
+//     assert(paritial_match_to_common_graph_list[i].size()
+//         == query_graph.CountVertex());
+//     std::set<QueryVertexHandle> target_handle_set;
+//     for (auto query_vertex_it = query_graph.VertexBegin();
+//              !query_vertex_it.IsDone();
+//               query_vertex_it++) {
+//       assert(paritial_match_to_common_graph_list[i].HasMap(query_vertex_it));
+//       auto target_handle = paritial_match_to_common_graph_list[i].MapTo(query_vertex_it);
+//       assert(target_handle);
+//       auto [ target_handle_it,
+//              target_handle_ret ]
+//            = target_handle_set.emplace(target_handle);
+//       assert(target_handle_ret);
+//       auto find_target_handle = common_graph.FindVertex(target_handle->id());
+//       assert(find_target_handle == target_handle);
+//     }
+//     auto match_pattern_i_common_pattern_i = paritial_match_to_common_graph_list[i]
+//                                  .Reverse()(paritial_match_to_common_graph_list[i]);
+//     for (auto map_it = paritial_match_to_common_graph_list[i].MapBegin();
+//              !map_it.IsDone(); map_it++) {
+//       assert(paritial_match_to_common_graph_list[i].HasMap(map_it->src_handle()));
+//       assert(      match_pattern_i_common_pattern_i.HasMap(map_it->src_handle()));
+//       assert(match_pattern_i_common_pattern_i.MapTo(map_it->src_handle())
+//                                                  == map_it->src_handle());
+//     }
+//   }
+//   #endif // NDEBUG
+  
+//   using PcmTreeType = GUNDAM::LargeGraph<std::pair<VertexIDType, bool>, VertexLabelType, std::string,
+//                                             EdgeIDType,   EdgeLabelType, std::string>;
+
+//   std::vector<QueryGraph> additional_graph_list;
+
+//   PcmTreeType pcm_tree;
+//   auto root_handle_set = _multi_query_dp_iso::BuildPcm(pcm_tree, query_graph_list,
+//                                                             additional_graph_list,
+//                                               paritial_match_to_common_graph_list);
+//   assert(!root_handle_set.empty());
+//   #ifndef NDEBUG
+//   for (const auto& root_handle : root_handle_set) {
+//     assert(root_handle);
+//   }
+//   #endif
+
+//   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+//   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
+
+//   using CandidateSetType = std::map<QueryVertexHandle, 
+//                        std::vector<TargetVertexHandle>>;
+
+//   using MatchMap = std::map<QueryVertexHandle,
+//                            TargetVertexHandle>;
+
+//   std::vector<CandidateSetType> candidate_set_list;
+//   candidate_set_list.reserve(query_graph_list.size());
+
+//   std::vector<CandidateSetType> additional_candidate_set_list;
+//   additional_candidate_set_list.reserve(additional_graph_list.size());
+
+//   // pre-process the candidate set from each pattern & additional_pattern
+//   // to data graph in advance
+//   _multi_query_dp_iso::CandidateSetForPatternList<match_semantics>(
+//                              query_graph_list, target_graph, 
+//                            candidate_set_list);
+//   _multi_query_dp_iso::CandidateSetForPatternList<match_semantics>(
+//                         additional_graph_list, target_graph,
+//                 additional_candidate_set_list);
+
+//       // to mark whether the match_callback of this pattern need to be called
+//   std::vector<bool> call_match_callback(query_graph_list.size(), true),
+//       // to mark whether the match_callback for the child patterns need to be called
+//       call_child_pattern_match_callback(query_graph_list.size(), true);
+
+//   std::vector<bool> additional_call_child_pattern_match_callback(additional_graph_list.size(), true);
+  
+//   Match<QueryGraph, TargetGraph> match;
+
+//   for (auto& root_handle : root_handle_set){
+//     _multi_query_dp_iso::MatchFromParentToChild(
+//                           pcm_tree,
+//                           root_handle, match, 
+//                           candidate_set_list,
+//                additional_candidate_set_list,
+//                             query_graph_list,
+//                        additional_graph_list,
+//                           call_match_callback,
+//             call_child_pattern_match_callback,
+//  additional_call_child_pattern_match_callback,
+//                                 target_graph,
+//                               prune_callback,
+//                               match_callback);
+//   }
+//   return;
+// }
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,

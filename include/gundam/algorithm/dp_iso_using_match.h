@@ -150,6 +150,55 @@ template <enum MatchSemantics match_semantics
 inline size_t DpisoUsingMatch(
         QueryGraph&  query_graph,
        TargetGraph& target_graph,
+  Match<QueryGraph, TargetGraph>& partial_match,
+   int64_t max_match = -1,
+   double time_limit = -1.0) {
+
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
+
+  using MatchMap = std::map<QueryVertexHandle, 
+                           TargetVertexHandle>;
+
+  auto prune_callback = [](const MatchMap& match){
+    // prune nothing, continue matching
+    return false;
+  };
+
+  int64_t match_counter = 0;
+
+  auto match_callback = [&max_match,
+                         &match_counter](const MatchMap& match){
+    if (max_match == -1) {
+      // does not have support nothing
+      // do nothing continue matching
+      return true;
+    }
+    match_counter++;
+    if (match_counter >= max_match){
+      // reach max match, end matching
+      return false;
+    }
+    // does not reach max match, continue matching
+    return true;
+  };
+
+  return DpisoUsingMatch<match_semantics>(
+                         query_graph,
+                        target_graph,
+                       partial_match,
+                      prune_callback,
+                      match_callback,
+                          time_limit);
+}
+
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t DpisoUsingMatch(
+        QueryGraph&  query_graph,
+       TargetGraph& target_graph,
   std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
                                     typename VertexHandle<TargetGraph>::type>&)> prune_callback,
   std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
