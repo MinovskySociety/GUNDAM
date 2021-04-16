@@ -59,7 +59,15 @@ inline size_t DpisoUsingMatch(
       assert(dst_handle);
       match_state.emplace(src_handle, dst_handle);
     }
+    assert(match_state.size() == partial_match.size());
   }
+  
+  #ifndef NDEBUG
+  for (const auto& candidate : candidate_set) {
+    assert(candidate.first);
+    assert(candidate.first == query_graph.FindVertex(candidate.first->id()));
+  }
+  #endif // NDEBUG
 
   return _dp_iso::DPISO_Recursive<match_semantics>(
                      query_graph,

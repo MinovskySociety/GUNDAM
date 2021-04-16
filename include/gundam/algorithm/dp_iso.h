@@ -479,8 +479,10 @@ bool _DPISO(std::map<typename VertexHandle<QueryGraph>::type,
   if (match_state.size() == candidate_set.size()) {
     return user_callback(match_state);
   }
+  assert(match_state.size() < candidate_set.size());
   QueryVertexHandle next_query_vertex_handle =
       NextMatchVertex(candidate_set, match_state);
+  assert(next_query_vertex_handle);
   assert(match_state.count(next_query_vertex_handle) == 0);
   for (TargetVertexHandle &next_target_vertex_handle :
        candidate_set.find(next_query_vertex_handle)->second) {
@@ -587,8 +589,10 @@ bool _DPISO(
   if (prune_callback(match_state)) {
     return true;
   }
+  assert(match_state.size() < candidate_set.size());
   QueryVertexHandle next_query_vertex_handle =
       NextMatchVertex(candidate_set, match_state);
+  assert(next_query_vertex_handle);
   assert(match_state.count(next_query_vertex_handle) == 0);
   // cal this vertex's  parent
   UpdateParent(match_state, next_query_vertex_handle, parent);
@@ -1076,8 +1080,11 @@ bool CheckMatchIsLegal(
   }
   return true;
 }
-template <enum MatchSemantics match_semantics, typename QueryGraph,
-          typename TargetGraph, class MatchCallback, class PruneCallback>
+template <enum MatchSemantics match_semantics, 
+          typename  QueryGraph,
+          typename TargetGraph, 
+          class  MatchCallback, 
+          class  PruneCallback>
 inline int DPISO_Recursive(
     QueryGraph &query_graph, TargetGraph &target_graph,
     std::map<typename VertexHandle<QueryGraph>::type,
