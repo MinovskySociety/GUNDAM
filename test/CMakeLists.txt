@@ -19,7 +19,7 @@ gtest_add_tests(TARGET test2)
 
 add_executable (test_csvgraph "test_csvgraph.cc")
 target_link_libraries(test_csvgraph GTest::GTest GTest::Main)
-#gtest_add_tests(TARGET test_csvgraph)
+gtest_add_tests(TARGET test_csvgraph)
 
 # add_executable (test_vf2 "test_vf2.cc")
 # target_link_libraries(test_vf2 GTest::GTest GTest::Main)

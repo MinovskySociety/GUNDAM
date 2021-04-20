@@ -1191,6 +1191,7 @@ void GetWriteAttributeInfo(VertexEdgePtr ptr, std::vector<std::string>& key_str,
 
 template <bool write_attr = true, class GraphType, class WriteVertexCallback>
 int WriteCSVVertexSetFileWithCallback(const std::vector<GraphType>& graph_set,
+                                      const std::vector<std::string>& graph_name_set,
                                       const std::string& v_set_file,
                                       WriteVertexCallback wv_callback) {
   // write vertex set file(csv)
@@ -1200,11 +1201,13 @@ int WriteCSVVertexSetFileWithCallback(const std::vector<GraphType>& graph_set,
   using VertexAttributeKeyType =
       typename GraphType::VertexType::AttributeKeyType;
 
+  assert(graph_set.size() == graph_name_set.size());
+
   // get columns
   std::vector<std::string> key_str, type_str;
   std::map<VertexAttributeKeyType, size_t> attr_pos;
-  int number_of_graph = graph_set.size();
-  for (int i = 0; i < number_of_graph; i++) {
+  const size_t kNumberOfGraph = graph_set.size();
+  for (size_t i = 0; i < kNumberOfGraph; i++) {
     auto& graph = graph_set[i];
     for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
          ++vertex_it) {
@@ -1238,7 +1241,7 @@ int WriteCSVVertexSetFileWithCallback(const std::vector<GraphType>& graph_set,
 
   // write each vertex
   int count = 0;
-  for (int i = 0; i < number_of_graph; i++) {
+  for (size_t i = 0; i < kNumberOfGraph; i++) {
     auto& graph = graph_set[i];
     for (auto vertex_it = graph.VertexBegin(); !vertex_it.IsDone();
          ++vertex_it) {
@@ -1249,7 +1252,7 @@ int WriteCSVVertexSetFileWithCallback(const std::vector<GraphType>& graph_set,
       line.resize(key_str.size());
       line[0] = ToString(vertex_it->id());
       line[1] = ToString(vertex_it->label());
-      line[2] = ToString(i);
+      line[2] = graph_name_set[i];
       if constexpr (write_attr) {
         WriteAttributes<GraphType::vertex_has_attribute>(vertex_it, attr_pos,
                                                          line);
@@ -1323,7 +1326,8 @@ int WriteCSVVertexFileWithCallback(const GraphType& graph,
 }
 
 template <bool write_attr = true, class GraphType, class WriteEdgeCallback>
-int WriteCSVEdgeSetFileWithCallback(const std::vector<GraphType>& graph_set,
+int WriteCSVEdgeSetFileWithCallback(const std::vector<GraphType>&   graph_set,
+                                    const std::vector<std::string>& graph_name_set,
                                     const std::string& e_file,
                                     WriteEdgeCallback we_callback) {
   // write edge set file(csv)
@@ -1333,14 +1337,16 @@ int WriteCSVEdgeSetFileWithCallback(const std::vector<GraphType>& graph_set,
   using EdgeLabelType = typename GraphType::EdgeType::LabelType;
   using EdgeAttributeKeyType = typename GraphType::EdgeType::AttributeKeyType;
 
+  assert(graph_set.size() == graph_name_set.size());
+
   // get columns
   std::vector<std::string> key_str, type_str;
   std::map<EdgeAttributeKeyType, size_t> attr_pos;
   // for (auto edge_it = graph.EdgeBegin(); !edge_it.IsDone(); ++edge_it) {
   /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in
   /// vertex){} }
-  int number_of_graph = graph_set.size();
-  for (int i = 0; i < number_of_graph; i++) {
+  const size_t kNumberOfGraph = graph_set.size();
+  for (int i = 0; i < kNumberOfGraph; i++) {
     auto& graph = graph_set[i];
     for (auto vertex_cit = graph.VertexBegin(); !vertex_cit.IsDone();
          ++vertex_cit) {
@@ -1386,7 +1392,7 @@ int WriteCSVEdgeSetFileWithCallback(const std::vector<GraphType>& graph_set,
   // for (auto edge_it = graph.EdgeBegin(); !edge_it.IsDone(); ++edge_it) {
   /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in
   /// vertex){} }
-  for (int i = 0; i < number_of_graph; i++) {
+  for (int i = 0; i < kNumberOfGraph; i++) {
     auto& graph = graph_set[i];
     for (auto vertex_cit = graph.VertexBegin(); !vertex_cit.IsDone();
          ++vertex_cit) {
@@ -1401,7 +1407,7 @@ int WriteCSVEdgeSetFileWithCallback(const std::vector<GraphType>& graph_set,
         line[1] = ToString(edge_it->const_src_handle()->id());
         line[2] = ToString(edge_it->const_dst_handle()->id());
         line[3] = ToString(edge_it->label());
-        line[4] = ToString(i);
+        line[4] = graph_name_set[i];
         if constexpr (write_attr) {
           WriteAttributes<GraphType::edge_has_attribute>(edge_it, attr_pos,
                                                          line);
@@ -1494,9 +1500,27 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
 
   return count;
 }
+
 template <bool write_attr = true, class GraphType>
 int WriteCSVGraphSet(const std::vector<GraphType>& graph_set,
                      const std::string& v_file, const std::string& e_file) {
+  std::vector<std::string> graph_name_set;
+  graph_name_set.reserve(graph_set.size());
+  for (size_t i = 0; i < graph_set.size(); i++) {
+    graph_name_set.emplace_back(std::to_string(i));
+  }
+  return WriteCSVGraphSet(graph_set, 
+                          graph_name_set, 
+                          v_file, 
+                          e_file);
+}
+
+template <bool write_attr = true, 
+          class GraphType>
+int WriteCSVGraphSet(const std::vector<GraphType>&   graph_set,
+                     const std::vector<std::string>& graph_name_set,
+                     const std::string& v_file, 
+                     const std::string& e_file) {
   using VertexIDType = typename GraphType::VertexType::IDType;
   using VertexLabelType = typename GraphType::VertexType::LabelType;
   using VertexAttributeKeyType =
@@ -1509,18 +1533,21 @@ int WriteCSVGraphSet(const std::vector<GraphType>& graph_set,
   int count_v, count_e;
 
   res =
-      WriteCSVVertexSetFileWithCallback<write_attr>(graph_set, v_file, nullptr);
+      WriteCSVVertexSetFileWithCallback<write_attr>(graph_set,
+                                                    graph_name_set, v_file, nullptr);
   if (res < 0) return res;
 
   count_v = res;
 
-  res = WriteCSVEdgeSetFileWithCallback<write_attr>(graph_set, e_file, nullptr);
+  res = WriteCSVEdgeSetFileWithCallback<write_attr>(graph_set,
+                                                    graph_name_set, e_file, nullptr);
   if (res < 0) return res;
 
   count_e = res;
 
   return count_v + count_e;
 }
+
 template <bool write_attr = true, class GraphType>
 int WriteCSVGraph(const GraphType& graph, const std::string& v_file,
                   const std::string& e_file) {
