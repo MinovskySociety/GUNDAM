@@ -506,6 +506,45 @@ void TestCsvGraphSet(){
     }
   }
   ASSERT_TRUE(graph_read_set.empty());
+
+  std::vector<std::string> graph_name_set;
+  graph_name_set.reserve(5);
+  graph_name_set.emplace_back("g0");
+  graph_name_set.emplace_back("g1");
+  graph_name_set.emplace_back("g2");
+  graph_name_set.emplace_back("g3");
+  graph_name_set.emplace_back("g4");
+  ASSERT_EQ(graph_set.size(),
+       graph_name_set.size());
+  GUNDAM::WriteCSVGraphSet(graph_set, 
+                           graph_name_set, v_set_file, 
+                                           e_set_file);
+  ASSERT_EQ(graph_set.size(),
+       graph_name_set.size());
+
+  std::vector<std::string> graph_read_name_set;
+  GUNDAM::ReadCSVGraphSet(graph_read_set, 
+                          graph_read_name_set, v_set_file, 
+                                               e_set_file);
+  ASSERT_EQ(graph_read_set.size(),      graph_set.size());
+  ASSERT_EQ(graph_read_name_set.size(), graph_name_set.size());
+
+  for (int graph_idx = 0; graph_idx < graph_set.size(); graph_idx++) {
+    auto& graph = graph_read_set[graph_idx];
+    bool has_found_same = false;
+    for (int read_graph_idx = 0;
+             read_graph_idx < graph_read_set.size();
+             read_graph_idx++){
+      if (graph_read_name_set[read_graph_idx]
+            == graph_name_set[graph_idx]){
+        // should have only one same graph
+        ASSERT_FALSE(has_found_same);
+        ASSERT_TRUE(TestGraphSame(graph, graph_read_set[read_graph_idx]));
+        has_found_same = true;
+      }
+    }
+    ASSERT_TRUE(has_found_same);
+  }
 }
 
 template <class GraphType, 
@@ -532,19 +571,19 @@ void TestReadCSVGraph(const VertexFileList &v_list,
   ASSERT_TRUE(true);
 }
 
-template <class GraphType>
-void TestCsvGraphSet(std::vector<GraphType> &graph_set, 
-                     std::string &v_set_file,
-                     std::string &e_set_file) {
-  GUNDAM::ReadCSVGraphSet(graph_set, v_set_file, e_set_file);
-  for (auto &graph : graph_set) {
-    ASSERT_TRUE(graph.CountVertex() == 2);
-    ASSERT_TRUE(graph.CountEdge() == 1);
-  }
-  std::string res_v_file = "/Users/apple/Desktop/res_v.csv";
-  std::string res_e_file = "/Users/apple/Desktop/res_e.csv";
-  GUNDAM::WriteCSVGraphSet(graph_set, res_v_file, res_e_file);
-}
+// template <class GraphType>
+// void TestCsvGraphSet(std::vector<GraphType> &graph_set, 
+//                      std::string &v_set_file,
+//                      std::string &e_set_file) {
+//   GUNDAM::ReadCSVGraphSet(graph_set, v_set_file, e_set_file);
+//   for (auto &graph : graph_set) {
+//     ASSERT_TRUE(graph.CountVertex() == 2);
+//     ASSERT_TRUE(graph.CountEdge() == 1);
+//   }
+//   std::string res_v_file = "/Users/apple/Desktop/res_v.csv";
+//   std::string res_e_file = "/Users/apple/Desktop/res_e.csv";
+//   GUNDAM::WriteCSVGraphSet(graph_set, res_v_file, res_e_file);
+// }
 
 TEST(TestGUNDAM, ReadCSVGraph) {
   using namespace GUNDAM;
@@ -594,14 +633,14 @@ TEST(TestGUNDAM, ReadCSVGraph) {
                    SetVertexPtrContainerType<GUNDAM::ContainerType::Map>,
                    SetEdgeLabelContainerType<GUNDAM::ContainerType::Map>>;
 
-  std::vector<std::string> v_list{"/mnt/d/Work/cu4999/liantong_v_user.csv",
-                                  "/mnt/d/Work/cu4999/liantong_v_phone.csv",
-                                  "/mnt/d/Work/cu4999/liantong_v_web.csv"};
+  // std::vector<std::string> v_list{"/mnt/d/Work/cu4999/liantong_v_user.csv",
+  //                                 "/mnt/d/Work/cu4999/liantong_v_phone.csv",
+  //                                 "/mnt/d/Work/cu4999/liantong_v_web.csv"};
 
-  std::vector<std::string> e_list{
-      "/mnt/d/Work/cu4999/liantong_e_call.csv",
-      "/mnt/d/Work/cu4999/liantong_e_send_message.csv",
-      "/mnt/d/Work/cu4999/liantong_e_visit.csv"};
+  // std::vector<std::string> e_list{
+  //     "/mnt/d/Work/cu4999/liantong_e_call.csv",
+  //     "/mnt/d/Work/cu4999/liantong_e_send_message.csv",
+  //     "/mnt/d/Work/cu4999/liantong_e_visit.csv"};
 
   // const char *v_list = "D://Work/cu5000/liantong_n.csv";
   // const char *e_list = "D://Work/cu5000/liantong_e.csv";
@@ -609,7 +648,7 @@ TEST(TestGUNDAM, ReadCSVGraph) {
   // TestReadCSVGraph<G1>(v_list, e_list);
   // TestReadCSVGraph<G2>(v_list, e_list);
 
-  G2 g1, g2;
+  // G2 g1, g2;
   // std::vector<G2> graph_set;
   // graph_set.push_back(g1);
   // graph_set.push_back(g2);

@@ -733,12 +733,14 @@ int ReadCSVEdgeFileWithCallback(const std::string& e_file, GraphType& graph,
   }
 }
 
-template <class GraphType, class ReadVertexCallback, class ReadEdgeCallback>
-int ReadCSVGraphSetWithCallback(std::vector<GraphType>& graph_set,
+template <class GraphType, class ReadVertexCallback, 
+                           class ReadEdgeCallback>
+int ReadCSVGraphSetWithCallback(std::vector<GraphType>&   graph_set,
+                                std::vector<std::string>& graph_name_set,
                                 const std::vector<std::string>& v_list,
                                 const std::vector<std::string>& e_list,
                                 ReadVertexCallback rv_callback,
-                                ReadEdgeCallback re_callback) {
+                                  ReadEdgeCallback re_callback) {
   graph_set.clear();
 
   std::map<std::string, size_t> graph_id_to_graph_set_idx;
@@ -747,7 +749,8 @@ int ReadCSVGraphSetWithCallback(std::vector<GraphType>& graph_set,
     int res = ReadCSVVertexSetFileWithCallback(v_file, graph_set, 
                                            graph_id_to_graph_set_idx,
                                               rv_callback);
-    if (res < 0) return res;
+    if (res < 0) 
+      return res;
     count_v += res;
   }
 
@@ -763,7 +766,33 @@ int ReadCSVGraphSetWithCallback(std::vector<GraphType>& graph_set,
   std::cout << " Vertex: " << count_v << std::endl;
   std::cout << "   Edge: " << count_e << std::endl;
 
+  assert(graph_set.size() == graph_id_to_graph_set_idx.size());
+  graph_name_set.resize(graph_set.size());
+
+  for (const auto& graph_id_idx_pair 
+                 : graph_id_to_graph_set_idx){
+    assert(graph_id_idx_pair.second >= 0
+        && graph_id_idx_pair.second < graph_name_set.size());
+    graph_name_set[graph_id_idx_pair.second] = graph_id_idx_pair.first;
+  }
+
   return count_v + count_e;
+}
+
+template <class GraphType, class ReadVertexCallback, 
+                           class ReadEdgeCallback>
+int ReadCSVGraphSetWithCallback(std::vector<GraphType>&   graph_set,
+                                const std::vector<std::string>& v_list,
+                                const std::vector<std::string>& e_list,
+                                ReadVertexCallback rv_callback,
+                                ReadEdgeCallback re_callback) {
+  std::vector<std::string> graph_name_set;
+  return ReadCSVGraphSetWithCallback(graph_set,
+                                     graph_name_set,
+                                     v_list,
+                                     e_list,
+                                    rv_callback,
+                                    re_callback);
 }
 
 template <class GraphType, class ReadVertexCallback, class ReadEdgeCallback>
@@ -798,12 +827,19 @@ template <class GraphType>
 inline int ReadCSVGraphSet(std::vector<GraphType>& graph_set,
                            const std::vector<std::string>& v_list,
                            const std::vector<std::string>& e_list) {
-  using VertexIDType = typename GraphType::VertexType::IDType;
-  using VertexLabelType = typename GraphType::VertexType::LabelType;
-  using EdgeIDType = typename GraphType::EdgeType::IDType;
-  using EdgeLabelType = typename GraphType::EdgeType::LabelType;
+  return ReadCSVGraphSetWithCallback(graph_set, v_list, e_list, nullptr, nullptr);
+}
 
-  return ReadCSVGraphSetWithCallback(graph_set, v_list, e_list, nullptr,
+template <class GraphType>
+inline int ReadCSVGraphSet(std::vector<GraphType>&   graph_set,
+                           std::vector<std::string>& graph_name_set,
+                           const std::vector<std::string>& v_list,
+                           const std::vector<std::string>& e_list) {
+  return ReadCSVGraphSetWithCallback(graph_set, 
+                                     graph_name_set,
+                                     v_list, 
+                                     e_list, 
+                                     nullptr,
                                      nullptr);
 }
 
@@ -827,6 +863,17 @@ inline int ReadCSVGraphSet(std::vector<GraphType>& graph_set,
   v_list.push_back(v_file);
   e_list.push_back(e_file);
   return ReadCSVGraphSet(graph_set, v_list, e_list);
+}
+
+template <class GraphType>
+inline int ReadCSVGraphSet(std::vector<GraphType>& graph_set,
+                           std::vector<std::string>& graph_name_set,
+                           const std::string& v_file,
+                           const std::string& e_file) {
+  std::vector<std::string> v_list, e_list;
+  v_list.push_back(v_file);
+  e_list.push_back(e_file);
+  return ReadCSVGraphSet(graph_set, graph_name_set, v_list, e_list);
 }
 
 template <class GraphType>
@@ -1550,7 +1597,8 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
 
 template <bool write_attr = true, class GraphType>
 int WriteCSVGraphSet(const std::vector<GraphType>& graph_set,
-                     const std::string& v_file, const std::string& e_file) {
+                     const std::string& v_file, 
+                     const std::string& e_file) {
   std::vector<std::string> graph_name_set;
   graph_name_set.reserve(graph_set.size());
   for (size_t i = 0; i < graph_set.size(); i++) {
