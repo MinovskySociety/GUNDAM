@@ -461,6 +461,53 @@ void TestCsvGraph(){
   ASSERT_TRUE(TestGraphSame(g4, g4_read));
 }
 
+template<typename GraphType>
+void TestCsvGraphSet(){
+  std::string v_set_file = "test_v_set.csv",
+              e_set_file = "test_e_set.csv";
+  GraphType g0;
+  ConstructGraph0(g0);
+  GraphType g1;
+  ConstructGraph1(g1);
+  GraphType g2;
+  ConstructGraph2(g2);
+  GraphType g3;
+  ConstructGraph3(g3);
+  GraphType g4;
+  ConstructGraph4(g4);
+
+  std::vector<GraphType> graph_set;
+  graph_set.reserve(5);
+  graph_set.emplace_back(g0);
+  graph_set.emplace_back(g1);
+  graph_set.emplace_back(g2);
+  graph_set.emplace_back(g3);
+  graph_set.emplace_back(g4);
+
+  GUNDAM::WriteCSVGraphSet(graph_set, v_set_file, 
+                                      e_set_file);
+
+  std::vector<GraphType> graph_read_set;
+
+  GUNDAM::ReadCSVGraphSet(graph_read_set, v_set_file, 
+                                          e_set_file);
+
+  ASSERT_EQ(graph_read_set.size(), graph_set.size());
+
+  for (const auto& graph : graph_set) {
+    for (auto read_graph_it  = graph_read_set.begin();
+              read_graph_it != graph_read_set. end ();){
+      if (TestGraphSame(graph, *read_graph_it)){
+        read_graph_it = graph_read_set.erase(read_graph_it);
+        continue;
+      }
+      read_graph_it++;
+      continue;
+    }
+  }
+  ASSERT_TRUE(graph_read_set.empty());
+}
+
 template <class GraphType, 
           class VertexFileList, 
           class   EdgeFileList>
@@ -577,6 +624,14 @@ TEST(TestGUNDAM, ReadCSVGraph) {
   TestCsvGraph<G5>();
   TestCsvGraph<G6>();
   TestCsvGraph<G7>();
+
+  TestCsvGraphSet<G1>();
+  TestCsvGraphSet<G2>();
+  TestCsvGraphSet<G3>();
+  TestCsvGraphSet<G4>();
+  TestCsvGraphSet<G5>();
+  TestCsvGraphSet<G6>();
+  TestCsvGraphSet<G7>();
 }
 
 // template <class GraphType>
