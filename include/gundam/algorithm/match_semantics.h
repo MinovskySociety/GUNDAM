@@ -8,6 +8,11 @@ enum MatchSemantics : bool {
   kHomomorphism 
 };
 
+enum MatchAlgorithm : bool {
+  kVf2,
+  kDagDp
+};
+
 };
 
 #endif // MATCH_SEMANTICS
