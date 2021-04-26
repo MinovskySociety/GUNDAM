@@ -20,8 +20,10 @@
 
 inline uint64_t GetTime() { return clock() * 1000 / CLOCKS_PER_SEC; }
 
-template <typename Handle1, typename Handle2>
-bool LabelEqual2(const Handle1& a, const Handle2& b) {
+template <typename Handle1, 
+          typename Handle2>
+bool LabelEqual2(const Handle1& a, 
+                 const Handle2& b) {
   return a->label() == b->label();
 }
 
@@ -91,65 +93,65 @@ void TestVF2_1() {
 TEST(TestGUNDAM, VF2_1) {
   using namespace GUNDAM;
 
-  // using G1 =
-  //   Graph<SetVertexIDType<uint32_t>, 
-  //         SetVertexLabelType<uint32_t>,
-  //         SetEdgeIDType<uint32_t>, 
-  //         SetEdgeLabelType<uint32_t>>;
+  using G1 =
+    Graph<SetVertexIDType<uint32_t>, 
+          SetVertexLabelType<uint32_t>,
+          SetEdgeIDType<uint32_t>, 
+          SetEdgeLabelType<uint32_t>>;
 
-  // using G2
-  //  = Graph<SetVertexIDType<uint32_t>,
-  //          SetVertexAttributeStoreType<AttributeType::kGrouped>,
-  //          SetVertexLabelType<uint32_t>,
-  //          SetVertexLabelContainerType<ContainerType::Vector>,
-  //          SetVertexIDContainerType<ContainerType::Map>,
-  //          SetVertexPtrContainerType<ContainerType::Vector>,
-  //          SetEdgeLabelContainerType<ContainerType::Vector>,
-  //          SetVertexAttributeKeyType<std::string>,
-  //          SetEdgeIDType<uint32_t>,
-  //          SetEdgeAttributeStoreType<AttributeType::kGrouped>,
-  //          SetEdgeLabelType<uint32_t>,
-  //          SetEdgeAttributeKeyType<std::string>>;
+  using G2
+   = Graph<SetVertexIDType<uint32_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<uint32_t>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Map>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint32_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<uint32_t>,
+           SetEdgeAttributeKeyType<std::string>>;
 
-  // using G3
-  //  = Graph<SetVertexIDType<uint32_t>,
-  //          SetVertexAttributeStoreType<AttributeType::kGrouped>,
-  //          SetVertexLabelType<uint32_t>,
-  //          SetVertexLabelContainerType<ContainerType::Vector>,
-  //          SetVertexIDContainerType<ContainerType::Vector>,
-  //          SetVertexPtrContainerType<ContainerType::Vector>,
-  //          SetEdgeLabelContainerType<ContainerType::Vector>,
-  //          SetVertexAttributeKeyType<std::string>,
-  //          SetEdgeIDType<uint32_t>,
-  //          SetEdgeAttributeStoreType<AttributeType::kGrouped>,
-  //          SetEdgeLabelType<uint32_t>,
-  //          SetEdgeAttributeKeyType<std::string>>;
+  using G3
+   = Graph<SetVertexIDType<uint32_t>,
+           SetVertexAttributeStoreType<AttributeType::kGrouped>,
+           SetVertexLabelType<uint32_t>,
+           SetVertexLabelContainerType<ContainerType::Vector>,
+           SetVertexIDContainerType<ContainerType::Vector>,
+           SetVertexPtrContainerType<ContainerType::Vector>,
+           SetEdgeLabelContainerType<ContainerType::Vector>,
+           SetVertexAttributeKeyType<std::string>,
+           SetEdgeIDType<uint32_t>,
+           SetEdgeAttributeStoreType<AttributeType::kGrouped>,
+           SetEdgeLabelType<uint32_t>,
+           SetEdgeAttributeKeyType<std::string>>;
 
   using LG = LargeGraph<uint32_t, uint32_t, std::string, 
                         uint32_t, uint32_t, std::string>;
   using SG  =       SmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
   using SSG = SimpleSmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
 
-  // TestVF2_1<G1, G1>();
-  // TestVF2_1<G1, G2>();
-  // TestVF2_1<G1, G3>();
-  // TestVF2_1<G2, G1>();
-  // TestVF2_1<G2, G2>();
-  // TestVF2_1<G2, G3>();
-  // TestVF2_1<G3, G1>();
-  // TestVF2_1<G3, G2>();
-  // TestVF2_1<G3, G3>();
-  // TestVF2_1<LG, G1>();
-  // TestVF2_1<LG, G2>();
-  // TestVF2_1<LG, G3>();
+  TestVF2_1<G1, G1>();
+  TestVF2_1<G1, G2>();
+  TestVF2_1<G1, G3>();
+  TestVF2_1<G2, G1>();
+  TestVF2_1<G2, G2>();
+  TestVF2_1<G2, G3>();
+  TestVF2_1<G3, G1>();
+  TestVF2_1<G3, G2>();
+  TestVF2_1<G3, G3>();
+  TestVF2_1<LG, G1>();
+  TestVF2_1<LG, G2>();
+  TestVF2_1<LG, G3>();
   TestVF2_1<LG, LG>();
-  // TestVF2_1<SG, G1>();
-  // TestVF2_1<SG, G2>();
-  // TestVF2_1<SG, G3>();
+  TestVF2_1<SG, G1>();
+  TestVF2_1<SG, G2>();
+  TestVF2_1<SG, G3>();
   TestVF2_1<SG, LG>();
-  // TestVF2_1<SSG, G1>();
-  // TestVF2_1<SSG, G2>();
-  // TestVF2_1<SSG, G3>();
+  TestVF2_1<SSG, G1>();
+  TestVF2_1<SSG, G2>();
+  TestVF2_1<SSG, G3>();
   TestVF2_1<SSG, LG>();
 }
 
@@ -280,9 +282,9 @@ TEST(TestGUNDAM, VF2_2) {
   using TargetGraph = LargeGraph<uint64_t, std::string, std::string, 
                                  uint64_t, std::string, std::string>;
 
-  // TestVF2_2<QG1, TG1>();
-  // TestVF2_2<QG2, TG2>();
-  // TestVF2_2<QG3, TG3>();
+  TestVF2_2<QG1, TG1>();
+  TestVF2_2<QG2, TG2>();
+  TestVF2_2<QG3, TG3>();
   TestVF2_2<QueryGraph, TargetGraph>();
 }
 
@@ -409,9 +411,9 @@ TEST(TestGUNDAM, VF2_3) {
   using TargetGraph = LargeGraph<uint64_t, std::string, std::string, 
                                  uint64_t, std::string, std::string>;
 
-  // TestVF2_3<QG1, TG1>();
-  // TestVF2_3<QG2, TG2>();
-  // TestVF2_3<QG3, TG3>();
+  TestVF2_3<QG1, TG1>();
+  TestVF2_3<QG2, TG2>();
+  TestVF2_3<QG3, TG3>();
   TestVF2_3<QueryGraph, TargetGraph>();
 }
 
@@ -689,9 +691,9 @@ TEST(TestGUNDAM, VF2_Speed_1) {
   using TLG = LargeGraph<uint64_t, uint32_t, std::string, uint64_t, uint32_t,
                          std::string>;
 
-  // TestVF2Speed1<QG1, TG1>(1, 10000);
-  // TestVF2Speed1<QG2, TG2>(1, 10000);
-  // TestVF2Speed1<QG3, TG3>(1, 10000);
+  TestVF2Speed1<QG1, TG1>(1, 10000);
+  TestVF2Speed1<QG2, TG2>(1, 10000);
+  TestVF2Speed1<QG3, TG3>(1, 10000);
   TestVF2Speed1<QLG, TLG>(1, 10000);
   TestVF2Speed1<QSG, TLG>(1, 10000);
   TestVF2Speed1<QSSG, TLG>(1, 10000);

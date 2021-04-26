@@ -19,11 +19,9 @@
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_handle.h"
 #include "match_helper.h"
-#include "vf2.h"
+#include "match_semantics.h"
 
 namespace GUNDAM {
-
-enum MatchSemantics { kIsomorphism, kHomomorphism };
 
 namespace _dp_iso {
 enum EdgeState { kIn, kOut };

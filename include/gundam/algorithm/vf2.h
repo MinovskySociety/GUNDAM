@@ -16,6 +16,8 @@
 #include "gundam/match/match.h"
 #include "gundam/component/timer.h"
 
+#include "match_semantics.h"
+
 namespace GUNDAM {
 
 namespace _vf2 {
@@ -34,7 +36,7 @@ template <class GraphType, class Fn, class VertexRef>
 inline bool ForEachVertexIf(
     const GraphType &graph, Fn f,
     LabelEqual<VertexRef,
-               typename GraphType::VertexConstPtr> ,
+               typename GraphType::VertexHandle> ,
     const VertexRef &vertex_ref) {
   for (auto vertex_iter = graph.VertexBegin(vertex_ref->label());
        !vertex_iter.IsDone(); ++vertex_iter) {
@@ -44,7 +46,7 @@ inline bool ForEachVertexIf(
 }
 */
 template <class GraphType, class Fn, class VertexCompare, class VertexRef>
-inline bool ForEachVertexIf(const GraphType &graph, Fn f,
+inline bool ForEachVertexIf(GraphType &graph, Fn f,
                             VertexCompare vertex_comp,
                             const VertexRef &vertex_r) {
   for (auto vertex_iter = graph.VertexBegin(); !vertex_iter.IsDone();
@@ -91,10 +93,13 @@ inline bool ForEachVertexIf(const GraphType &graph, Fn f,
 //}
 
 // Init Candidate Set
-template <enum MatchSemantics match_semantics, class QueryGraph,
-          class TargetGraph, class VertexCompare>
+template <enum MatchSemantics match_semantics, 
+          class  QueryGraph,
+          class TargetGraph, 
+          class VertexCompare>
 inline bool InitCandidateSet(
-    QueryGraph &query_graph, TargetGraph &target_graph,
+     QueryGraph  &query_graph, 
+    TargetGraph &target_graph,
     VertexCompare vertex_comp,
     std::map<typename VertexHandle< QueryGraph>::type,
              std::vector<typename VertexHandle<TargetGraph>::type>>
@@ -103,11 +108,12 @@ inline bool InitCandidateSet(
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
   // std::cout << query_graph.FindVertex(1) << std::endl;
   for (auto query_vertex_iter = query_graph.VertexBegin();
-       !query_vertex_iter.IsDone(); ++query_vertex_iter) {
+           !query_vertex_iter.IsDone(); 
+          ++query_vertex_iter) {
     QueryVertexHandle query_vertex_handle{query_vertex_iter};
     // std::cout << query_vertex_handle->id() << " " << query_vertex_handle <<
     // std::endl;
-    auto query_in_count = query_vertex_handle->CountInEdge();
+    auto query_in_count  = query_vertex_handle->CountInEdge();
     auto query_out_count = query_vertex_handle->CountOutEdge();
 
     auto &l = candidate_set[query_vertex_handle];
@@ -127,7 +133,8 @@ inline bool InitCandidateSet(
         },
         vertex_comp, query_vertex_handle);
 
-    if (l.empty()) return false;
+    if (l.empty()) 
+      return false;
   }
   return true;
 }
@@ -1216,54 +1223,63 @@ inline int VF2(
                 std::placeholders::_1, &max_result, &match_result));
 }
 // using GUNDAM::MatchSet
-template <enum MatchSemantics match_semantics =
-MatchSemantics::kIsomorphism,
-         class QueryGraph, class TargetGraph>
-inline int VF2(QueryGraph &query_graph, const TargetGraph
-&target_graph,
-              MatchSet<const QueryGraph, const TargetGraph> &match_set) {
- using PatternVertexConstPtr = typename VertexHandle< QueryGraph>::type;
- using DataGraphVertexConstPtr = typename VertexHandle<TargetGraph>::type;
- using MatchMap = std::map<PatternVertexConstPtr,
- DataGraphVertexConstPtr>; using MatchContainer = std::vector<MatchMap>;
- MatchContainer match_result;
- size_t result_count = VF2<match_semantics, QueryGraph, TargetGraph>(
+template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+          class  QueryGraph, 
+          class TargetGraph>
+inline int VF2(QueryGraph  &query_graph, 
+              TargetGraph &target_graph,
+              MatchSet<QueryGraph, 
+                      TargetGraph> &match_set) {
+  using   PatternVertexHandle = typename VertexHandle< QueryGraph>::type;
+  using DataGraphVertexHandle = typename VertexHandle<TargetGraph>::type;
+  using MatchMap = std::map<PatternVertexHandle,
+                          DataGraphVertexHandle>; 
+  using MatchContainer = std::vector<MatchMap>;
+  MatchContainer match_result;
+  size_t result_count = VF2<match_semantics, QueryGraph, TargetGraph>(
      query_graph, target_graph, -1, match_result);
- for (const auto &single_match : match_result) {
-   Match<const QueryGraph, const TargetGraph> match;
-   for (const auto &match_pair : single_match) {
-     match.AddMap(match_pair.first, match_pair.second);
-   }
-   match_set.AddMatch(match);
- }
- return result_count;
+  for (const auto &single_match : match_result) {
+    Match<QueryGraph, TargetGraph> match;
+    for (const auto &match_pair : single_match) {
+      match.AddMap(match_pair.first, match_pair.second);
+    }
+    match_set.AddMatch(match);
+  }
+  return result_count;
 }
 
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
-          class QueryGraph, class TargetGraph, class Match, class MatchSet>
-inline int VF2(QueryGraph &query_graph, TargetGraph &target_graph,
-               const Match &partical_match, MatchSet &match_set) {
-  using PatternVertexConstPtr = typename VertexHandle< QueryGraph>::type;
-  using DataGraphVertexConstPtr = typename VertexHandle<TargetGraph>::type;
-  using MatchMap = std::map<PatternVertexConstPtr, DataGraphVertexConstPtr>;
+          class  QueryGraph, 
+          class TargetGraph>
+inline int VF2(QueryGraph &query_graph, 
+              TargetGraph &target_graph,
+         Match<QueryGraph,
+              TargetGraph> &partical_match, 
+      MatchSet<QueryGraph,
+              TargetGraph> &match_set) {
+  using   PatternVertexHandle = typename VertexHandle< QueryGraph>::type;
+  using DataGraphVertexHandle = typename VertexHandle<TargetGraph>::type;
+  using MatchMap = std::map<PatternVertexHandle, 
+                          DataGraphVertexHandle>;
   using MatchContainer = std::vector<MatchMap>;
-  using CandidateSetContainer =
-      std::map<PatternVertexConstPtr, std::vector<DataGraphVertexConstPtr>>;
-  using PatternEdgeHandle = typename EdgeHandle< QueryGraph>::type;
+  using CandidateSetContainer = std::map<PatternVertexHandle, 
+                           std::vector<DataGraphVertexHandle>>;
+  using   PatternEdgeHandle = typename EdgeHandle< QueryGraph>::type;
   using DataGraphEdgeHandle = typename EdgeHandle<TargetGraph>::type;
   CandidateSetContainer candidate_set;
   _vf2::InitCandidateSet<match_semantics>(
       query_graph, target_graph,
-      _vf2::LabelEqual<PatternVertexConstPtr, DataGraphVertexConstPtr>(),
+      _vf2::LabelEqual<PatternVertexHandle, 
+                     DataGraphVertexHandle>(),
       candidate_set);
   MatchMap match_state;
   MatchContainer match_result;
-  std::set<DataGraphVertexConstPtr> target_matched;
+  std::set<DataGraphVertexHandle> target_matched;
   for (auto vertex_it = query_graph.VertexBegin(); !vertex_it.IsDone();
-       vertex_it++) {
-    PatternVertexConstPtr vertex_handle = vertex_it;
+            vertex_it++) {
+    PatternVertexHandle vertex_handle = vertex_it;
     if (partical_match.HasMap(vertex_handle)) {
-      DataGraphVertexConstPtr match_vertex_handle =
+      DataGraphVertexHandle match_vertex_handle =
           partical_match.MapTo(vertex_handle);
       match_state.insert(std::make_pair(vertex_handle, match_vertex_handle));
       target_matched.insert(match_vertex_handle);
@@ -1272,8 +1288,8 @@ inline int VF2(QueryGraph &query_graph, TargetGraph &target_graph,
   int max_result = -1;
   size_t result_count = 0;
   auto user_callback = std::bind(
-      _vf2::MatchCallbackSaveResult<PatternVertexConstPtr,
-                                    DataGraphVertexConstPtr, MatchContainer>,
+      _vf2::MatchCallbackSaveResult<PatternVertexHandle,
+                                  DataGraphVertexHandle, MatchContainer>,
       std::placeholders::_1, &max_result, &match_result);
 
   _vf2::_VF2<match_semantics, QueryGraph, TargetGraph>(
@@ -1281,7 +1297,8 @@ inline int VF2(QueryGraph &query_graph, TargetGraph &target_graph,
       _vf2::LabelEqual<PatternEdgeHandle, DataGraphEdgeHandle>(), result_count,
       user_callback);
   for (const auto &single_match : match_result) {
-    Match match;
+    Match<QueryGraph,
+         TargetGraph> match;
     for (const auto &match_pair : single_match) {
       match.AddMap(match_pair.first, match_pair.second);
     }
