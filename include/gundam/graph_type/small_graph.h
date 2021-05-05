@@ -28,6 +28,11 @@ class SmallGraph;
 template <class VertexIDType, class VertexLabelType, class EdgeIDType,
           class EdgeLabelType>
 class SmallGraph {
+ public:
+  static constexpr bool graph_has_vertex_label_index = false;
+
+  static constexpr bool vertex_has_edge_label_index = false;
+
  private:
   class VertexData {
    public:
@@ -599,9 +604,6 @@ class SmallGraph {
     vertices_.Clear();
     edges_.Clear();
   }
-
- public:
-  static constexpr bool vertex_has_edge_label_index = false;
 
  private:
   VertexContainer vertices_;
