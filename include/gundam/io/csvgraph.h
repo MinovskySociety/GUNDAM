@@ -920,7 +920,9 @@ std::string ProtectedSeparatorVal(T&& val) {
   assert(CsvSeparator != ':');
   std::stringstream s_stream;
   s_stream << val;
-  if (s_stream.str().find(CsvSeparator) != s_stream.str().npos) {
+  std::string stream_str = s_stream.str();
+  if (stream_str.find(CsvSeparator) != stream_str.npos &&
+      !(stream_str[0] == '"' && stream_str.back() == '"')) {
     return (std::string) "\"" + s_stream.str() + (std::string) "\"";
   }
   return s_stream.str();
