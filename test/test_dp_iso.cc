@@ -443,8 +443,11 @@ template <class QueryGraph, class TargetGraph>
 void TestDPISOSpeed1(int times_outer, int times_inner) {
   using namespace GUNDAM;
 
-  QueryGraph query;
+   QueryGraph  query;
   TargetGraph target;
+
+  std::cout << " QueryGraphType: " << typeid( query).name() << std::endl
+            << "TargetGraphType: " << typeid(target).name() << std::endl;
 
   // query
   ASSERT_TRUE(query.AddVertex(1, 0).second);
