@@ -25,11 +25,15 @@ template <class  QueryGraph,
 void TestDPISOUsingMatch_1() {
   using namespace GUNDAM;
 
+
   using VertexLabelType = typename  QueryGraph::VertexType::LabelType;
   using   EdgeLabelType = typename TargetGraph::  EdgeType::LabelType;
 
    QueryGraph  query;
   TargetGraph target;
+
+  std::cout << " QueryGraphType: " << typeid( query).name() << std::endl
+            << "TargetGraphType: " << typeid(target).name() << std::endl;
 
   // query
   query.AddVertex(1, VertexLabelType(0));
@@ -194,24 +198,38 @@ TEST(TestGUNDAM, DPISOUsingMatch_1) {
   TestDPISOUsingMatch_1<G1, G1>();
   TestDPISOUsingMatch_1<G1, G2>();
   TestDPISOUsingMatch_1<G1, G3>();
+  TestDPISOUsingMatch_1<G1, SG>();
+  TestDPISOUsingMatch_1<G1, LG>();
+
   TestDPISOUsingMatch_1<G2, G1>();
   TestDPISOUsingMatch_1<G2, G2>();
   TestDPISOUsingMatch_1<G2, G3>();
+  TestDPISOUsingMatch_1<G2, SG>();
+  TestDPISOUsingMatch_1<G2, LG>();
+
   TestDPISOUsingMatch_1<G3, G1>();
   TestDPISOUsingMatch_1<G3, G2>();
   TestDPISOUsingMatch_1<G3, G3>();
+  TestDPISOUsingMatch_1<G3, SG>();
+  TestDPISOUsingMatch_1<G3, LG>();
+  
   TestDPISOUsingMatch_1<LG, G1>();
   TestDPISOUsingMatch_1<LG, G2>();
   TestDPISOUsingMatch_1<LG, G3>();
+  TestDPISOUsingMatch_1<LG, SG>();
   TestDPISOUsingMatch_1<LG, LG>();
+
   TestDPISOUsingMatch_1<SG, G1>();
   TestDPISOUsingMatch_1<SG, G2>();
   TestDPISOUsingMatch_1<SG, G3>();
   TestDPISOUsingMatch_1<SG, LG>();
+  TestDPISOUsingMatch_1<SG, SG>();
+
   TestDPISOUsingMatch_1<SSG, G1>();
   TestDPISOUsingMatch_1<SSG, G2>();
   TestDPISOUsingMatch_1<SSG, G3>();
   TestDPISOUsingMatch_1<SSG, LG>();
+  TestDPISOUsingMatch_1<SSG, SG>();
 }
 
 template <class QueryGraph, class TargetGraph>
