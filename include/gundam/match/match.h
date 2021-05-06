@@ -148,20 +148,6 @@ class Match {
   Match(const Match&) = default;
   Match(Match&&) = default;
 
-  Match(const Match<DstGraphType,
-                    SrcGraphType>& match,
-        std::string construct_method) : match_container_() {
-    assert(construct_method == "reverse");
-    for (auto cit  = match.match_container_.cbegin();
-              cit != match.match_container_.cend();cit++){
-      auto ret = this->AddMap(cit.template get<kDstVertexPtrIdx>(),
-                              cit.template get<kSrcVertexPtrIdx>());
-      assert(ret);
-    }
-    assert(this->size() == match.size());
-    return;
-  }
-
   Match& operator=(const Match&) = default;
   Match& operator=(Match&&) = default;
 
@@ -237,6 +223,20 @@ class Match {
     }
     /// found that
     return ret.first.template get_const<kDstVertexPtrIdx>();
+  }
+
+  inline Match<DstGraphType,
+               SrcGraphType> Reverse() const {
+    Match<DstGraphType,
+          SrcGraphType> reverse_match;
+    for (auto cit  = this->match_container_.cbegin();
+              cit != this->match_container_.cend();cit++){
+      auto ret = reverse_match.AddMap(cit.template get<kDstVertexPtrIdx>(),
+                                      cit.template get<kSrcVertexPtrIdx>());
+      assert(ret);
+    }
+    assert(this->size() == reverse_match.size());
+    return std::move(reverse_match);
   }
 
   // /// constant dst

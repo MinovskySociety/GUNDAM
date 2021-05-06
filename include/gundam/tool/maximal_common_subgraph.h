@@ -196,7 +196,9 @@ std::vector<GraphPatternType> ExpandPattern(
 template <typename GraphPatternType>
 std::vector<GraphPatternType> 
   MaximalCommonSubgraph(GraphPatternType& q0,
-                        GraphPatternType& q1){
+                        GraphPatternType& q1,
+                  Match<GraphPatternType,
+                        GraphPatternType>& match_q0_to_q1){
   if (SubGraphOf(q0, q1)){
     std::vector<GraphPatternType> ret;
     ret.emplace_back(q0);
@@ -207,6 +209,9 @@ std::vector<GraphPatternType>
     ret.emplace_back(q1);
     return std::move(ret);
   }
+  using VertexIDType = typename GraphPatternType
+                                    ::VertexType
+                                        ::IDType;
   using VertexLabelType = typename GraphPatternType
                                        ::VertexType
                                         ::LabelType;
@@ -272,18 +277,59 @@ std::vector<GraphPatternType>
   
   if (q0_intersect_q1_vertex_label_set.empty()
    || q0_intersect_q1_edge_type_set.empty()){
+    assert(match_q0_to_q1.empty());
     return std::vector<GraphPatternType>();
   }
 
   std::vector<GraphPatternType> current_graph_patterns;
 
-  for (const auto& vertex_label : q0_intersect_q1_vertex_label_set) {
-    GraphPatternType pattern;
-    pattern.AddVertex(0, vertex_label);
-    current_graph_patterns.emplace_back(pattern);
+  GraphPatternType common_pattern;
+  Match<GraphPatternType,
+        GraphPatternType> common_pattern_to_q0,
+                          common_pattern_to_q1;
+  if (match_q0_to_q1.empty()){
+    for (const auto& vertex_label : q0_intersect_q1_vertex_label_set) {
+      GraphPatternType pattern;
+      pattern.AddVertex(0, vertex_label);
+      current_graph_patterns.emplace_back(pattern);
+    }
+    assert(q0_intersect_q1_vertex_label_set.size()
+                  == current_graph_patterns.size());
   }
-  assert(q0_intersect_q1_vertex_label_set.size()
-                == current_graph_patterns.size());
+  else{
+    std::set<VertexIDType> remove_vertex_id_set;
+    for (auto vertex_it = q0.VertexBegin();
+             !vertex_it.IsDone();
+              vertex_it++) {
+      if (match_q0_to_q1.HasMap(vertex_it)){
+        // this vertex is contained in common pattern
+        // does not need to be removed
+        continue;
+      }
+      // this vertex needs to be removed
+      remove_vertex_id_set.emplace(vertex_it->id());
+    }
+    common_pattern = q0;
+    for (const auto& vertex_id : remove_vertex_id_set) {
+      auto erase_size = common_pattern.EraseVertex(vertex_id);
+      assert(erase_size > 0);
+    }
+    assert(common_pattern.CountVertex() == match_q0_to_q1.size());
+    common_pattern_to_q0 = Match(common_pattern, q0, "same_id_map");
+    common_pattern_to_q1 = match_q0_to_q1(common_pattern_to_q0);
+    current_graph_patterns.emplace_back(std::move(common_pattern));
+    assert(current_graph_patterns.size() == 1);
+    assert(common_pattern_to_q0.size() == common_pattern.CountVertex());
+    assert(common_pattern_to_q1.size() == common_pattern.CountVertex());
+    #ifndef NDEBUG
+    for (auto vertex_it = common_pattern.VertexBegin();
+             !vertex_it.IsDone();
+              vertex_it++) {
+      assert(common_pattern_to_q0.HasMap(vertex_it));
+      assert(common_pattern_to_q1.HasMap(vertex_it));
+    }
+    #endif // NDEBUG
+  }
 
   while (true) {
     std::vector<GraphPatternType> expanded_graph_patterns;
@@ -299,27 +345,68 @@ std::vector<GraphPatternType>
             = expanded_graph_patterns.begin();
               expanded_graph_pattern_it 
            != expanded_graph_patterns.end();) {
-      auto match_in_q0 = DpisoUsingMatch(*expanded_graph_pattern_it, q0, 1);
+      if (match_q0_to_q1.empty()){
+        auto match_in_q0 = DpisoUsingMatch(*expanded_graph_pattern_it, q0, 1);
+        assert(match_in_q0 == 0
+            || match_in_q0 == 1);
+        if (match_in_q0 == 0) {
+          // cannot be matched into q0
+          expanded_graph_pattern_it = expanded_graph_patterns
+                              .erase(expanded_graph_pattern_it);
+          continue;
+        }
+
+        auto match_in_q1 = DpisoUsingMatch(*expanded_graph_pattern_it, q1, 1);
+        assert(match_in_q1 == 0
+            || match_in_q1 == 1);
+        if (match_in_q1 == 0) {
+          // cannot be matched into q1
+          expanded_graph_pattern_it = expanded_graph_patterns
+                              .erase(expanded_graph_pattern_it);
+          continue;
+        }
+        // preserved
+        expanded_graph_pattern_it++;
+        continue;
+      }
+
+      Match<GraphPatternType,
+            GraphPatternType> partial_match_expanded_graph_pattern_to_common_pattern(
+                                           *expanded_graph_pattern_it,common_pattern, "same_id_map");
+
+      Match<GraphPatternType,
+            GraphPatternType> partial_match_expanded_graph_pattern_to_q0
+       = common_pattern_to_q0(partial_match_expanded_graph_pattern_to_common_pattern);
+
+      Match<GraphPatternType,
+            GraphPatternType> partial_match_expanded_graph_pattern_to_q1
+       = common_pattern_to_q1(partial_match_expanded_graph_pattern_to_common_pattern);
+
+      auto match_in_q0 = DpisoUsingMatch(*expanded_graph_pattern_it,q0,
+                            partial_match_expanded_graph_pattern_to_q0, 1);
       assert(match_in_q0 == 0
           || match_in_q0 == 1);
       if (match_in_q0 == 0) {
         // cannot be matched into q0
         expanded_graph_pattern_it = expanded_graph_patterns
-                             .erase(expanded_graph_pattern_it);
+                            .erase(expanded_graph_pattern_it);
         continue;
       }
 
-      auto match_in_q1 = DpisoUsingMatch(*expanded_graph_pattern_it, q1, 1);
+      auto match_in_q1 = DpisoUsingMatch(*expanded_graph_pattern_it,q1,
+                            partial_match_expanded_graph_pattern_to_q1, 1);
       assert(match_in_q1 == 0
           || match_in_q1 == 1);
       if (match_in_q1 == 0) {
         // cannot be matched into q1
         expanded_graph_pattern_it = expanded_graph_patterns
-                             .erase(expanded_graph_pattern_it);
+                            .erase(expanded_graph_pattern_it);
         continue;
       }
-
+      // preserved
       expanded_graph_pattern_it++;
+      continue;
+
     }
     if (!expanded_graph_patterns.empty()){
       // the current pattern can be further expanded is not maximal
@@ -331,6 +418,17 @@ std::vector<GraphPatternType>
     return current_graph_patterns;
   }
   return std::vector<GraphPatternType>();
+}
+
+
+template <typename GraphPatternType>
+std::vector<GraphPatternType> 
+  MaximalCommonSubgraph(GraphPatternType& q0,
+                        GraphPatternType& q1){
+  Match<GraphPatternType,
+        GraphPatternType> match_q0_to_q1;
+  return MaximalCommonSubgraph(q0,   q1,
+                         match_q0_to_q1);
 }
 
 };

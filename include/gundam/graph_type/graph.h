@@ -16,6 +16,7 @@
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_attribute_handle.h"
 #include "gundam/type_getter/edge_attribute_handle.h"
+#include "gundam/type_getter/graph_type.h"
 
 #include "gundam/serialize/serialize.h"
 
@@ -604,14 +605,17 @@ class Graph {
         return *this;
       }
       
-      inline VertexPtrType operator->() const {
+      typename std::conditional<is_const_, const InnerVertex_ *,  
+                                                 InnerVertex_ *>::type
+      operator->() {
+        assert(!IsNull());
         return this->ptr_;
       }
 
-      template <const bool judge = is_const_,
-                typename std::enable_if<!judge, bool>::type = false>
-      inline VertexPtrType operator->() {
-        static_assert(judge == is_const_, "Illegal usage of this method");
+      typename std::conditional<is_const_, const InnerVertex_ *,
+                                           const InnerVertex_ *>::type
+      operator->() const {
+        assert(!IsNull());
         return this->ptr_;
       }
 
@@ -1554,9 +1558,7 @@ class Graph {
 
       using EdgePtrContentType = EdgePtrContent_<is_const_, !is_const_>;
 
-      using EdgePtrContentTypePtrType = typename std::conditional<is_const_,
-                                                  const EdgePtrContentType*,
-                                                        EdgePtrContentType*>::type;
+      using EdgePtrContentTypePtrType = EdgePtrContentType*;
 
       // add by wangyj
       template <typename              ContainerType_,
@@ -1828,19 +1830,20 @@ class Graph {
                            == EdgePtrContentType::id();
       }
 
-      inline EdgePtrContentTypePtrType operator->() const {
-        assert(!this->IsNull());
-        EdgePtrContentTypePtrType const temp_ptr = this;
-        return temp_ptr;
+      typename std::conditional<is_const_, const EdgePtrContentType *,  
+                                                 EdgePtrContentType *>::type
+      operator->() {
+        assert(!IsNull());
+        // EdgePtrContentTypePtrType const temp_ptr = this;
+        return this;
       }
 
-      template <bool judge = is_const_,
-                typename std::enable_if<!judge, bool>::type = false>
-      inline EdgePtrContentTypePtrType operator->() {
-        assert(!this->IsNull());
-        static_assert(judge == is_const_, "Illegal usage of this method");
-        EdgePtrContentTypePtrType const temp_ptr = this;
-        return temp_ptr;
+      typename std::conditional<is_const_, const EdgePtrContentType *,
+                                           const EdgePtrContentType *>::type
+      operator->() const {
+        assert(!IsNull());
+        // EdgePtrContentTypePtrType const temp_ptr = this;
+        return this;
       }
     };
 

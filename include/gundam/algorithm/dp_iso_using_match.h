@@ -22,13 +22,15 @@ namespace GUNDAM {
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t DpisoUsingMatch(
         QueryGraph&  query_graph,
        TargetGraph& target_graph,
-  Match<QueryGraph,
-       TargetGraph>& partial_match,
+  const Match<QueryGraph,
+             TargetGraph>& partial_match,
   const std::map<typename VertexHandle<QueryGraph>::type,
            std::vector<typename VertexHandle<TargetGraph>::type>>& candidate_set,
   std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
@@ -59,7 +61,15 @@ inline size_t DpisoUsingMatch(
       assert(dst_handle);
       match_state.emplace(src_handle, dst_handle);
     }
+    assert(match_state.size() == partial_match.size());
   }
+  
+  #ifndef NDEBUG
+  for (const auto& candidate : candidate_set) {
+    assert(candidate.first);
+    assert(candidate.first == query_graph.FindVertex(candidate.first->id()));
+  }
+  #endif // NDEBUG
 
   return _dp_iso::DPISO_Recursive<match_semantics>(
                      query_graph,
@@ -73,6 +83,8 @@ inline size_t DpisoUsingMatch(
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t DpisoUsingMatch(
@@ -91,7 +103,8 @@ inline size_t DpisoUsingMatch(
 
   Match<QueryGraph, TargetGraph> match_state;
 
-  return DpisoUsingMatch<match_semantics>(
+  return DpisoUsingMatch<match_semantics,
+                         match_algorithm>(
                          query_graph,
                         target_graph,
                          match_state,
@@ -103,12 +116,15 @@ inline size_t DpisoUsingMatch(
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t DpisoUsingMatch(
         QueryGraph&  query_graph,
        TargetGraph& target_graph,
-  Match<QueryGraph, TargetGraph>& partial_match,
+  const Match<QueryGraph, 
+             TargetGraph>& partial_match,
   std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
                                     typename VertexHandle<TargetGraph>::type>&)> prune_callback,
   std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
@@ -133,7 +149,8 @@ inline size_t DpisoUsingMatch(
     return 0;
   }
 
-  return DpisoUsingMatch<match_semantics>(
+  return DpisoUsingMatch<match_semantics,
+                         match_algorithm>(
                          query_graph,
                         target_graph,
                        partial_match,
@@ -145,6 +162,61 @@ inline size_t DpisoUsingMatch(
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t DpisoUsingMatch(
+        QueryGraph&  query_graph,
+       TargetGraph& target_graph,
+  const Match<QueryGraph, 
+             TargetGraph>& partial_match,
+   int64_t max_match = -1,
+   double time_limit = -1.0) {
+
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
+
+  using MatchMap = std::map<QueryVertexHandle, 
+                           TargetVertexHandle>;
+
+  auto prune_callback = [](const MatchMap& match){
+    // prune nothing, continue matching
+    return false;
+  };
+
+  int64_t match_counter = 0;
+
+  auto match_callback = [&max_match,
+                         &match_counter](const MatchMap& match){
+    if (max_match == -1) {
+      // does not have support nothing
+      // do nothing continue matching
+      return true;
+    }
+    match_counter++;
+    if (match_counter >= max_match){
+      // reach max match, end matching
+      return false;
+    }
+    // does not reach max match, continue matching
+    return true;
+  };
+
+  return DpisoUsingMatch<match_semantics,
+                         match_algorithm>(
+                         query_graph,
+                        target_graph,
+                       partial_match,
+                      prune_callback,
+                      match_callback,
+                          time_limit);
+}
+
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t DpisoUsingMatch(
@@ -161,7 +233,8 @@ inline size_t DpisoUsingMatch(
 
   Match<QueryGraph, TargetGraph> partial_match;
 
-  return DpisoUsingMatch<match_semantics>(
+  return DpisoUsingMatch<match_semantics,
+                         match_algorithm>(
                          query_graph,
                         target_graph,
                        partial_match,
@@ -172,6 +245,8 @@ inline size_t DpisoUsingMatch(
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t DpisoUsingMatch(
@@ -212,7 +287,8 @@ inline size_t DpisoUsingMatch(
   // the initial partial match is empty
   Match<QueryGraph, TargetGraph> match_state;
 
-  return DpisoUsingMatch<match_semantics>(
+  return DpisoUsingMatch<match_semantics,
+                         match_algorithm>(
                          query_graph,
                         target_graph,
                          match_state,
@@ -223,26 +299,58 @@ inline size_t DpisoUsingMatch(
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t DpisoUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
-     Match<QueryGraph, 
-          TargetGraph>& partial_match,
-  MatchSet<QueryGraph, 
-          TargetGraph>& match_result,
+  const Match<QueryGraph, 
+             TargetGraph>& partial_match,
+     MatchSet<QueryGraph, 
+             TargetGraph>& match_result,
    int64_t max_match = -1,
    double time_limit = -1.0){
 
-  return DPISO_UsingPatricalMatchAndMatchSet<match_semantics>(query_graph, 
-                                             target_graph,
-                                             partial_match,
-                                             match_result);
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
+
+  using MatchMap = std::map<QueryVertexHandle, 
+                           TargetVertexHandle>;
+
+  auto prune_callback = [](const MatchMap& match){
+    // prune nothing, continue matching
+    return false;
+  };
+
+  auto match_callback = [&match_result,
+                         &max_match](const MatchMap& match){
+    // add this match to match_result, continue matching
+    Match<QueryGraph, TargetGraph> new_match;
+    for (const auto& map : match){
+      new_match.AddMap(map.first, map.second);
+    }
+    match_result.AddMatch(new_match);
+    if ((max_match != -1) && (match_result.size() >= max_match)){
+      // reach max match, end matching
+      return false;
+    }
+   return true;
+  };
+
+  return DpisoUsingMatch<match_semantics,
+                         match_algorithm>(query_graph, 
+                                         target_graph,
+                                        partial_match,
+                                          prune_callback,
+                                          match_callback);
 }
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t DpisoUsingMatch(
@@ -281,7 +389,8 @@ inline size_t DpisoUsingMatch(
   // the initial partial match is empty
   Match<QueryGraph, TargetGraph> match_state;
 
-  return DpisoUsingMatch<match_semantics>(
+  return DpisoUsingMatch<match_semantics,
+                         match_algorithm>(
                          query_graph,
                         target_graph,
                          match_state,
@@ -290,7 +399,10 @@ inline size_t DpisoUsingMatch(
                           time_limit);
 }
 
-template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
           typename    QueryGraph, 
           typename   TargetGraph>
 inline int IncrementalDpisoUsingMatch(
