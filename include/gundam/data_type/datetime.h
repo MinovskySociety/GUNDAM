@@ -50,6 +50,12 @@ class DateTime {
     return out;
   }
 
+  friend std::stringstream& operator<<(std::stringstream& out,
+                                       const DateTime& b) {
+    out << b.to_string();
+    return out;
+  }
+
   bool operator==(const DateTime& b) const { return t_ == b.t_; }
   bool operator!=(const DateTime& b) const { return t_ != b.t_; }
   bool operator<(const DateTime& b) const { return t_ < b.t_; }

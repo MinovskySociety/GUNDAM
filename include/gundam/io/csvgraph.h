@@ -843,14 +843,34 @@ inline int ReadCSVGraph(GraphType& graph, const std::string& v_file,
 }
 
 // Write CSV
-
+constexpr char CsvSeparator = ',';
+template <typename T>
+std::string ProtectedSeparatorVal(T&& val) {
+  //':' is used in CSV head,so cannot used in Separator
+  assert(CsvSeparator != ':');
+  std::stringstream s_stream;
+  s_stream << val;
+  std::string ret_val;
+  for (const auto& it : s_stream.str()) {
+    if (it == CsvSeparator) {
+      ret_val.push_back('"');
+      ret_val.push_back(it);
+      ret_val.push_back('"');
+    } else {
+      ret_val.push_back(it);
+    }
+  }
+  return ret_val;
+}
 // Write CSV columns
 template <typename StreamType>
 inline void WriteCSVColumns(StreamType& s, std::vector<std::string>& key_str,
                             std::vector<std::string>& type_str) {
+  assert(CsvSeparator != ':');
   for (size_t i = 0; i < key_str.size(); i++) {
-    if (i > 0) s << ",";
-    s << key_str[i] << ":" << type_str[i];
+    if (i > 0) s << CsvSeparator;
+    s << ProtectedSeparatorVal(key_str[i]) << ":"
+      << ProtectedSeparatorVal(type_str[i]);
   }
   s << std::endl;
 }
@@ -858,9 +878,10 @@ inline void WriteCSVColumns(StreamType& s, std::vector<std::string>& key_str,
 // Write CSV line
 template <typename StreamType>
 inline void WriteCSVLine(StreamType& s, std::vector<std::string>& cols) {
+  assert(CsvSeparator != ':');
   for (size_t i = 0; i < cols.size(); i++) {
-    if (i > 0) s << ",";
-    s << cols[i];
+    if (i > 0) s << CsvSeparator;
+    s << ProtectedSeparatorVal(cols[i]);
   }
   s << std::endl;
 }
