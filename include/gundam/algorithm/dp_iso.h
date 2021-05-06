@@ -1046,7 +1046,7 @@ inline bool RefineCandidateSet(QueryGraph &query_graph,
   };
   return true;
 }
-template <enum MatchSemantics match_semantics, typname QueryGraph,
+template <enum MatchSemantics match_semantics, typename QueryGraph,
           typename TargetGraph, typename QueryVertexHandle,
           typename TargetVertexHandle>
 bool CheckMatchIsLegal(
@@ -1071,8 +1071,8 @@ bool CheckMatchIsLegal(
   }
   return true;
 }
-template <enum MatchSemantics match_semantics, typename QueryGraph,
-          typename TargetGraph, class MatchCallback, class PruneCallback>
+template <enum MatchSemantics match_semantics, class QueryGraph,
+          class TargetGraph, class MatchCallback, class PruneCallback>
 inline int DPISO_Recursive(
     QueryGraph &query_graph, TargetGraph &target_graph,
     std::map<typename VertexHandle<QueryGraph>::type,
