@@ -77,7 +77,6 @@ namespace GUNDAM {
 //  }
 //  return true;
 //}
-
 template <typename AttributeKeyType>
 bool GetAttributeInfo(
     const std::vector<std::string>& col_name,
