@@ -1134,7 +1134,7 @@ template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
           class QueryGraph, class TargetGraph, class ResultContainer>
 inline int VF2(QueryGraph &query_graph, TargetGraph &target_graph,
                int max_result, ResultContainer &match_result) {
-  using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
   match_result.clear();

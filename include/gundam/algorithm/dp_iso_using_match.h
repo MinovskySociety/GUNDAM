@@ -71,14 +71,46 @@ inline size_t DpisoUsingMatch(
   }
   #endif // NDEBUG
 
-  return _dp_iso::DPISO_Recursive<match_semantics>(
-                     query_graph,
-                    target_graph,
-                    temp_candidate_set, 
-                      match_state, 
-                      match_callback, 
-                      prune_callback, 
-                      time_limit);
+  if constexpr (match_algorithm
+              == MatchAlgorithm::kDagDp) {
+    return _dp_iso::DPISO_Recursive<match_semantics>(
+                       query_graph,
+                      target_graph,
+                      temp_candidate_set, 
+                        match_state, 
+                        match_callback, 
+                        prune_callback, 
+                        time_limit);
+  }
+  else if constexpr (match_algorithm
+                   == MatchAlgorithm::kVf2) {
+    auto user_callback 
+    = [&prune_callback,
+       &match_callback](const MatchMap& match_state){
+      if (prune_callback(match_state)){
+        // should have been pruned before, should not call this match_state
+        // at begin
+        return true;
+      }
+      return match_callback(match_state);
+    };
+
+    return VF2(query_graph, 
+              target_graph,
+        temp_candidate_set,
+              match_state,
+      _vf2::LabelEqual<QueryVertexHandle, 
+                      TargetVertexHandle>(), 
+          user_callback);
+  }
+  else{
+    // trick the compiler, equal to static_assert(false)
+    static_assert(match_algorithm
+              == MatchAlgorithm::kDagDp, "unsupported match algorithm");
+    static_assert(match_algorithm
+              != MatchAlgorithm::kDagDp, "unsupported match algorithm");
+  }
+  return 0;
 }
 
 template <enum MatchSemantics match_semantics 
