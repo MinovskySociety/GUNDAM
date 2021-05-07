@@ -346,7 +346,7 @@ std::vector<GraphPatternType>
               expanded_graph_pattern_it 
            != expanded_graph_patterns.end();) {
       if (match_q0_to_q1.empty()){
-        auto match_in_q0 = DpisoUsingMatch(*expanded_graph_pattern_it, q0, 1);
+        auto match_in_q0 = MatchUsingMatch(*expanded_graph_pattern_it, q0, 1);
         assert(match_in_q0 == 0
             || match_in_q0 == 1);
         if (match_in_q0 == 0) {
@@ -356,7 +356,7 @@ std::vector<GraphPatternType>
           continue;
         }
 
-        auto match_in_q1 = DpisoUsingMatch(*expanded_graph_pattern_it, q1, 1);
+        auto match_in_q1 = MatchUsingMatch(*expanded_graph_pattern_it, q1, 1);
         assert(match_in_q1 == 0
             || match_in_q1 == 1);
         if (match_in_q1 == 0) {
@@ -382,7 +382,7 @@ std::vector<GraphPatternType>
             GraphPatternType> partial_match_expanded_graph_pattern_to_q1
        = common_pattern_to_q1(partial_match_expanded_graph_pattern_to_common_pattern);
 
-      auto match_in_q0 = DpisoUsingMatch(*expanded_graph_pattern_it,q0,
+      auto match_in_q0 = MatchUsingMatch(*expanded_graph_pattern_it,q0,
                             partial_match_expanded_graph_pattern_to_q0, 1);
       assert(match_in_q0 == 0
           || match_in_q0 == 1);
@@ -393,7 +393,7 @@ std::vector<GraphPatternType>
         continue;
       }
 
-      auto match_in_q1 = DpisoUsingMatch(*expanded_graph_pattern_it,q1,
+      auto match_in_q1 = MatchUsingMatch(*expanded_graph_pattern_it,q1,
                             partial_match_expanded_graph_pattern_to_q1, 1);
       assert(match_in_q1 == 0
           || match_in_q1 == 1);

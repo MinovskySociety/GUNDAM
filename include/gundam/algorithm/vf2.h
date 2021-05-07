@@ -1226,18 +1226,27 @@ inline int VF2(QueryGraph &query_graph, TargetGraph &target_graph,
                                         ResultContainer>,
           std::placeholders::_1, &max_result, &match_result));
 }
-template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
-          class QueryGraph, class TargetGraph, class QueryVertexPtr,
-          class TargetVertexPtr, class VertexCompare, class EdgeCompare,
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          class  QueryGraph, 
+          class TargetGraph,
+          class EdgeCompare,
           class UserCallback>
 inline int VF2(
-    QueryGraph &query_graph, TargetGraph &target_graph,
-    std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
-    std::map<QueryVertexPtr, TargetVertexPtr> &match_state,
+     QueryGraph &query_graph, 
+    TargetGraph &target_graph,
+    std::map<typename VertexHandle< QueryGraph>::type, 
+             std::vector<typename VertexHandle<TargetGraph>::type>> &candidate_set,
+    std::map<typename VertexHandle< QueryGraph>::type, 
+             typename VertexHandle<TargetGraph>::type> &match_state,
     EdgeCompare edge_cmp, UserCallback user_callback) {
-  std::set<TargetVertexPtr> target_matched;
-  for (auto &[query_ptr, target_ptr] : match_state) {
-    target_matched.emplace(target_ptr);
+
+  std::set<typename VertexHandle<TargetGraph>::type> target_matched;
+  for (auto &[query_handle, target_handle] : match_state) {
+    auto [ target_matched_it,
+           target_matched_ret ] = target_matched.emplace(target_handle);
+    assert(target_matched_ret
+        || match_semantics == MatchSemantics::kHomomorphism);
   }
   size_t result_count = 0;
   return _vf2::_VF2<match_semantics, QueryGraph, TargetGraph>(

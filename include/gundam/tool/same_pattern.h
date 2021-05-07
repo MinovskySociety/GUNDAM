@@ -1,7 +1,7 @@
 #ifndef _GUNDAM_TOOL_SAME_PATTERN_H
 #define _GUNDAM_TOOL_SAME_PATTERN_H
 
-#include "gundam/algorithm/dp_iso_using_match.h"
+#include "gundam/algorithm/match_using_match.h"
 
 namespace GUNDAM {
 
@@ -22,7 +22,8 @@ inline bool SamePattern(GraphType0& graph_0,
     return false;
   }
 
-  auto ret = GUNDAM::DpisoUsingMatch(graph_0, graph_1, 1);
+  auto ret = GUNDAM::MatchUsingMatch<MatchSemantics::kIsomorphism,
+                                     MatchAlgorithm::kVf2>(graph_0, graph_1, 1);
 
   if (ret == 0){
     #ifndef NDEBUG

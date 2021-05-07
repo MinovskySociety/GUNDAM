@@ -15,7 +15,7 @@
 #include "gundam/algorithm/dfs.h"
 
 #include "gundam/algorithm/dp_iso.h"
-#include "gundam/algorithm/dp_iso_using_match.h"
+#include "gundam/algorithm/match_using_match.h"
 
 #include "gundam/tool/same_pattern.h"
 #include "gundam/tool/sub_graph_of.h"
@@ -23,7 +23,7 @@
 
 namespace GUNDAM{
 
-namespace _multi_query_dp_iso{
+namespace _multi_query_match{
 
 template <typename VertexHandle>
 inline std::pair<int, bool> GetPatternIdx(VertexHandle vertex_handle){
@@ -35,7 +35,7 @@ class Tls{
  public:
   Tls(const TriVertexPatternType& tri_vertex_pattern)
              :tri_vertex_pattern_(tri_vertex_pattern){
-    auto automorphism = DpisoUsingMatch(this->tri_vertex_pattern_,
+    auto automorphism = MatchUsingMatch(this->tri_vertex_pattern_,
                                         this->tri_vertex_pattern_);
     // std::cout << "tri_vertex_pattern.CountVertex(): "
     //           <<  tri_vertex_pattern.CountVertex()
@@ -138,7 +138,7 @@ size_t Li(GraphPatternType&  q,
   for (auto tls_it  = tls_set.TlsBegin();
             tls_it != tls_set.TlsEnd();
             tls_it++) {
-    auto automorphism = DpisoUsingMatch(tls_it.template get<0>().tri_vertex_pattern(), q);
+    auto automorphism = MatchUsingMatch(tls_it.template get<0>().tri_vertex_pattern(), q);
     if (tls_it.template get<0>().symmetrical()) {
       assert(automorphism % 2 == 0);
       automorphism /= 2;
@@ -444,7 +444,7 @@ inline Match<GraphPatternType,
 
   MatchSetType match_set_parent_to_child;
 
-  auto match_counter = DpisoUsingMatch(parent_graph,
+  auto match_counter = MatchUsingMatch(parent_graph,
                                         child_graph,
                           match_set_parent_to_child, 1);
   assert(match_counter == 1);
@@ -482,7 +482,7 @@ inline Match<GraphPatternType,
 
   MatchSetType match_set_parent_to_child;
 
-  auto match_counter = DpisoUsingMatch(parent_graph,
+  auto match_counter = MatchUsingMatch(parent_graph,
                                         child_graph,
                       partial_match_parent_to_child,
                           match_set_parent_to_child, 1);
@@ -1265,8 +1265,8 @@ std::vector<typename VertexHandle<PcmTreeType>::type>
   return root_handle_set;
 }
 
-template <enum MatchSemantics match_semantics 
-             = MatchSemantics::kIsomorphism,
+template <enum MatchSemantics match_semantics,
+          enum MatchAlgorithm match_algorithm,
           typename PatternTree,
           typename  QueryGraph,
           template<typename> typename QueryGraphContainerType,
@@ -1491,7 +1491,8 @@ bool MatchFromParentToChild(
                                = parent_to_target_graph_match(
                                   child_to_parent_match);
       
-      bool child_match_ret = MatchFromParentToChild(
+      bool child_match_ret = MatchFromParentToChild<match_semantics,
+                                                    match_algorithm>(
                               pcm_tree,
                               child_handle, 
                               child_to_target_graph_partial_match, 
@@ -1538,7 +1539,8 @@ bool MatchFromParentToChild(
     return additional_call_child_pattern_match_callback[current_pattern_idx.first];
   };
 
-  return DpisoUsingMatch(current_query_graph,
+  return MatchUsingMatch<match_semantics,
+                         match_algorithm>(current_query_graph,
                                 target_graph,
                                 match,
                          current_candidate_set,
@@ -1591,10 +1593,12 @@ void CandidateSetForPatternList(
 // with partial match 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
           typename  QueryGraph,
           template<typename> typename QueryGraphContainerType,
           typename TargetGraph>
-inline void MultiQueryDpiso(
+inline void MultiQueryMatch(
   QueryGraphContainerType<QueryGraph>&  query_graph_list,
              TargetGraph & target_graph,
                     QueryGraph& common_graph,
@@ -1671,7 +1675,7 @@ inline void MultiQueryDpiso(
                     QueryGraph>> additional_paritial_match_to_common_graph_list;
 
   PcmTreeType pcm_tree;
-  auto root_handle_set = _multi_query_dp_iso::BuildPcm(pcm_tree, query_graph_list,
+  auto root_handle_set = _multi_query_match::BuildPcm(pcm_tree, query_graph_list,
                                                             additional_graph_list,
                                               paritial_match_to_common_graph_list,
                                    additional_paritial_match_to_common_graph_list);
@@ -1690,10 +1694,10 @@ inline void MultiQueryDpiso(
 
   // pre-process the candidate set from each pattern & additional_pattern
   // to data graph in advance
-  _multi_query_dp_iso::CandidateSetForPatternList<match_semantics>(
+  _multi_query_match::CandidateSetForPatternList<match_semantics>(
                              query_graph_list, target_graph, 
                            candidate_set_list);
-  _multi_query_dp_iso::CandidateSetForPatternList<match_semantics>(
+  _multi_query_match::CandidateSetForPatternList<match_semantics>(
                         additional_graph_list, target_graph,
                 additional_candidate_set_list);
 
@@ -1707,7 +1711,8 @@ inline void MultiQueryDpiso(
   Match<QueryGraph, TargetGraph> match;
 
   for (auto& root_handle : root_handle_set){
-    _multi_query_dp_iso::MatchFromParentToChild(
+    _multi_query_match::MatchFromParentToChild<match_semantics,
+                                                match_algorithm>(
                           pcm_tree,
                           root_handle, match, 
                           candidate_set_list,
@@ -1726,10 +1731,12 @@ inline void MultiQueryDpiso(
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
           typename  QueryGraph,
           template<typename> typename QueryGraphContainerType,
           typename TargetGraph>
-inline void MultiQueryDpiso(
+inline void MultiQueryMatch(
   QueryGraphContainerType<QueryGraph>&  query_graph_list,
              TargetGraph & target_graph,
   std::function<bool(int,
@@ -1752,7 +1759,7 @@ inline void MultiQueryDpiso(
   std::vector<QueryGraph> additional_graph_list;
 
   PcmTreeType pcm_tree;
-  auto root_handle_set = _multi_query_dp_iso::BuildPcm(pcm_tree, query_graph_list,
+  auto root_handle_set = _multi_query_match::BuildPcm(pcm_tree, query_graph_list,
                                                             additional_graph_list);
   assert(!root_handle_set.empty());
   #ifndef NDEBUG
@@ -1778,10 +1785,10 @@ inline void MultiQueryDpiso(
 
   // pre-process the candidate set from each pattern & additional_pattern
   // to data graph in advance
-  _multi_query_dp_iso::CandidateSetForPatternList<match_semantics>(
+  _multi_query_match::CandidateSetForPatternList<match_semantics>(
                              query_graph_list, target_graph, 
                            candidate_set_list);
-  _multi_query_dp_iso::CandidateSetForPatternList<match_semantics>(
+  _multi_query_match::CandidateSetForPatternList<match_semantics>(
                         additional_graph_list, target_graph,
                 additional_candidate_set_list);
 
@@ -1795,7 +1802,8 @@ inline void MultiQueryDpiso(
   Match<QueryGraph, TargetGraph> match;
 
   for (auto& root_handle : root_handle_set){
-    _multi_query_dp_iso::MatchFromParentToChild(
+    _multi_query_match::MatchFromParentToChild<match_semantics,
+                                                match_algorithm>(
                           pcm_tree,
                           root_handle, match, 
                           candidate_set_list,

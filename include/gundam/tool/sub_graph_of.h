@@ -2,7 +2,7 @@
 #define _GUNDAM_SUB_GRAPH_OF_H
 
 #include "gundam/match/match.h"
-#include "gundam/algorithm/dp_iso_using_match.h"
+#include "gundam/algorithm/match_using_match.h"
 
 namespace GUNDAM {
 
@@ -20,7 +20,7 @@ inline bool SubGraphOf(GraphType0& graph_0,
     return false;
   }
 
-  auto ret = GUNDAM::DpisoUsingMatch(graph_0, graph_1, match_graph_0_to_graph_1, 1);
+  auto ret = GUNDAM::MatchUsingMatch(graph_0, graph_1, match_graph_0_to_graph_1, 1);
   assert(ret == 0 || ret == 1);
   if (ret == 0){
     return false;

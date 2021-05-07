@@ -16,13 +16,14 @@
 #include "gundam/graph_type/simple_small_graph.h"
 #include "gundam/graph_type/small_graph.h"
 
-#include "gundam/algorithm/multi_query_dp_iso.h"
+#include "gundam/algorithm/multi_query_match.h"
 
 inline uint64_t GetTime() { return clock() * 1000 / CLOCKS_PER_SEC; }
 
 template <class  QueryGraph, 
-          class TargetGraph>
-void TestMultiQueryDpiso() {
+          class TargetGraph,
+          enum GUNDAM::MatchAlgorithm match_algorithm>
+void TestMultiQuery() {
   using namespace GUNDAM;
 
   using VertexLabelType = typename  QueryGraph::VertexType::LabelType;
@@ -81,10 +82,11 @@ void TestMultiQueryDpiso() {
     return true;
   };
 
-  GUNDAM::MultiQueryDpiso(query_graph_list,
-                          target,
-                          prune_callback,
-                          match_callback_single);
+  GUNDAM::MultiQueryMatch<MatchSemantics::kIsomorphism,
+                          match_algorithm>(query_graph_list,
+                                           target,
+                                           prune_callback,
+                                           match_callback_single);
   ASSERT_EQ(single_match_counter, 2);
   ASSERT_FALSE(pattern_idx_is_not_zero);
 
@@ -106,10 +108,11 @@ void TestMultiQueryDpiso() {
     return true;
   };
   single_match_counter = 0;
-  GUNDAM::MultiQueryDpiso(query_graph_list,
-                          target,
-                          prune_callback,
-                          match_callback_single_with_match_limit);
+  GUNDAM::MultiQueryMatch<MatchSemantics::kIsomorphism,
+                          match_algorithm>(query_graph_list,
+                                           target,
+                                           prune_callback,
+                                           match_callback_single_with_match_limit);
   ASSERT_EQ(single_match_counter, match_limit);
   ASSERT_FALSE(pattern_idx_is_not_zero);
 
@@ -139,10 +142,11 @@ void TestMultiQueryDpiso() {
     return true;
   };
   // two query pattern, one is contained in the other
-  GUNDAM::MultiQueryDpiso(query_graph_list,
-                          target,
-                          prune_callback,
-                          match_callback_multi);
+  GUNDAM::MultiQueryMatch<MatchSemantics::kIsomorphism,
+                          match_algorithm>(query_graph_list,
+                                           target,
+                                           prune_callback,
+                                           match_callback_multi);
   ASSERT_EQ(multi_match_counter[0], 2);
   ASSERT_EQ(multi_match_counter[1], 1);
   ASSERT_FALSE(pattern_idx_exceed_limit);
@@ -169,10 +173,11 @@ void TestMultiQueryDpiso() {
     return true;
   };
   // two query pattern, one is contained in the other
-  GUNDAM::MultiQueryDpiso(query_graph_list,
-                          target,
-                          prune_callback,
-                          match_callback_multi_with_limit);
+  GUNDAM::MultiQueryMatch<MatchSemantics::kIsomorphism,
+                          match_algorithm>(query_graph_list,
+                                           target,
+                                           prune_callback,
+                                           match_callback_multi_with_limit);
   ASSERT_EQ(multi_match_counter[0], match_limit);
   ASSERT_EQ(multi_match_counter[1], match_limit);
   ASSERT_FALSE(pattern_idx_exceed_limit);
@@ -185,10 +190,11 @@ void TestMultiQueryDpiso() {
   multi_match_counter.clear();
   multi_match_counter.resize(3, 0);
   // three query pattern, one is contained in the other two patterns
-  GUNDAM::MultiQueryDpiso(query_graph_list,
-                          target,
-                          prune_callback,
-                          match_callback_multi);
+  GUNDAM::MultiQueryMatch<MatchSemantics::kIsomorphism,
+                          match_algorithm>(query_graph_list,
+                                           target,
+                                           prune_callback,
+                                           match_callback_multi);
   ASSERT_EQ(multi_match_counter[0], 2);
   ASSERT_EQ(multi_match_counter[1], 1);
   ASSERT_EQ(multi_match_counter[2], 1);
@@ -201,10 +207,11 @@ void TestMultiQueryDpiso() {
   multi_match_counter.clear();
   multi_match_counter.resize(2, 0);
   // two query pattern, the mcs of them does not contained in these two patterns
-  GUNDAM::MultiQueryDpiso(query_graph_list,
-                          target,
-                          prune_callback,
-                          match_callback_multi);
+  GUNDAM::MultiQueryMatch<MatchSemantics::kIsomorphism,
+                          match_algorithm>(query_graph_list,
+                                           target,
+                                           prune_callback,
+                                           match_callback_multi);
   ASSERT_EQ(multi_match_counter[0], 1);
   ASSERT_EQ(multi_match_counter[1], 1);
   ASSERT_FALSE(pattern_idx_exceed_limit);
@@ -219,10 +226,11 @@ void TestMultiQueryDpiso() {
   // three query pattern, both query_graph_list[0] and query_graph_list[1]
   // are contained in query_graph_list[2], the mcs of query_graph_list[0]
   // and query_graph_list[1] is not contained in query_graph_list
-  GUNDAM::MultiQueryDpiso(query_graph_list,
-                          target,
-                          prune_callback,
-                          match_callback_multi);
+  GUNDAM::MultiQueryMatch<MatchSemantics::kIsomorphism,
+                          match_algorithm>(query_graph_list,
+                                           target,
+                                           prune_callback,
+                                           match_callback_multi);
   ASSERT_EQ(multi_match_counter[0], 1);
   ASSERT_EQ(multi_match_counter[1], 1);
   ASSERT_EQ(multi_match_counter[2], 1);
@@ -243,10 +251,11 @@ void TestMultiQueryDpiso() {
   // three query pattern, both query_graph_list[0] and query_graph_list[1]
   // are contained in query_graph_list[2], the mcs of query_graph_list[0]
   // and query_graph_list[1] is not contained in query_graph_list
-  GUNDAM::MultiQueryDpiso(query_graph_list,
-                          target,
-                          prune_3_callback,
-                          match_callback_multi);
+  GUNDAM::MultiQueryMatch<MatchSemantics::kIsomorphism,
+                          match_algorithm>(query_graph_list,
+                                           target,
+                                           prune_3_callback,
+                                           match_callback_multi);
   ASSERT_EQ(multi_match_counter[0], 1);
   ASSERT_EQ(multi_match_counter[1], 1);
   ASSERT_EQ(multi_match_counter[2], 1);
@@ -299,39 +308,69 @@ TEST(TestGUNDAM, MultiQueryDpiso_1) {
   using SG  =       SmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
   using SSG = SimpleSmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
 
-  TestMultiQueryDpiso<G1, G1>();
-  TestMultiQueryDpiso<G1, G2>();
-  TestMultiQueryDpiso<G1, G3>();
-  TestMultiQueryDpiso<G1, SG>();
-  TestMultiQueryDpiso<G1, LG>();
+  TestMultiQuery<G1, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G1, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G1, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G1, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G1, LG, GUNDAM::MatchAlgorithm::kDagDp>();
 
-  TestMultiQueryDpiso<G2, G1>();
-  TestMultiQueryDpiso<G2, G2>();
-  TestMultiQueryDpiso<G2, G3>();
-  TestMultiQueryDpiso<G2, SG>();
-  TestMultiQueryDpiso<G2, LG>();
+  TestMultiQuery<G2, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G2, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G2, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G2, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G2, LG, GUNDAM::MatchAlgorithm::kDagDp>();
 
-  TestMultiQueryDpiso<G3, G1>();
-  TestMultiQueryDpiso<G3, G2>();
-  TestMultiQueryDpiso<G3, G3>();
-  TestMultiQueryDpiso<G3, SG>();
-  TestMultiQueryDpiso<G3, LG>();
+  TestMultiQuery<G3, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G3, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G3, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G3, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G3, LG, GUNDAM::MatchAlgorithm::kDagDp>();
   
-  TestMultiQueryDpiso<LG, G1>();
-  TestMultiQueryDpiso<LG, G2>();
-  TestMultiQueryDpiso<LG, G3>();
-  TestMultiQueryDpiso<LG, SG>();
-  TestMultiQueryDpiso<LG, LG>();
+  TestMultiQuery<LG, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<LG, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<LG, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<LG, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<LG, LG, GUNDAM::MatchAlgorithm::kDagDp>();
 
-  TestMultiQueryDpiso<SG, G1>();
-  TestMultiQueryDpiso<SG, G2>();
-  TestMultiQueryDpiso<SG, G3>();
-  TestMultiQueryDpiso<SG, LG>();
-  TestMultiQueryDpiso<SG, SG>();
+  TestMultiQuery<SG, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<SG, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<SG, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<SG, LG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<SG, SG, GUNDAM::MatchAlgorithm::kDagDp>();
 
-  // TestMultiQueryDpiso<SSG, G1>();
-  // TestMultiQueryDpiso<SSG, G2>();
-  // TestMultiQueryDpiso<SSG, G3>();
-  // TestMultiQueryDpiso<SSG, LG>();
-  // TestMultiQueryDpiso<SSG, SG>();
+  TestMultiQuery<G1, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G1, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G1, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G1, SG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G1, LG, GUNDAM::MatchAlgorithm::kVf2>();
+
+  TestMultiQuery<G2, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G2, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G2, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G2, SG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G2, LG, GUNDAM::MatchAlgorithm::kVf2>();
+
+  TestMultiQuery<G3, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G3, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G3, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G3, SG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G3, LG, GUNDAM::MatchAlgorithm::kVf2>();
+  
+  TestMultiQuery<LG, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<LG, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<LG, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<LG, SG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<LG, LG, GUNDAM::MatchAlgorithm::kVf2>();
+
+  TestMultiQuery<SG, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<SG, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<SG, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<SG, LG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<SG, SG, GUNDAM::MatchAlgorithm::kVf2>();
+
+  // TestMultiQuery<SSG, G1>();
+  // TestMultiQuery<SSG, G2>();
+  // TestMultiQuery<SSG, G3>();
+  // TestMultiQuery<SSG, LG>();
+  // TestMultiQuery<SSG, SG>();
 }

@@ -16,15 +16,15 @@
 #include "gundam/graph_type/simple_small_graph.h"
 #include "gundam/graph_type/small_graph.h"
 
-#include "gundam/algorithm/dp_iso_using_match.h"
+#include "gundam/algorithm/match_using_match.h"
 
 inline uint64_t GetTime() { return clock() * 1000 / CLOCKS_PER_SEC; }
 
 template <class  QueryGraph, 
-          class TargetGraph>
-void TestDPISOUsingMatch_1() {
+          class TargetGraph,
+          enum GUNDAM::MatchAlgorithm match_algorithm>
+void TestMatchUsingMatch_1() {
   using namespace GUNDAM;
-
 
   using VertexLabelType = typename  QueryGraph::VertexType::LabelType;
   using   EdgeLabelType = typename TargetGraph::  EdgeType::LabelType;
@@ -53,7 +53,8 @@ void TestDPISOUsingMatch_1() {
 
   GUNDAM::MatchSet<QueryGraph, 
                   TargetGraph> match_result1;
-  int count = GUNDAM::DpisoUsingMatch<MatchSemantics::kIsomorphism>(
+  int count = GUNDAM::MatchUsingMatch<GUNDAM::MatchSemantics::kIsomorphism,
+                                      match_algorithm>(
                query, target, match_result1);
                   
   ASSERT_EQ(count, 2);
@@ -78,7 +79,8 @@ void TestDPISOUsingMatch_1() {
   const auto&  query2 = query;
   const auto& target2 = target;
   GUNDAM::MatchSet match_result2(query2, target2);
-  count = GUNDAM::DpisoUsingMatch<MatchSemantics::kIsomorphism>(
+  count = GUNDAM::MatchUsingMatch<GUNDAM::MatchSemantics::kIsomorphism,
+                                  match_algorithm>(
                query2, target2, match_result2);
   ASSERT_EQ(count, 2);
   ASSERT_EQ(count, match_result2.size());
@@ -103,7 +105,8 @@ void TestDPISOUsingMatch_1() {
   const auto& query3 = query;
   auto& target3 = target;
   GUNDAM::MatchSet match_result3(query3, target3);
-  count = GUNDAM::DpisoUsingMatch<MatchSemantics::kIsomorphism>(
+  count = GUNDAM::MatchUsingMatch<GUNDAM::MatchSemantics::kIsomorphism,
+                                  match_algorithm>(
                query3, target3, match_result3);
                   
   ASSERT_EQ(count, 2);
@@ -129,7 +132,8 @@ void TestDPISOUsingMatch_1() {
   auto& query4 = query;
   const auto& target4 = target;
   GUNDAM::MatchSet match_result4(query4, target4);
-  count = GUNDAM::DpisoUsingMatch<MatchSemantics::kIsomorphism>(
+  count = GUNDAM::MatchUsingMatch<GUNDAM::MatchSemantics::kIsomorphism,
+                                  match_algorithm>(
                query4, target4, match_result4);
                   
   ASSERT_EQ(count, 2);
@@ -153,7 +157,7 @@ void TestDPISOUsingMatch_1() {
   std::cout << "count: " << match_result4.size() << std::endl;
 }
 
-TEST(TestGUNDAM, DPISOUsingMatch_1) {
+TEST(TestGUNDAM, MatchUsingMatch_1) {
   using namespace GUNDAM;
 
   using G1
@@ -195,45 +199,82 @@ TEST(TestGUNDAM, DPISOUsingMatch_1) {
   using SG  =       SmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
   using SSG = SimpleSmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
 
-  TestDPISOUsingMatch_1<G1, G1>();
-  TestDPISOUsingMatch_1<G1, G2>();
-  TestDPISOUsingMatch_1<G1, G3>();
-  TestDPISOUsingMatch_1<G1, SG>();
-  TestDPISOUsingMatch_1<G1, LG>();
+  TestMatchUsingMatch_1<G1, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<G1, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<G1, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<G1, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<G1, LG, GUNDAM::MatchAlgorithm::kDagDp>();
 
-  TestDPISOUsingMatch_1<G2, G1>();
-  TestDPISOUsingMatch_1<G2, G2>();
-  TestDPISOUsingMatch_1<G2, G3>();
-  TestDPISOUsingMatch_1<G2, SG>();
-  TestDPISOUsingMatch_1<G2, LG>();
+  TestMatchUsingMatch_1<G2, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<G2, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<G2, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<G2, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<G2, LG, GUNDAM::MatchAlgorithm::kDagDp>();
 
-  TestDPISOUsingMatch_1<G3, G1>();
-  TestDPISOUsingMatch_1<G3, G2>();
-  TestDPISOUsingMatch_1<G3, G3>();
-  TestDPISOUsingMatch_1<G3, SG>();
-  TestDPISOUsingMatch_1<G3, LG>();
+  TestMatchUsingMatch_1<G3, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<G3, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<G3, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<G3, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<G3, LG, GUNDAM::MatchAlgorithm::kDagDp>();
   
-  TestDPISOUsingMatch_1<LG, G1>();
-  TestDPISOUsingMatch_1<LG, G2>();
-  TestDPISOUsingMatch_1<LG, G3>();
-  TestDPISOUsingMatch_1<LG, SG>();
-  TestDPISOUsingMatch_1<LG, LG>();
+  TestMatchUsingMatch_1<LG, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<LG, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<LG, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<LG, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<LG, LG, GUNDAM::MatchAlgorithm::kDagDp>();
 
-  TestDPISOUsingMatch_1<SG, G1>();
-  TestDPISOUsingMatch_1<SG, G2>();
-  TestDPISOUsingMatch_1<SG, G3>();
-  TestDPISOUsingMatch_1<SG, LG>();
-  TestDPISOUsingMatch_1<SG, SG>();
+  TestMatchUsingMatch_1<SG, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<SG, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<SG, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<SG, LG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<SG, SG, GUNDAM::MatchAlgorithm::kDagDp>();
 
-  TestDPISOUsingMatch_1<SSG, G1>();
-  TestDPISOUsingMatch_1<SSG, G2>();
-  TestDPISOUsingMatch_1<SSG, G3>();
-  TestDPISOUsingMatch_1<SSG, LG>();
-  TestDPISOUsingMatch_1<SSG, SG>();
+  TestMatchUsingMatch_1<SSG, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<SSG, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<SSG, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<SSG, LG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMatchUsingMatch_1<SSG, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+
+  TestMatchUsingMatch_1<G1, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<G1, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<G1, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<G1, SG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<G1, LG, GUNDAM::MatchAlgorithm::kVf2>();
+
+  TestMatchUsingMatch_1<G2, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<G2, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<G2, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<G2, SG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<G2, LG, GUNDAM::MatchAlgorithm::kVf2>();
+
+  TestMatchUsingMatch_1<G3, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<G3, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<G3, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<G3, SG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<G3, LG, GUNDAM::MatchAlgorithm::kVf2>();
+  
+  TestMatchUsingMatch_1<LG, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<LG, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<LG, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<LG, SG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<LG, LG, GUNDAM::MatchAlgorithm::kVf2>();
+
+  TestMatchUsingMatch_1<SG, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<SG, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<SG, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<SG, LG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<SG, SG, GUNDAM::MatchAlgorithm::kVf2>();
+
+  TestMatchUsingMatch_1<SSG, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<SSG, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<SSG, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<SSG, LG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMatchUsingMatch_1<SSG, SG, GUNDAM::MatchAlgorithm::kVf2>();
 }
 
-template <class QueryGraph, class TargetGraph>
-void TestDPISOUsingMatch_2() {
+template <class QueryGraph, class TargetGraph,
+          enum GUNDAM::MatchAlgorithm match_algorithm>
+void TestMatchUsingMatch_2() {
   using namespace GUNDAM;
 
   QueryGraph query;
@@ -258,7 +299,8 @@ void TestDPISOUsingMatch_2() {
                    const TargetGraph> match_result;
   const auto&  query_const_ref = query;
   const auto& target_const_ref = target;
-  int count = GUNDAM::DpisoUsingMatch<MatchSemantics::kIsomorphism>(
+  int count = GUNDAM::MatchUsingMatch<GUNDAM::MatchSemantics::kIsomorphism,
+                                      match_algorithm>(
                query_const_ref, 
               target_const_ref, 
                   match_result);
@@ -271,8 +313,8 @@ void TestDPISOUsingMatch_2() {
     for (auto map_it = match_it->MapBegin();
              !map_it.IsDone();
               map_it++) {
-      std::cout << " " << map_it.src_handle()->id()
-                << " " << map_it.dst_handle()->id()
+      std::cout << " " << map_it->src_handle()->id()
+                << " " << map_it->dst_handle()->id()
                 << std::endl;
     }
     match_counter++;
@@ -281,7 +323,7 @@ void TestDPISOUsingMatch_2() {
   std::cout << "count: " << match_result.size() << std::endl;
 }
 
-// TEST(TestGUNDAM, DPISOUsingMatch_2) {
+// TEST(TestGUNDAM, MatchUsingMatch_2) {
 //   using namespace GUNDAM;
 
 //   using QG1
@@ -358,14 +400,20 @@ void TestDPISOUsingMatch_2() {
 //   using TargetGraph = LargeGraph<uint64_t, std::string, std::string, 
 //                                  uint64_t, std::string, std::string>;
 
-//   TestDPISOUsingMatch_2<QG1, TG1>();
-//   TestDPISOUsingMatch_2<QG2, TG2>();
-//   TestDPISOUsingMatch_2<QG3, TG3>();
-//   TestDPISOUsingMatch_2<QueryGraph, TargetGraph>();
+//   TestMatchUsingMatch_2<QG1, TG1, GUNDAM::MatchAlgorithm::kDagDp>();
+//   TestMatchUsingMatch_2<QG2, TG2, GUNDAM::MatchAlgorithm::kDagDp>();
+//   TestMatchUsingMatch_2<QG3, TG3, GUNDAM::MatchAlgorithm::kDagDp>();
+//   TestMatchUsingMatch_2<QueryGraph, TargetGraph, GUNDAM::MatchAlgorithm::kDagDp>();
+
+//   TestMatchUsingMatch_2<QG1, TG1, GUNDAM::MatchAlgorithm::kVf2>();
+//   TestMatchUsingMatch_2<QG2, TG2, GUNDAM::MatchAlgorithm::kVf2>();
+//   TestMatchUsingMatch_2<QG3, TG3, GUNDAM::MatchAlgorithm::kVf2>();
+//   TestMatchUsingMatch_2<QueryGraph, TargetGraph, GUNDAM::MatchAlgorithm::kVf2>();
 // }
 
-template <class QueryGraph, class TargetGraph>
-void TestDPISOUsingMatch_3() {
+template <class QueryGraph, class TargetGraph,
+          enum GUNDAM::MatchAlgorithm match_algorithm>
+void TestMatchUsingMatch_3() {
   using namespace GUNDAM;
 
   QueryGraph query;
@@ -390,7 +438,8 @@ void TestDPISOUsingMatch_3() {
                    const TargetGraph> match_result;
   const auto&  query_const_ref = query;
   const auto& target_const_ref = target;
-  int count = GUNDAM::DpisoUsingMatch<MatchSemantics::kIsomorphism>(
+  int count = GUNDAM::MatchUsingMatch<GUNDAM::MatchSemantics::kIsomorphism,
+                                      match_algorithm>(
                query_const_ref, 
               target_const_ref, 
                   match_result);
