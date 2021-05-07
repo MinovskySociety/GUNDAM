@@ -302,28 +302,36 @@ TEST(TestGUNDAM, MultiQueryDpiso_1) {
   TestMultiQueryDpiso<G1, G1>();
   TestMultiQueryDpiso<G1, G2>();
   TestMultiQueryDpiso<G1, G3>();
+  TestMultiQueryDpiso<G1, SG>();
+  TestMultiQueryDpiso<G1, LG>();
+
   TestMultiQueryDpiso<G2, G1>();
   TestMultiQueryDpiso<G2, G2>();
   TestMultiQueryDpiso<G2, G3>();
+  TestMultiQueryDpiso<G2, SG>();
+  TestMultiQueryDpiso<G2, LG>();
+
   TestMultiQueryDpiso<G3, G1>();
   TestMultiQueryDpiso<G3, G2>();
   TestMultiQueryDpiso<G3, G3>();
+  TestMultiQueryDpiso<G3, SG>();
+  TestMultiQueryDpiso<G3, LG>();
+  
   TestMultiQueryDpiso<LG, G1>();
   TestMultiQueryDpiso<LG, G2>();
   TestMultiQueryDpiso<LG, G3>();
+  TestMultiQueryDpiso<LG, SG>();
   TestMultiQueryDpiso<LG, LG>();
-  TestMultiQueryDpiso<LG, LG2>();
-  TestMultiQueryDpiso<LG2, G1>();
-  TestMultiQueryDpiso<LG2, G2>();
-  TestMultiQueryDpiso<LG2, G3>();
-  TestMultiQueryDpiso<LG2, LG>();
-  TestMultiQueryDpiso<LG2, LG2>();
-  // TestMultiQueryDpiso<SG, G1>();
-  // TestMultiQueryDpiso<SG, G2>();
-  // TestMultiQueryDpiso<SG, G3>();
-  // TestMultiQueryDpiso<SG, LG>();
+
+  TestMultiQueryDpiso<SG, G1>();
+  TestMultiQueryDpiso<SG, G2>();
+  TestMultiQueryDpiso<SG, G3>();
+  TestMultiQueryDpiso<SG, LG>();
+  TestMultiQueryDpiso<SG, SG>();
+
   // TestMultiQueryDpiso<SSG, G1>();
   // TestMultiQueryDpiso<SSG, G2>();
   // TestMultiQueryDpiso<SSG, G3>();
   // TestMultiQueryDpiso<SSG, LG>();
+  // TestMultiQueryDpiso<SSG, SG>();
 }

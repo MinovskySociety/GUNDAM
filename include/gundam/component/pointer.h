@@ -74,7 +74,13 @@ class GPointer {
     return &v_;
   }
 
-  bool operator==(const GPointer &b) const { return v_ == b.v_; }
+  bool operator==(const GPointer &b) const { 
+    return v_ == b.v_; 
+  }
+
+  bool operator!=(const GPointer &b) const { 
+    return !(*this == b); 
+  }
 
   bool operator<(const GPointer &b) const { return v_ < b.v_; }
 

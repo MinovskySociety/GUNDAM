@@ -184,13 +184,13 @@ TEST(TestGUNDAM, DPISO_1) {
   TestDPISO_1<LG, G3>();
   TestDPISO_1<LG, LG>();
   TestDPISO_1<SG, G1>();
-  // TestDPISO_1<SG, G2>();
-  // TestDPISO_1<SG, G3>();
-  // TestDPISO_1<SG, LG>();
-  // TestDPISO_1<SSG, G1>();
-  // TestDPISO_1<SSG, G2>();
-  // TestDPISO_1<SSG, G3>();
-  // TestDPISO_1<SSG, LG>();
+  TestDPISO_1<SG, G2>();
+  TestDPISO_1<SG, G3>();
+  TestDPISO_1<SG, LG>();
+  TestDPISO_1<SSG, G1>();
+  TestDPISO_1<SSG, G2>();
+  TestDPISO_1<SSG, G3>();
+  TestDPISO_1<SSG, LG>();
 }
 
 template <class QueryGraph, class TargetGraph>
@@ -443,8 +443,11 @@ template <class QueryGraph, class TargetGraph>
 void TestDPISOSpeed1(int times_outer, int times_inner) {
   using namespace GUNDAM;
 
-  QueryGraph query;
+   QueryGraph  query;
   TargetGraph target;
+
+  std::cout << " QueryGraphType: " << typeid( query).name() << std::endl
+            << "TargetGraphType: " << typeid(target).name() << std::endl;
 
   // query
   ASSERT_TRUE(query.AddVertex(1, 0).second);
@@ -698,6 +701,6 @@ TEST(TestGUNDAM, DPISO_Speed_1) {
   TestDPISOSpeed1<QG2, TG2>(1, 10000);
   TestDPISOSpeed1<QG3, TG3>(1, 10000);
   TestDPISOSpeed1<QLG, TLG>(1, 10000);
-  // TestDPISOSpeed1<QSG, TLG>(1, 10000);
-  // TestDPISOSpeed1<QSSG, TLG>(1, 10000);
+  TestDPISOSpeed1<QSG, TLG>(1, 10000);
+  TestDPISOSpeed1<QSSG, TLG>(1, 10000);
 }

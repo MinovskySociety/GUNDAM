@@ -308,8 +308,8 @@ class Match {
   bool operator==(const Match& match) const {
     for (auto cit  = this->match_container_.cbegin();
               cit != this->match_container_.cend(); cit++) {
-      if (cit.template get_const<kDstVertexPtrIdx>() !=
-          match.MapTo(cit.template get_const<kSrcVertexPtrIdx>())) {
+      if (match.MapTo(cit.template get_const<kSrcVertexPtrIdx>())
+                   != cit.template get_const<kDstVertexPtrIdx>()) {
         /// not equal
         return false;
       }
