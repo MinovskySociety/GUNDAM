@@ -287,7 +287,7 @@ inline bool InitCandidateSet(
 
 template <enum EdgeState edge_state, typename QueryVertexHandle,
           typename TargetVertexHandle>
-inline void GetAdjNotMatchedVertexSingleDirection(
+inline void GetAdjNotMatchedVertexOneDirection(
     QueryVertexHandle &query_vertex_handle,
     std::map<QueryVertexHandle, std::vector<TargetVertexHandle>> &candidate_set,
     std::map<QueryVertexHandle, TargetVertexHandle> &match_state,
@@ -301,7 +301,7 @@ inline void GetAdjNotMatchedVertexSingleDirection(
                                                     : edge_iter->dst_handle();
     if (match_state.count(query_opp_vertex_handle) == 0 &&
         candidate_set.count(query_opp_vertex_handle)) {
-      next_query_set.insert(query_opp_vertex_handle);
+      next_query_set.emplace(query_opp_vertex_handle);
     }
   }
   return;
@@ -313,9 +313,9 @@ inline void GetAdjNotMatchedVertex(
     std::map<QueryVertexHandle, std::vector<TargetVertexHandle>> &candidate_set,
     std::map<QueryVertexHandle, TargetVertexHandle> &match_state,
     std::set<QueryVertexHandle> &next_query_set) {
-  GetAdjNotMatchedVertexSingleDirection<EdgeState::kOut>(
+  GetAdjNotMatchedVertexOneDirection<EdgeState::kOut>(
       query_vertex_handle, candidate_set, match_state, next_query_set);
-  GetAdjNotMatchedVertexSingleDirection<EdgeState::kIn>(
+  GetAdjNotMatchedVertexOneDirection<EdgeState::kIn>(
       query_vertex_handle, candidate_set, match_state, next_query_set);
 }
 template <typename QueryVertexHandle, typename TargetVertexHandle>
@@ -681,11 +681,19 @@ bool _DPISO(std::map<typename VertexHandle<QueryGraph>::type,
       ((std::time(NULL) - begin_time)) > query_limit_time) {
     return false;
   }
-  if (prune_callback(match_state)) {
-    return true;
+  if constexpr (!std::is_null_pointer_v<PruneCallback>) {
+    if (prune_callback(match_state)) {
+      return true;
+    }
   }
+
   if (match_state.size() == candidate_set.size()) {
-    return user_callback(match_state);
+    if constexpr (!std::is_null_pointer_v<MatchCallback>) {
+      return user_callback(match_state);
+    } else {
+      // user callback is nullptr,so go on search
+      return true;
+    }
   }
   assert(match_state.size() < candidate_set.size());
   QueryVertexHandle next_query_vertex_handle =
@@ -694,8 +702,10 @@ bool _DPISO(std::map<typename VertexHandle<QueryGraph>::type,
   assert(match_state.count(next_query_vertex_handle) == 0);
   for (TargetVertexHandle &next_target_vertex_handle :
        candidate_set.find(next_query_vertex_handle)->second) {
-    if (prune_callback(match_state)) {
-      return true;
+    if constexpr (!std::is_null_pointer_v<PruneCallback>) {
+      if (prune_callback(match_state)) {
+        return true;
+      }
     }
     if (IsJoinable<match_semantics, QueryGraph, TargetGraph>(
             next_query_vertex_handle, next_target_vertex_handle, match_state,
@@ -721,7 +731,7 @@ bool _DPISO(std::map<typename VertexHandle<QueryGraph>::type,
 
 template <enum EdgeState edge_state, class QueryVertexHandle,
           class TargetVertexHandle>
-void UpdateParentSingleDirection(
+void UpdateParentOneDirection(
     std::map<QueryVertexHandle, TargetVertexHandle> &match_state,
     QueryVertexHandle update_query_vertex_handle,
     std::map<QueryVertexHandle, std::vector<QueryVertexHandle>> &parent) {
@@ -756,10 +766,10 @@ void UpdateParent(
   assert(parent.count(update_query_vertex_handle) == 0);
   parent.emplace(update_query_vertex_handle,
                  std::move(update_query_vertex_parent));
-  UpdateParentSingleDirection<EdgeState::kIn>(
-      match_state, update_query_vertex_handle, parent);
-  UpdateParentSingleDirection<EdgeState::kOut>(
-      match_state, update_query_vertex_handle, parent);
+  UpdateParentOneDirection<EdgeState::kIn>(match_state,
+                                           update_query_vertex_handle, parent);
+  UpdateParentOneDirection<EdgeState::kOut>(match_state,
+                                            update_query_vertex_handle, parent);
   auto &l = parent.find(update_query_vertex_handle)->second;
   std::sort(l.begin(), l.end());
   auto erase_it = std::unique(l.begin(), l.end());
@@ -789,13 +799,20 @@ bool _DPISO(
       ((std::time(NULL) - begin_time)) > query_limit_time) {
     return false;
   }
+  if constexpr (!std::is_null_pointer_v<PruneCallback>) {
+    if (prune_callback(match_state)) {
+      return true;
+    }
+  }
   if (match_state.size() == candidate_set.size()) {
     // find match ,so fail set is empty
     fail_set.clear();
-    return user_callback(match_state);
-  }
-  if (prune_callback(match_state)) {
-    return true;
+    if constexpr (!std::is_null_pointer_v<MatchCallback>) {
+      return user_callback(match_state);
+    } else {
+      // user callback is nullptr,so go on search
+      return true;
+    }
   }
   assert(match_state.size() < candidate_set.size());
   QueryVertexHandle next_query_vertex_handle =
@@ -812,8 +829,10 @@ bool _DPISO(
   }
   for (TargetVertexHandle &next_target_vertex_handle :
        candidate_set.find(next_query_vertex_handle)->second) {
-    if (prune_callback(match_state)) {
-      return true;
+    if constexpr (!std::is_null_pointer_v<PruneCallback>) {
+      if (prune_callback(match_state)) {
+        return true;
+      }
     }
     if (find_fail_set_flag && !this_state_fail_set.empty() &&
         !std::binary_search(this_state_fail_set.begin(),
@@ -1384,7 +1403,10 @@ inline int DPISO_Recursive(
         }
         // omp_unset_lock(&user_callback_lock);
         omp_set_lock(&prune_callback_lock);
-        auto ret_val = prune_callback(match_state);
+        bool ret_val = false;
+        if constexpr (!std::is_null_pointer_v<decltype(prune_callback)>) {
+          ret_val = prune_callback(match_state);
+        }
         omp_unset_lock(&prune_callback_lock);
         return ret_val;
       };
@@ -1485,8 +1507,10 @@ inline int DPISO_Recursive(QueryGraph &query_graph, TargetGraph &target_graph,
   if (!RefineCandidateSet(query_graph, target_graph, candidate_set)) {
     return 0;
   }
-  if (!update_candidate_callback(candidate_set)) {
-    return 0;
+  if constexpr (!std::is_null_pointer_v<UpdateCandidateCallback>) {
+    if (!update_candidate_callback(candidate_set)) {
+      return 0;
+    }
   }
   std::map<QueryVertexHandle, TargetVertexHandle> match_state;
   return DPISO_Recursive<match_semantics>(
@@ -1536,8 +1560,10 @@ inline int DPISO_Recursive(
   if (!RefineCandidateSet(query_graph, target_graph, candidate_set)) {
     return 0;
   }
-  if (!update_candidate_callback(candidate_set)) {
-    return 0;
+  if constexpr (!std::is_null_pointer_v<UpdateCandidateCallback>) {
+    if (!update_candidate_callback(candidate_set)) {
+      return 0;
+    }
   }
   return DPISO_Recursive<match_semantics>(
       query_graph, target_graph, candidate_set, match_state, user_callback,
@@ -1552,14 +1578,9 @@ inline int DPISO_Recursive(QueryGraph &query_graph, TargetGraph &target_graph,
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
-  return DPISO_Recursive<match_semantics>(
-      query_graph, target_graph, user_callback,
-      std::bind(PruneCallbackEmpty<QueryVertexHandle, TargetVertexHandle>,
-                std::placeholders::_1),
-      std::bind(
-          UpdateCandidateCallbackEmpty<QueryVertexHandle, TargetVertexHandle>,
-          std::placeholders::_1),
-      query_limit_time);
+  return DPISO_Recursive<match_semantics>(query_graph, target_graph,
+                                          user_callback, nullptr, nullptr,
+                                          query_limit_time);
 }
 }  // namespace _dp_iso
 
@@ -1632,9 +1653,7 @@ inline int DPISO(
     std::map<QueryVertexHandle, TargetVertexHandle> match_state;
     std::map<QueryVertexHandle, std::vector<TargetVertexHandle>>
         temp_candidate_set{candidate_set};
-    auto prune_callback = std::bind(
-        _dp_iso::PruneCallbackEmpty<QueryVertexHandle, TargetVertexHandle>,
-        std::placeholders::_1);
+    auto prune_callback = nullptr;
     auto user_callback = std::bind(
         _dp_iso::MatchCallbackLimit<QueryVertexHandle, TargetVertexHandle>,
         std::placeholders::_1, &max_result);
@@ -1764,11 +1783,8 @@ inline int DPISO(QueryGraph &query_graph, TargetGraph &target_graph,
       _dp_iso::MatchCallbackSaveResult<QueryVertexHandle, TargetVertexHandle,
                                        MatchResult>,
       std::placeholders::_1, &max_result, &supp_match);
-  auto prune_callback = std::bind(
-      _dp_iso::PruneCallbackEmpty<QueryVertexHandle, TargetVertexHandle>,
-      std::placeholders::_1);
-  DPISO<match_semantics>(query_graph, target_graph, match_callback,
-                         prune_callback, update_callback, double(1200));
+  DPISO<match_semantics>(query_graph, target_graph, match_callback, nullptr,
+                         update_callback, double(1200));
   MatchResult match_result;
   CandidateSetContainerType candidate_set;
   if (!_dp_iso::InitCandidateSet<match_semantics>(query_graph, target_graph,
@@ -1795,7 +1811,7 @@ inline int DPISO(QueryGraph &query_graph, TargetGraph &target_graph,
         std::placeholders::_1, &max_result, &match_result);
     auto temp_candidate_set = candidate_set;
     DPISO<match_semantics>(query_graph, target_graph, temp_candidate_set,
-                           single_match, match_callback, prune_callback,
+                           single_match, match_callback, nullptr,
                            single_query_time);
   }
   for (auto &it : match_result) {
@@ -1873,10 +1889,9 @@ inline int IncreamentDPISO(
       }
     }
     std::map<QueryVertexHandle, TargetVertexHandle> match_state;
-    GUNDAM::DPISO<match_semantics>(
-        query_graph, target_graph, copy_candidate_set, match_state,
-        match_callback, [](auto &match_state) { return false; },
-        query_limit_time);
+    GUNDAM::DPISO<match_semantics>(query_graph, target_graph,
+                                   copy_candidate_set, match_state,
+                                   match_callback, nullptr, query_limit_time);
   }
   return 1;
 }
@@ -1940,8 +1955,8 @@ inline int DPISO_UsingPatricalMatchAndMatchSet(QueryGraph &query_graph,
       std::placeholders::_1, &max_result, &match_result);
   if (query_graph.CountEdge() < _dp_iso::large_query_edge) {
     _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
-        candidate_set, match_state, target_matched, user_callback,
-        [](auto &match_state) { return false; }, std::time(NULL), -1);
+        candidate_set, match_state, target_matched, user_callback, nullptr,
+        std::time(NULL), -1);
   } else {
     using FailSetContainer = std::vector<QueryVertexHandle>;
     using ParentContainer =
@@ -1953,8 +1968,7 @@ inline int DPISO_UsingPatricalMatchAndMatchSet(QueryGraph &query_graph,
     }
     _dp_iso::_DPISO<match_semantics, QueryGraph, TargetGraph>(
         candidate_set, match_state, target_matched, parent, fail_set,
-        user_callback, [](auto &match_state) { return false; }, std::time(NULL),
-        -1.0);
+        user_callback, nullptr, std::time(NULL), -1.0);
   }
 
   for (auto &single_match : match_result) {
