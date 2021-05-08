@@ -11,6 +11,8 @@
 
 #include "gundam/data_type/label.h"
 
+#include "gundam/algorithm/match_semantics.h"
+
 #include "gundam/graph_type/graph.h"
 #include "gundam/graph_type/large_graph.h"
 #include "gundam/graph_type/simple_small_graph.h"

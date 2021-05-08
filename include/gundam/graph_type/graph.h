@@ -6,6 +6,7 @@
 #include "gundam/data_type/label.h"
 
 #include "gundam/graph_type/graph_configure.h"
+#include "gundam/graph_type/graph_parameter.h"
 
 #include "gundam/component/attribute.h"
 #include "gundam/component/iterator.h"
@@ -29,7 +30,7 @@ namespace GUNDAM {
 enum class EdgeDirection : bool { InputEdge, OutputEdge };
 
 template <typename... configures>
-class Graph {
+class Graph : public GraphParameter {
  public:
   using Configures = GraphConfigures<configures...>;
   static constexpr bool vertex_has_attribute =
@@ -39,9 +40,9 @@ class Graph {
       Configures::edge_has_static_attribute |
       Configures::edge_has_dynamic_attribute;
 
-  static constexpr bool graph_has_vertex_label_index = true;
+  static constexpr bool graph_level_vertex_label_index = true;
 
-  static constexpr bool vertex_has_edge_label_index = true;
+  static constexpr bool vertex_level_edge_label_index = true;
 
  private:
   /// #######################################

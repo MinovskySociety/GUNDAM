@@ -34,7 +34,7 @@ template <typename GraphType>
 size_t CountInVertex(
     typename VertexHandle<GraphType>::type &vertex_handle,
     const typename GraphType::EdgeType::LabelType &edge_label) {
-  if constexpr (GraphType::vertex_has_edge_label_index) {
+  if constexpr (GraphType::vertex_level_edge_label_index) {
     return vertex_handle->CountInVertex(edge_label);
   } else {
     std::set<typename VertexHandle<GraphType>::type> vertex_set;
@@ -55,7 +55,7 @@ template <typename GraphType>
 size_t CountOutVertex(
     typename VertexHandle<GraphType>::type &vertex_handle,
     const typename GraphType::EdgeType::LabelType &edge_label) {
-  if constexpr (GraphType::vertex_has_edge_label_index) {
+  if constexpr (GraphType::vertex_level_edge_label_index) {
     return vertex_handle->CountOutVertex(edge_label);
   } else {
     std::set<typename VertexHandle<GraphType>::type> vertex_set;
@@ -75,7 +75,7 @@ size_t CountOutVertex(
 template <typename GraphType>
 size_t CountInEdge(typename VertexHandle<GraphType>::type &vertex_handle,
                    const typename GraphType::EdgeType::LabelType &edge_label) {
-  if constexpr (GraphType::vertex_has_edge_label_index) {
+  if constexpr (GraphType::vertex_level_edge_label_index) {
     return vertex_handle->CountInEdge(edge_label);
   } else {
     size_t counter = 0;
@@ -94,7 +94,7 @@ size_t CountInEdge(typename VertexHandle<GraphType>::type &vertex_handle,
 template <typename GraphType>
 size_t CountOutEdge(typename VertexHandle<GraphType>::type &vertex_handle,
                     const typename GraphType::EdgeType::LabelType &edge_label) {
-  if constexpr (GraphType::vertex_has_edge_label_index) {
+  if constexpr (GraphType::vertex_level_edge_label_index) {
     return vertex_handle->CountOutEdge(edge_label);
   } else {
     size_t counter = 0;
@@ -115,7 +115,7 @@ size_t CountInEdge(
     typename VertexHandle<GraphType>::type &vertex_handle,
     const typename GraphType::EdgeType::LabelType &edge_label,
     const typename VertexHandle<GraphType>::type &src_vertex_handle) {
-  if constexpr (GraphType::vertex_has_edge_label_index) {
+  if constexpr (GraphType::vertex_level_edge_label_index) {
     return vertex_handle->CountInEdge(edge_label, src_vertex_handle);
   } else {
     size_t counter = 0;
@@ -137,7 +137,7 @@ size_t CountOutEdge(
     typename VertexHandle<GraphType>::type &vertex_handle,
     const typename GraphType::EdgeType::LabelType &edge_label,
     const typename VertexHandle<GraphType>::type &dst_vertex_handle) {
-  if constexpr (GraphType::vertex_has_edge_label_index) {
+  if constexpr (GraphType::vertex_level_edge_label_index) {
     return vertex_handle->CountOutEdge(edge_label, dst_vertex_handle);
   } else {
     size_t counter = 0;
@@ -252,7 +252,7 @@ inline bool InitCandidateSet(
        !query_vertex_iter.IsDone(); query_vertex_iter++) {
     QueryVertexHandle query_vertex_handle = query_vertex_iter;
     CandidateContainer query_vertex_candidate;
-    if constexpr (TargetGraph::graph_has_vertex_label_index) {
+    if constexpr (TargetGraph::graph_level_vertex_label_index) {
       // TargetGraph has graph.VertexBegin(vertex_label) method
       for (auto target_vertex_iter = target_graph.VertexBegin(query_vertex_handle->label());
                !target_vertex_iter.IsDone(); 
@@ -397,7 +397,7 @@ inline bool JoinableCheck(
     TargetVertexHandle query_opp_match_vertex_handle = match_iter->second;
 
     bool find_target_flag = false;
-    if constexpr (TargetGraph::vertex_has_edge_label_index) {
+    if constexpr (TargetGraph::vertex_level_edge_label_index) {
       // vertex has vertex_handle->In/Out EdgeBegin(edge_label, vertex_handle)
       // method
       for (auto target_edge_iter = ((edge_state == EdgeState::kIn)
@@ -518,7 +518,7 @@ inline void UpdateCandidateSetOneDirection(
     if (adj_count > adj_vertex_limit) {
       continue;
     }
-    if constexpr (TargetGraph::vertex_has_edge_label_index) {
+    if constexpr (TargetGraph::vertex_level_edge_label_index) {
       // vertex has vertex_handle->In/Out VertexBegin(edge_label)
       // method
       for (auto vertex_it =
@@ -1207,7 +1207,7 @@ inline bool CheckIsLegal(
     if (!used_vertex.count(next_vertex_handle)) continue;
     auto &l1 = candidate_set.find(next_vertex_handle)->second;
     bool find_flag = false;
-    if constexpr (TargetGraph::vertex_has_edge_label_index) {
+    if constexpr (TargetGraph::vertex_level_edge_label_index) {
       // vertex has vertex_handle->In/Out VertexBegin(edge_label)
       // method
       for (auto target_edge_it =

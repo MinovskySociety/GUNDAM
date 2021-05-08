@@ -306,7 +306,7 @@ inline bool JoinableCheck(
 
     bool find_target_flag = false;
 
-    if constexpr (TargetGraph::vertex_has_edge_label_index &&
+    if constexpr (TargetGraph::vertex_level_edge_label_index &&
                   std::is_same_v<EdgeCompare, LabelEqual<QueryEdgeHandle,
                                                          TargetEdgeHandle>>) {
       for (auto target_edge_iter =
