@@ -317,6 +317,8 @@ void TestGraphBase() {
   using VertexHandle = typename GUNDAM::VertexHandle<GraphType>::type;
   using   EdgeHandle = typename GUNDAM::  EdgeHandle<GraphType>::type;
 
+  using VertexLabelType = typename GraphType::VertexType::LabelType;
+
   GUNDAM::GraphBase<GraphType> g1;
 
   for (auto vertex_it = g1.VertexBegin();
@@ -326,6 +328,16 @@ void TestGraphBase() {
               << std::endl;
   }
 
+  if constexpr (GUNDAM::GraphParameter<GUNDAM::GraphBase<GraphType>>::graph_level_vertex_label_index){
+    VertexLabelType vertex_label;
+    for (auto vertex_it = g1.VertexBegin(vertex_label);
+             !vertex_it.IsDone();
+              vertex_it++){
+        std::cout << " vertex id: " << vertex_it->id()
+                  << std::endl;
+    }
+  }
+
   const auto& g1_const = g1;
 
   for (auto vertex_it = g1_const.VertexBegin();
@@ -333,6 +345,16 @@ void TestGraphBase() {
             vertex_it++){
     std::cout << " vertex id: " << vertex_it->id()
               << std::endl;
+  }
+
+  if constexpr (GUNDAM::GraphParameter<GUNDAM::GraphBase<GraphType>>::graph_level_vertex_label_index){
+    VertexLabelType vertex_label;
+    for (auto vertex_it = g1_const.VertexBegin(vertex_label);
+             !vertex_it.IsDone();
+              vertex_it++){
+        std::cout << " vertex id: " << vertex_it->id()
+                  << std::endl;
+    }
   }
 
   ASSERT_EQ(GUNDAM::GraphParameter<GUNDAM::GraphBase<GraphType>>::graph_level_vertex_label_index,

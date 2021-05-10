@@ -17,26 +17,18 @@
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_attribute_handle.h"
 #include "gundam/type_getter/edge_attribute_handle.h"
-#include "gundam/type_getter/graph_parameter_getter.h"
+// #include "gundam/type_getter/graph_parameter_getter.h"
 
 #include "gundam/serialize/serialize.h"
 
 namespace GUNDAM {
 
-template <class VertexIDType, 
-          class VertexLabelType,
-          class VertexAttributeKeyType, 
-          class EdgeIDType, 
-          class EdgeLabelType,
-          class EdgeAttributeKeyType>
+template <class VertexIDType, class VertexLabelType, class VertexAttributeKeyType, 
+          class   EdgeIDType, class   EdgeLabelType, class   EdgeAttributeKeyType>
 class LargeGraph;
 
-template <class VertexIDType, 
-          class VertexLabelType,
-          class VertexAttributeKeyType, 
-          class EdgeIDType, 
-          class EdgeLabelType,
-          class EdgeAttributeKeyType>
+template <class VertexIDType, class VertexLabelType, class VertexAttributeKeyType, 
+          class   EdgeIDType, class   EdgeLabelType, class   EdgeAttributeKeyType>
 class LargeGraph {
  public:
   class _GraphParameter : public GraphParameterBase {
@@ -50,7 +42,7 @@ class LargeGraph {
     static constexpr bool vertex_level_edge_label_index = true;
   };
 
-  friend class GraphParameter<LargeGraph>;
+  // friend class GraphParameter<LargeGraph>;
 
  public:
   class VertexData;

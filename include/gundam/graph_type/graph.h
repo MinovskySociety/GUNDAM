@@ -18,7 +18,7 @@
 #include "gundam/type_getter/vertex_attribute_handle.h"
 #include "gundam/type_getter/edge_attribute_handle.h"
 #include "gundam/type_getter/graph_type.h"
-#include "gundam/type_getter/graph_parameter_getter.h"
+// #include "gundam/type_getter/graph_parameter_getter.h"
 
 #include "gundam/serialize/serialize.h"
 
@@ -49,7 +49,7 @@ class Graph {
     static constexpr bool vertex_level_edge_label_index = true;
   };
 
-  friend class GraphParameter<Graph>;
+  // friend class GraphParameter<Graph>;
 
  private:
   /// #######################################

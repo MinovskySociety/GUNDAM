@@ -18,7 +18,7 @@
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_attribute_handle.h"
 #include "gundam/type_getter/edge_attribute_handle.h"
-#include "gundam/type_getter/graph_parameter_getter.h"
+// #include "gundam/type_getter/graph_parameter_getter.h"
 
 #include "gundam/serialize/serialize.h"
 
@@ -39,7 +39,7 @@ class SmallGraph {
     static constexpr bool vertex_level_edge_label_index = false;
   };
 
-  friend class GraphParameter<SmallGraph>;
+  // friend class GraphParameter<SmallGraph>;
 
  private:
   class VertexData {

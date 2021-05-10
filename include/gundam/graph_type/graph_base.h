@@ -52,6 +52,28 @@ class GraphBase : protected ConcreteGraphType {
     return ConcreteGraphType::VertexBegin(vertex_label);
   }
 
+  template <bool judge = GraphParameter<ConcreteGraphType>::graph_level_vertex_label_index,
+            std::enable_if_t<!judge, bool> = false>
+  inline void VertexBegin(const VertexLabelType& vertex_label) {
+    static_assert(judge == GraphParameter<ConcreteGraphType>::graph_level_vertex_label_index, 
+                 "illegal usage of this method");
+    // trick the compiler, equal to static_assert(false)
+    static_assert(judge != GraphParameter<ConcreteGraphType>::graph_level_vertex_label_index, 
+                 "graph_level_vertex_label_index is false, does not have graph.VertexBegin(vertex_label) method");
+    return;
+  }
+
+  template <bool judge = GraphParameter<ConcreteGraphType>::graph_level_vertex_label_index,
+            std::enable_if_t<!judge, bool> = false>
+  inline void VertexBegin(const VertexLabelType& vertex_label) const {
+    static_assert(judge == GraphParameter<ConcreteGraphType>::graph_level_vertex_label_index, 
+                 "illegal usage of this method");
+    // trick the compiler, equal to static_assert(false)
+    static_assert(judge != GraphParameter<ConcreteGraphType>::graph_level_vertex_label_index, 
+                 "graph_level_vertex_label_index is false, does not have graph.VertexBegin(vertex_label) const method");
+    return;
+  }
+
   // inline std::enable_if_t<ConcreteGraphType::graph_level_count_vertex, auto>
   // CountVertex() const {
   //   return ConcreteGraphType::CountVertex();
