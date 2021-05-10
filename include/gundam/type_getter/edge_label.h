@@ -1,5 +1,5 @@
-#ifndef _EDGE_LABEL_H
-#define _EDGE_LABEL_H
+#ifndef _GUNDAM_TYPE_GETTER_EDGE_LABEL_H
+#define _GUNDAM_TYPE_GETTER_EDGE_LABEL_H
 
 namespace GUNDAM{
 

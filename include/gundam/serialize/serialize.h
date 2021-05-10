@@ -4,6 +4,7 @@
 #include <string>
 
 #include "gundam/data_type/datatype.h"
+#include "gundam/type_getter/graph_parameter_getter.h"
 
 namespace GUNDAM {
 
@@ -20,7 +21,7 @@ std::string& operator<<(std::string& out_string,
     out_string = std::move(out_string) 
                + " " + ToString(vertex_it->id()) 
                + " " + ToString(vertex_it->label());
-    if constexpr (GraphType::vertex_has_attribute){
+    if constexpr (GraphParameter<GraphType>::vertex_has_attribute){
       // AttributeBegin method can be called
       auto attr_it = vertex_it->AttributeBegin();
       if (attr_it.IsDone()){
@@ -49,7 +50,7 @@ std::string& operator<<(std::string& out_string,
                  + " " + ToString(edge_it->dst_id())
                  + " " + ToString(edge_it->label())
                  + " " + ToString(edge_it->id());
-      if constexpr (GraphType::edge_has_attribute){
+      if constexpr (GraphParameter<GraphType>::edge_has_attribute){
         // AttributeBegin method can be called
         auto attr_it = edge_it->AttributeBegin();
         if (attr_it.IsDone()){
@@ -102,7 +103,7 @@ std::string& operator>>(std::string& in_string,
   while (ss>>str) {
     if (str == "edge")
       break;
-    if constexpr (GraphType::vertex_has_attribute){
+    if constexpr (GraphParameter<GraphType>::vertex_has_attribute){
       using VertexAttributeKeyType 
               = typename GraphType
                       ::VertexType
@@ -158,7 +159,7 @@ std::string& operator>>(std::string& in_string,
       // end symbol
       break;
     }
-    if constexpr (GraphType::edge_has_attribute){
+    if constexpr (GraphParameter<GraphType>::edge_has_attribute){
       using EdgeAttributeKeyType = typename GraphType
                                            ::EdgeType
                                    ::AttributeKeyType;

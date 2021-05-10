@@ -1,4 +1,4 @@
-#ifndef _GRAPH_TYPE_H
+#ifdef _GRAPH_TYPE_H
 #define _GRAPH_TYPE_H
 
 namespace GUNDAM{

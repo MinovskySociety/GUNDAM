@@ -97,6 +97,10 @@ add_executable (test_graph "test_graph.cc")
 target_link_libraries(test_graph GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_graph)
 
+add_executable (test_graph_base "test_graph_base.cc")
+target_link_libraries(test_graph_base GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_graph_base)
+
 add_executable (test_simple_graph "test_simple_graph.cc")
 target_link_libraries(test_simple_graph GTest::GTest GTest::Main)
 #gtest_add_tests(TARGET test_simple_graph)

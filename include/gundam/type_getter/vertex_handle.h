@@ -1,5 +1,5 @@
-#ifndef _VERTEX_HANDLE_H
-#define _VERTEX_HANDLE_H
+#ifndef _GUNDAM_TYPE_GETTER_VERTEX_HANDLE_H
+#define _GUNDAM_TYPE_GETTER_VERTEX_HANDLE_H
 
 namespace GUNDAM {
 
@@ -42,4 +42,4 @@ class VertexHandle<GraphType&>{
 
 }; // namespace GUNDAM
 
-#endif // _VERTEX_HANDLE_H
+#endif // _GUNDAM_TYPE_GETTER_VERTEX_HANDLE_H

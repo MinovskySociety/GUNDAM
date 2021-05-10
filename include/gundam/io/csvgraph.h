@@ -12,6 +12,7 @@
 #include "gundam/io/rapidcsv.h"
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/graph_parameter_getter.h"
 
 namespace GUNDAM {
 
@@ -190,7 +191,7 @@ inline bool ReadAttribues(
 }
 
 // template <class GraphType,
-//          typename std::enable_if<!GraphType::vertex_has_attribute,
+//          typename std::enable_if<!GraphParameter<GraphType>::vertex_has_attribute,
 //                                  bool>::type = false>
 // bool LoadVertexAttribue(GraphType& graph,
 //                        typename GUNDAM::VertexHandle<GraphType>::type&
@@ -202,7 +203,7 @@ inline bool ReadAttribues(
 //}
 //// load Vertex Attribute
 // template <class GraphType,
-//          typename std::enable_if<GraphType::vertex_has_attribute, bool>::type
+//          typename std::enable_if<GraphParameter<GraphType>::vertex_has_attribute, bool>::type
 //          =
 //              false>
 // bool LoadVertexAttribue(GraphType& graph,
@@ -317,7 +318,7 @@ int ReadCSVVertexSetFileWithCallback(
       return -1;
     }
     // check attributes
-    if constexpr (read_attr && !GraphType::vertex_has_attribute) {
+    if constexpr (read_attr && !GraphParameter<GraphType>::vertex_has_attribute) {
       if (col_num >= 3) {
         std::cout << "vertex file has attribute but graph does not support!"
                   << std::endl;
@@ -354,7 +355,7 @@ int ReadCSVVertexSetFileWithCallback(
       if (add_ret) {
         // vertex added successfully
         if constexpr (read_attr) {
-          add_ret = ReadAttribues<GraphType::vertex_has_attribute>(
+          add_ret = ReadAttribues<GraphParameter<GraphType>::vertex_has_attribute>(
               graph_ref, vertex_handle, vertex_set_file, attr_info, 2, row);
         }
       }
@@ -413,7 +414,7 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
       return -1;
     }
     // check attributes
-    if constexpr (read_attr && !GraphType::vertex_has_attribute) {
+    if constexpr (read_attr && !GraphParameter<GraphType>::vertex_has_attribute) {
       if (col_num >= 3) {
         std::cout << "vertex file has attribute but graph does not support!"
                   << std::endl;
@@ -439,7 +440,7 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
       auto [vertex_handle, r] = graph.AddVertex(vertex_id[row], label_id[row]);
       if (r) {
         if constexpr (read_attr) {
-          r = ReadAttribues<GraphType::vertex_has_attribute>(
+          r = ReadAttribues<GraphParameter<GraphType>::vertex_has_attribute>(
               graph, vertex_handle, vertex_file, attr_info, 2, row);
         }
       }
@@ -464,7 +465,7 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
 
 // template <
 //    class GraphType,
-//    typename std::enable_if<!GraphType::edge_has_attribute, bool>::type =
+//    typename std::enable_if<!GraphParameter<GraphType>::edge_has_attribute, bool>::type =
 //    false>
 // bool LoadEdgeAttribue(GraphType& graph, typename GraphType::EdgePtr&
 // edge_vertex_ptr,
@@ -477,7 +478,7 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
 //// load edge attribute
 // template <
 //    class GraphType,
-//    typename std::enable_if<GraphType::edge_has_attribute, bool>::type =
+//    typename std::enable_if<GraphParameter<GraphType>::edge_has_attribute, bool>::type =
 //    false>
 // bool LoadEdgeAttribue(GraphType& graph, typename GraphType::EdgePtr&
 // edge_vertex_ptr,
@@ -575,7 +576,7 @@ int ReadCSVEdgeSetFileWithCallback(
       std::cout << "edge file is not correct!(col num must >=4)" << std::endl;
       return -1;
     }
-    if constexpr (read_attr && !GraphType::edge_has_attribute) {
+    if constexpr (read_attr && !GraphParameter<GraphType>::edge_has_attribute) {
       if (col_num >= 5) {
         std::cout << "Edge file has attribute but graph does not support!"
                   << std::endl;
@@ -614,7 +615,7 @@ int ReadCSVEdgeSetFileWithCallback(
           source_id[row], target_id[row], label_id[row], edge_id[row]);
       if (add_ret) {
         if constexpr (read_attr) {
-          add_ret = ReadAttribues<GraphType::edge_has_attribute>(
+          add_ret = ReadAttribues<GraphParameter<GraphType>::edge_has_attribute>(
               graph_ref, edge_handle, edge_set_file, attr_info, 4, row);
         }
       }
@@ -672,7 +673,7 @@ int ReadCSVEdgeFileWithCallback(const std::string& e_file, GraphType& graph,
       std::cout << "edge file is not correct!(col num must >=4)" << std::endl;
       return -1;
     }
-    if constexpr (read_attr && !GraphType::edge_has_attribute) {
+    if constexpr (read_attr && !GraphParameter<GraphType>::edge_has_attribute) {
       if (col_num >= 5) {
         std::cout << "Edge file has attribute but graph does not support!"
                   << std::endl;
@@ -698,7 +699,7 @@ int ReadCSVEdgeFileWithCallback(const std::string& e_file, GraphType& graph,
                                                label_id[row], edge_id[row]);
       if (r) {
         if constexpr (read_attr) {
-          r = ReadAttribues<GraphType::edge_has_attribute>(
+          r = ReadAttribues<GraphParameter<GraphType>::edge_has_attribute>(
               graph, edge_handle, edge_file, attr_info, 4, row);
         }
       }
@@ -991,7 +992,7 @@ inline void WriteCSVLine(StreamType& s, std::vector<std::string>& cols) {
 
 // template <
 //    class GraphType,
-//    typename std::enable_if<!GraphType::edge_has_attribute, bool>::type =
+//    typename std::enable_if<!GraphParameter<GraphType>::edge_has_attribute, bool>::type =
 //    false>
 // void GetEdgeAttributeValueType(
 //    const GraphType& graph, std::vector<std::string>& edge_col_name,
@@ -1003,7 +1004,7 @@ inline void WriteCSVLine(StreamType& s, std::vector<std::string>& cols) {
 //
 // template <
 //    class GraphType,
-//    typename std::enable_if<GraphType::edge_has_attribute, bool>::type =
+//    typename std::enable_if<GraphParameter<GraphType>::edge_has_attribute, bool>::type =
 //    false>
 // void GetEdgeAttributeValueType(
 //    const GraphType& graph, std::vector<std::string>& edge_col_name,
@@ -1070,7 +1071,7 @@ void WriteAttributes(VertexEdgePtr& vertex_edge_ptr,
 
 // template <
 //    class GraphType,
-//    typename std::enable_if<!GraphType::edge_has_attribute, bool>::type =
+//    typename std::enable_if<!GraphParameter<GraphType>::edge_has_attribute, bool>::type =
 //    false>
 // void WriteEdgeAttribute(
 //    const GraphType& graph, typename GraphType::EdgeConstPtr& edge_vertex_ptr,
@@ -1082,7 +1083,7 @@ void WriteAttributes(VertexEdgePtr& vertex_edge_ptr,
 //
 // template <
 //    class GraphType,
-//    typename std::enable_if<GraphType::edge_has_attribute, bool>::type =
+//    typename std::enable_if<GraphParameter<GraphType>::edge_has_attribute, bool>::type =
 //    false>
 // void WriteEdgeAttribute(
 //    const GraphType& graph, typename GraphType::EdgeConstPtr& edge_vertex_ptr,
@@ -1310,7 +1311,7 @@ int WriteCSVVertexSetFileWithCallback(
         type_str.emplace_back(TypeToString<std::string>());
       }
       if constexpr (write_attr) {
-        GetWriteAttributeInfo<GraphType::vertex_has_attribute>(
+        GetWriteAttributeInfo<GraphParameter<GraphType>::vertex_has_attribute>(
             vertex_it, key_str, type_str, attr_pos);
       }
     }
@@ -1340,7 +1341,7 @@ int WriteCSVVertexSetFileWithCallback(
       line[1] = ToString(vertex_it->label());
       line[2] = graph_name_set[i];
       if constexpr (write_attr) {
-        WriteAttributes<GraphType::vertex_has_attribute>(vertex_it, attr_pos,
+        WriteAttributes<GraphParameter<GraphType>::vertex_has_attribute>(vertex_it, attr_pos,
                                                          line);
       }
       WriteCSVLine(vertex_set_file, line);
@@ -1376,7 +1377,7 @@ int WriteCSVVertexFileWithCallback(const GraphType& graph,
       type_str.emplace_back(TypeToString<VertexLabelType>());
     }
     if constexpr (write_attr) {
-      GetWriteAttributeInfo<GraphType::vertex_has_attribute>(
+      GetWriteAttributeInfo<GraphParameter<GraphType>::vertex_has_attribute>(
           vertex_it, key_str, type_str, attr_pos);
     }
   }
@@ -1401,7 +1402,7 @@ int WriteCSVVertexFileWithCallback(const GraphType& graph,
     line[0] = ToString(vertex_it->id());
     line[1] = ToString(vertex_it->label());
     if constexpr (write_attr) {
-      WriteAttributes<GraphType::vertex_has_attribute>(vertex_it, attr_pos,
+      WriteAttributes<GraphParameter<GraphType>::vertex_has_attribute>(vertex_it, attr_pos,
                                                        line);
     }
     WriteCSVLine(vertex_file, line);
@@ -1455,7 +1456,7 @@ int WriteCSVEdgeSetFileWithCallback(
           type_str.emplace_back(TypeToString<int>());
         }
         if constexpr (write_attr) {
-          GetWriteAttributeInfo<GraphType::edge_has_attribute>(
+          GetWriteAttributeInfo<GraphParameter<GraphType>::edge_has_attribute>(
               edge_it, key_str, type_str, attr_pos);
         }
       }
@@ -1495,7 +1496,7 @@ int WriteCSVEdgeSetFileWithCallback(
         line[3] = ToString(edge_it->label());
         line[4] = graph_name_set[i];
         if constexpr (write_attr) {
-          WriteAttributes<GraphType::edge_has_attribute>(edge_it, attr_pos,
+          WriteAttributes<GraphParameter<GraphType>::edge_has_attribute>(edge_it, attr_pos,
                                                          line);
         }
         WriteCSVLine(edge_set_file, line);
@@ -1543,7 +1544,7 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
         type_str.emplace_back(TypeToString<EdgeLabelType>());
       }
       if constexpr (write_attr) {
-        GetWriteAttributeInfo<GraphType::edge_has_attribute>(
+        GetWriteAttributeInfo<GraphParameter<GraphType>::edge_has_attribute>(
             edge_it, key_str, type_str, attr_pos);
       }
     }
@@ -1577,7 +1578,7 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
       line[2] = ToString(edge_it->const_dst_handle()->id());
       line[3] = ToString(edge_it->label());
       if constexpr (write_attr) {
-        WriteAttributes<GraphType::edge_has_attribute>(edge_it, attr_pos, line);
+        WriteAttributes<GraphParameter<GraphType>::edge_has_attribute>(edge_it, attr_pos, line);
       }
       WriteCSVLine(edge_file, line);
       ++count;

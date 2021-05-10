@@ -18,6 +18,7 @@
 #include "gundam/type_getter/vertex_attribute_handle.h"
 #include "gundam/type_getter/edge_attribute_handle.h"
 #include "gundam/type_getter/graph_type.h"
+#include "gundam/type_getter/graph_parameter_getter.h"
 
 #include "gundam/serialize/serialize.h"
 
@@ -30,19 +31,25 @@ namespace GUNDAM {
 enum class EdgeDirection : bool { InputEdge, OutputEdge };
 
 template <typename... configures>
-class Graph : public GraphParameter {
- public:
+class Graph {
   using Configures = GraphConfigures<configures...>;
-  static constexpr bool vertex_has_attribute =
-      Configures::vertex_has_static_attribute |
-      Configures::vertex_has_dynamic_attribute;
-  static constexpr bool edge_has_attribute =
-      Configures::edge_has_static_attribute |
-      Configures::edge_has_dynamic_attribute;
 
-  static constexpr bool graph_level_vertex_label_index = true;
+ public:
+  class _GraphParameter : public GraphParameterBase {
+   public:
+    static constexpr bool vertex_has_attribute =
+        Configures::vertex_has_static_attribute |
+        Configures::vertex_has_dynamic_attribute;
+    static constexpr bool edge_has_attribute =
+        Configures::edge_has_static_attribute |
+        Configures::edge_has_dynamic_attribute;
 
-  static constexpr bool vertex_level_edge_label_index = true;
+    static constexpr bool graph_level_vertex_label_index = true;
+
+    static constexpr bool vertex_level_edge_label_index = true;
+  };
+
+  friend class GraphParameter<Graph>;
 
  private:
   /// #######################################

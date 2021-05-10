@@ -1,5 +1,5 @@
-#ifndef _VERTEX_LABEL_H
-#define _VERTEX_LABEL_H
+#ifndef _GUNDAM_TYPE_GETTER_VERTEX_LABEL_H
+#define _GUNDAM_TYPE_GETTER_VERTEX_LABEL_H
 
 namespace GUNDAM{
 
@@ -11,4 +11,4 @@ class VertexLabel{
 
 } // namespace GUNDAM 
 
-#endif // _VERTEX_LABEL_H
+#endif // _GUNDAM_TYPE_GETTER_VERTEX_LABEL_H

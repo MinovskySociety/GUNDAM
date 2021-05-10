@@ -1,5 +1,5 @@
-#ifndef _VERTEX_ID_H
-#define _VERTEX_ID_H
+#ifndef _GUNDAM_TYPE_GETTER_VERTEX_ID_H
+#define _GUNDAM_TYPE_GETTER_VERTEX_ID_H
 
 namespace GUNDAM{
 
@@ -11,4 +11,4 @@ class VertexID{
 
 } // namespace GUNDAM 
 
-#endif // _VERTEX_ID_H
+#endif // _GUNDAM_TYPE_GETTER_VERTEX_ID_H

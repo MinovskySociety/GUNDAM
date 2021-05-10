@@ -1,5 +1,5 @@
-#ifndef _EDGE_ATTRIBUTE_HANDLE_H
-#define _EDGE_ATTRIBUTE_HANDLE_H
+#ifndef _GUNDAM_TYPE_GETTER_EDGE_ATTRIBUTE_HANDLE_H
+#define _GUNDAM_TYPE_GETTER_EDGE_ATTRIBUTE_HANDLE_H
 
 namespace GUNDAM {
 
@@ -42,4 +42,4 @@ class EdgeAttributeHandle<GraphType&>{
 
 }; // namespace GUNDAM
 
-#endif // _EDGE_ATTRIBUTE_HANDLE_H
+#endif // _GUNDAM_TYPE_GETTER_EDGE_ATTRIBUTE_HANDLE_H

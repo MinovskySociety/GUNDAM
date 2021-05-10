@@ -3,7 +3,7 @@
 
 namespace GUNDAM{
 
-class GraphParameter{
+class GraphParameterBase{
  public:
   // vertex level index
   static constexpr bool vertex_level_edge_label_index = false;

@@ -1,5 +1,5 @@
-#ifndef _EDGE_HANDLE_H
-#define _EDGE_HANDLE_H
+#ifndef _GUNDAM_TYPE_GETTER_EDGE_HANDLE_H
+#define _GUNDAM_TYPE_GETTER_EDGE_HANDLE_H
 
 namespace GUNDAM {
 
@@ -34,12 +34,9 @@ class EdgeHandle<GraphType&>{
 // };
 
 // // remove reference
-// template <typename GraphType>
-// class EdgeConstHandle<GraphType&>{
-//  public:
-//   using type = typename EdgeConstHandle<GraphType>::type;
+// template <typen_GUNDAM_TYPE_GETTER typename EdgeConstHandle<GraphType>::type;
 // };
 
 }; // namespace GUNDAM
 
-#endif // _EDGE_HANDLE_H
+#endif // _GUNDAM_TYPE_GETTER_EDGE_HANDLE_H

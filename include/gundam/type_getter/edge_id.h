@@ -1,5 +1,5 @@
-#ifndef _EDGE_ID_H
-#define _EDGE_ID_H
+#ifndef _GUNDAM_TYPE_GETTER_EDGE_ID_H
+#define _GUNDAM_TYPE_GETTER_EDGE_ID_H
 
 namespace GUNDAM{
 
@@ -11,4 +11,4 @@ class EdgeID{
 
 } // namespace GUNDAM 
 
-#endif // _EDGE_ID_H
+#endif // _GUNDAM_TYPE_GETTER_EDGE_ID_H

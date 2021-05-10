@@ -11,6 +11,7 @@
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_attribute_handle.h"
 #include "gundam/type_getter/edge_attribute_handle.h"
+#include "gundam/type_getter/graph_parameter_getter.h"
 
 #include "gundam/serialize/serialize.h"
 
@@ -27,15 +28,20 @@ class LargeGraph2;
 template <class VertexIDType, class VertexLabelType,
           class VertexAttributeKeyType, class EdgeIDType, class EdgeLabelType,
           class EdgeAttributeKeyType>
-class LargeGraph2 : public GraphParameter {
+class LargeGraph2 {
  public:
-  static constexpr bool vertex_has_attribute = true;
+  class _GraphParameter : public GraphParameterBase {
+   public:
+    static constexpr bool vertex_has_attribute = true;
 
-  static constexpr bool edge_has_attribute = true;
+    static constexpr bool edge_has_attribute = true;
 
-  static constexpr bool graph_level_vertex_label_index = true;
+    static constexpr bool graph_level_vertex_label_index = true;
 
-  static constexpr bool vertex_level_edge_label_index = true;
+    static constexpr bool vertex_level_edge_label_index = true;
+  };
+
+  friend class GraphParameter<LargeGraph2>;
 
  private:
   class VertexData;
