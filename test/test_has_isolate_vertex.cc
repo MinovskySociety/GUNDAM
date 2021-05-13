@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/tool/has_isolate_vertex.h"
+#include "gundam/tool/isolate_vertex.h"
 
 #include "gundam/graph_type/small_graph.h"
 #include "gundam/graph_type/large_graph.h"

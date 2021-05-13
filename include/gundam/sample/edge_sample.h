@@ -2,7 +2,7 @@
 #define _GUNDAM_SAMPLE_EDGE_SAMPLE_H
 
 #include <vector>
-#include "gundam/tool/remove_isolate_vertex.h"
+#include "gundam/tool/isolate_vertex.h"
 
 namespace GUNDAM{
 
