@@ -229,11 +229,11 @@ TEST(TestGUNDAM, MatchUsingMatch_1) {
   TestMatchUsingMatch_1<SG, LG, GUNDAM::MatchAlgorithm::kDagDp>();
   TestMatchUsingMatch_1<SG, SG, GUNDAM::MatchAlgorithm::kDagDp>();
 
-  TestMatchUsingMatch_1<SSG, G1, GUNDAM::MatchAlgorithm::kDagDp>();
-  TestMatchUsingMatch_1<SSG, G2, GUNDAM::MatchAlgorithm::kDagDp>();
-  TestMatchUsingMatch_1<SSG, G3, GUNDAM::MatchAlgorithm::kDagDp>();
-  TestMatchUsingMatch_1<SSG, LG, GUNDAM::MatchAlgorithm::kDagDp>();
-  TestMatchUsingMatch_1<SSG, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+  // TestMatchUsingMatch_1<SSG, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  // TestMatchUsingMatch_1<SSG, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  // TestMatchUsingMatch_1<SSG, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  // TestMatchUsingMatch_1<SSG, LG, GUNDAM::MatchAlgorithm::kDagDp>();
+  // TestMatchUsingMatch_1<SSG, SG, GUNDAM::MatchAlgorithm::kDagDp>();
 
   TestMatchUsingMatch_1<G1, G1, GUNDAM::MatchAlgorithm::kVf2>();
   TestMatchUsingMatch_1<G1, G2, GUNDAM::MatchAlgorithm::kVf2>();
@@ -265,11 +265,11 @@ TEST(TestGUNDAM, MatchUsingMatch_1) {
   TestMatchUsingMatch_1<SG, LG, GUNDAM::MatchAlgorithm::kVf2>();
   TestMatchUsingMatch_1<SG, SG, GUNDAM::MatchAlgorithm::kVf2>();
 
-  TestMatchUsingMatch_1<SSG, G1, GUNDAM::MatchAlgorithm::kVf2>();
-  TestMatchUsingMatch_1<SSG, G2, GUNDAM::MatchAlgorithm::kVf2>();
-  TestMatchUsingMatch_1<SSG, G3, GUNDAM::MatchAlgorithm::kVf2>();
-  TestMatchUsingMatch_1<SSG, LG, GUNDAM::MatchAlgorithm::kVf2>();
-  TestMatchUsingMatch_1<SSG, SG, GUNDAM::MatchAlgorithm::kVf2>();
+  // TestMatchUsingMatch_1<SSG, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  // TestMatchUsingMatch_1<SSG, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  // TestMatchUsingMatch_1<SSG, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  // TestMatchUsingMatch_1<SSG, LG, GUNDAM::MatchAlgorithm::kVf2>();
+  // TestMatchUsingMatch_1<SSG, SG, GUNDAM::MatchAlgorithm::kVf2>();
 }
 
 template <class QueryGraph, class TargetGraph,

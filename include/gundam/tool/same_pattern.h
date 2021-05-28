@@ -23,7 +23,8 @@ inline bool SamePattern(GraphType0& graph_0,
   }
 
   auto ret = GUNDAM::MatchUsingMatch<MatchSemantics::kIsomorphism,
-                                     MatchAlgorithm::kVf2>(graph_0, graph_1, 1);
+                                     MatchAlgorithm::kVf2,
+                                     MergeNecConfig::kNotMerge>(graph_0, graph_1, 1);
 
   if (ret == 0){
     #ifndef NDEBUG
