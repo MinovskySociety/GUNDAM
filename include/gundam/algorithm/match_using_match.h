@@ -134,7 +134,7 @@ template <enum MatchSemantics match_semantics
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_nec_config 
-             = MergeNecConfig::kMerge,
+             = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t MatchUsingMatch(
@@ -369,7 +369,7 @@ template <enum MatchSemantics match_semantics
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_nec_config 
-             = MergeNecConfig::kMerge,
+             = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t MatchUsingMatch(
@@ -405,7 +405,7 @@ template <enum MatchSemantics match_semantics
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_nec_config 
-             = MergeNecConfig::kMerge,
+             = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t MatchUsingMatch(
@@ -454,7 +454,7 @@ template <enum MatchSemantics match_semantics
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_nec_config 
-             = MergeNecConfig::kMerge,
+             = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t MatchUsingMatch(
@@ -510,7 +510,7 @@ template <enum MatchSemantics match_semantics
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_nec_config 
-             = MergeNecConfig::kMerge,
+             = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t MatchUsingMatch(
@@ -543,7 +543,7 @@ template <enum MatchSemantics match_semantics
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_nec_config 
-             = MergeNecConfig::kMerge,
+             = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t MatchUsingMatch(
@@ -600,7 +600,7 @@ template <enum MatchSemantics match_semantics
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_nec_config 
-             = MergeNecConfig::kMerge,
+             = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t MatchUsingMatch(
@@ -653,7 +653,7 @@ template <enum MatchSemantics match_semantics
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_nec_config 
-             = MergeNecConfig::kMerge,
+             = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t MatchUsingMatch(
