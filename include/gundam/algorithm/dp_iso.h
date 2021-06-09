@@ -1158,6 +1158,7 @@ inline void BFS(QueryGraph &query_graph,
         }
       }
     }
+    temp_src_vertex_set.clear();
   }
   return;
 }

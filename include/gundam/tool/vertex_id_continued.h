@@ -23,6 +23,10 @@ bool VertexIDContinued(const GraphType& graph){
   for (const auto& vertex_id : vertex_id_set){
     if (current_id != vertex_id){
       // is not connected
+      std::cout << "id not connected: current_id: "
+                                  <<  current_id 
+                                  << " vertex_id : "
+                                  <<   vertex_id<< std::endl;
       return false;
     }
     current_id++;
