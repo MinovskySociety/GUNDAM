@@ -23,6 +23,8 @@
 
 #include "gundam/type_getter/graph_parameter_getter.h"
 
+#include "gundam/match/match.h"
+
 namespace GUNDAM {
 
 namespace _dp_iso {
