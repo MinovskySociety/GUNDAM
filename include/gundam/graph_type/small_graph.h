@@ -378,14 +378,14 @@ class SmallGraph {
       return dst_;
     }
 
-    VertexPtr src_handle() {
+    auto src_handle() const {
       assert(HasValue());
-      return VertexPtr(Vertex(graph_, src_));
-    }
-
-    VertexConstPtr src_handle() const {
-      assert(HasValue());
-      return VertexConstPtr(ConstVertex(graph_, src_));
+      if constexpr (is_const) {
+        return VertexConstPtr(ConstVertex(graph_, src_));
+      }
+      else {
+        return VertexPtr(Vertex(graph_, src_));
+      }
     }
 
     VertexConstPtr const_src_handle() const {
@@ -393,14 +393,14 @@ class SmallGraph {
       return VertexConstPtr(ConstVertex(graph_, src_));
     }
 
-    VertexPtr dst_handle() {
+    auto dst_handle() const {
       assert(HasValue());
-      return VertexPtr(Vertex(graph_, dst_));
-    }
-
-    VertexConstPtr dst_handle() const {
-      assert(HasValue());
-      return VertexConstPtr(ConstVertex(graph_, dst_));
+      if constexpr (is_const) {
+        return VertexConstPtr(ConstVertex(graph_, dst_));
+      }
+      else {
+        return VertexPtr(Vertex(graph_, dst_));
+      }
     }
 
     VertexConstPtr const_dst_handle() const {
