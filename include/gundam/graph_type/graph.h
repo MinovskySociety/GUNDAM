@@ -789,7 +789,7 @@ class Graph {
                                                   begin_depth_ + 2>());
       }
 
-      inline VertexPtrType VertexPtrContainerElement() {
+      inline VertexPtrType VertexPtrContainerElement() const {
         assert(!this->IsDone());
         return InnerIteratorType
              ::template get_const<dst_ptr_idx_,
@@ -855,16 +855,20 @@ class Graph {
         return this->template get_iterator<begin_depth_ + 2>();
       }
 
-      inline VertexPtrType src_handle() {
+      inline auto src_handle() const {
         assert(!this->IsDone());
-        if (this->direction_ == EdgeDirection::OutputEdge)
-          return this->vertex_ptr_;
-        /// this->direction_ == EdgeDirection::InputEdge
-        return this->VertexPtrContainerElement();
-      }
-
-      inline VertexConstPtr src_handle() const {
-        return this->const_src_handle();
+        if constexpr (is_const_) {
+          if (this->direction_ == EdgeDirection::OutputEdge)
+            return this->vertex_ptr_;
+          /// this->direction_ == EdgeDirection::InputEdge
+          return this->VertexPtrContainerConstElement();
+        }
+        else {
+          if (this->direction_ == EdgeDirection::OutputEdge)
+            return this->vertex_ptr_;
+          /// this->direction_ == EdgeDirection::InputEdge
+          return this->VertexPtrContainerElement();
+        }
       }
 
       inline VertexConstPtr const_src_handle() const {
@@ -874,17 +878,21 @@ class Graph {
         /// this->direction_ == EdgeDirection::InputEdge
         return this->VertexPtrContainerConstElement();
       }
-      
-      inline VertexPtrType dst_handle() {
+
+      inline auto dst_handle() const {
         assert(!this->IsDone());
-        if (this->direction_ == EdgeDirection::OutputEdge)
-          return this->VertexPtrContainerElement();
-        /// this->direction_ == EdgeDirection::InputEdge
-        return this->vertex_ptr_;
-      }
-      
-      inline VertexConstPtr dst_handle() const {
-        return this->const_dst_handle();
+        if constexpr (is_const_) {
+          if (this->direction_ == EdgeDirection::OutputEdge)
+            return this->VertexPtrContainerConstElement();
+          /// this->direction_ == EdgeDirection::InputEdge
+          return this->vertex_ptr_;
+        }
+        else {
+          if (this->direction_ == EdgeDirection::OutputEdge)
+            return this->VertexPtrContainerElement();
+          /// this->direction_ == EdgeDirection::InputEdge
+          return this->vertex_ptr_;
+        }
       }
       
       inline VertexConstPtr const_dst_handle() const {
@@ -1196,16 +1204,20 @@ class Graph {
         return;
       }
 
-      inline VertexPtrType src_handle() {
+      inline auto src_handle() const {
         assert(!this->IsDone());
-        if (this->direction_ == EdgeDirection::OutputEdge)
-          return InnerIteratorType::vertex_ptr();
-        /// this->direction_ == EdgeDirection::InputEdge
-        return this->VertexPtrContainerElement();
-      }
-      
-      inline VertexConstPtr src_handle() const {
-        return this->const_src_handle();
+        if constexpr (is_const_) {
+          if (this->direction_ == EdgeDirection::OutputEdge)
+            return InnerIteratorType::const_vertex_ptr();
+          /// this->direction_ == EdgeDirection::InputEdge
+          return this->VertexPtrContainerConstElement();
+        }
+        else {
+          if (this->direction_ == EdgeDirection::OutputEdge)
+            return InnerIteratorType::vertex_ptr();
+          /// this->direction_ == EdgeDirection::InputEdge
+          return this->VertexPtrContainerElement();
+        }
       }
 
       inline VertexConstPtr const_src_handle() const {
@@ -1215,17 +1227,21 @@ class Graph {
         /// this->direction_ == EdgeDirection::InputEdge
         return this->VertexPtrContainerConstElement();
       }
-      
-      inline VertexPtrType dst_handle() {
+
+      inline auto dst_handle() const {
         assert(!this->IsDone());
-        if (this->direction_ == EdgeDirection::OutputEdge)
-          return this->VertexPtrContainerElement();
-        /// this->direction_ == EdgeDirection::InputEdge
-        return InnerIteratorType::vertex_ptr();
-      }
-      
-      inline VertexConstPtr dst_handle() const {
-        return this->const_dst_handle();
+        if constexpr (is_const_) {
+          if (this->direction_ == EdgeDirection::OutputEdge)
+            return this->VertexPtrContainerConstElement();
+          /// this->direction_ == EdgeDirection::InputEdge
+          return InnerIteratorType::const_vertex_ptr();
+        }
+        else {
+          if (this->direction_ == EdgeDirection::OutputEdge)
+            return this->VertexPtrContainerElement();
+          /// this->direction_ == EdgeDirection::InputEdge
+          return InnerIteratorType::vertex_ptr();
+        }
       }
       
       inline VertexConstPtr const_dst_handle() const {
@@ -1475,7 +1491,7 @@ class Graph {
      private:
       using EdgePtrContent = EdgePtrContent_<false, false, meaning_less_>;
 
-      inline VertexPtr VertexPtrContainerElement() {
+      inline VertexPtr VertexPtrContainerElement() const {
         assert(!this->IsNull());
         return EdgePtrContent::vertex_ptr_iterator_
                               .template get_const<kVertexPtrIdx>();
@@ -1490,14 +1506,14 @@ class Graph {
      public:
       using EdgePtrContent::EdgePtrContent;
 
-      inline VertexPtr src_handle() {
+      inline VertexPtr src_handle() const {
         assert(!this->IsNull());
         if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
           return EdgePtrContent::vertex_ptr_;
         return this->VertexPtrContainerElement();
       }
 
-      inline VertexPtr dst_handle() {
+      inline VertexPtr dst_handle() const {
         assert(!this->IsNull());
         if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
           return this->VertexPtrContainerElement();
