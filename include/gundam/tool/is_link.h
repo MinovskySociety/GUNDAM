@@ -143,9 +143,6 @@ std::pair<typename VertexHandle<GraphType>::type,
     size_t visited_vertex_num = 1;
     // is an end point
     while (true) {
-      std::cout << "current_vertex_handle->id(): "
-                <<  current_vertex_handle->id()
-                << std::endl;
       VertexHandleType unvisited_vertex;
       // should be initialized as nullptr
       assert(!unvisited_vertex);
