@@ -38,12 +38,7 @@ std::pair<typename VertexHandle<GraphType>::type,
            !vertex_it.IsDone();
             vertex_it++) {
     // first count the input degree for this vertex
-    size_t in_edge_num = 0;
-    for (auto in_edge_it = vertex_it->InEdgeBegin();
-             !in_edge_it.IsDone();
-              in_edge_it++) {
-      in_edge_num++;
-    }
+    size_t in_edge_num = vertex_it->CountInEdge();
     if constexpr (!bidirectional) {
       // only consider one direction
       if (in_edge_num > 1) {
@@ -67,13 +62,7 @@ std::pair<typename VertexHandle<GraphType>::type,
       size_t visited_vertex_num = 1;
       while (true) {
         assert(visited_vertex_num <= graph.CountVertex());
-        size_t out_edge_num = 0;
-        // verify the output edge number of the current vertex
-        for (auto out_edge_it = current_handle->OutEdgeBegin();
-                  !out_edge_it.IsDone();
-                  out_edge_it++) {
-          out_edge_num++;
-        }
+        size_t out_edge_num = current_handle->CountOutEdge();
         if (out_edge_num != 1) {
           if (out_edge_num == 0) {
             // reach end, 
@@ -84,18 +73,18 @@ std::pair<typename VertexHandle<GraphType>::type,
               // return two nullptr which represents the
               // input grpah is not a link
               return std::pair(VertexHandleType(),
-                                VertexHandleType());
+                               VertexHandleType());
             }
             // has visited all vertex
             // the current_handle is the other end 
             assert(current_handle);
             assert(    src_handle);
             return std::pair(src_handle,
-                          current_handle);
+                         current_handle);
           }
           // illegal output edge number
           return std::pair(VertexHandleType(),
-                            VertexHandleType());
+                           VertexHandleType());
         }
         // only have one out edge points to the next vertex 
         // move to the next vertex pointed by the only out edge
@@ -103,23 +92,19 @@ std::pair<typename VertexHandle<GraphType>::type,
         assert(current_handle);
         visited_vertex_num++;
         // verify the input edge number of the next vertex
-        size_t in_edge_num = 0;
-        for (auto in_edge_it = current_handle->InEdgeBegin();
-                  !in_edge_it.IsDone();
-                  in_edge_it++) {
-          in_edge_num++;
+        size_t in_edge_num = current_handle->CountInEdge();
+        assert(in_edge_num > 0);
+        if (in_edge_num > 1) {
+          // has more than one in edge, is not link
+          return std::pair(VertexHandleType(),
+                           VertexHandleType());
         }
       }
       continue;
     }
     // considering both input edges and output edges
-    size_t connected_edge_num = in_edge_num;
-    for (auto out_edge_it = vertex_it->OutEdgeBegin();
-             !out_edge_it.IsDone();
-              out_edge_it++) {
-      connected_edge_num++;
-    }
-    assert(connected_edge_num != 0);
+    size_t connected_edge_num 
+                = in_edge_num + vertex_it->CountOutEdge();
     if (connected_edge_num > 2
      || connected_edge_num == 0) {
       // illegal, edge vertex can only have at most 2
