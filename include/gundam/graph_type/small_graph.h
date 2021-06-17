@@ -279,21 +279,40 @@ class SmallGraph {
     }
 
     bool operator==(const _Vertex &b) const {
-      if (!graph_) {
-        return !b.graph_;
-      } else if (!b.graph_) {
+      if (this->graph_ != b.graph_){
+        // cannot be the same
+        // at least one is not nullptr
+        assert(this->graph_ || b.graph_);
         return false;
-      } else {
-        return id_ == b.id_;
       }
+      // this->graph_ == b.graph_
+      if (!this->graph_){
+        // this->graph_ is null
+        assert(!b.graph_);
+        // both ptr are null
+        return true;
+      }
+      return id_ == b.id_;
     }
 
     bool operator<(const _Vertex &b) const {
-      if (!graph_ || !b.graph_) {
-        return false;
-      } else {
-        return id_ < b.id_;
+      if (this->graph_ < b.graph_){
+        // at least one is not nullptr
+        assert(this->graph_ || b.graph_);
+        return true;
       }
+      if (this->graph_ > b.graph_){
+        // at least one is not nullptr
+        assert(this->graph_ || b.graph_);
+        return false;
+      }
+      // this->graph_ == b.graph_
+      if (this->graph_ == nullptr) {
+        assert(!b.graph_);
+        // both pointers are null, are the same
+        return false;
+      }
+      return this->id_ < b.id_;
     }
 
    private:

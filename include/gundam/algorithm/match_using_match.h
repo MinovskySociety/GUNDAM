@@ -169,6 +169,15 @@ inline size_t MatchUsingMatch(
     assert(candidate.first);
     assert(candidate.first == query_graph.FindVertex(candidate.first->id()));
   }
+
+  for (auto map_it = partial_match.MapBegin();
+           !map_it.IsDone();
+            map_it++) {
+    assert(map_it->src_handle());
+    assert(map_it->src_handle() ==  query_graph.FindVertex(map_it->src_handle()->id()));
+    assert(map_it->dst_handle());
+    assert(map_it->dst_handle() == target_graph.FindVertex(map_it->dst_handle()->id()));
+  }
   #endif // NDEBUG
 
   CandidateSetType refined_candidate_set = candidate_set;

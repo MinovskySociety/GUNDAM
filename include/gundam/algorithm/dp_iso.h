@@ -361,7 +361,9 @@ inline QueryVertexHandle NextMatchVertex(
   }
 
   if (next_query_set.empty()) {
-    return QueryVertexHandle();
+    QueryVertexHandle res = QueryVertexHandle();
+    assert(!res);
+    return res;
   }
 
   QueryVertexHandle res = QueryVertexHandle();
@@ -1505,6 +1507,15 @@ inline int DPISO_Recursive(
     double query_limit_time = 1200.0) {
   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
+
+  #ifndef NDEBUG
+  for (const auto& [src_handle, 
+                    dst_handle] : match_state) {
+    assert(src_handle);
+    assert(dst_handle);
+  }
+  #endif // NDEBUG
+
   std::set<TargetVertexHandle> target_matched;
   if (!CheckMatchIsLegal<match_semantics, QueryGraph, TargetGraph>(
           match_state)) {
@@ -1563,6 +1574,12 @@ inline int DPISO_Recursive(
       };
   QueryVertexHandle next_query_ptr =
       _dp_iso::NextMatchVertex(candidate_set, match_state);
+  #ifndef NDEBUG
+  for (const auto& [src_handle, dst_handle] : match_state) {
+    assert(src_handle);
+    assert(dst_handle);
+  }
+  #endif // NDEBUG
   assert(match_state.count(next_query_ptr) == 0);
   if (!next_query_ptr) {
     if (query_graph.CountEdge() >= large_query_edge) {
