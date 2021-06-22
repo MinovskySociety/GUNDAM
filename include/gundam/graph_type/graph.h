@@ -3288,7 +3288,21 @@ class Graph {
       } else {
         // decomposed_edge_container is empty
         // erase vertex_ptr_iterator
+        auto dst_handle = vertex_ptr_iterator.template get<kVertexPtrIdx>();
         vertex_ptr_iterator = vertex_ptr_container.Erase(vertex_ptr_iterator);
+        if (edge_direction == EdgeDirection::OutputEdge) {
+          if (!this->FindOutVertex(dst_handle)) {
+            // maintain out vertex counter
+            // this vertex has no output edge point to dst_ptr
+            this->edges_.OutVertexReduceOne();
+          }
+        } else {
+          if (!this->FindInVertex(dst_handle)) {
+            // maintain out vertex counter
+            // this vertex has no input edge points from dst_ptr
+            this->edges_.InVertexReduceOne();
+          }
+        }
       }
       if ((!vertex_ptr_container.empty()) &&
           (vertex_ptr_iterator != vertex_ptr_container.end())) {
@@ -3308,8 +3322,8 @@ class Graph {
       using EdgeContentIteratorType
           = EdgeContentIterator<false>;
       void* ptr = &edge_iterator;
-      EdgeContentIteratorType* edge_content_iterator_ptr =
-          static_cast<EdgeContentIteratorType*>(ptr);
+      EdgeContentIteratorType* edge_content_iterator_ptr
+             = static_cast<EdgeContentIteratorType*>(ptr);
 
       // get direction
       enum EdgeDirection edge_direction
@@ -3320,19 +3334,18 @@ class Graph {
         edge_label_container_ptr = &this->edges_.out_edges();
       else
         edge_label_container_ptr = &this->edges_.in_edges();
-      VertexPtrContainerType& vertex_ptr_container =
-          edge_content_iterator_ptr->template get<kVertexPtrContainerIdx, 0>();
-      DecomposedEdgeContainerType& decomposed_edge_container =
-          edge_content_iterator_ptr->template get<kDecomposedEdgeContainerIdx, 1>();
-      auto edge_label_iterator
-       = edge_content_iterator_ptr
-         ->template get_iterator<0>();
-      auto vertex_ptr_iterator
-       = edge_content_iterator_ptr
-              ->template get_iterator<1>();
+      assert(edge_label_container_ptr != nullptr);
+      VertexPtrContainerType& vertex_ptr_container
+             = edge_content_iterator_ptr->template get<kVertexPtrContainerIdx, 0>();
+      DecomposedEdgeContainerType& decomposed_edge_container
+             = edge_content_iterator_ptr->template get<kDecomposedEdgeContainerIdx, 1>();
+      auto edge_label_iterator = edge_content_iterator_ptr
+                               ->template get_iterator<0>();
+      auto vertex_ptr_iterator = edge_content_iterator_ptr
+                               ->template get_iterator<1>();
       auto decomposed_edge_iterator
-            = edge_content_iterator_ptr
-              ->template get_iterator<2>();
+                               = edge_content_iterator_ptr
+                               ->template get_iterator<2>();
 
       // erase dst_ptr iterator
       EdgeLabelType edge_label = edge_iterator->label();
@@ -3384,9 +3397,24 @@ class Graph {
         // else add vertex_ptr to next iter
         vertex_ptr_iterator++;
       } else {
-        // decomposed_edge_container is empty
+        // decomposed_edge_container is empty, all edges point to 
+        // this vertex is removed 
         // erase vertex_ptr_iterator
+        auto dst_handle = vertex_ptr_iterator.template get<kVertexPtrIdx>();
         vertex_ptr_iterator = vertex_ptr_container.Erase(vertex_ptr_iterator);
+        if (edge_direction == EdgeDirection::OutputEdge) {
+          if (!this->FindOutVertex(dst_handle)) {
+            // maintain out vertex counter
+            // this vertex has no output edge point to dst_ptr
+            this->edges_.OutVertexReduceOne();
+          }
+        } else {
+          if (!this->FindInVertex(dst_handle)) {
+            // maintain out vertex counter
+            // this vertex has no input edge points from dst_ptr
+            this->edges_.InVertexReduceOne();
+          }
+        }
       }
       if (!vertex_ptr_container.empty()) {
         if (vertex_ptr_iterator != vertex_ptr_container.end()) {

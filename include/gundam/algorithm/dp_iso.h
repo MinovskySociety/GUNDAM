@@ -383,22 +383,26 @@ inline QueryVertexHandle NextMatchVertex(
   return res;
 }
 
-template <enum EdgeState edge_state, typename QueryGraph, typename TargetGraph>
+template <enum EdgeState edge_state, 
+          typename  QueryGraph, 
+          typename TargetGraph>
 inline bool JoinableCheck(
-    typename VertexHandle<QueryGraph>::type query_vertex_handle,
+    typename VertexHandle< QueryGraph>::type  query_vertex_handle,
     typename VertexHandle<TargetGraph>::type target_vertex_handle,
-    std::map<typename VertexHandle<QueryGraph>::type,
+    std::map<typename VertexHandle< QueryGraph>::type,
              typename VertexHandle<TargetGraph>::type> &match_state) {
-  using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
-  using QueryEdgeHandle = typename EdgeHandle<QueryGraph>::type;
+  using  QueryEdgeHandle = typename EdgeHandle< QueryGraph>::type;
   using TargetEdgeHandle = typename EdgeHandle<TargetGraph>::type;
+
   std::set<typename TargetGraph::EdgeType::IDType> used_edge;
   for (auto query_edge_iter = ((edge_state == EdgeState::kIn)
-                                   ? query_vertex_handle->InEdgeBegin()
+                                   ? query_vertex_handle-> InEdgeBegin()
                                    : query_vertex_handle->OutEdgeBegin());
-       !query_edge_iter.IsDone(); query_edge_iter++) {
+           !query_edge_iter.IsDone(); 
+            query_edge_iter++) {
     QueryEdgeHandle query_edge_handle = query_edge_iter;
     QueryVertexHandle query_opp_vertex_handle =
         (edge_state == EdgeState::kIn) ? query_edge_handle->src_handle()
