@@ -54,7 +54,7 @@ std::pair<typename VertexHandle<GraphType>::type,
       assert(in_edge_num == 0);
       // does not have input edges, is an end vertex
       VertexHandleType current_handle = vertex_it,
-                            src_handle = vertex_it;
+                           src_handle = vertex_it;
       // both current_handle and src_handle points
       // to one end of the link
       assert(current_handle);
@@ -118,7 +118,7 @@ std::pair<typename VertexHandle<GraphType>::type,
     }
     assert(connected_edge_num == 1);
     // find an end point
-    VertexHandleType previous_vertex_handle,
+    VertexHandleType previous_vertex_handle = VertexHandleType(),
                       current_vertex_handle = vertex_it,
                           src_vertex_handle = vertex_it;
     // should be initialized as nullptr
@@ -128,7 +128,7 @@ std::pair<typename VertexHandle<GraphType>::type,
     size_t visited_vertex_num = 1;
     // is an end point
     while (true) {
-      VertexHandleType unvisited_vertex;
+      VertexHandleType unvisited_vertex = VertexHandleType();
       // should be initialized as nullptr
       assert(!unvisited_vertex);
       size_t connected_edge_num = 0;
