@@ -68,9 +68,15 @@ inline size_t Diameter(const GraphType& graph) {
 
   for (size_t k = 0; k < kVertexNum; k++) {
     for (size_t i = 0; i < kVertexNum; i++) {
+      if (distance[i][k] == std::numeric_limits<DistanceType>::max()) {
+        continue;
+      }
       for (size_t j = 0; j < kVertexNum; j++) {
-        distance[i][j] = distance[i][j] > distance[i][k] + distance[k][j]?
-                         distance[i][j] : distance[i][k] + distance[k][j];
+        if (distance[k][j] == std::numeric_limits<DistanceType>::max()) {
+          continue;
+        }
+        distance[i][j] = distance[i][j] < (distance[i][k] + distance[k][j])?
+                         distance[i][j] : (distance[i][k] + distance[k][j]);
       }
     }
   }
