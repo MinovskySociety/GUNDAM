@@ -8,10 +8,10 @@
 namespace GUNDAM {
 
 template <typename GraphType>
-inline bool Connected(GraphType& graph) {
-  // just begin bfs at a random vertex and find whether
+inline bool Connected(const GraphType& graph) {
+  // just begin dfs at a random vertex and find whether
   // it can reach all vertexes
-  typename VertexHandle<GraphType>::type
+  typename VertexHandle<const GraphType>::type
            vertex_handle = graph.VertexBegin();
   return GUNDAM::Dfs<true>(graph,vertex_handle)
                         == graph.CountVertex();

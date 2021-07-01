@@ -2031,7 +2031,8 @@ inline int IncreamentDPISO(
   for (int mask = 1; mask < total_mask; mask++) {
     std::vector<QueryVertexHandle> this_mask_vertex;
     for (int bit_pos = 0;
-         bit_pos < has_delta_target_graph_pattern_vertex.size(); bit_pos++) {
+             bit_pos < has_delta_target_graph_pattern_vertex.size(); 
+             bit_pos++) {
       if (mask & (1 << bit_pos)) {
         this_mask_vertex.emplace_back(
             has_delta_target_graph_pattern_vertex[bit_pos]);
