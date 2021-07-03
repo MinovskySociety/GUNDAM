@@ -330,4 +330,10 @@ TEST(TestGUNDAM, TestGraphAttribute) {
   TestGraphAttribute<G4>();
   TestGraphAttribute<G5>();
   TestGraphAttribute<G6>();
+  TestGraphAttribute<G1>();
+  TestGraphAttribute<G2>();
+  TestGraphAttribute<G3>();
+  TestGraphAttribute<G4>();
+  TestGraphAttribute<G5>();
+  TestGraphAttribute<G6>();
 }

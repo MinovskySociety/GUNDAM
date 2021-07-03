@@ -23,6 +23,9 @@ class GraphBase : protected ConcreteGraphType {
  private:
   using VertexLabelType = typename VertexType::LabelType;
   using   EdgeLabelType = typename   EdgeType::LabelType;
+  
+  using VertexIDType = typename VertexType::IDType;
+  using   EdgeIDType = typename   EdgeType::IDType;
 
  private:
   template<typename VertexIteratorType>
@@ -184,13 +187,27 @@ class GraphBase : protected ConcreteGraphType {
   // use the construct method for the concrete graph type
   using ConcreteGraphType::ConcreteGraphType;
 
-  // such a vertex must be provided by concrete graph type
+  // those methods must be provided by concrete graph type
   inline auto VertexBegin(){
     return ConcreteGraphType::VertexBegin();
   }
   inline auto VertexBegin() const {
     return ConcreteGraphType::VertexBegin();
   }  
+  inline auto AddVertex(
+      const VertexIDType& id,
+      const VertexLabelType& label) {
+    return ConcreteGraphType::AddVertex(id, label);
+  }
+  inline auto AddEdge(const  VertexIDType &src_vertex_id,
+                      const  VertexIDType &dst_vertex_id,
+                      const EdgeLabelType &edge_label,
+                      const EdgeIDType    &edge_id)  {
+    return ConcreteGraphType::AddEdge(src_vertex_id, 
+                                      dst_vertex_id, 
+                                      edge_label, 
+                                      edge_id);
+  }
 
   // the concrete graph type has index for vertex label,
   // can provide a more efficiency method
