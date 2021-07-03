@@ -4,6 +4,9 @@
 #include <typeinfo> 
 #include "gundam/type_getter/graph_parameter_getter.h"
 
+#include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/edge_handle.h"
+
 namespace GUNDAM {
 
 template<typename ConcreteGraphType>
@@ -23,9 +26,21 @@ class GraphBase : protected ConcreteGraphType {
  private:
   using VertexLabelType = typename VertexType::LabelType;
   using   EdgeLabelType = typename   EdgeType::LabelType;
-  
+
   using VertexIDType = typename VertexType::IDType;
   using   EdgeIDType = typename   EdgeType::IDType;
+
+  using VertexPtr = typename ConcreteGraphType::VertexPtr;
+  using   EdgePtr = typename ConcreteGraphType::  EdgePtr;
+
+  using VertexConstPtr = typename ConcreteGraphType::VertexConstPtr;
+  using   EdgeConstPtr = typename ConcreteGraphType::  EdgeConstPtr;
+
+  friend class VertexHandle<GraphBase<ConcreteGraphType>>;
+  friend class VertexHandle<const GraphBase<ConcreteGraphType>>;
+
+  friend class EdgeHandle<GraphBase<ConcreteGraphType>>;
+  friend class EdgeHandle<const GraphBase<ConcreteGraphType>>;
 
  private:
   template<typename VertexIteratorType>
@@ -207,6 +222,12 @@ class GraphBase : protected ConcreteGraphType {
                                       dst_vertex_id, 
                                       edge_label, 
                                       edge_id);
+  }
+  inline auto FindVertex(const VertexIDType &id) {
+    return ConcreteGraphType::FindVertex(id);
+  }
+  inline auto FindVertex(const VertexIDType &id) const {
+    return ConcreteGraphType::FindVertex(id);
   }
 
   // the concrete graph type has index for vertex label,

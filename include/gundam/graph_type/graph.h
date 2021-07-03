@@ -7,6 +7,7 @@
 
 #include "gundam/graph_type/graph_configure.h"
 #include "gundam/graph_type/graph_parameter.h"
+#include "gundam/graph_type/graph_base.h"
 
 #include "gundam/component/attribute.h"
 #include "gundam/component/iterator.h"
@@ -18,7 +19,6 @@
 #include "gundam/type_getter/vertex_attribute_handle.h"
 #include "gundam/type_getter/edge_attribute_handle.h"
 #include "gundam/type_getter/graph_type.h"
-// #include "gundam/type_getter/graph_parameter_getter.h"
 
 #include "gundam/serialize/serialize.h"
 
@@ -137,6 +137,8 @@ class Graph {
 
   friend class EdgeHandle<Graph>;
   friend class EdgeHandle<const Graph>;
+
+  friend class GraphBase<Graph>;
 
   /// non-constant pointer
   using VertexPtr = typename InnerVertex_::VertexPtr;

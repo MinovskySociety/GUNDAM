@@ -6,6 +6,8 @@
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
 
+#include "gundam/graph_type/graph_base.h"
+
 #include "gundam/graph_type/graph.h"
 #include "gundam/graph_type/large_graph.h"
 #include "gundam/graph_type/large_graph2.h"
@@ -330,10 +332,11 @@ TEST(TestGUNDAM, TestGraphAttribute) {
   TestGraphAttribute<G4>();
   TestGraphAttribute<G5>();
   TestGraphAttribute<G6>();
-  TestGraphAttribute<G1>();
-  TestGraphAttribute<G2>();
-  TestGraphAttribute<G3>();
-  TestGraphAttribute<G4>();
-  TestGraphAttribute<G5>();
-  TestGraphAttribute<G6>();
+
+  TestGraphAttribute<GraphBase<G1>>();
+  TestGraphAttribute<GraphBase<G2>>();
+  TestGraphAttribute<GraphBase<G3>>();
+  TestGraphAttribute<GraphBase<G4>>();
+  TestGraphAttribute<GraphBase<G5>>();
+  TestGraphAttribute<GraphBase<G6>>();
 }

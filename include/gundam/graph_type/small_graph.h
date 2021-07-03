@@ -13,12 +13,12 @@
 #include "gundam/data_type/datatype.h"
 
 #include "gundam/graph_type/graph_parameter.h"
+#include "gundam/graph_type/graph_base.h"
 
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_attribute_handle.h"
 #include "gundam/type_getter/edge_attribute_handle.h"
-// #include "gundam/type_getter/graph_parameter_getter.h"
 
 #include "gundam/serialize/serialize.h"
 
@@ -37,7 +37,7 @@ class SmallGraph {
     static constexpr bool graph_level_vertex_label_index = false;
 
     static constexpr bool vertex_level_edge_label_index = false;
-    
+
     static constexpr bool graph_level_edge_iterator = true;
   };
 
@@ -91,6 +91,8 @@ class SmallGraph {
   
   friend class EdgeHandle<SmallGraph>;
   friend class EdgeHandle<const SmallGraph>;
+
+  friend class GraphBase<SmallGraph>;
 
   using VertexPtr      = GPointer<false, Vertex, ConstVertex>;
 

@@ -6,12 +6,12 @@
 #include "gundam/component/iterator2.h"
 
 #include "gundam/graph_type/graph_parameter.h"
+#include "gundam/graph_type/graph_base.h"
 
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_attribute_handle.h"
 #include "gundam/type_getter/edge_attribute_handle.h"
-// #include "gundam/type_getter/graph_parameter_getter.h"
 
 #include "gundam/serialize/serialize.h"
 
@@ -545,6 +545,8 @@ class LargeGraph2 {
   
   friend class EdgeHandle<LargeGraph2>;
   friend class EdgeHandle<const LargeGraph2>;
+
+  friend class GraphBase<LargeGraph2>;
 
   using VertexPtr = VertexData *;
 
