@@ -37,8 +37,7 @@ void TestMultiQuery() {
   using  QueryVertexHandle = typename GUNDAM::VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename GUNDAM::VertexHandle<TargetGraph>::type;
 
-  using MatchMap = std::map<QueryVertexHandle,
-                           TargetVertexHandle>;
+  using MatchType = Match<QueryGraph, TargetGraph>;
 
   // query
   query.AddVertex(1, VertexLabelType(0));
@@ -64,8 +63,9 @@ void TestMultiQuery() {
 
   query_graph_list.emplace_back(query);
 
-  auto prune_callback = [](int pattern_idx,
-                           const MatchMap& match){
+  std::function<bool(int, const GUNDAM::Match<QueryGraph, TargetGraph>&)>
+    prune_callback = [](int pattern_idx,
+                        const MatchType& match) -> bool {
     // does not prune
     return false;
   };
@@ -73,9 +73,11 @@ void TestMultiQuery() {
   int single_match_counter = 0;
   bool pattern_idx_is_not_zero = false;
 
-  auto match_callback_single = [&single_match_counter,
-                                &pattern_idx_is_not_zero](int pattern_idx,
-                                const MatchMap& match) -> bool {
+  std::function<bool(int, const GUNDAM::Match<QueryGraph, TargetGraph>&)>
+      match_callback_single = [&single_match_counter,
+                               &pattern_idx_is_not_zero](
+                           int pattern_idx,
+                           const MatchType& match) -> bool {
     if (pattern_idx != 0){
       pattern_idx_is_not_zero = true;
     }
@@ -93,11 +95,12 @@ void TestMultiQuery() {
   ASSERT_FALSE(pattern_idx_is_not_zero);
 
   const int match_limit = 1;
-  auto match_callback_single_with_match_limit 
-                  = [&single_match_counter,
-                     &match_limit,
-                     &pattern_idx_is_not_zero](int pattern_idx,
-                                const MatchMap& match) -> bool {
+  std::function<bool(int, const GUNDAM::Match<QueryGraph, TargetGraph>&)>
+     match_callback_single_with_match_limit 
+                = [&single_match_counter,
+                    &match_limit,
+                    &pattern_idx_is_not_zero](int pattern_idx,
+                              const MatchType& match) -> bool {
     if (pattern_idx != 0){
       pattern_idx_is_not_zero = true;
     }
@@ -126,10 +129,11 @@ void TestMultiQuery() {
   std::vector<int> multi_match_counter(2, 0);
 
   bool pattern_idx_exceed_limit = false;
-  auto match_callback_multi
+  std::function<bool(int, const GUNDAM::Match<QueryGraph, TargetGraph>&)>
+       match_callback_multi
                   = [&multi_match_counter,
                      &pattern_idx_exceed_limit](int pattern_idx,
-                                const MatchMap& match) -> bool {
+                                const MatchType& match) -> bool {
     if (pattern_idx < 0
      || pattern_idx >= multi_match_counter.size()){
       pattern_idx_exceed_limit = true;
@@ -155,11 +159,12 @@ void TestMultiQuery() {
 
   multi_match_counter.clear();
   multi_match_counter.resize(2, 0);
-  auto match_callback_multi_with_limit
+  std::function<bool(int, const GUNDAM::Match<QueryGraph, TargetGraph>&)>
+   match_callback_multi_with_limit
                   = [&multi_match_counter,
                      &match_limit,
                      &pattern_idx_exceed_limit](int pattern_idx,
-                                const MatchMap& match) -> bool {
+                                const MatchType& match) -> bool {
     if (pattern_idx < 0
      || pattern_idx >= multi_match_counter.size()){
       pattern_idx_exceed_limit = true;
@@ -238,8 +243,9 @@ void TestMultiQuery() {
   ASSERT_EQ(multi_match_counter[2], 1);
   ASSERT_FALSE(pattern_idx_exceed_limit);
 
-  auto prune_3_callback = [](int pattern_idx,
-                             const MatchMap& match){
+  std::function<bool(int, const GUNDAM::Match<QueryGraph, TargetGraph>&)>
+      prune_3_callback = [](int pattern_idx,
+                            const MatchType& match){
     // prune pattern with idx 0
     if (pattern_idx == 3){
       return true;

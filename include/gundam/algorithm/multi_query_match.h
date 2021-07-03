@@ -1288,23 +1288,21 @@ bool MatchFromParentToChild(
    std::vector<bool>            call_child_pattern_match_callback,
    std::vector<bool> additional_call_child_pattern_match_callback,
                                         TargetGraph& target_graph,
-  std::function<bool(int,
-                     const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
-  std::function<bool(int,
-                     const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> match_callback){
+  std::function<bool(int, const Match<QueryGraph, TargetGraph>&)> prune_callback,
+  std::function<bool(int, const Match<QueryGraph, TargetGraph>&)> match_callback){
 
   using PcmTreeVertexHandle = typename VertexHandle<PatternTree>::type;
   using   QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using  TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
   using CandidateSetType = std::map<QueryVertexHandle,
-       
                        std::vector<TargetVertexHandle>>;
 
   using MatchMap = std::map<QueryVertexHandle,
                            TargetVertexHandle>;
+
+  using MatchType = Match<QueryGraph,
+                         TargetGraph>;
 
   using MatchPatternToPatternType   = Match<QueryGraph,  QueryGraph>;
   using MatchPatternToDataGraphType = Match<QueryGraph, TargetGraph>;
@@ -1351,11 +1349,12 @@ bool MatchFromParentToChild(
   // for each pattern, 
   // the current match need to be prune if and only if the prune_callback
   // of it and all its children return true
-  auto current_pattern_prune_callback 
+  std::function<bool(const GUNDAM::Match<QueryGraph, TargetGraph>&)>
+       current_pattern_prune_callback 
    = [&current_pattern_handle,
       &call_match_callback,
-             &prune_callback,
-             &pcm_tree](const MatchMap& match) -> bool {
+           &prune_callback,
+           &pcm_tree](const MatchType& match) -> bool {
     // one-direction bfs at this vertex, if meet one prune_callback return false,
     // then end matching
     bool all_prune_return_true = true;
@@ -1405,7 +1404,8 @@ bool MatchFromParentToChild(
   // if the match callback for this pattern has already been marked
   // as false, then do not call the match callback for this pattern
   // and only all the child pattern that has not been marked as false
-  auto current_pattern_match_callback 
+  std::function<bool(const GUNDAM::Match<QueryGraph, TargetGraph>&)>
+       current_pattern_match_callback 
    = [&current_pattern_idx,
       &current_pattern_handle,
         &candidate_set_list,
@@ -1418,7 +1418,7 @@ bool MatchFromParentToChild(
         &additional_call_child_pattern_match_callback,
         &target_graph,
         &prune_callback,
-        &match_callback](const MatchMap& match) -> bool {
+        &match_callback](const MatchType& parent_to_target_graph_match) -> bool {
 
     // std::cout << "## match ##" << std::endl;
     // std::cout << "current_pattern_handle->id().first: "
@@ -1446,7 +1446,7 @@ bool MatchFromParentToChild(
     if (current_pattern_idx.second // the order cannot be changed
      && call_match_callback[current_pattern_idx.first]){
         call_match_callback[current_pattern_idx.first]
-           = match_callback(current_pattern_idx.first, match);
+           = match_callback(current_pattern_idx.first, parent_to_target_graph_match);
     }
 
     bool all_child_pattern_need_to_be_called = false;
@@ -1481,11 +1481,6 @@ bool MatchFromParentToChild(
 
       MatchPatternToPatternType child_to_parent_match 
              = GetMatchToParent<QueryGraph>(child_handle);
-
-      MatchPatternToDataGraphType parent_to_target_graph_match;
-      for (auto& map : match){
-        parent_to_target_graph_match.AddMap(map.first, map.second);
-      }
 
       MatchPatternToDataGraphType child_to_target_graph_partial_match
                                = parent_to_target_graph_match(
@@ -1604,12 +1599,8 @@ inline void MultiQueryMatch(
                     QueryGraph& common_graph,
   std::vector<Match<QueryGraph,
                     QueryGraph>>& paritial_match_to_common_graph_list,
-  std::function<bool(int,
-                     const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
-  std::function<bool(int,
-                     const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
+  std::function<bool(int, const Match<QueryGraph, TargetGraph>&)> prune_callback,
+  std::function<bool(int, const Match<QueryGraph, TargetGraph>&)> match_callback,
    double time_limit = -1.0) {
 
   using VertexIDType = uint32_t;
@@ -1738,13 +1729,9 @@ template <enum MatchSemantics match_semantics
           typename TargetGraph>
 inline void MultiQueryMatch(
   QueryGraphContainerType<QueryGraph>&  query_graph_list,
-             TargetGraph & target_graph,
-  std::function<bool(int,
-                     const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
-  std::function<bool(int,
-                     const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
+                         TargetGraph & target_graph,
+  const std::function<bool(int, const Match<QueryGraph, TargetGraph>&)>& prune_callback,
+  const std::function<bool(int, const Match<QueryGraph, TargetGraph>&)>& match_callback,
    double time_limit = -1.0) {
 
   using VertexIDType = uint32_t;

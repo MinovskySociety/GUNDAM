@@ -18,9 +18,10 @@
 namespace GUNDAM {
 
 template <typename SrcGraphType,
-          typename DstGraphType,
-          enum ContainerType map_container_type = ContainerType::Vector,
-          enum SortType map_container_sort_type = SortType::Default>
+          typename DstGraphType//,
+          // enum ContainerType map_container_type = ContainerType::Vector,
+          // enum SortType map_container_sort_type = SortType::Default
+          >
 class Match;
 
 /// can be configured to much different type
@@ -29,16 +30,21 @@ class Match;
 /// non-constant src graph to     constant dst graph
 /// non-constant src graph to non-constant dst graph
 template <typename SrcGraphType,
-          typename DstGraphType,
-          enum ContainerType map_container_type,
-          enum SortType map_container_sort_type>
+          typename DstGraphType//,
+          // enum ContainerType map_container_type,
+          // enum SortType map_container_sort_type
+          >
 class Match {
  private:
   template <typename _SrcGraphType,
-            typename _DstGraphType,
-            enum ContainerType _map_container_type,
-            enum      SortType _map_container_sort_type>
+            typename _DstGraphType//,
+            // enum ContainerType _map_container_type,
+            // enum      SortType _map_container_sort_type
+            >
   friend class Match;
+
+  static constexpr enum ContainerType map_container_type = ContainerType::Vector;
+  static constexpr enum SortType map_container_sort_type = SortType::Default;
 
   using SrcVertexIDType     = typename SrcGraphType ::VertexType ::IDType;
   using SrcVertexHandleType = typename VertexHandle<SrcGraphType>::type;
@@ -355,15 +361,6 @@ class Match {
     assert(result.size() <= match0.size());
     return result;
   }
-
-  template<typename SrcSrcGraphType>
-  inline Match<SrcSrcGraphType,
-                  DstGraphType> operator()(const Match<SrcSrcGraphType,
-                                                          SrcGraphType&>& match0) const{
-    const Match<SrcSrcGraphType,
-                   SrcGraphType>& temp_match = match0;
-    return (*this)(temp_match);
-  }
 };
 
 template <typename SrcGraphType,
@@ -371,20 +368,23 @@ template <typename SrcGraphType,
 Match(SrcGraphType& src_graph,
       DstGraphType& dst_graph) 
    -> Match<SrcGraphType,
-            DstGraphType,
-           ContainerType::Vector,
-                SortType::Default>;
+            DstGraphType//,
+          //  ContainerType::Vector,
+          //       SortType::Default
+                >;
 
 template <typename SrcGraphType,
-          typename DstGraphType,
-          enum ContainerType match_container_type = ContainerType::Vector,
-          enum SortType match_container_sort_type = SortType::Default>
+          typename DstGraphType//,
+          // enum ContainerType match_container_type = ContainerType::Vector,
+          // enum SortType match_container_sort_type = SortType::Default
+          >
 class MatchSet;
 
 template <typename SrcGraphType, 
-          typename DstGraphType,
-          enum ContainerType match_container_type,
-          enum SortType match_container_sort_type>
+          typename DstGraphType//,
+          // enum ContainerType match_container_type,
+          // enum SortType match_container_sort_type
+          >
 class MatchSet {
  private:
   using SrcVertexHandleType = typename VertexHandle<SrcGraphType>::type;
@@ -397,6 +397,9 @@ class MatchSet {
   using MatchType = Match<SrcGraphType, DstGraphType>;
 
  private:
+  static constexpr enum ContainerType match_container_type = ContainerType::Vector;
+  static constexpr enum SortType match_container_sort_type = SortType::Default;
+
   static constexpr TupleIdxType kMatchIdx = 0;
   using MatchContainerType = Container<match_container_type, 
                                        match_container_sort_type, 
@@ -618,9 +621,10 @@ template <typename SrcGraphType,
 MatchSet(SrcGraphType& src_graph,
          DstGraphType& dst_graph)
    -> MatchSet<SrcGraphType,
-               DstGraphType,
-              ContainerType::Vector,
-                   SortType::Default>;
+               DstGraphType//,
+              // ContainerType::Vector,
+              //      SortType::Default
+                   >;
 
 template <typename SrcGraphType,
           typename DstGraphType>
@@ -628,9 +632,10 @@ MatchSet(SrcGraphType& src_graph,
          DstGraphType& dst_graph,
         std::ifstream& supp_file)
    -> MatchSet<SrcGraphType,
-               DstGraphType,
-              ContainerType::Vector,
-                   SortType::Default>;
+               DstGraphType//,
+              // ContainerType::Vector,
+              //      SortType::Default
+                   >;
                    
 }  // namespace GUNDAM
 

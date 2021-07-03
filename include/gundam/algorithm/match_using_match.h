@@ -144,10 +144,8 @@ inline size_t MatchUsingMatch(
              TargetGraph>& partial_match,
   const std::map<typename VertexHandle< QueryGraph>::type,
      std::vector<typename VertexHandle<TargetGraph>::type>>& candidate_set,
-  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
-  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
+  const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& prune_callback,
+  const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& match_callback,
    double time_limit = -1.0) {
 
   using namespace _match_using_match;
@@ -160,6 +158,28 @@ inline size_t MatchUsingMatch(
 
   using MatchMap = std::map<QueryVertexHandle, 
                            TargetVertexHandle>;
+
+  using MatchType = Match<QueryGraph, TargetGraph>;
+
+  auto prune_callback_using_map 
+   = [&prune_callback](const MatchMap& match_state) -> bool {
+    Match<QueryGraph, TargetGraph> match;
+    for (const auto& map : match_state){
+      auto ret = match.AddMap(map.first, map.second);
+      assert(ret);
+    }
+    return prune_callback(match);
+  };
+
+  auto match_callback_using_map 
+   = [&match_callback](const MatchMap& match_state) -> bool {
+    Match<QueryGraph, TargetGraph> match;
+    for (const auto& map : match_state){
+      auto ret = match.AddMap(map.first, map.second);
+      assert(ret);
+    }
+    return match_callback(match);
+  };
 
   using CandidateSetType = std::map<typename VertexHandle< QueryGraph>::type,
                         std::vector<typename VertexHandle<TargetGraph>::type>>;
@@ -200,39 +220,36 @@ inline size_t MatchUsingMatch(
     if (query_graph_removed.CountVertex()
               < query_graph.CountVertex()) {
       // have vertex to merge
-      Match query_graph_removed_to_query_graph(
-            query_graph_removed,   query_graph,
-            "same_id_map");
+      Match<QueryGraph,
+            QueryGraph> query_graph_removed_to_query_graph(
+                        query_graph_removed,   query_graph,
+                        "same_id_map");
 
-      auto prune_callback_from_removed 
+      std::function<bool(const MatchType&)> 
+           prune_callback_from_removed 
        = [&prune_callback,
           &query_graph_removed_to_query_graph](
-            const MatchMap& match_state_from_removed){
-        MatchMap match_from_query_graph;
-        for (const auto& map_from_removed
-               : match_state_from_removed) {
-          auto [match_from_query_graph_it,
-                match_from_query_graph_ret]
-              = match_from_query_graph.emplace(
-                           query_graph_removed_to_query_graph
-                       .MapTo(map_from_removed.first),
-                              map_from_removed.second);
-          assert(match_from_query_graph_ret);
-        }
+            const MatchType& match_state_from_removed){
+        MatchType match_from_query_graph 
+                = match_state_from_removed(
+          query_graph_removed_to_query_graph.Reverse());
+             
         return prune_callback(match_from_query_graph);
       };
 
       bool match_callback_return = true;
-      auto match_callback_save_return 
+      std::function<bool(const MatchType&)> 
+           match_callback_save_return 
        = [&match_callback,
-          &match_callback_return](const MatchMap& match_state_from_query_graph){
+          &match_callback_return](const MatchType& match_state_from_query_graph){
         match_callback_return = match_callback(match_state_from_query_graph);
         return match_callback_return;
       };
 
       size_t match_counter = 0;
 
-      auto match_callback_from_removed 
+      std::function<bool(const MatchType&)> 
+           match_callback_from_removed 
        = [&prune_callback,
           &match_callback_save_return,
           &match_callback_return,
@@ -242,18 +259,9 @@ inline size_t MatchUsingMatch(
            &query_graph_removed_to_query_graph,
           &candidate_set,
           &time_limit](
-            const MatchMap& match_state_from_removed){
-        Match<QueryGraph,
-             TargetGraph> partial_match_from_query_graph;
+            const MatchType& partial_match_from_query_graph){
 
-        for (const auto& map_it : match_state_from_removed ){
-          auto query_handle = query_graph_removed_to_query_graph.MapTo(map_it.first);
-          assert(query_handle);
-          partial_match_from_query_graph.AddMap(query_handle,
-                                                map_it.second);
-        }
-
-        CandidateSetType candidate_set_from_query_graph = candidate_set;
+        const CandidateSetType& candidate_set_from_query_graph = candidate_set;
 
         match_counter += MatchUsingMatch<match_semantics,
                                          match_algorithm,
@@ -285,10 +293,9 @@ inline size_t MatchUsingMatch(
         assert(match_state.size() == partial_match.size());
       }
 
-      Match<QueryGraph,
-           TargetGraph> partial_match_from_removed
-                      = partial_match(
-                               query_graph_removed_to_query_graph);
+      MatchType partial_match_from_removed
+              = partial_match(
+                       query_graph_removed_to_query_graph);
 
       CandidateSetType candidate_set_from_removed;
 
@@ -347,24 +354,24 @@ inline size_t MatchUsingMatch(
                       target_graph,
                       temp_candidate_set, 
                         match_state, 
-                        match_callback, 
-                        prune_callback, 
+                        match_callback_using_map,
+                        prune_callback_using_map,
                         time_limit);
   }
   else if constexpr (match_algorithm
                    == MatchAlgorithm::kVf2) {
     size_t match_counter = 0;
-    auto user_callback 
-    = [&prune_callback,
-       &match_callback,
+    auto user_callback_using_map
+    = [&prune_callback_using_map,
+       &match_callback_using_map,
        &match_counter](const MatchMap& match_state){
-      if (prune_callback(match_state)){
+      if (prune_callback_using_map(match_state)){
         // should have been pruned before, should not call this match_state
         // at begin
         return true;
       }
       match_counter++;
-      return match_callback(match_state);
+      return match_callback_using_map(match_state);
     };
 
     VF2(query_graph, 
@@ -373,7 +380,7 @@ inline size_t MatchUsingMatch(
         match_state,
       _vf2::LabelEqual<QueryEdgeHandle, 
                       TargetEdgeHandle>(), 
-       user_callback);
+       user_callback_using_map);
     return match_counter;
   }
   else{
@@ -397,16 +404,11 @@ template <enum MatchSemantics match_semantics
 inline size_t MatchUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
-  const std::map<typename VertexHandle<QueryGraph>::type, 
-            std::vector<typename VertexHandle<TargetGraph>::type>>& candidate_set,
-  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
-  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
+  const std::map<typename VertexHandle< QueryGraph>::type, 
+     std::vector<typename VertexHandle<TargetGraph>::type>>& candidate_set,
+  const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& prune_callback,
+  const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& match_callback,
    double time_limit = -1.0) {
-
-  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
-  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
   Match<QueryGraph, TargetGraph> match_state;
 
@@ -435,10 +437,8 @@ inline size_t MatchUsingMatch(
        TargetGraph& target_graph,
   const Match<QueryGraph, 
              TargetGraph>& partial_match,
-  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
-  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
+  const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& prune_callback,
+  const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& match_callback,
    double time_limit = -1.0) {
 
   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
@@ -482,26 +482,23 @@ template <enum MatchSemantics match_semantics
 inline size_t MatchUsingMatch(
         QueryGraph&  query_graph,
        TargetGraph& target_graph,
-  const Match<QueryGraph, 
-             TargetGraph>& partial_match,
+  const Match<QueryGraph, TargetGraph>& partial_match,
    int64_t max_match = -1,
    double time_limit = -1.0) {
+                           
+  using MatchType = Match<QueryGraph, TargetGraph>;
 
-  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
-  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
-
-  using MatchMap = std::map<QueryVertexHandle, 
-                           TargetVertexHandle>;
-
-  auto prune_callback = [](const MatchMap& match){
+  std::function<bool(const MatchType&)>
+    prune_callback = [](const MatchType& match) -> bool{
     // prune nothing, continue matching
     return false;
   };
 
   int64_t match_counter = 0;
 
-  auto match_callback = [&max_match,
-                         &match_counter](const MatchMap& match){
+  std::function<bool(const MatchType&)>
+    match_callback = [&max_match,
+                      &match_counter](const MatchType& match) -> bool {
     if (max_match == -1) {
       // does not have support nothing
       // do nothing continue matching
@@ -538,14 +535,9 @@ template <enum MatchSemantics match_semantics
 inline size_t MatchUsingMatch(
         QueryGraph&  query_graph,
        TargetGraph& target_graph,
-  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> prune_callback,
-  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
+  const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& prune_callback,
+  const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& match_callback,
    double time_limit = -1.0) {
-
-  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
-  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 
   Match<QueryGraph, TargetGraph> partial_match;
 
@@ -574,21 +566,19 @@ inline size_t MatchUsingMatch(
    int64_t max_match = -1,
    double time_limit = -1.0) {
 
-  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
-  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
+  using MatchType = Match<QueryGraph, TargetGraph>;
 
-  using MatchMap = std::map<QueryVertexHandle, 
-                           TargetVertexHandle>;
-
-  auto prune_callback = [](const MatchMap& match){
+  std::function<bool(const MatchType&)>
+    prune_callback = [](const MatchType& match) -> bool{
     // prune nothing, continue matching
     return false;
   };
 
   int64_t match_counter = 0;
 
-  auto match_callback = [&max_match,
-                         &match_counter](const MatchMap& match){
+  std::function<bool(const MatchType&)>
+    match_callback = [&max_match,
+                      &match_counter](const MatchType& match) -> bool{
     if (max_match == -1) {
       // does not have support nothing
       // do nothing continue matching
@@ -604,7 +594,7 @@ inline size_t MatchUsingMatch(
   };
 
   // the initial partial match is empty
-  Match<QueryGraph, TargetGraph> match_state;
+  MatchType match_state;
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
@@ -628,32 +618,24 @@ template <enum MatchSemantics match_semantics
 inline size_t MatchUsingMatch(
    QueryGraph&  query_graph, 
   TargetGraph& target_graph,
-  const Match<QueryGraph, 
-             TargetGraph>& partial_match,
-     MatchSet<QueryGraph, 
-             TargetGraph>& match_result,
+  const Match<QueryGraph, TargetGraph>& partial_match,
+     MatchSet<QueryGraph, TargetGraph>& match_result,
    int64_t max_match = -1,
    double time_limit = -1.0){
 
-  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
-  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
+  using MatchType = Match<QueryGraph, TargetGraph>;
 
-  using MatchMap = std::map<QueryVertexHandle, 
-                           TargetVertexHandle>;
-
-  auto prune_callback = [](const MatchMap& match){
+  std::function<bool(const MatchType&)>
+    prune_callback = [](const MatchType& match){
     // prune nothing, continue matching
     return false;
   };
 
-  auto match_callback = [&match_result,
-                         &max_match](const MatchMap& match){
+  std::function<bool(const MatchType&)>
+    match_callback = [&match_result,
+                         &max_match](const MatchType& match){
     // add this match to match_result, continue matching
-    Match<QueryGraph, TargetGraph> new_match;
-    for (const auto& map : match){
-      new_match.AddMap(map.first, map.second);
-    }
-    match_result.AddMatch(new_match);
+    match_result.AddMatch(match);
     if ((max_match != -1) && (match_result.size() >= max_match)){
       // reach max match, end matching
       return false;
@@ -685,25 +667,21 @@ inline size_t MatchUsingMatch(
    int64_t max_match = -1,
    double time_limit = -1.0) {
 
-  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
-  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
+  using MatchType = Match<QueryGraph, TargetGraph>;
 
-  using MatchMap = std::map<QueryVertexHandle, 
-                           TargetVertexHandle>;
-
-  auto prune_callback = [](const MatchMap& match){
+  std::function<bool(const Match<QueryGraph, TargetGraph>&)>
+    prune_callback = [](const Match<QueryGraph, 
+                                   TargetGraph>& match) -> bool{
     // prune nothing, continue matching
     return false;
   };
 
-  auto match_callback = [&match_result,
-                         &max_match](const MatchMap& match){
+  std::function<bool(const Match<QueryGraph, TargetGraph>&)>
+    match_callback = [&match_result,
+                         &max_match](const Match<QueryGraph, 
+                                                TargetGraph>& match) -> bool{
     // add this match to match_result, continue matching
-    Match<QueryGraph, TargetGraph> new_match;
-    for (const auto& map : match){
-      new_match.AddMap(map.first, map.second);
-    }
-    match_result.AddMatch(new_match);
+    match_result.AddMatch(match);
     if ((max_match != -1) && (match_result.size() >= max_match)){
       // reach max match, end matching
       return false;
@@ -712,7 +690,7 @@ inline size_t MatchUsingMatch(
   };
 
   // the initial partial match is empty
-  Match<QueryGraph, TargetGraph> match_state;
+  MatchType match_state;
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
@@ -735,16 +713,36 @@ inline int IncrementalMatchUsingMatch(
                       QueryGraph &query_graph, 
                      TargetGraph &target_graph,
      std::vector<typename VertexHandle<TargetGraph>::type> &delta_target_graph,
-  std::function<bool(const std::map<typename VertexHandle< QueryGraph>::type, 
-                                    typename VertexHandle<TargetGraph>::type>&)> match_callback,
+         std::function<bool(const Match<QueryGraph, 
+                                       TargetGraph>&)> match_callback,
                            double query_limit_time = -1){
   static_assert(match_algorithm
              == MatchAlgorithm::kDagDp, "unsupported match algorithm for incremental match");
+
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
+
+  using MatchMap = std::map<QueryVertexHandle, 
+                           TargetVertexHandle>;
+
+  using MatchType = Match<QueryGraph, TargetGraph>;
+
+  auto match_callback_using_map 
+   = [&match_callback](const MatchMap& match) {
+    MatchType new_match;
+    for (const auto& map : match){
+      auto ret = new_match.AddMap(map.first, map.second);
+      // should added successfully
+      assert(ret);
+    }
+    return match_callback(new_match);
+  };
+
   return IncreamentDPISO<match_semantics>(
                          query_graph, 
                         target_graph,
                   delta_target_graph,
-                         match_callback,
+                         match_callback_using_map,
                          query_limit_time);
 }
 
