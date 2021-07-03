@@ -321,6 +321,7 @@ void TestGraphBase() {
 
   GUNDAM::GraphBase<GraphType> g1;
 
+  std::cout << "#############" << std::endl;
   for (auto vertex_it = g1.VertexBegin();
            !vertex_it.IsDone();
             vertex_it++){
@@ -328,6 +329,7 @@ void TestGraphBase() {
               << std::endl;
   }
 
+  std::cout << "#############" << std::endl;
   VertexLabelType vertex_label;
   for (auto vertex_it = g1.VertexBegin(vertex_label);
            !vertex_it.IsDone();
@@ -336,8 +338,17 @@ void TestGraphBase() {
                 << std::endl;
   }
 
+  std::cout << "#############" << std::endl;
+  for (auto edge_it = g1.EdgeBegin();
+           !edge_it.IsDone();
+            edge_it++){
+      std::cout << " edge id: " << edge_it->id()
+                << std::endl;
+  }
+
   const auto& g1_const = g1;
 
+  std::cout << "#############" << std::endl;
   for (auto vertex_it = g1_const.VertexBegin();
            !vertex_it.IsDone();
             vertex_it++){
@@ -345,11 +356,20 @@ void TestGraphBase() {
               << std::endl;
   }
 
+  std::cout << "#############" << std::endl;
   // VertexLabelType vertex_label;
   for (auto vertex_it = g1_const.VertexBegin(vertex_label);
             !vertex_it.IsDone();
             vertex_it++){
       std::cout << " vertex id: " << vertex_it->id()
+                << std::endl;
+  }
+
+  std::cout << "#############" << std::endl;
+  for (auto edge_it = g1_const.EdgeBegin();
+           !edge_it.IsDone();
+            edge_it++){
+      std::cout << " edge id: " << edge_it->id()
                 << std::endl;
   }
 

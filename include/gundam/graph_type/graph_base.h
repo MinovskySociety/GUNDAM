@@ -34,7 +34,7 @@ class GraphBase : protected ConcreteGraphType {
   class SpecifiedLabelVertexIterator{
    private:
     // if the vertex currently points to does not have the
-    // specified label, move to the spcifeid 
+    // specified label, move to the spcifeid  
     inline void MoveToSpecifiedLabel() {
       while (!this->vertex_iterator_.IsDone()) {
         if (this->vertex_iterator_->label() 
@@ -97,14 +97,97 @@ class GraphBase : protected ConcreteGraphType {
     VertexIteratorType vertex_iterator_;
   };
 
+  template<typename VertexIteratorType,
+           typename   EdgeIteratorType>
+  class GraphLevelEdgeIterator;
+
+  template<typename VertexIteratorType,
+           typename   EdgeIteratorType>
+  class GraphLevelEdgeIterator{
+   private:
+    // if the current edge is done, move to the 
+    // out edge iterator of next vertex
+    inline void MoveToNonIsDoneEdgeIterator() {
+      assert(!this->vertex_iterator_.IsDone());
+      while (this->edge_iterator_.IsDone()) {
+        assert(!this->vertex_iterator_.IsDone());
+        this->vertex_iterator_++;
+        if (this->vertex_iterator_.IsDone()){
+          // has visited all edges in this graph
+          assert(this->IsDone());
+          return;
+        }
+        assert(!this->vertex_iterator_.IsDone());
+        this->edge_iterator_ = this->vertex_iterator_->OutEdgeBegin();
+      }
+      assert(!this->IsDone());
+      assert(!this->edge_iterator_.IsDone());
+      return;
+    }
+    
+   public:
+    GraphLevelEdgeIterator(
+      const VertexIteratorType& vertex_iterator)
+             : vertex_iterator_(vertex_iterator),
+                 edge_iterator_(){
+      assert(this->edge_iterator_.IsDone());
+      assert(this->IsDone());
+      if (this->vertex_iterator_.IsDone()) {
+        assert(this->IsDone());
+        return;
+      }
+      assert(!this->vertex_iterator_.IsDone());
+      this->edge_iterator_ = this->vertex_iterator_->OutEdgeBegin();
+      this->MoveToNonIsDoneEdgeIterator();
+      return;
+    }
+
+    inline GraphLevelEdgeIterator operator++() {
+      /// prefix
+      assert(!this->IsDone());
+      assert(!this->vertex_iterator_.IsDone());
+      this->edge_iterator_++;
+      this->MoveToNonIsDoneEdgeIterator();
+      return *this;
+    }
+    
+    inline GraphLevelEdgeIterator operator++(int) {
+      /// postfix
+      assert(!this->IsDone());
+      assert(!this->vertex_iterator_.IsDone());
+      GraphLevelEdgeIterator temp(*this);
+      this->edge_iterator_++;
+      this->MoveToNonIsDoneEdgeIterator();
+      return temp;
+    }
+
+    inline auto& operator->() {
+      assert(!this->IsDone());
+      return this->edge_iterator_;
+    }
+
+    inline auto& operator->() const {
+      assert(!this->IsDone());
+      return this->edge_iterator_;
+    }
+        
+    inline bool IsDone() const {
+      return this->edge_iterator_.IsDone();
+    }
+
+   private:
+    VertexIteratorType vertex_iterator_;
+      EdgeIteratorType   edge_iterator_;
+  };
+
  public:
   // use the construct method for the concrete graph type
   using ConcreteGraphType::ConcreteGraphType;
 
+  // such a vertex must be provided by concrete graph type
   inline auto VertexBegin(){
     return ConcreteGraphType::VertexBegin();
   }
-
   inline auto VertexBegin() const {
     return ConcreteGraphType::VertexBegin();
   }  
@@ -131,14 +214,57 @@ class GraphBase : protected ConcreteGraphType {
   template <bool judge = GraphParameter<ConcreteGraphType>::graph_level_vertex_label_index,
             std::enable_if_t<!judge, bool> = false>
   inline auto VertexBegin(const VertexLabelType& vertex_label) {
+    static_assert(judge == GraphParameter<ConcreteGraphType>::graph_level_vertex_label_index, 
+                 "illegal usage of this method");
     return SpecifiedLabelVertexIterator<decltype(ConcreteGraphType::VertexBegin())>(
                                    vertex_label, ConcreteGraphType::VertexBegin());
   }
   template <bool judge = GraphParameter<ConcreteGraphType>::graph_level_vertex_label_index,
             std::enable_if_t<!judge, bool> = false>
   inline auto VertexBegin(const VertexLabelType& vertex_label) const {
+    static_assert(judge == GraphParameter<ConcreteGraphType>::graph_level_vertex_label_index, 
+                 "illegal usage of this method");
     return SpecifiedLabelVertexIterator<decltype(ConcreteGraphType::VertexBegin())>(
                                    vertex_label, ConcreteGraphType::VertexBegin());
+  }
+
+  // graph provides the graph level edge iterator
+  template <bool judge = GraphParameter<ConcreteGraphType>::graph_level_edge_iterator,
+            std::enable_if_t<judge, bool> = false>
+  inline auto EdgeBegin() {
+    static_assert(judge == GraphParameter<ConcreteGraphType>::graph_level_edge_iterator, 
+                 "illegal usage of this method");
+    return ConcreteGraphType::EdgeBegin();
+  }
+  template <bool judge = GraphParameter<ConcreteGraphType>::graph_level_edge_iterator,
+            std::enable_if_t<judge, bool> = false>
+  inline auto EdgeBegin() const  {
+    static_assert(judge == GraphParameter<ConcreteGraphType>::graph_level_edge_iterator, 
+                 "illegal usage of this method");
+    return ConcreteGraphType::EdgeBegin();
+  }
+
+  // graph does not provides the graph level edge iterator
+  // use the encapsulation iterator 
+  template <bool judge = GraphParameter<ConcreteGraphType>::graph_level_edge_iterator,
+            std::enable_if_t<!judge, bool> = false>
+  inline auto EdgeBegin() {
+    static_assert(judge == GraphParameter<ConcreteGraphType>::graph_level_edge_iterator, 
+                 "illegal usage of this method");
+    auto vertex_iterator = ConcreteGraphType::VertexBegin();
+    return GraphLevelEdgeIterator<decltype(ConcreteGraphType::VertexBegin()),
+                                  decltype( vertex_iterator->OutEdgeBegin())>(
+                                           ConcreteGraphType::VertexBegin());
+  }
+  template <bool judge = GraphParameter<ConcreteGraphType>::graph_level_edge_iterator,
+            std::enable_if_t<!judge, bool> = false>
+  inline auto EdgeBegin() const  {
+    static_assert(judge == GraphParameter<ConcreteGraphType>::graph_level_edge_iterator, 
+                 "illegal usage of this method");
+    auto vertex_iterator = ConcreteGraphType::VertexBegin();
+    return GraphLevelEdgeIterator<decltype(ConcreteGraphType::VertexBegin()),
+                                  decltype( vertex_iterator->OutEdgeBegin())>(
+                                           ConcreteGraphType::VertexBegin());
   }
 
   // inline std::enable_if_t<ConcreteGraphType::graph_level_count_vertex, bool>

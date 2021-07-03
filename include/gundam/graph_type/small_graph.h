@@ -28,8 +28,8 @@ template <class VertexIDType, class VertexLabelType,
           class   EdgeIDType, class   EdgeLabelType>
 class SmallGraph;
 
-template <class VertexIDType, class VertexLabelType, class EdgeIDType,
-          class EdgeLabelType>
+template <class VertexIDType, class VertexLabelType, 
+          class   EdgeIDType, class   EdgeLabelType>
 class SmallGraph {
  public:
   class _GraphParameter : public GraphParameterBase {
@@ -37,6 +37,8 @@ class SmallGraph {
     static constexpr bool graph_level_vertex_label_index = false;
 
     static constexpr bool vertex_level_edge_label_index = false;
+    
+    static constexpr bool graph_level_edge_iterator = true;
   };
 
   // friend class GraphParameter<SmallGraph>;
