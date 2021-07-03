@@ -36,6 +36,8 @@ class LargeGraph2 {
     static constexpr bool vertex_level_edge_label_index = true;
 
     static constexpr bool graph_level_edge_iterator = true;
+
+    static constexpr bool graph_level_count_vertex = true;
   };
 
   // friend class GraphParameter<LargeGraph2>;

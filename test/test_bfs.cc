@@ -5,6 +5,7 @@
 
 #include "gundam/algorithm/bfs.h"
 
+#include "gundam/graph_type/graph_base.h"
 #include "gundam/graph_type/small_graph.h"
 #include "gundam/graph_type/large_graph.h"
 #include "gundam/graph_type/large_graph2.h"
@@ -507,4 +508,12 @@ TEST(TestGUNDAM, TestBfs) {
   TestBfs<G5>();
   TestBfs<G6>();
   TestBfs<G7>();
+
+  TestBfs<GraphBase<G1>>();
+  TestBfs<GraphBase<G2>>();
+  TestBfs<GraphBase<G3>>();
+  TestBfs<GraphBase<G4>>();
+  TestBfs<GraphBase<G5>>();
+  TestBfs<GraphBase<G6>>();
+  TestBfs<GraphBase<G7>>();
 }

@@ -5,6 +5,7 @@
 
 #include "gundam/algorithm/bfs_limit_width.h"
 
+#include "gundam/graph_type/graph_base.h"
 #include "gundam/graph_type/small_graph.h"
 #include "gundam/graph_type/large_graph.h"
 #include "gundam/graph_type/large_graph2.h"
@@ -507,4 +508,12 @@ TEST(TestGUNDAM, TestBfsLimitWidth) {
   TestBfsLimitWidth<G5>();
   TestBfsLimitWidth<G6>();
   TestBfsLimitWidth<G7>();
+
+  TestBfsLimitWidth<GraphBase<G1>>();
+  TestBfsLimitWidth<GraphBase<G2>>();
+  TestBfsLimitWidth<GraphBase<G3>>();
+  TestBfsLimitWidth<GraphBase<G4>>();
+  TestBfsLimitWidth<GraphBase<G5>>();
+  TestBfsLimitWidth<GraphBase<G6>>();
+  TestBfsLimitWidth<GraphBase<G7>>();
 }

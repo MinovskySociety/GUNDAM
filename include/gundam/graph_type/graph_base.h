@@ -23,6 +23,8 @@ class GraphBase : protected ConcreteGraphType {
   using VertexType = typename ConcreteGraphType::VertexType;
   using   EdgeType = typename ConcreteGraphType::  EdgeType;
 
+  using VertexCounterType = typename ConcreteGraphType::VertexCounterType;
+
  private:
   using VertexLabelType = typename VertexType::LabelType;
   using   EdgeLabelType = typename   EdgeType::LabelType;
@@ -229,6 +231,10 @@ class GraphBase : protected ConcreteGraphType {
   inline auto FindVertex(const VertexIDType &id) const {
     return ConcreteGraphType::FindVertex(id);
   }
+  inline void Clear() {
+    ConcreteGraphType::Clear();
+    return;
+  }
 
   // the concrete graph type has index for vertex label,
   // can provide a more efficiency method
@@ -305,10 +311,21 @@ class GraphBase : protected ConcreteGraphType {
                                            ConcreteGraphType::VertexBegin());
   }
 
-  // inline std::enable_if_t<ConcreteGraphType::graph_level_count_vertex, bool>
-  // CountVertex() const {
-  //   return ConcreteGraphType::CountVertex();
-  // }
+  // the concrete graph type provides CountVertex method,
+  // can provide a more efficiency method
+  template <bool judge = GraphParameter<ConcreteGraphType>::graph_level_count_vertex,
+            std::enable_if_t<judge, bool> = false>
+  inline auto CountVertex() const {
+    return ConcreteGraphType::CountVertex();
+  }
+
+  // the concrete graph type provides CountEdge method,
+  // can provide a more efficiency method
+  template <bool judge = GraphParameter<ConcreteGraphType>::graph_level_count_edge,
+            std::enable_if_t<judge, bool> = false>
+  inline auto CountEdge() const {
+    return ConcreteGraphType::CountEdge();
+  }
 
   // inline std::enable_if_t<ConcreteGraphType::graph_level_count_vertex
   //                      && GraphParameter<ConcreteGraphType>::graph_level_vertex_label_index, bool>

@@ -47,6 +47,8 @@ class Graph {
     static constexpr bool graph_level_vertex_label_index = true;
 
     static constexpr bool vertex_level_edge_label_index = true;
+
+    static constexpr bool graph_level_count_vertex = true;
   };
 
   // friend class GraphParameter<Graph>;

@@ -5,6 +5,7 @@
 
 #include "gundam/tool/connected.h"
 
+#include "gundam/graph_type/graph_base.h"
 #include "gundam/graph_type/small_graph.h"
 #include "gundam/graph_type/large_graph.h"
 #include "gundam/graph_type/large_graph2.h"
@@ -22,6 +23,8 @@ void TestConnected(){
   // 7 <- 6 <- 5
 
   GraphType g0;
+
+  std::cout << "GraphType: " << typeid(g0).name() << std::endl;
 
   // AddVertex
   auto res1 = g0.AddVertex(1, 0);
@@ -274,4 +277,12 @@ TEST(TestGUNDAM, TestConnected) {
   TestConnected<G5>();
   TestConnected<G6>();
   TestConnected<G7>();
+
+  TestConnected<GraphBase<G1>>();
+  TestConnected<GraphBase<G2>>();
+  TestConnected<GraphBase<G3>>();
+  TestConnected<GraphBase<G4>>();
+  TestConnected<GraphBase<G5>>();
+  TestConnected<GraphBase<G6>>();
+  TestConnected<GraphBase<G7>>();
 }

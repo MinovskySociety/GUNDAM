@@ -4,6 +4,8 @@
 
 #include "gtest/gtest.h"
 #include "gundam/component/util.h"
+
+#include "gundam/graph_type/graph_base.h"
 #include "gundam/graph_type/graph.h"
 #include "gundam/graph_type/large_graph.h"
 #include "gundam/graph_type/large_graph2.h"
@@ -637,6 +639,14 @@ TEST(TestGUNDAM, ReadCSVGraph) {
   TestCsvGraph<G6>();
   TestCsvGraph<G7>();
 
+  TestCsvGraph<GraphBase<G1>>();
+  TestCsvGraph<GraphBase<G2>>();
+  TestCsvGraph<GraphBase<G3>>();
+  TestCsvGraph<GraphBase<G4>>();
+  TestCsvGraph<GraphBase<G5>>();
+  TestCsvGraph<GraphBase<G6>>();
+  TestCsvGraph<GraphBase<G7>>();
+
   TestCsvGraphSet<G1>();
   TestCsvGraphSet<G2>();
   TestCsvGraphSet<G3>();
@@ -644,6 +654,14 @@ TEST(TestGUNDAM, ReadCSVGraph) {
   TestCsvGraphSet<G5>();
   TestCsvGraphSet<G6>();
   TestCsvGraphSet<G7>();
+
+  TestCsvGraphSet<GraphBase<G1>>();
+  TestCsvGraphSet<GraphBase<G2>>();
+  TestCsvGraphSet<GraphBase<G3>>();
+  TestCsvGraphSet<GraphBase<G4>>();
+  TestCsvGraphSet<GraphBase<G5>>();
+  TestCsvGraphSet<GraphBase<G6>>();
+  TestCsvGraphSet<GraphBase<G7>>();
 }
 
 // template <class GraphType>

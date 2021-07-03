@@ -7,7 +7,6 @@
 #include "gundam/type_getter/edge_handle.h"
 
 #include "gundam/graph_type/graph_base.h"
-
 #include "gundam/graph_type/graph.h"
 #include "gundam/graph_type/large_graph.h"
 #include "gundam/graph_type/large_graph2.h"
