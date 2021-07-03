@@ -180,16 +180,18 @@ inline size_t MatchUsingMatch(
   }
   #endif // NDEBUG
 
-  CandidateSetType refined_candidate_set = candidate_set;
-  if (!partial_match.empty()) {
-    if (!GUNDAM::_dp_iso::RefineCandidateSet(
-                   query_graph,
-                  target_graph,
-                  refined_candidate_set,
-                  partial_match)) {
-      return 0;
-    }
-  }
+  // refine at each partial match could slow the matching algorithem
+  // CandidateSetType refined_candidate_set 
+  //                        = candidate_set;
+  // if (!partial_match.empty()) {
+  //   if (!GUNDAM::_dp_iso::RefineCandidateSet(
+  //                  query_graph,
+  //                 target_graph,
+  //                 refined_candidate_set,
+  //                 partial_match)) {
+  //     return 0;
+  //   }
+  // }
 
   if (merge_nec_config == MergeNecConfig::kMerge
    ||(merge_nec_config == MergeNecConfig::kAdaptive
@@ -238,7 +240,7 @@ inline size_t MatchUsingMatch(
           &target_graph,
            &query_graph,
            &query_graph_removed_to_query_graph,
-          &refined_candidate_set,
+          &candidate_set,
           &time_limit](
             const MatchMap& match_state_from_removed){
         Match<QueryGraph,
@@ -251,7 +253,7 @@ inline size_t MatchUsingMatch(
                                                 map_it.second);
         }
 
-        CandidateSetType candidate_set_from_query_graph = refined_candidate_set;
+        CandidateSetType candidate_set_from_query_graph = candidate_set;
 
         match_counter += MatchUsingMatch<match_semantics,
                                          match_algorithm,
@@ -294,7 +296,7 @@ inline size_t MatchUsingMatch(
             query_graph,   query_graph_removed,
             "same_id_map");
 
-      for (const auto& candidate_it : refined_candidate_set){
+      for (const auto& candidate_it : candidate_set){
         auto vertex_handle_in_removed 
                 = query_graph_to_query_graph_removed.MapTo(candidate_it.first);
         if (!vertex_handle_in_removed){
@@ -336,7 +338,7 @@ inline size_t MatchUsingMatch(
     assert(match_state.size() == partial_match.size());
   }
 
-  CandidateSetType temp_candidate_set = refined_candidate_set;
+  CandidateSetType temp_candidate_set = candidate_set;
 
   if constexpr (match_algorithm
               == MatchAlgorithm::kDagDp) {
