@@ -20,7 +20,9 @@ inline bool SubGraphOf(GraphType0& graph_0,
     return false;
   }
 
-  auto ret = GUNDAM::MatchUsingMatch(graph_0, graph_1, match_graph_0_to_graph_1, 1);
+  auto ret = GUNDAM::MatchUsingMatch<MatchSemantics::kIsomorphism,
+                                     MatchAlgorithm::kVf2,
+                                     MergeNecConfig::kNotMerge>(graph_0, graph_1, match_graph_0_to_graph_1, 1);
   assert(ret == 0 || ret == 1);
   if (ret == 0){
     return false;

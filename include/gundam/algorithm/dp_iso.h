@@ -1754,6 +1754,21 @@ inline int DPISO_Recursive(QueryGraph &query_graph, TargetGraph &target_graph,
                                           user_callback, nullptr, nullptr,
                                           query_limit_time);
 }
+
+template <class CandidateSetContainer, class Pivot>
+inline bool SuppUpdateCallBack(CandidateSetContainer &candidate_set,
+                               Pivot &supp_list) {
+  for (auto it = candidate_set.begin(); it != candidate_set.end();) {
+    if (std::find(std::begin(supp_list), std::end(supp_list), it->first) ==
+        std::end(supp_list)) {
+      it = candidate_set.erase(it);
+    } else {
+      it++;
+    }
+  }
+  return true;
+}
+
 }  // namespace _dp_iso
 
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
@@ -1918,20 +1933,6 @@ inline int DPISO(
       update_candidate_callback, query_limit_time);
 }
 
-template <class CandidateSetContainer, class Pivot>
-inline bool SuppUpdateCallBack(CandidateSetContainer &candidate_set,
-                               Pivot &supp_list) {
-  for (auto it = candidate_set.begin(); it != candidate_set.end();) {
-    if (std::find(std::begin(supp_list), std::end(supp_list), it->first) ==
-        std::end(supp_list)) {
-      it = candidate_set.erase(it);
-    } else {
-      it++;
-    }
-  }
-  return true;
-}
-
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
           typename QueryGraph, typename TargetGraph, class MatchCallback,
           class SuppContainer>
@@ -1946,7 +1947,7 @@ inline int DPISO(QueryGraph &query_graph, TargetGraph &target_graph,
       std::map<QueryVertexHandle, std::vector<TargetVertexHandle>>;
 
   auto update_callback =
-      std::bind(SuppUpdateCallBack<CandidateSetContainerType, SuppContainer>,
+      std::bind(_dp_iso::SuppUpdateCallBack<CandidateSetContainerType, SuppContainer>,
                 std::placeholders::_1, std::ref(supp_list));
 
   MatchResult supp_match;

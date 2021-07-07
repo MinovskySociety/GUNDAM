@@ -1,5 +1,5 @@
-#ifndef _GUNDAM_ALGORITHM_DPISO_USING_MATCH_H
-#define _GUNDAM_ALGORITHM_DPISO_USING_MATCH_H
+#ifndef _GUNDAM_ALGORITHM_MATCH_USING_MATCH_H
+#define _GUNDAM_ALGORITHM_MATCH_USING_MATCH_H
 #include <cassert>
 #include <cstdint>
 #include <ctime>
@@ -13,7 +13,7 @@
 #include <type_traits>
 #include <vector>
 
-#include "gundam/algorithm/dp_iso.h"
+#include "gundam/algorithm/dp_iso_using_match.h"
 #include "gundam/algorithm/vf2.h"
 
 #include "gundam/match/match.h"
@@ -161,26 +161,6 @@ inline size_t MatchUsingMatch(
 
   using MatchType = Match<QueryGraph, TargetGraph>;
 
-  auto prune_callback_using_map 
-   = [&prune_callback](const MatchMap& match_state) -> bool {
-    Match<QueryGraph, TargetGraph> match;
-    for (const auto& map : match_state){
-      auto ret = match.AddMap(map.first, map.second);
-      assert(ret);
-    }
-    return prune_callback(match);
-  };
-
-  auto match_callback_using_map 
-   = [&match_callback](const MatchMap& match_state) -> bool {
-    Match<QueryGraph, TargetGraph> match;
-    for (const auto& map : match_state){
-      auto ret = match.AddMap(map.first, map.second);
-      assert(ret);
-    }
-    return match_callback(match);
-  };
-
   using CandidateSetType = std::map<typename VertexHandle< QueryGraph>::type,
                         std::vector<typename VertexHandle<TargetGraph>::type>>;
   
@@ -204,7 +184,7 @@ inline size_t MatchUsingMatch(
   // CandidateSetType refined_candidate_set 
   //                        = candidate_set;
   // if (!partial_match.empty()) {
-  //   if (!GUNDAM::_dp_iso::RefineCandidateSet(
+  //   if (!GUNDAM::_dp_iso_using_match::RefineCandidateSet(
   //                  query_graph,
   //                 target_graph,
   //                 refined_candidate_set,
@@ -329,37 +309,56 @@ inline size_t MatchUsingMatch(
     }
   }
 
-  MatchMap match_state;
-  if (!partial_match.empty()){
-    for (auto vertex_it = query_graph.VertexBegin(); 
-             !vertex_it.IsDone();
-              vertex_it++) {
-      const QueryVertexHandle src_handle = vertex_it;
-      if (!partial_match.HasMap(src_handle)) {
-        continue;
-      }
-      const auto dst_handle = partial_match.MapTo(src_handle);
-      assert(dst_handle);
-      match_state.emplace(src_handle, dst_handle);
-    }
-    assert(match_state.size() == partial_match.size());
-  }
-
-  CandidateSetType temp_candidate_set = candidate_set;
-
   if constexpr (match_algorithm
               == MatchAlgorithm::kDagDp) {
-    return _dp_iso::DPISO_Recursive<match_semantics>(
+    return _dp_iso_using_match::DPISOUsingMatch_Recursive<match_semantics>(
                        query_graph,
                       target_graph,
-                      temp_candidate_set, 
-                        match_state, 
-                        match_callback_using_map,
-                        prune_callback_using_map,
+                        candidate_set, 
+                        partial_match, 
+                        match_callback,
+                        prune_callback,
                         time_limit);
   }
   else if constexpr (match_algorithm
                    == MatchAlgorithm::kVf2) {
+    auto prune_callback_using_map 
+    = [&prune_callback](const MatchMap& match_state) -> bool {
+      Match<QueryGraph, TargetGraph> match;
+      for (const auto& map : match_state){
+        auto ret = match.AddMap(map.first, map.second);
+        assert(ret);
+      }
+      return prune_callback(match);
+    };
+
+    auto match_callback_using_map 
+    = [&match_callback](const MatchMap& match_state) -> bool {
+      Match<QueryGraph, TargetGraph> match;
+      for (const auto& map : match_state){
+        auto ret = match.AddMap(map.first, map.second);
+        assert(ret);
+      }
+      return match_callback(match);
+    };
+    MatchMap match_state;
+    if (!partial_match.empty()){
+      for (auto vertex_it = query_graph.VertexBegin(); 
+               !vertex_it.IsDone();
+                vertex_it++) {
+        const QueryVertexHandle src_handle = vertex_it;
+        if (!partial_match.HasMap(src_handle)) {
+          continue;
+        }
+        const auto dst_handle = partial_match.MapTo(src_handle);
+        assert(dst_handle);
+        match_state.emplace(src_handle, dst_handle);
+      }
+      assert(match_state.size() == partial_match.size());
+    }
+
+    CandidateSetType temp_candidate_set = candidate_set;
+
     size_t match_counter = 0;
     auto user_callback_using_map
     = [&prune_callback_using_map,
@@ -448,12 +447,12 @@ inline size_t MatchUsingMatch(
                        std::vector<TargetVertexHandle>>;
 
   CandidateSetType candidate_set;
-  if (!_dp_iso::InitCandidateSet<match_semantics>(query_graph,
+  if (!_dp_iso_using_match::InitCandidateSet<match_semantics>(query_graph,
                                                  target_graph,
                                                   candidate_set)) {
     return 0;
   }
-  if (!_dp_iso::RefineCandidateSet(query_graph, 
+  if (!_dp_iso_using_match::RefineCandidateSet(query_graph, 
                                   target_graph, 
                                    candidate_set)) {
     return 0;
@@ -738,7 +737,7 @@ inline int IncrementalMatchUsingMatch(
     return match_callback(new_match);
   };
 
-  return IncreamentDPISO<match_semantics>(
+  return IncreamentDPISOUsingMatch<match_semantics>(
                          query_graph, 
                         target_graph,
                   delta_target_graph,
@@ -748,4 +747,4 @@ inline int IncrementalMatchUsingMatch(
 
 }  // namespace GUNDAM
 
-#endif //_DPISO_USING_MATCH_H
+#endif //_GUNDAM_ALGORITHM_MATCH_USING_MATCH_H

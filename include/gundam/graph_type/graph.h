@@ -1152,7 +1152,7 @@ class Graph {
       typename InnerVertex_::VertexPtrContainerType::const_iterator,
       typename InnerVertex_::VertexPtrContainerType::      iterator>::type;
 
-      inline const VertexPtrIterator& cosnt_vertex_ptr_iterator() const{
+      inline const VertexPtrIterator& const_vertex_ptr_iterator() const{
         return this->vertex_ptr_iterator_;
       }
 
@@ -1749,6 +1749,86 @@ class Graph {
         return;
       }
 
+      template <typename              ContainerType_,
+                IteratorDepthType             depth_,
+                IteratorDepthType       begin_depth_, 
+                TupleIdxType         edge_label_idx_,
+                TupleIdxType            dst_ptr_idx_, 
+                TupleIdxType            edge_id_idx_,
+                TupleIdxType edge_attribute_ptr_idx_>
+      using FriendEdgeContentIteratorSpecifiedEdgeLabelVertexPtr
+                = EdgeContentIteratorSpecifiedEdgeLabelVertexPtr_<
+                                                   ContainerType_,
+                                                        is_const_,
+                                                           depth_,
+                                                     begin_depth_, 
+                                                  edge_label_idx_,
+                                                     dst_ptr_idx_, 
+                                                     edge_id_idx_,
+                                          edge_attribute_ptr_idx_>;
+
+      template <typename              ContainerType_,
+                IteratorDepthType             depth_,
+                IteratorDepthType       begin_depth_, 
+                TupleIdxType         edge_label_idx_,
+                TupleIdxType            dst_ptr_idx_, 
+                TupleIdxType            edge_id_idx_,
+                TupleIdxType edge_attribute_ptr_idx_>
+      using FriendEdgeIteratorSpecifiedEdgeLabelVertexPtr
+                    = Iterator_<FriendEdgeContentIteratorSpecifiedEdgeLabelVertexPtr<
+                                                   ContainerType_,
+                                                           depth_,
+                                                     begin_depth_, 
+                                                  edge_label_idx_,
+                                                     dst_ptr_idx_, 
+                                                     edge_id_idx_,
+                                          edge_attribute_ptr_idx_>>;
+
+      template <typename              ContainerType_,
+                IteratorDepthType             depth_,
+                IteratorDepthType       begin_depth_, 
+                TupleIdxType         edge_label_idx_,
+                TupleIdxType            dst_ptr_idx_, 
+                TupleIdxType            edge_id_idx_,
+                TupleIdxType edge_attribute_ptr_idx_>
+      inline void Construct(
+          const FriendEdgeIteratorSpecifiedEdgeLabelVertexPtr<
+                                       ContainerType_, 
+                                               depth_, 
+                                         begin_depth_, 
+                                      edge_label_idx_,
+                                         dst_ptr_idx_, 
+                                         edge_id_idx_, 
+                              edge_attribute_ptr_idx_>& edge_iter) {
+        using FriendEdgeContentIteratorSpecifiedEdgeLabelVertexPtrType
+           =  FriendEdgeContentIteratorSpecifiedEdgeLabelVertexPtr<
+                                            ContainerType_,
+                                                    depth_, 
+                                              begin_depth_, 
+                                           edge_label_idx_,
+                                              dst_ptr_idx_, 
+                                              edge_id_idx_, 
+                                   edge_attribute_ptr_idx_>;
+
+        const FriendEdgeContentIteratorSpecifiedEdgeLabelVertexPtrType&
+            edge_content_iter = *static_cast<
+                const FriendEdgeContentIteratorSpecifiedEdgeLabelVertexPtrType*>(
+                static_cast<const void*>(&edge_iter));
+
+        this->direction_ = edge_content_iter.const_direction();
+
+        this->vertex_ptr_ = edge_content_iter.const_vertex_ptr();
+
+        this->edge_label_iterator_ = edge_content_iter.const_edge_label_iterator();
+
+        this->vertex_ptr_iterator_ = edge_content_iter.const_vertex_ptr_iterator();
+
+        this->decomposed_edge_iterator_ =
+                 edge_content_iter.template get_const_iterator<0>();
+
+        return;
+      }
+
      public:
       using EdgePtrContentType::IsNull;
 
@@ -1779,10 +1859,6 @@ class Graph {
         return;
       }
 
-      inline operator bool() const {
-        return !this->IsNull();
-      }
-
       template <typename              ContainerType_,
                 IteratorDepthType             depth_,
                 IteratorDepthType       begin_depth_, 
@@ -1800,6 +1876,29 @@ class Graph {
                                    edge_attribute_ptr_idx_>& edge_iterator) {
         this->Construct(edge_iterator);
         return;
+      }
+
+      template <typename              ContainerType_,
+                IteratorDepthType             depth_,
+                IteratorDepthType       begin_depth_, 
+                TupleIdxType         edge_label_idx_,
+                TupleIdxType            dst_ptr_idx_, 
+                TupleIdxType            edge_id_idx_,
+                TupleIdxType edge_attribute_ptr_idx_>
+      EdgePtr_(const FriendEdgeIteratorSpecifiedEdgeLabelVertexPtr<
+                                            ContainerType_,
+                                                    depth_, 
+                                              begin_depth_, 
+                                           edge_label_idx_,
+                                              dst_ptr_idx_, 
+                                              edge_id_idx_,
+                                   edge_attribute_ptr_idx_>& edge_iterator) {
+        this->Construct(edge_iterator);
+        return;
+      }
+
+      inline operator bool() const {
+        return !this->IsNull();
       }
 
       template <typename              ContainerType_,
@@ -1839,6 +1938,23 @@ class Graph {
                                                                 edge_iterator) {
         this->Construct(edge_iterator);
         return *this;
+      }
+
+      template <bool input_is_const_>
+      inline bool operator<(const EdgePtr_<input_is_const_>& edge_ptr) const {
+        using InputEdgePtrType = EdgePtr_<input_is_const_>;
+        using InputEdgePtrContentType =
+            typename InputEdgePtrType::EdgePtrContentType;
+        assert((edge_ptr.InputEdgePtrContentType::id()
+                           != EdgePtrContentType::id()) 
+          || !((edge_ptr.InputEdgePtrContentType::label()
+                           != EdgePtrContentType::label()) 
+            || (edge_ptr.InputEdgePtrContentType::const_src_handle()
+                           != EdgePtrContentType::const_src_handle()) 
+            || (edge_ptr.InputEdgePtrContentType::const_dst_handle() 
+                           != EdgePtrContentType::const_dst_handle())));
+        return  edge_ptr.InputEdgePtrContentType::id()
+                            < EdgePtrContentType::id();
       }
 
       template <bool input_is_const_>

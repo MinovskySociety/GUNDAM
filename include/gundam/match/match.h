@@ -217,6 +217,10 @@ class Match {
     return true;
   }
 
+  inline bool EraseMap(const SrcVertexHandleType& src_ptr) {
+    return this->match_container_.Erase(src_ptr);
+  }
+
   /// constant dst
   inline DstVertexHandleType MapTo(const SrcVertexHandleType& src_ptr) const {
     assert(src_ptr);
