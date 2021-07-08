@@ -162,16 +162,17 @@ template <typename  QueryVertexHandle,
           typename TargetVertexHandle>
 inline bool DegreeFiltering(QueryVertexHandle  &query_vertex_handle,
                            TargetVertexHandle &target_vertex_handle) {
-  if (query_vertex_handle->CountInEdge() > target_vertex_handle->CountInEdge())
+  if (query_vertex_handle->CountInEdge() 
+   > target_vertex_handle->CountInEdge())
     return false;
-  if (query_vertex_handle->CountOutEdge() >
-      target_vertex_handle->CountOutEdge())
+  if (query_vertex_handle->CountOutEdge() 
+   > target_vertex_handle->CountOutEdge())
     return false;
-  if (query_vertex_handle->CountInVertex() >
-      target_vertex_handle->CountInVertex())
+  if (query_vertex_handle->CountInVertex() 
+   > target_vertex_handle->CountInVertex())
     return false;
-  if (query_vertex_handle->CountOutVertex() >
-      target_vertex_handle->CountOutVertex())
+  if (query_vertex_handle->CountOutVertex() 
+   > target_vertex_handle->CountOutVertex())
     return false;
   return true;
 }
@@ -182,11 +183,20 @@ template <enum EdgeState edge_state,
 inline bool NeighborLabelFrequencyFilteringSingleDirection(
     typename VertexHandle< QueryGraph>::type  &query_vertex_handle,
     typename VertexHandle<TargetGraph>::type &target_vertex_handle) {
+  std::set<typename QueryGraph::EdgeType::LabelType> used_edge_label;
   for (auto edge_label_it = (edge_state == EdgeState::kIn ? 
                    query_vertex_handle-> InEdgeBegin()
                  : query_vertex_handle->OutEdgeBegin());
            !edge_label_it.IsDone(); 
             edge_label_it++) {
+    auto[used_edge_label_it,
+         used_edge_label_ret] 
+       = used_edge_label.emplace(edge_label_it->label());
+    if (!used_edge_label_ret) {
+      // add fail, this edge label has already been added
+      // in used_edge_label
+      continue;
+    }
     auto  query_count = (edge_state == EdgeState::kIn
                             ? _dp_iso_using_match:: CountInVertex<QueryGraph>(
                                   query_vertex_handle, edge_label_it->label())
@@ -227,12 +237,14 @@ inline bool NeighborLabelFrequencyFiltering(
     typename VertexHandle<TargetGraph>::type &target_vertex_handle) {
   if (!NeighborLabelFrequencyFilteringSingleDirection<EdgeState:: kIn,
                                                       QueryGraph, TargetGraph>(
-          query_vertex_handle, target_vertex_handle)) {
+           query_vertex_handle, 
+          target_vertex_handle)) {
     return false;
   }
   if (!NeighborLabelFrequencyFilteringSingleDirection<EdgeState::kOut,
                                                       QueryGraph, TargetGraph>(
-          query_vertex_handle, target_vertex_handle)) {
+           query_vertex_handle, 
+          target_vertex_handle)) {
     return false;
   }
   return true;
@@ -281,7 +293,8 @@ inline bool InitCandidateSet(
           continue;
         }
         TargetVertexHandle target_vertex_handle = target_vertex_iter;
-        if (!DegreeFiltering(query_vertex_handle, target_vertex_handle)) {
+        if (!DegreeFiltering(query_vertex_handle, 
+                            target_vertex_handle)) {
           continue;
         }
         if (!NeighborLabelFrequencyFiltering<QueryGraph, TargetGraph>(
@@ -349,6 +362,7 @@ inline void GetAdjNotMatchedVertex(
       query_vertex_handle, candidate_set, match_state, next_query_set);
 }
 
+// to find a un-matched vertex to match
 template <typename  QueryGraph, 
           typename TargetGraph>
 inline typename VertexHandle<QueryGraph>::type NextMatchVertex(
@@ -358,6 +372,8 @@ inline typename VertexHandle<QueryGraph>::type NextMatchVertex(
                TargetGraph> &match_state) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   std::set<QueryVertexHandle> next_query_set;
+  // first to find whether there are un-matched vertexes
+  // adjacent to the match vertexes
   for (auto map_it = match_state.MapBegin();
            !map_it.IsDone();
             map_it++) {
@@ -365,6 +381,9 @@ inline typename VertexHandle<QueryGraph>::type NextMatchVertex(
                            next_query_set);
   }
   if (next_query_set.empty()) {
+    // all vertexes connected to the matched vertexes are 
+    // matched, find from the rest candidated set
+    // the pattern should be not connected
     for (const auto &[query_vertex_handle, 
                       query_vertex_candidate] : candidate_set) {
       if (!match_state.HasMap(query_vertex_handle)) {
@@ -374,16 +393,21 @@ inline typename VertexHandle<QueryGraph>::type NextMatchVertex(
   }
 
   if (next_query_set.empty()) {
+    // all vertexes have already been matched
     QueryVertexHandle res = QueryVertexHandle();
     assert(!res);
     return res;
   }
 
+  // there still vertexes have not been matched
+  // find the one with the minimal candidate set to 
+  // match next
   QueryVertexHandle res = QueryVertexHandle();
   assert(!res);
   size_t min = std::numeric_limits<size_t>::max();
-  for (auto &query_vertex_handle : next_query_set) {
-    assert(candidate_set.count(query_vertex_handle) > 0);
+  for (const auto &query_vertex_handle : next_query_set) {
+    assert(candidate_set.find(query_vertex_handle) 
+        != candidate_set.end());
     size_t candidate_count 
          = candidate_set.find(query_vertex_handle)->second.size();
     if (candidate_count < min) {
@@ -765,6 +789,7 @@ bool _DPISOUsingMatch(
 
   if (query_limit_time > 0 
    && query_limit_time < (std::time(NULL) - begin_time)) {
+    // has reached time limit
     return false;
   }
 
@@ -1071,6 +1096,7 @@ inline bool EdgeCheck(
   }
   return true;
 }
+
 template <bool is_out_direction,
           typename  QueryGraph, 
           typename TargetGraph,
@@ -1412,28 +1438,12 @@ inline int DPISOUsingMatch_Recursive(
 
   assert(!partial_match.HasMap(next_query_handle));
   if (!next_query_handle) {
-    // if (query_graph.CountEdge() >= large_query_edge) {
-    //   std::map<QueryVertexHandle, std::vector<QueryVertexHandle>> parent;
-    //   for (auto map_it = partial_match.MapBegin();
-    //            !map_it.IsDone();
-    //             map_it++)  {
-    //     _dp_iso_using_match::UpdateParent(partial_match, map_it->src_handle(), parent);
-    //   }
-    //   std::vector<QueryVertexHandle> fail_set;
-    //   _dp_iso_using_match::_DPISOUsingMatch<match_semantics>(
-    //       candidate_set, partial_match, target_matched, parent, fail_set,
-    //       par_user_callback, par_prune_callback, std::time(NULL),
-    //       query_limit_time);
-    //   return static_cast<int>(result_count);
-    // }
-    auto temp_partial_match
-            = partial_match;
-    _dp_iso_using_match::_DPISOUsingMatch<match_semantics>(
-        temp_candidate_set, 
-        temp_partial_match, 
-             target_matched, 
-         par_user_callback,
-        par_prune_callback, std::time(NULL), query_limit_time);
+    // all vertexes have been matched, cannot 
+    // find the next vertex to match
+    if (par_prune_callback(partial_match)) {
+      return 0;
+    }
+    par_user_callback(partial_match);
     return static_cast<int>(result_count);
   }
   // partition next ptr's candiate
@@ -1441,73 +1451,72 @@ inline int DPISOUsingMatch_Recursive(
       != candidate_set.end());
   const auto &match_handle_candidate 
             = candidate_set.find(next_query_handle)->second;
-  // #pragma omp parallel
-  // #pragma omp single
-  {
-    auto begin_time = std::time(NULL);
-    for (int i = 0; i < match_handle_candidate.size(); i++) {
-      // #pragma omp task
-      {
-        // it might be unnecessary to set the lock here
-        // user_callback_lock is read-only in this callback
-        // and can only be set from false to true
-        // omp_set_lock(&user_callback_lock);
-        if (user_callback_has_return_false) {
-          continue;
-        }
-        const auto &match_target_handle = match_handle_candidate[i];
-        if (IsJoinable<match_semantics>(
-                next_query_handle, 
-              match_target_handle, partial_match,
-                    target_matched)) {
-          auto temp_match_state = partial_match;
-          auto temp_target_matched = target_matched;
-          auto temp_candidate_set = candidate_set;
-          _dp_iso_using_match::UpdateState(next_query_handle, 
-                                         match_target_handle,
-                                         temp_match_state, 
-                                         temp_target_matched);
-          _dp_iso_using_match::UpdateCandidateSet(
-                next_query_handle, 
-              match_target_handle, 
-              temp_candidate_set,
-              temp_match_state);
-          // if (query_graph.CountEdge() >= large_query_edge) {
-          //   std::map<QueryVertexHandle, std::vector<QueryVertexHandle>>
-          //       parent;
-          //   for (auto map_it = temp_match_state.MapBegin();
-          //            !map_it.IsDone();
-          //             map_it++) {
-          //     _dp_iso_using_match::UpdateParent(temp_match_state, 
-          //                                       map_it->src_handle(), 
-          //                                       parent);
-          //   }
-          //   std::vector<QueryVertexHandle> fail_set;
-          //   if (!_dp_iso_using_match::_DPISOUsingMatch<match_semantics>(
-          //           temp_candidate_set, 
-          //           temp_match_state,
-          //           temp_target_matched, parent, fail_set,
-          //           par_user_callback, 
-          //           par_prune_callback, 
-          //           begin_time, query_limit_time)) {
-          //     user_callback_has_return_false = true;
-          //   }
-          //   continue;
-          // }
-          if (!_dp_iso_using_match::_DPISOUsingMatch<match_semantics>(
-                  temp_candidate_set, 
-                  temp_match_state,
-                  temp_target_matched, 
-                  par_user_callback,
-                  par_prune_callback, 
-                  begin_time, query_limit_time)) {
-            user_callback_has_return_false = true;
-          }
-        }
-        // omp_unset_lock(&user_callback_lock);
-      }
+  auto begin_time = std::time(NULL);
+  // #pare
+  for (int i = 0; i < match_handle_candidate.size(); i++) {
+    // it might be unnecessary to set the lock here
+    // user_callback_lock is read-only in this callback
+    // and can only be set from false to true
+    // omp_set_lock(&user_callback_lock);
+    if (user_callback_has_return_false) {
+      continue;
     }
-    // #pragma omp taskwait
+    const auto &match_target_handle = match_handle_candidate[i];
+    if (!IsJoinable<match_semantics>(
+            next_query_handle, 
+          match_target_handle, partial_match,
+                target_matched)) {
+      continue;
+    }
+    auto temp_match_state = partial_match;
+    auto temp_target_matched = target_matched;
+    auto temp_candidate_set = candidate_set;
+    _dp_iso_using_match::UpdateState(next_query_handle, 
+                                    match_target_handle,
+                                    temp_match_state, 
+                                    temp_target_matched);
+    _dp_iso_using_match::UpdateCandidateSet(
+          next_query_handle, 
+        match_target_handle, 
+        temp_candidate_set,
+        temp_match_state);
+    // if (query_graph.CountEdge() >= large_query_edge) {
+    //   std::map<QueryVertexHandle, std::vector<QueryVertexHandle>>
+    //       parent;
+    //   for (auto map_it = temp_match_state.MapBegin();
+    //            !map_it.IsDone();
+    //             map_it++) {
+    //     _dp_iso_using_match::UpdateParent(temp_match_state, 
+    //                                       map_it->src_handle(), 
+    //                                       parent);
+    //   }
+    //   std::vector<QueryVertexHandle> fail_set;
+    //   if (!_dp_iso_using_match::_DPISOUsingMatch<match_semantics>(
+    //           temp_candidate_set, 
+    //           temp_match_state,
+    //           temp_target_matched, parent, fail_set,
+    //           par_user_callback, 
+    //           par_prune_callback, 
+    //           begin_time, query_limit_time)) {
+    //     user_callback_has_return_false = true;
+    //   }
+    //   continue;
+    // }
+    if (!_dp_iso_using_match::_DPISOUsingMatch<match_semantics>(
+            temp_candidate_set, 
+            temp_match_state,
+            temp_target_matched, 
+            par_user_callback,
+            par_prune_callback, 
+            begin_time, query_limit_time)) {
+      user_callback_has_return_false = true;
+    }
+    // does not need to restore, temp_match_state is a copy
+    // from match_state
+
+    // since user_callback_lock is not set, 
+    // there is also no need to unset it
+    // omp_unset_lock(&user_callback_lock);
   }
   return static_cast<int>(result_count);
 }
