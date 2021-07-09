@@ -782,7 +782,8 @@ bool _DPISOUsingMatch(
             std::set<typename VertexHandle<TargetGraph>::type> &target_matched,
             const std::function<bool(const Match<QueryGraph, TargetGraph>&)>&  user_callback, 
             const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& prune_callback,
-            time_t begin_time, double query_limit_time = 1200) {
+            time_t begin_time, 
+            double query_limit_time) {
 
   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
@@ -802,20 +803,38 @@ bool _DPISOUsingMatch(
   }
 
   assert(match_state.size() < candidate_set.size());
+  // find the next vertex for querying
   QueryVertexHandle next_query_vertex_handle
    = NextMatchVertex(candidate_set, match_state);
-  // should have found next query vertex
+  // should have found next query vertex since the matching 
+  // is not ended
   assert(next_query_vertex_handle);
   assert(!match_state.HasMap(next_query_vertex_handle));
   assert( candidate_set.find(next_query_vertex_handle) 
        != candidate_set.end());
   const auto& candidate_set_for_next_query_vertex 
             = candidate_set.find(next_query_vertex_handle)->second;
+
+  // if (use_fail_set) {
+  //   // a new vertex in the query graph is selected for querying
+  //   // maintain the parent set of the new added query vertex
+  //   UpdateParent(match_state, next_query_vertex_handle, parent);
+  //   if (candidate_set_for_next_query_vertex.empty()){
+  //     // there is no legal candidate for the selected
+  //     // query vertex, set the fail set as all the parent of 
+  //     // the selected query vertex
+  //     fail_set = parent.find(next_query_vertex_handle)->second;
+  //     // continue recursive matching
+  //     return true;
+  //   }
+  // }
+
+  bool found_fail_set_flag = false;
+
+  std::vector<QueryVertexHandle> this_state_fail_set;
+
   for (const auto &next_target_vertex_handle 
        : candidate_set_for_next_query_vertex) {
-    if (prune_callback(match_state)) {
-      return true;
-    }
     if (!IsJoinable<match_semantics>(
               next_query_vertex_handle, 
              next_target_vertex_handle, match_state,
@@ -824,10 +843,11 @@ bool _DPISOUsingMatch(
       // the current match state, enumerate the next target vertex
       continue;
     }
-    // this query-target vertex pair can be added to the current match state
-    // continue recursive searching
+    // this query-target vertex pair can be added to the current
+    // match state, continue recursive searching
     std::map<QueryVertexHandle, 
-              std::vector<TargetVertexHandle>> temp_candidate_set{candidate_set};
+              std::vector<TargetVertexHandle>> 
+            temp_candidate_set{candidate_set};
     // add the query-target vertex pair into the match state, 
     // add the target vertex into the match_state and target_matched
     UpdateState(next_query_vertex_handle, 
@@ -849,6 +869,31 @@ bool _DPISOUsingMatch(
     RestoreState(next_query_vertex_handle, 
                 next_target_vertex_handle,
                   match_state, target_matched);
+    // if (!use_fail_set) {
+    //   // does not use fail set
+    //   continue;
+    // }
+    // // use fail set, needs to maintain it
+    // if (next_state_fail_set.empty()) {
+    //   // if ont child node's fail set is empty
+    //   // so this state's fail set is empty
+    //   find_fail_set_flag = true;
+    //   this_state_fail_set.clear();
+    // } else if (!std::binary_search(next_state_fail_set.begin(),
+    //                                next_state_fail_set.end(),
+    //                                next_query_vertex_handle)) {
+    //   // if one child node's fail set not contain next_query_vertex_handle
+    //   // so this state's fail set is next_state_fail_set
+    //   find_fail_set_flag = true;
+    //   this_state_fail_set = next_state_fail_set;
+    // } else if (!find_fail_set_flag) {
+    //   std::vector<QueryVertexHandle> temp_this_state_fail_set;
+    //   std::set_union(next_state_fail_set.begin(), next_state_fail_set.end(),
+    //                   this_state_fail_set.begin(), this_state_fail_set.end(),
+    //                   inserter(temp_this_state_fail_set,
+    //                           temp_this_state_fail_set.begin()));
+    //   std::swap(temp_this_state_fail_set, this_state_fail_set);
+    // }
   }
   return true;
 }
@@ -1063,80 +1108,122 @@ inline void GetTopoSeq(QueryGraph &query_graph,
   TopoSort(query_graph, in_degree, topo_seq);
 }
 
-template <class QueryGraph, class TargetGraph, class EdgeCountContainer>
+// query_vertex_handle has been matched to target_vertex_handle,
+// adj_used_vertex_handle is a vertex that adjacent to 
+// query_vertex_handle that have been used,
+// to check whether temp_target_vertex_handle can be a candidate
+// of adj_used_vertex_handle
+template <typename  QueryGraph, 
+          typename TargetGraph>
 inline bool EdgeCheck(
-    typename VertexHandle<QueryGraph>::type &query_vertex_handle,
-    typename VertexHandle<QueryGraph>::type &temp_query_vertex_handle,
-    typename VertexHandle<TargetGraph>::type &target_vertex_handle,
+    typename VertexHandle< QueryGraph>::type       &query_vertex_handle,
+    typename VertexHandle< QueryGraph>::type    &adj_used_vertex_handle,
+    typename VertexHandle<TargetGraph>::type      &target_vertex_handle,
     typename VertexHandle<TargetGraph>::type &temp_target_vertex_handle,
-    EdgeCountContainer &out_edge_count, EdgeCountContainer &in_edge_count) {
-  auto it = out_edge_count.find(temp_query_vertex_handle);
+    // statistic of query_vertex_handle
+    const std::map<typename VertexHandle<QueryGraph>::type, 
+                    std::map<typename QueryGraph::EdgeType
+                                               ::LabelType, int>> &out_edge_count, 
+    // statistic of query_vertex_handle
+    const std::map<typename VertexHandle<QueryGraph>::type, 
+                    std::map<typename QueryGraph::EdgeType
+                                               ::LabelType, int>>  &in_edge_count) {
+  // adj_used_vertex_handle is adjacent to query_vertex_handle
+  assert((out_edge_count.find(adj_used_vertex_handle) != out_edge_count.end())
+      || ( in_edge_count.find(adj_used_vertex_handle) !=  in_edge_count.end()));
+  auto it = out_edge_count.find(adj_used_vertex_handle);
   if (it != out_edge_count.end()) {
-    for (auto &edge_count : it->second) {
-      // if (target_vertex_handle->CountOutEdge(
-      //         edge_count.first, temp_target_vertex_handle) <
-      //         edge_count.second)
+    for (const auto& [edge_label, edge_count] : it->second) {
       if (_dp_iso_using_match::CountOutEdge<TargetGraph>(
-              target_vertex_handle, edge_count.first,
-              temp_target_vertex_handle) < edge_count.second)
+              target_vertex_handle,   edge_label,
+         temp_target_vertex_handle) < edge_count) {
+        // the vertex in query graph has more output edge toward
+        // adj_used_vertex_handle with the specifeid label than 
+        // the from target_vertex_handle to temp_target_vertex_handle
         return false;
+      }
     }
   }
-  it = in_edge_count.find(temp_query_vertex_handle);
+  it = in_edge_count.find(adj_used_vertex_handle);
   if (it != in_edge_count.end()) {
-    for (auto &edge_count : it->second) {
-      // if (target_vertex_handle->CountInEdge(
-      //         edge_count.first, temp_target_vertex_handle) <
-      //         edge_count.second)
+    for (const auto& [edge_label, edge_count] : it->second) {
       if (_dp_iso_using_match::CountInEdge<TargetGraph>(
-              target_vertex_handle, edge_count.first,
-              temp_target_vertex_handle) < edge_count.second)
+              target_vertex_handle,   edge_label,
+         temp_target_vertex_handle) < edge_count)
+        // the vertex in query graph has more input edge from
+        // adj_used_vertex_handle with the specifeid label than 
+        // the to target_vertex_handle from temp_target_vertex_handle
         return false;
     }
   }
   return true;
 }
 
+// to find whether the target_vertex_handle can be a legal match for 
+// query_vertex_handle
+// check the candidate set of both the vertexes adjacent
+// to query_vertex_handle and the vertexes adjacent to 
+// target_vertex_handle
 template <bool is_out_direction,
           typename  QueryGraph, 
           typename TargetGraph,
-          class CandidateSetContainer, 
-          class    EdgeCountContainer>
+          typename CandidateSetContainer>
 inline bool CheckIsLegal(
     typename VertexHandle< QueryGraph>::type  query_vertex_handle,
     typename VertexHandle<TargetGraph>::type target_vertex_handle,
     std::set<typename VertexHandle<QueryGraph>::type> &used_vertex,
-    EdgeCountContainer &out_edge_count, 
-    EdgeCountContainer  &in_edge_count,
-    CandidateSetContainer &candidate_set) {
+    // statistic of query_vertex_handle
+    std::map<typename VertexHandle<QueryGraph>::type, 
+              std::map<typename QueryGraph::EdgeType
+                                         ::LabelType, int>> &out_edge_count,
+    // statistic of query_vertex_handle
+    std::map<typename VertexHandle<QueryGraph>::type, 
+              std::map<typename QueryGraph::EdgeType
+                                         ::LabelType, int>>  &in_edge_count, 
+    const CandidateSetContainer &candidate_set) {
   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
   for (auto edge_it = is_out_direction ? query_vertex_handle->OutEdgeBegin()
-                                       : query_vertex_handle->InEdgeBegin();
-           !edge_it.IsDone(); edge_it++) {
-    QueryVertexHandle next_vertex_handle = is_out_direction ? edge_it->dst_handle() 
-                                                            : edge_it->src_handle();
-    if (!used_vertex.count(next_vertex_handle)) 
+                                       : query_vertex_handle-> InEdgeBegin();
+           !edge_it.IsDone(); 
+            edge_it++) {
+    QueryVertexHandle adj_used_vertex_handle
+       = is_out_direction ? edge_it->dst_handle() 
+                          : edge_it->src_handle();
+    if (used_vertex.find(adj_used_vertex_handle)
+     == used_vertex.end()) {
+      // this vertex is not used, does not need to be checked
       continue;
-    auto &l1 = candidate_set.find(next_vertex_handle)->second;
-    bool find_flag = false;
+    }
+    assert(candidate_set.find(adj_used_vertex_handle)
+        != candidate_set.end());
+    auto& candidate_set_for_adj_used_vertex
+        = candidate_set.find(adj_used_vertex_handle)->second;
+    bool found_legal_vertex_adj_to_target_vertex_handle = false;
     if constexpr (GraphParameter<TargetGraph>::vertex_level_edge_label_index) {
       // vertex has vertex_handle->In/Out VertexBegin(edge_label)
       // method
       for (auto target_vertex_it = is_out_direction
               ? target_vertex_handle->OutVertexBegin(edge_it->label())
               : target_vertex_handle-> InVertexBegin(edge_it->label());
-               !target_vertex_it.IsDone(); target_vertex_it++) {
+               !target_vertex_it.IsDone(); 
+                target_vertex_it++) {
         TargetVertexHandle temp_target_vertex_handle = target_vertex_it;
         if (!EdgeCheck<QueryGraph, TargetGraph>(
-                query_vertex_handle, next_vertex_handle, target_vertex_handle,
-                temp_target_vertex_handle, out_edge_count, in_edge_count)) {
+                query_vertex_handle,    adj_used_vertex_handle,
+               target_vertex_handle, temp_target_vertex_handle, 
+               out_edge_count,
+                in_edge_count)) {
           continue;
         }
-        auto it1 =
-            std::lower_bound(l1.begin(), l1.end(), temp_target_vertex_handle);
-        if (it1 != l1.end() && (*it1) == temp_target_vertex_handle) {
-          find_flag = true;
+        // temp_target_vertex_handle can be a candidate for adj_used_vertex_handle
+        // find whether it is in candidate_set_for_adj_used_vertex
+        auto it1 = std::lower_bound(candidate_set_for_adj_used_vertex.begin(), 
+                                    candidate_set_for_adj_used_vertex.end(), 
+                                    temp_target_vertex_handle);
+        if ( it1 != candidate_set_for_adj_used_vertex.end() 
+        && (*it1) == temp_target_vertex_handle) {
+          found_legal_vertex_adj_to_target_vertex_handle = true;
           break;
         }
       }
@@ -1145,28 +1232,34 @@ inline bool CheckIsLegal(
       // method
       for (auto target_edge_it = is_out_direction
                                      ? target_vertex_handle->OutEdgeBegin()
-                                     : target_vertex_handle->InEdgeBegin();
+                                     : target_vertex_handle-> InEdgeBegin();
                !target_edge_it.IsDone(); target_edge_it++) {
         if (target_edge_it->label() != edge_it->label()) {
           continue;
         }
-        TargetVertexHandle temp_target_vertex_handle =
-            is_out_direction ? target_edge_it->dst_handle()   // is out edge
-                             : target_edge_it->src_handle();  // is  in edge
+        TargetVertexHandle temp_target_vertex_handle 
+           = is_out_direction ? target_edge_it->dst_handle()  // is out edge
+                              : target_edge_it->src_handle(); // is  in edge
         if (!EdgeCheck<QueryGraph, TargetGraph>(
-                query_vertex_handle, next_vertex_handle, target_vertex_handle,
+                query_vertex_handle, adj_used_vertex_handle, target_vertex_handle,
                 temp_target_vertex_handle, out_edge_count, in_edge_count)) {
           continue;
         }
-        auto it1 =
-            std::lower_bound(l1.begin(), l1.end(), temp_target_vertex_handle);
-        if (it1 != l1.end() && (*it1) == temp_target_vertex_handle) {
-          find_flag = true;
+        // temp_target_vertex_handle can be a candidate for adj_used_vertex_handle
+        // find whether it is in candidate_set_for_adj_used_vertex
+        auto it1 = std::lower_bound(candidate_set_for_adj_used_vertex.begin(), 
+                                    candidate_set_for_adj_used_vertex.end(), 
+                                    temp_target_vertex_handle);
+        if ( it1 != candidate_set_for_adj_used_vertex.end() 
+        && (*it1) == temp_target_vertex_handle) {
+          found_legal_vertex_adj_to_target_vertex_handle = true;
           break;
         }
       }
     }
-    if (!find_flag) return false;
+    if (!found_legal_vertex_adj_to_target_vertex_handle) {
+      return false;
+    }
   }
   return true;
 }
@@ -1186,17 +1279,24 @@ inline bool DAGDP(
   using QueryEdgeLabelType = typename QueryGraph::EdgeType::LabelType;
   std::set<QueryVertexHandle> used_vertex;
   for (auto &vertex_handle : topo_seq) {
-    used_vertex.insert(vertex_handle);
-    auto &l = candidate_set.find(vertex_handle)->second;
-    TargetVertexContainerType l1;
+    used_vertex.emplace(vertex_handle);
+    assert(candidate_set.find(vertex_handle)
+        != candidate_set.end());
+    auto &candidate_set_of_vertex_handle 
+        = candidate_set.find(vertex_handle)->second;
+    // statistic of vertex_handle
     std::map<QueryVertexHandle, 
              std::map<QueryEdgeLabelType, int>> in_edge_count, 
                                                out_edge_count;
+    // count the number of the in/out edges with
+    // each kind of edge label
     for (auto out_edge_it = vertex_handle->OutEdgeBegin(); 
              !out_edge_it.IsDone();
               out_edge_it++) {
       QueryVertexHandle dst_handle = out_edge_it->dst_handle();
-      if (!used_vertex.count(dst_handle)) {
+      if (used_vertex.find(dst_handle) 
+       == used_vertex.end()) {
+        // this vertex is not matched
         continue;
       }
       out_edge_count[dst_handle][out_edge_it->label()]++;
@@ -1205,28 +1305,41 @@ inline bool DAGDP(
              !in_edge_it.IsDone();
               in_edge_it++) {
       QueryVertexHandle src_handle = in_edge_it->src_handle();
-      if (!used_vertex.count(src_handle)) {
+      if (used_vertex.find(src_handle) 
+       == used_vertex.end()) {
+        // this vertex is not matched
         continue;
       }
       in_edge_count[src_handle][in_edge_it->label()]++;
     }
-    for (auto &candidate_it : l) {
-      bool candidate_flag = true;
-      candidate_flag = _DAGDP::CheckIsLegal<true, QueryGraph, TargetGraph>(
-          vertex_handle, candidate_it, used_vertex, out_edge_count,
-          in_edge_count, candidate_set);
-      if (!candidate_flag) {
+    TargetVertexContainerType
+          temp_candidate_set_of_vertex_handle;
+    temp_candidate_set_of_vertex_handle.reserve(
+         candidate_set_of_vertex_handle.size());
+    for (const auto &candidate_dst_handle
+                   : candidate_set_of_vertex_handle) {
+      // verify the candidate set of vertex_handle, to find whether each of them
+      // can be a legal match for vertex_handle
+      if (!_DAGDP::CheckIsLegal< true, QueryGraph, TargetGraph>(
+          vertex_handle, candidate_dst_handle, used_vertex, out_edge_count,
+          in_edge_count, candidate_set)) {
+        // candidate_dst_handle cannot be a legal match for vertex_handle
         continue;
       }
-      candidate_flag = _DAGDP::CheckIsLegal<false, QueryGraph, TargetGraph>(
-          vertex_handle, candidate_it, used_vertex, out_edge_count,
-          in_edge_count, candidate_set);
-      if (candidate_flag) {
-        l1.emplace_back(candidate_it);
+      if (!_DAGDP::CheckIsLegal<false, QueryGraph, TargetGraph>(
+          vertex_handle, candidate_dst_handle, used_vertex, out_edge_count,
+          in_edge_count, candidate_set)) {
+        // candidate_dst_handle cannot be a legal match for vertex_handle
+        continue;
       }
+      // candidate_dst_handle is connected to the vertex,
+      // can be preserved in the candidate set of the connected size
+      temp_candidate_set_of_vertex_handle.emplace_back(candidate_dst_handle);
     }
-    l.swap(l1);
-    if (l.empty()) return false;
+    candidate_set_of_vertex_handle.swap(temp_candidate_set_of_vertex_handle);
+    if (candidate_set_of_vertex_handle.empty()) {
+      return false;
+    }
   }
   return true;
 }
@@ -1240,8 +1353,7 @@ inline bool RefineCandidateSet(QueryGraph  &query_graph,
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   std::vector<QueryVertexHandle> topo_seq;
   _DAGDP::GetTopoSeq(query_graph, topo_seq);
-  if (!DAGDP(query_graph, 
-            target_graph, topo_seq, candidate_set)) 
+  if (!DAGDP(query_graph, target_graph, topo_seq, candidate_set)) 
     return false;
   constexpr int loop_num = 2;
   for (int i = 1; i <= loop_num; i++) {
