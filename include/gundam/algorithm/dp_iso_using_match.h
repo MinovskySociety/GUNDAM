@@ -815,19 +815,19 @@ bool _DPISOUsingMatch(
   const auto& candidate_set_for_next_query_vertex 
             = candidate_set.find(next_query_vertex_handle)->second;
 
-  // if (use_fail_set) {
-  //   // a new vertex in the query graph is selected for querying
-  //   // maintain the parent set of the new added query vertex
-  //   UpdateParent(match_state, next_query_vertex_handle, parent);
-  //   if (candidate_set_for_next_query_vertex.empty()){
-  //     // there is no legal candidate for the selected
-  //     // query vertex, set the fail set as all the parent of 
-  //     // the selected query vertex
-  //     fail_set = parent.find(next_query_vertex_handle)->second;
-  //     // continue recursive matching
-  //     return true;
-  //   }
-  // }
+  if (use_fail_set) {
+    // a new vertex in the query graph is selected for querying
+    // maintain the parent set of the new added query vertex
+    UpdateParent(match_state, next_query_vertex_handle, parent);
+    if (candidate_set_for_next_query_vertex.empty()){
+      // there is no legal candidate for the selected
+      // query vertex, set the fail set as all the parent of 
+      // the selected query vertex
+      fail_set = parent.find(next_query_vertex_handle)->second;
+      // continue recursive matching
+      return true;
+    }
+  }
 
   bool found_fail_set_flag = false;
 
@@ -835,6 +835,45 @@ bool _DPISOUsingMatch(
 
   for (const auto &next_target_vertex_handle 
        : candidate_set_for_next_query_vertex) {
+    // if (use_fail_set) {
+    //   if (!this_state_fail_set.empty()
+    //    && !std::binary_search(this_state_fail_set.begin(),
+    //                           this_state_fail_set.end(),
+    //                           next_query_vertex_handle)) {
+    //     // find fail set , u is not in fail set and fail set is not empty!
+    //     // so not expand
+    //     std::swap(fail_set, this_state_fail_set);
+    //     return true;
+    //   }
+    //   if (!found_fail_set_flag 
+    //     && match_semantics == MatchSemantics::kIsomorphism 
+    //     && target_matched.count(next_target_vertex_handle) > 0) {
+    //     // find u' satisfy that match_state[u']=next_target_vertex_handle
+    //     // next_state_fail_set = anc[u] union anc[u']
+    //     std::vector<QueryVertexHandle> next_state_fail_set;
+    //     for (auto &[query_ptr, target_ptr] : match_state) {
+    //       if (target_ptr == next_target_vertex_handle) {
+    //         std::vector<QueryVertexHandle> temp_next_state_fail_set;
+    //         std::set_union(parent.find(next_query_vertex_handle)->second.begin(),
+    //                        parent.find(next_query_vertex_handle)->second.end(),
+    //                        parent.find(query_ptr)->second.begin(),
+    //                        parent.find(query_ptr)->second.end(),
+    //                        std::inserter(temp_next_state_fail_set,
+    //                                      temp_next_state_fail_set.begin()));
+    //         std::swap(next_state_fail_set, temp_next_state_fail_set);
+    //         break;
+    //       }
+    //     }
+    //     // update this_state_fail_set
+    //     // anc[u] must contain u ,so union fail set
+    //     std::vector<QueryVertexHandle> temp_this_state_fail_set;
+    //     std::set_union(
+    //         next_state_fail_set.begin(), next_state_fail_set.end(),
+    //         this_state_fail_set.begin(), this_state_fail_set.end(),
+    //         inserter(temp_this_state_fail_set, temp_this_state_fail_set.begin()));
+    //     std::swap(this_state_fail_set, temp_this_state_fail_set);
+    //   }
+    // }
     if (!IsJoinable<match_semantics>(
               next_query_vertex_handle, 
              next_target_vertex_handle, match_state,
@@ -877,16 +916,16 @@ bool _DPISOUsingMatch(
     // if (next_state_fail_set.empty()) {
     //   // if ont child node's fail set is empty
     //   // so this state's fail set is empty
-    //   find_fail_set_flag = true;
+    //   found_fail_set_flag = true;
     //   this_state_fail_set.clear();
     // } else if (!std::binary_search(next_state_fail_set.begin(),
     //                                next_state_fail_set.end(),
     //                                next_query_vertex_handle)) {
     //   // if one child node's fail set not contain next_query_vertex_handle
     //   // so this state's fail set is next_state_fail_set
-    //   find_fail_set_flag = true;
+    //   found_fail_set_flag = true;
     //   this_state_fail_set = next_state_fail_set;
-    // } else if (!find_fail_set_flag) {
+    // } else if (!found_fail_set_flag) {
     //   std::vector<QueryVertexHandle> temp_this_state_fail_set;
     //   std::set_union(next_state_fail_set.begin(), next_state_fail_set.end(),
     //                   this_state_fail_set.begin(), this_state_fail_set.end(),
@@ -1272,8 +1311,8 @@ inline bool DAGDP(
      QueryGraph  &query_graph, 
     TargetGraph &target_graph,
     std::vector<typename VertexHandle<QueryGraph>::type> &topo_seq,
-    std::map<typename VertexHandle<QueryGraph>::type, 
-                TargetVertexContainerType> &candidate_set) {
+       std::map<typename VertexHandle<QueryGraph>::type, 
+                   TargetVertexContainerType> &candidate_set) {
   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
   using QueryEdgeLabelType = typename QueryGraph::EdgeType::LabelType;

@@ -881,8 +881,8 @@ bool _DPISO(
     // C(u) is empty ,so fail set = anc(u)
     this_state_fail_set = parent.find(next_query_vertex_handle)->second;
   }
-  for (TargetVertexHandle &next_target_vertex_handle :
-       candidate_set.find(next_query_vertex_handle)->second) {
+  for (TargetVertexHandle &next_target_vertex_handle
+       : candidate_set.find(next_query_vertex_handle)->second) {
     if constexpr (!std::is_null_pointer_v<PruneCallback>) {
       if (prune_callback(match_state)) {
         return true;
