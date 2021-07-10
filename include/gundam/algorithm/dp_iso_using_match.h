@@ -815,19 +815,19 @@ bool _DPISOUsingMatch(
   const auto& candidate_set_for_next_query_vertex 
             = candidate_set.find(next_query_vertex_handle)->second;
 
-  if (use_fail_set) {
-    // a new vertex in the query graph is selected for querying
-    // maintain the parent set of the new added query vertex
-    UpdateParent(match_state, next_query_vertex_handle, parent);
-    if (candidate_set_for_next_query_vertex.empty()){
-      // there is no legal candidate for the selected
-      // query vertex, set the fail set as all the parent of 
-      // the selected query vertex
-      fail_set = parent.find(next_query_vertex_handle)->second;
-      // continue recursive matching
-      return true;
-    }
-  }
+  // if (use_fail_set) {
+  //   // a new vertex in the query graph is selected for querying
+  //   // maintain the parent set of the new added query vertex
+  //   UpdateParent(match_state, next_query_vertex_handle, parent);
+  //   if (candidate_set_for_next_query_vertex.empty()){
+  //     // there is no legal candidate for the selected
+  //     // query vertex, set the fail set as all the parent of 
+  //     // the selected query vertex
+  //     fail_set = parent.find(next_query_vertex_handle)->second;
+  //     // continue recursive matching
+  //     return true;
+  //   }
+  // }
 
   bool found_fail_set_flag = false;
 
