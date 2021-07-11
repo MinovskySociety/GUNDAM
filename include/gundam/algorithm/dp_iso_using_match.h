@@ -31,7 +31,7 @@ namespace _dp_iso_using_match {
 enum EdgeState { kIn, kOut };
 // if query.CountEdge()>=large_query_edge, using fail set
 // small query not using fail set
-constexpr size_t large_query_edge = 6;
+constexpr size_t large_query_edge = 5;
 constexpr size_t adj_vertex_limit = 200000;
 
 template <typename GraphType>
@@ -772,171 +772,6 @@ inline void RestoreState(
   return;
 }
 
-template <enum MatchSemantics match_semantics, 
-          typename  QueryGraph,
-          typename TargetGraph>
-bool _DPISOUsingMatch(
-      const std::map<typename VertexHandle<QueryGraph>::type,
-                     std::vector<typename VertexHandle<TargetGraph>::type>> &candidate_set,
-            Match<QueryGraph, TargetGraph> &match_state,
-            std::set<typename VertexHandle<TargetGraph>::type> &target_matched,
-            const std::function<bool(const Match<QueryGraph, TargetGraph>&)>&  user_callback, 
-            const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& prune_callback,
-            time_t begin_time, 
-            double query_limit_time) {
-
-  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
-  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
-
-  if (query_limit_time > 0 
-   && query_limit_time < (std::time(NULL) - begin_time)) {
-    // has reached time limit
-    return false;
-  }
-
-  if (prune_callback(match_state)) {
-    return true;
-  }
-
-  if (match_state.size() == candidate_set.size()) {
-    return user_callback(match_state);
-  }
-
-  assert(match_state.size() < candidate_set.size());
-  // find the next vertex for querying
-  QueryVertexHandle next_query_vertex_handle
-   = NextMatchVertex(candidate_set, match_state);
-  // should have found next query vertex since the matching 
-  // is not ended
-  assert(next_query_vertex_handle);
-  assert(!match_state.HasMap(next_query_vertex_handle));
-  assert( candidate_set.find(next_query_vertex_handle) 
-       != candidate_set.end());
-  const auto& candidate_set_for_next_query_vertex 
-            = candidate_set.find(next_query_vertex_handle)->second;
-
-  // if (use_fail_set) {
-  //   // a new vertex in the query graph is selected for querying
-  //   // maintain the parent set of the new added query vertex
-  //   UpdateParent(match_state, next_query_vertex_handle, parent);
-  //   if (candidate_set_for_next_query_vertex.empty()){
-  //     // there is no legal candidate for the selected
-  //     // query vertex, set the fail set as all the parent of 
-  //     // the selected query vertex
-  //     fail_set = parent.find(next_query_vertex_handle)->second;
-  //     // continue recursive matching
-  //     return true;
-  //   }
-  // }
-
-  bool found_fail_set_flag = false;
-
-  std::vector<QueryVertexHandle> this_state_fail_set;
-
-  for (const auto &next_target_vertex_handle 
-       : candidate_set_for_next_query_vertex) {
-    // if (use_fail_set) {
-    //   if (!this_state_fail_set.empty()
-    //    && !std::binary_search(this_state_fail_set.begin(),
-    //                           this_state_fail_set.end(),
-    //                           next_query_vertex_handle)) {
-    //     // find fail set , u is not in fail set and fail set is not empty!
-    //     // so not expand
-    //     std::swap(fail_set, this_state_fail_set);
-    //     return true;
-    //   }
-    //   if (!found_fail_set_flag 
-    //     && match_semantics == MatchSemantics::kIsomorphism 
-    //     && target_matched.count(next_target_vertex_handle) > 0) {
-    //     // find u' satisfy that match_state[u']=next_target_vertex_handle
-    //     // next_state_fail_set = anc[u] union anc[u']
-    //     std::vector<QueryVertexHandle> next_state_fail_set;
-    //     for (auto &[query_ptr, target_ptr] : match_state) {
-    //       if (target_ptr == next_target_vertex_handle) {
-    //         std::vector<QueryVertexHandle> temp_next_state_fail_set;
-    //         std::set_union(parent.find(next_query_vertex_handle)->second.begin(),
-    //                        parent.find(next_query_vertex_handle)->second.end(),
-    //                        parent.find(query_ptr)->second.begin(),
-    //                        parent.find(query_ptr)->second.end(),
-    //                        std::inserter(temp_next_state_fail_set,
-    //                                      temp_next_state_fail_set.begin()));
-    //         std::swap(next_state_fail_set, temp_next_state_fail_set);
-    //         break;
-    //       }
-    //     }
-    //     // update this_state_fail_set
-    //     // anc[u] must contain u ,so union fail set
-    //     std::vector<QueryVertexHandle> temp_this_state_fail_set;
-    //     std::set_union(
-    //         next_state_fail_set.begin(), next_state_fail_set.end(),
-    //         this_state_fail_set.begin(), this_state_fail_set.end(),
-    //         inserter(temp_this_state_fail_set, temp_this_state_fail_set.begin()));
-    //     std::swap(this_state_fail_set, temp_this_state_fail_set);
-    //   }
-    // }
-    if (!IsJoinable<match_semantics>(
-              next_query_vertex_handle, 
-             next_target_vertex_handle, match_state,
-                  target_matched)) {
-      // this query-target vertex pair cannot be added to 
-      // the current match state, enumerate the next target vertex
-      continue;
-    }
-    // this query-target vertex pair can be added to the current
-    // match state, continue recursive searching
-    std::map<QueryVertexHandle, 
-              std::vector<TargetVertexHandle>> 
-            temp_candidate_set{candidate_set};
-    // add the query-target vertex pair into the match state, 
-    // add the target vertex into the match_state and target_matched
-    UpdateState(next_query_vertex_handle, 
-               next_target_vertex_handle,
-                match_state, target_matched);
-    // update the candidate set based on the new enumerated query-target vertex pair
-    UpdateCandidateSet(
-                next_query_vertex_handle, 
-               next_target_vertex_handle,
-               temp_candidate_set, 
-                match_state);
-    if (!_DPISOUsingMatch<match_semantics>(
-            temp_candidate_set, match_state, 
-            target_matched, 
-             user_callback,
-            prune_callback, begin_time, query_limit_time)) {
-      return false;
-    }
-    RestoreState(next_query_vertex_handle, 
-                next_target_vertex_handle,
-                  match_state, target_matched);
-    // if (!use_fail_set) {
-    //   // does not use fail set
-    //   continue;
-    // }
-    // // use fail set, needs to maintain it
-    // if (next_state_fail_set.empty()) {
-    //   // if ont child node's fail set is empty
-    //   // so this state's fail set is empty
-    //   found_fail_set_flag = true;
-    //   this_state_fail_set.clear();
-    // } else if (!std::binary_search(next_state_fail_set.begin(),
-    //                                next_state_fail_set.end(),
-    //                                next_query_vertex_handle)) {
-    //   // if one child node's fail set not contain next_query_vertex_handle
-    //   // so this state's fail set is next_state_fail_set
-    //   found_fail_set_flag = true;
-    //   this_state_fail_set = next_state_fail_set;
-    // } else if (!found_fail_set_flag) {
-    //   std::vector<QueryVertexHandle> temp_this_state_fail_set;
-    //   std::set_union(next_state_fail_set.begin(), next_state_fail_set.end(),
-    //                   this_state_fail_set.begin(), this_state_fail_set.end(),
-    //                   inserter(temp_this_state_fail_set,
-    //                           temp_this_state_fail_set.begin()));
-    //   std::swap(temp_this_state_fail_set, this_state_fail_set);
-    // }
-  }
-  return true;
-}
-
 template <enum EdgeState edge_state,
           typename  QueryGraphType, 
           typename TargetGraphType>
@@ -984,6 +819,12 @@ void UpdateParent(
     std::map<typename VertexHandle<QueryGraphType>::type, 
  std::vector<typename VertexHandle<QueryGraphType>::type>> &parent) {
   using QueryVertexHandleType = typename VertexHandle<QueryGraphType>::type;
+  std::cout << "update_query_vertex_handle->id(): "
+            <<  update_query_vertex_handle->id() << std::endl;
+  for (const auto& parent_handle : parent) {
+    std::cout << "\tparent_handle->id(): "
+              <<    parent_handle.first->id() << std::endl;
+  }
   assert(parent.find(update_query_vertex_handle)
       == parent.end());
   auto [ parent_it,
@@ -999,6 +840,207 @@ void UpdateParent(
   auto erase_it = std::unique(l.begin(), l.end());
   l.erase(erase_it, l.end());
   return;
+}
+
+template <enum MatchSemantics match_semantics, 
+          bool use_fail_set = false,
+          typename  QueryGraph,
+          typename TargetGraph>
+bool _DPISOUsingMatch(
+      const std::map<typename VertexHandle<QueryGraph>::type,
+                     std::vector<typename VertexHandle<TargetGraph>::type>> &candidate_set,
+            Match<QueryGraph, TargetGraph> &match_state,
+            std::set<typename VertexHandle<TargetGraph>::type> &target_matched,
+            std::map<typename VertexHandle<QueryGraph>::type,
+                    std::vector<typename VertexHandle<QueryGraph>::type>> &parent,
+            std::vector<typename VertexHandle<QueryGraph>::type> &current_state_fail_set,
+            const std::function<bool(const Match<QueryGraph, TargetGraph>&)>&  user_callback, 
+            const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& prune_callback,
+            time_t begin_time, 
+            double query_limit_time) {
+
+  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
+  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
+
+  if (query_limit_time > 0 
+   && query_limit_time < (std::time(NULL) - begin_time)) {
+    // has reached time limit
+    return false;
+  }
+
+  if (prune_callback(match_state)) {
+    return true;
+  }
+
+  if (match_state.size() == candidate_set.size()) {
+    return user_callback(match_state);
+  }
+
+  assert(match_state.size() < candidate_set.size());
+  // find the next vertex for querying
+  QueryVertexHandle next_query_vertex_handle
+   = NextMatchVertex(candidate_set, match_state);
+  // should have found next query vertex since the matching 
+  // is not ended
+  assert(next_query_vertex_handle);
+  assert(!match_state.HasMap(next_query_vertex_handle));
+  assert( candidate_set.find(next_query_vertex_handle) 
+       != candidate_set.end());
+  const auto& candidate_set_for_next_query_vertex 
+            = candidate_set.find(next_query_vertex_handle)->second;
+
+  if constexpr (use_fail_set) {
+    // a new vertex in the query graph is selected for querying
+    // maintain the parent set of the new added query vertex
+    UpdateParent(match_state, next_query_vertex_handle, parent);
+    if (candidate_set_for_next_query_vertex.empty()) {
+      // #######################################################
+      // # is called emptyset-class corresponding to the paper #
+      // #######################################################
+      //
+      // there is no legal candidate for the selected
+      // query vertex, set the fail set as all the parent of 
+      // the selected query vertex
+      current_state_fail_set = parent.find(next_query_vertex_handle)->second;
+      auto ret = parent.erase(next_query_vertex_handle);
+      assert(ret > 0);
+      // continue recursive matching
+      return true;
+    }
+  }
+
+  for (const auto &next_target_vertex_handle 
+       : candidate_set_for_next_query_vertex) {
+    if constexpr (use_fail_set) {
+      if (!current_state_fail_set.empty()
+       && !std::binary_search(current_state_fail_set.begin(),
+                              current_state_fail_set.end(),
+                              next_query_vertex_handle)) {
+        // has found fail set , u is not in fail set and 
+        // fail set is not empty!
+        // does not need further expand
+        auto ret = parent.erase(next_query_vertex_handle);
+        assert(ret > 0);
+        return true;
+      }
+      if (match_semantics == MatchSemantics::kIsomorphism 
+       && target_matched.find(next_target_vertex_handle) 
+       != target_matched.end()) {
+        // #######################################################
+        // # is called conflict-class corresponding to the paper #
+        // #######################################################
+        //
+        // find u' satisfy that match_state[u']=next_target_vertex_handle
+        // next_state_fail_set = anc[u] union anc[u']
+        std::vector<QueryVertexHandle> next_state_fail_set;
+        for (auto map_it = match_state.MapBegin();
+                 !map_it.IsDone(); map_it++) {
+          if (map_it->dst_handle() != next_target_vertex_handle){
+            // is not the query vertex that match to the same
+            // vertex in target graph
+            continue;
+          }
+          // is the vertex that match to the same vertex in
+          // the target graph
+          assert(parent.find(next_query_vertex_handle)
+              != parent.end());
+          assert(parent.find(map_it->src_handle())
+              != parent.end());
+          std::set_union(parent.find(next_query_vertex_handle)->second.begin(),
+                         parent.find(next_query_vertex_handle)->second.end(),
+                         parent.find(map_it->src_handle())->second.begin(),
+                         parent.find(map_it->src_handle())->second.end(),
+                         std::inserter(next_state_fail_set,
+                                       next_state_fail_set.begin()));
+          // there won't be another vertex that match to the
+          // same vertex
+          break;
+        }
+        // update current_state_fail_set
+        // anc[u] must contain u ,so union fail set
+        std::vector<QueryVertexHandle> temp_fail_set;
+        std::set_union(next_state_fail_set.begin(), 
+                       next_state_fail_set.end(),
+                    current_state_fail_set.begin(),
+                    current_state_fail_set.end(),
+               std::inserter(temp_fail_set, 
+                             temp_fail_set.begin()));
+        std::swap(current_state_fail_set, temp_fail_set);
+        continue;
+      }
+    }
+    if (!IsJoinable<match_semantics>(
+              next_query_vertex_handle, 
+             next_target_vertex_handle, match_state,
+                  target_matched)) {
+      // this query-target vertex pair cannot be added to 
+      // the current match state, enumerate the next target vertex
+      continue;
+    }
+    // this query-target vertex pair can be added to the current
+    // match state, continue recursive searching
+    std::map<QueryVertexHandle, 
+              std::vector<TargetVertexHandle>> 
+            temp_candidate_set{candidate_set};
+    // add the query-target vertex pair into the match state, 
+    // add the target vertex into the match_state and target_matched
+    UpdateState(next_query_vertex_handle, 
+               next_target_vertex_handle,
+                match_state, target_matched);
+    // update the candidate set based on the new enumerated query-target vertex pair
+    UpdateCandidateSet(
+                next_query_vertex_handle, 
+               next_target_vertex_handle,
+               temp_candidate_set, 
+                match_state);
+    std::vector<typename VertexHandle<QueryGraph>::type> next_state_fail_set;
+    if (!_DPISOUsingMatch<match_semantics, use_fail_set>(
+            temp_candidate_set, match_state, 
+            target_matched, 
+            parent, next_state_fail_set,
+             user_callback,
+            prune_callback, begin_time, query_limit_time)) {
+      if constexpr (use_fail_set) {
+        auto ret = parent.erase(next_query_vertex_handle);
+        assert(ret > 0);
+      }
+      return false;
+    }
+    RestoreState(next_query_vertex_handle, 
+                next_target_vertex_handle,
+                  match_state, target_matched);
+    if constexpr (!use_fail_set) {
+      // does not use fail set
+      continue;
+    }
+    // use fail set, needs to maintain it
+    if (next_state_fail_set.empty()) {
+      // if ont child node's fail set is empty
+      // so this state's fail set is empty
+      current_state_fail_set.clear();
+      continue;
+    }
+    if (!std::binary_search(next_state_fail_set.begin(),
+                            next_state_fail_set.end(),
+                            next_query_vertex_handle)) {
+      // if one child node's fail set not contain next_query_vertex_handle
+      // so this state's fail set is next_state_fail_set
+      current_state_fail_set = next_state_fail_set;
+      continue;
+    }
+    std::vector<QueryVertexHandle> temp_this_state_fail_set;
+    std::set_union(next_state_fail_set.begin(), next_state_fail_set.end(),
+                   current_state_fail_set.begin(), current_state_fail_set.end(),
+                   std::inserter(temp_this_state_fail_set,
+                                 temp_this_state_fail_set.begin()));
+    std::swap(temp_this_state_fail_set, 
+                   current_state_fail_set);
+  }
+  if constexpr (use_fail_set) {
+    auto ret = parent.erase(next_query_vertex_handle);
+    assert(ret > 0);
+  }
+  return true;
 }
 
 namespace _DAGDP {
@@ -1587,6 +1629,8 @@ inline int DPISOUsingMatch_Recursive(
   }
   #endif // NDEBUG
 
+  const bool kUseFailSet = query_graph.CountEdge() >= large_query_edge;
+
   assert(!partial_match.HasMap(next_query_handle));
   if (!next_query_handle) {
     // all vertexes have been matched, cannot 
@@ -1641,11 +1685,11 @@ inline int DPISOUsingMatch_Recursive(
     //                                       map_it->src_handle(), 
     //                                       parent);
     //   }
-    //   std::vector<QueryVertexHandle> fail_set;
+    //   std::vector<QueryVertexHandle> current_state_fail_set;
     //   if (!_dp_iso_using_match::_DPISOUsingMatch<match_semantics>(
     //           temp_candidate_set, 
     //           temp_match_state,
-    //           temp_target_matched, parent, fail_set,
+    //           temp_target_matched, parent, current_state_fail_set,
     //           par_user_callback, 
     //           par_prune_callback, 
     //           begin_time, query_limit_time)) {
@@ -1653,15 +1697,39 @@ inline int DPISOUsingMatch_Recursive(
     //   }
     //   continue;
     // }
-    if (!_dp_iso_using_match::_DPISOUsingMatch<match_semantics>(
+    if (!kUseFailSet) {
+      std:: map  <typename VertexHandle<QueryGraph>::type,
+      std::vector<typename VertexHandle<QueryGraph>::type>> temp_parent;
+      std::vector<typename VertexHandle<QueryGraph>::type>  temp_fail_set;
+      user_callback_has_return_false 
+        = !_dp_iso_using_match::_DPISOUsingMatch<match_semantics, false>(
             temp_candidate_set, 
             temp_match_state,
-            temp_target_matched, 
+            temp_target_matched,
+            temp_parent,
+            temp_fail_set,
             par_user_callback,
             par_prune_callback, 
-            begin_time, query_limit_time)) {
-      user_callback_has_return_false = true;
+            begin_time, query_limit_time);
+      // does not need to restore, temp_match_state is a copy
+      // from match_state
+      continue;
     }
+    std:: map  <typename VertexHandle<QueryGraph>::type,
+    std::vector<typename VertexHandle<QueryGraph>::type>> temp_parent;
+    std::vector<typename VertexHandle<QueryGraph>::type>  temp_fail_set;
+    temp_parent.emplace(next_query_handle, 
+                        std::vector<typename VertexHandle<QueryGraph>::type>{next_query_handle});
+    user_callback_has_return_false 
+      = !_dp_iso_using_match::_DPISOUsingMatch<match_semantics, true>(
+          temp_candidate_set, 
+          temp_match_state,
+          temp_target_matched,
+          temp_parent,
+          temp_fail_set,
+          par_user_callback,
+          par_prune_callback, 
+          begin_time, query_limit_time);
     // does not need to restore, temp_match_state is a copy
     // from match_state
 
