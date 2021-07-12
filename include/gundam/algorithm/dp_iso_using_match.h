@@ -1825,6 +1825,13 @@ inline int IncreamentDPISOUsingMatch(
       std::swap(this_vertex_target_list, 
                             target_list);
     }
+
+    std::function<bool(const Match<QueryGraph, TargetGraph>&)>
+      prune_callback = [](const Match<QueryGraph, 
+                                    TargetGraph>& match) -> bool{
+      // prune nothing, continue matching
+      return false;
+    };
     Match<QueryGraph, 
          TargetGraph> match_state;
     _dp_iso_using_match::DPISOUsingMatch_Recursive<match_semantics>(
@@ -1832,7 +1839,7 @@ inline int IncreamentDPISOUsingMatch(
                target_graph,
                 copy_candidate_set, 
                 match_state,
-                match_callback, nullptr, query_limit_time);
+                match_callback, prune_callback, query_limit_time);
   }
   return 1;
 }
