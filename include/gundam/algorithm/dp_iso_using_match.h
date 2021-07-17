@@ -819,12 +819,12 @@ void UpdateParent(
     std::map<typename VertexHandle<QueryGraphType>::type, 
  std::vector<typename VertexHandle<QueryGraphType>::type>> &parent) {
   using QueryVertexHandleType = typename VertexHandle<QueryGraphType>::type;
-  std::cout << "update_query_vertex_handle->id(): "
-            <<  update_query_vertex_handle->id() << std::endl;
-  for (const auto& parent_handle : parent) {
-    std::cout << "\tparent_handle->id(): "
-              <<    parent_handle.first->id() << std::endl;
-  }
+  // std::cout << "update_query_vertex_handle->id(): "
+  //           <<  update_query_vertex_handle->id() << std::endl;
+  // for (const auto& parent_handle : parent) {
+  //   std::cout << "\tparent_handle->id(): "
+  //             <<    parent_handle.first->id() << std::endl;
+  // }
   assert(parent.find(update_query_vertex_handle)
       == parent.end());
   auto [ parent_it,
