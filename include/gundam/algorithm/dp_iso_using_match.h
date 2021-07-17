@@ -819,12 +819,6 @@ void UpdateParent(
     std::map<typename VertexHandle<QueryGraphType>::type, 
  std::vector<typename VertexHandle<QueryGraphType>::type>> &parent) {
   using QueryVertexHandleType = typename VertexHandle<QueryGraphType>::type;
-  std::cout << "update_query_vertex_handle->id(): "
-            <<  update_query_vertex_handle->id() << std::endl;
-  for (const auto& parent_handle : parent) {
-    std::cout << "\tparent_handle->id(): "
-              <<    parent_handle.first->id() << std::endl;
-  }
   assert(parent.find(update_query_vertex_handle)
       == parent.end());
   auto [ parent_it,
@@ -902,6 +896,7 @@ bool _DPISOUsingMatch(
       // query vertex, set the fail set as all the parent of 
       // the selected query vertex
       current_state_fail_set = parent.find(next_query_vertex_handle)->second;
+      // restore parent
       auto ret = parent.erase(next_query_vertex_handle);
       assert(ret > 0);
       // continue recursive matching
@@ -919,6 +914,7 @@ bool _DPISOUsingMatch(
         // has found fail set , u is not in fail set and 
         // fail set is not empty!
         // does not need further expand
+        // restore parent
         auto ret = parent.erase(next_query_vertex_handle);
         assert(ret > 0);
         return true;
@@ -1001,6 +997,7 @@ bool _DPISOUsingMatch(
              user_callback,
             prune_callback, begin_time, query_limit_time)) {
       if constexpr (use_fail_set) {
+        // restore parent
         auto ret = parent.erase(next_query_vertex_handle);
         assert(ret > 0);
       }
@@ -1037,6 +1034,7 @@ bool _DPISOUsingMatch(
                    current_state_fail_set);
   }
   if constexpr (use_fail_set) {
+    // restore parent
     auto ret = parent.erase(next_query_vertex_handle);
     assert(ret > 0);
   }
