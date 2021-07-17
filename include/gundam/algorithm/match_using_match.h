@@ -718,30 +718,12 @@ inline int IncrementalMatchUsingMatch(
   static_assert(match_algorithm
              == MatchAlgorithm::kDagDp, "unsupported match algorithm for incremental match");
 
-  using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
-  using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
-
-  using MatchMap = std::map<QueryVertexHandle, 
-                           TargetVertexHandle>;
-
-  using MatchType = Match<QueryGraph, TargetGraph>;
-
-  auto match_callback_using_map 
-   = [&match_callback](const MatchMap& match) {
-    MatchType new_match;
-    for (const auto& map : match){
-      auto ret = new_match.AddMap(map.first, map.second);
-      // should added successfully
-      assert(ret);
-    }
-    return match_callback(new_match);
-  };
 
   return IncreamentDPISOUsingMatch<match_semantics>(
                          query_graph, 
                         target_graph,
                   delta_target_graph,
-                         match_callback_using_map,
+                         match_callback,
                          query_limit_time);
 }
 
