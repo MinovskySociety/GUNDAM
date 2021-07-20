@@ -151,26 +151,34 @@ inline bool CheckIsInCandidateSet(
 }
 
 //
-template <class QueryVertexHandle, class TargetVertexHandle>
-inline QueryVertexHandle DetermineMatchOrder(
-    const std::map<QueryVertexHandle, std::vector<TargetVertexHandle>>
-        &candidate_set,
-    const std::map<QueryVertexHandle, TargetVertexHandle> &match_state) {
+template <class QueryGraph, 
+          class TargetVertexHandle>
+inline typename VertexHandle<QueryGraph>::type DetermineMatchOrder(
+    const std::map<typename VertexHandle<QueryGraph>::type, 
+          std::vector<TargetVertexHandle>> &candidate_set,
+    const std::map<typename VertexHandle<QueryGraph>::type, 
+                      TargetVertexHandle>  &match_state) {
+
+  using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
+  using   QueryEdgeHandle = typename   EdgeHandle<QueryGraph>::type;
+
   std::set<QueryVertexHandle> next_query_set;
   for (const auto &match_pair : match_state) {
     QueryVertexHandle query_vertex_handle = match_pair.first;
 
     for (auto edge_iter = query_vertex_handle->OutEdgeBegin();
-         !edge_iter.IsDone(); ++edge_iter) {
-      auto query_opp_vertex_handle = edge_iter->dst_handle();
+             !edge_iter.IsDone(); 
+            ++edge_iter) {
+      QueryVertexHandle query_opp_vertex_handle  = edge_iter->dst_handle();
       if (match_state.count(query_opp_vertex_handle) == 0) {
         next_query_set.insert(query_opp_vertex_handle);
       }
     }
 
     for (auto edge_iter = query_vertex_handle->InEdgeBegin();
-         !edge_iter.IsDone(); ++edge_iter) {
-      auto query_opp_vertex_handle = edge_iter->src_handle();
+             !edge_iter.IsDone(); 
+            ++edge_iter) {
+      QueryVertexHandle query_opp_vertex_handle = edge_iter->src_handle();
       if (match_state.count(query_opp_vertex_handle) == 0) {
         next_query_set.insert(query_opp_vertex_handle);
       }
@@ -290,7 +298,7 @@ inline bool JoinableCheck(
   for (auto query_edge_iter = (edge_state == EdgeState::kIn)
                                   ? query_vertex_handle->InEdgeBegin()
                                   : query_vertex_handle->OutEdgeBegin();
-       !query_edge_iter.IsDone(); ++query_edge_iter) {
+           !query_edge_iter.IsDone(); ++query_edge_iter) {
     QueryVertexHandle query_opp_vertex_handle;
 
     if constexpr (edge_state == EdgeState::kIn) {
@@ -573,7 +581,7 @@ bool _VF2(const std::map<typename VertexHandle<QueryGraph>::type,
   }
 
   QueryVertexHandle next_query_vertex_handle =
-      DetermineMatchOrder(candidate_set, match_state);
+      DetermineMatchOrder<QueryGraph>(candidate_set, match_state);
 
   TimerAddUpInterval(2);
 
@@ -647,7 +655,7 @@ inline bool InitMatch(
         &candidate_set,
     const MatchStateMap &match_state, const TargetVertexSet &target_matched,
     EdgeCompare edge_comp, MatchStack &match_stack) {
-  auto query_vertex_handle = DetermineMatchOrder(candidate_set, match_state);
+  auto query_vertex_handle = DetermineMatchOrder<QueryGraph>(candidate_set, match_state);
   auto &target_candidate = candidate_set.find(query_vertex_handle)->second;
 
   auto target_vertex_iter = target_candidate.begin();

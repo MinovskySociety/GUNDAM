@@ -617,9 +617,7 @@ class Graph {
         return *this;
       }
       
-      inline typename std::conditional<is_const_, const InnerVertex_ *,  
-                                                        InnerVertex_ *>::type
-      operator->() const {
+      inline VertexPtrType operator->() const {
         assert(!IsNull());
         return this->ptr_;
       }

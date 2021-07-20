@@ -24,6 +24,7 @@
 #include "gundam/type_getter/graph_parameter_getter.h"
 
 #include "gundam/match/match.h"
+#include "gundam/algorithm/bfs.h"
 
 namespace GUNDAM {
 
@@ -792,7 +793,8 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
     for (auto out_edge_it = query_vertex_handle->OutEdgeBegin();
              !out_edge_it.IsDone();
               out_edge_it++) {
-      auto opp_vertex_handle = out_edge_it->dst_handle();
+      typename EdgeHandle<QueryGraph>::type edge_handle = out_edge_it;
+      QueryVertexHandleType opp_vertex_handle = out_edge_it->dst_handle();
       if (visited_vertex_set.find(opp_vertex_handle)
        == visited_vertex_set.end()) {
         // this vertex has not been added into the dag
@@ -820,12 +822,12 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
     auto [ visited_vertex_it,
            visited_vertex_ret ] 
          = visited_vertex_set.emplace(query_vertex_handle);
-    // should added successfully
-    assert(visited_vertex_ret);
+    // may be already added before
+    // assert(visited_vertex_ret);
     return true;
   };
 
-  Bfs(src_vertex_set, build_dag_callback);
+  Bfs<true>(query_graph, src_vertex_set, build_dag_callback);
   for (auto& [query_vertex_handle,
               query_vertex_parent] : parent) {
     assert( query_vertex_handle);
@@ -1735,9 +1737,9 @@ inline int DPISOUsingMatch_Recursive(
     // dag rooted at the first vertex to query
     src_vertex_handle_set.emplace(next_query_handle);
   }
-  // std:: map  <typename VertexHandle<QueryGraph>::type,
-  // std::vector<typename VertexHandle<QueryGraph>::type>> parent;
-  // BuildDag(query_graph, src_vertex_handle_set, parent);
+  std:: map  <typename VertexHandle<QueryGraph>::type,
+  std::vector<typename VertexHandle<QueryGraph>::type>> parent;
+  BuildDag(query_graph, src_vertex_handle_set, parent);
 
   const bool kUseFailSet = query_graph.CountEdge() >= large_query_edge;
 

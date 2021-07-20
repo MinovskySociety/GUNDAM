@@ -60,15 +60,8 @@ class GPointer {
     return v_;
   }
 
-  typename std::conditional<is_const, const ConstContentType *,  
-                                                 ContentType *>::type
-  operator->() {
-    assert(!IsNull());
-    return &v_;
-  }
-
-  typename std::conditional<is_const, const ConstContentType *,
-                                      const ContentType *>::type
+  inline typename std::conditional<is_const, const ConstContentType *,
+                                             const ContentType *>::type
   operator->() const {
     assert(!IsNull());
     return &v_;

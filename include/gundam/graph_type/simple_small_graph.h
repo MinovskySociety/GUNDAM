@@ -233,28 +233,28 @@ class SimpleSmallGraph {
       return in_vertex_id_set.size();
     }
 
-    EdgeIterator OutEdgeBegin() {
+    inline auto OutEdgeBegin() const {
       assert(HasValue());
-      return EdgeIterator(graph_, data_->out_edges_.begin(),
-                          data_->out_edges_.end());
+      if constexpr (is_const) {
+        return EdgeConstIterator(graph_, data_->out_edges_.begin(),
+                                         data_->out_edges_.end());
+      }
+      else{
+        return EdgeIterator(graph_, data_->out_edges_.begin(),
+                                    data_->out_edges_.end());
+      }
     }
 
-    EdgeConstIterator OutEdgeBegin() const {
+    inline auto InEdgeBegin() const {
       assert(HasValue());
-      return EdgeConstIterator(graph_, data_->out_edges_.begin(),
-                               data_->out_edges_.end());
-    }
-
-    EdgeIterator InEdgeBegin() {
-      assert(HasValue());
-      return EdgeIterator(graph_, data_->in_edges_.begin(),
-                          data_->in_edges_.end());
-    }
-
-    EdgeConstIterator InEdgeBegin() const {
-      assert(HasValue());
-      return EdgeConstIterator(graph_, data_->in_edges_.begin(),
-                               data_->in_edges_.end());
+      if constexpr (is_const) {
+        return EdgeConstIterator(graph_, data_->in_edges_.begin(),
+                                         data_->in_edges_.end());
+      }
+      else {
+        return EdgeIterator(graph_, data_->in_edges_.begin(),
+                                    data_->in_edges_.end());
+      }
     }
 
     bool operator==(const _Vertex &b) const {
@@ -360,14 +360,14 @@ class SimpleSmallGraph {
       return ConstVertex(graph_, data_->dst_).id();
     }
 
-    VertexPtr src_handle() {
+    inline auto src_handle() const {
       assert(HasValue());
-      return VertexPtr(Vertex(graph_, data_->src_));
-    }
-
-    VertexConstPtr src_handle() const {
-      assert(HasValue());
-      return VertexConstPtr(ConstVertex(graph_, data_->src_));
+      if constexpr (is_const) {
+        return VertexConstPtr(ConstVertex(graph_, data_->src_));
+      }
+      else{
+        return VertexPtr(Vertex(graph_, data_->src_));
+      }
     }
 
     VertexConstPtr const_src_handle() const {
@@ -375,14 +375,14 @@ class SimpleSmallGraph {
       return VertexConstPtr(ConstVertex(graph_, data_->src_));
     }
 
-    VertexPtr dst_handle() {
+    inline auto dst_handle() const {
       assert(HasValue());
-      return VertexPtr(Vertex(graph_, data_->dst_));
-    }
-
-    VertexConstPtr dst_handle() const {
-      assert(HasValue());
-      return VertexConstPtr(ConstVertex(graph_, data_->dst_));
+      if constexpr (is_const) {
+        return VertexConstPtr(ConstVertex(graph_, data_->dst_));
+      }
+      else{
+        return VertexPtr(Vertex(graph_, data_->dst_));
+      }
     }
 
     VertexConstPtr const_dst_handle() const {

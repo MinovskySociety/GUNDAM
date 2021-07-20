@@ -114,8 +114,8 @@ class GIterator2 {
   template <class GraphPtr, class Iter, class IterEnd>
   GIterator2(GraphPtr &&graph, Iter &&it, IterEnd &&end)
       : graph_(std::forward<GraphPtr>(graph)),
-        it_(std::forward<Iter>(it)),
-        end_(std::forward<IterEnd>(end)) {}
+           it_(std::forward<Iter>(it)),
+          end_(std::forward<IterEnd>(end)) {}
 
   ValueType operator*() { 
     assert(!this->IsDone());
@@ -125,11 +125,6 @@ class GIterator2 {
   const ValueType operator*() const {
     assert(!this->IsDone()); 
     return ValueType(graph_, *it_); 
-  }
-
-  PointerType operator->() { 
-    assert(!this->IsDone());
-    return PointerType(ValueType(graph_, *it_)); 
   }
 
   const PointerType operator->() const {
@@ -195,16 +190,23 @@ class GIterator3 {
         it_(std::forward<Iter>(it)),
         end_(std::forward<IterEnd>(end)) {}
 
-  ValueType operator*() { return ValueType(graph_, *(*it_)); }
+  ValueType operator*() { 
+    assert(!this->IsDone());
+    return ValueType(graph_, *(*it_)); 
+  }
 
-  const ValueType operator*() const { return ValueType(graph_, *(*it_)); }
+  const ValueType operator*() const { 
+    assert(!this->IsDone());
+    return ValueType(graph_, *(*it_)); 
+  }
 
   PointerType operator->() {
-    ;
+    assert(!this->IsDone());
     return PointerType(ValueType(graph_, *(*it_)));
   }
 
   const PointerType operator->() const {
+    assert(!this->IsDone());
     return PointerType(ValueType(graph_, *(*it_)));
   }
 

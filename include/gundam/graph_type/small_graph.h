@@ -161,14 +161,14 @@ class SmallGraph {
     _Vertex() : graph_(nullptr){};
 
     _Vertex(typename std::conditional<is_const, const GraphType *,
-                                      GraphType *>::type graph,
+                                                      GraphType *>::type graph,
             const VertexContent &content)
         : graph_(graph), id_(content.first), label_(content.second.label_) {
       assert(graph_);
     }
 
     _Vertex(typename std::conditional<is_const, const GraphType *,
-                                      GraphType *>::type graph,
+                                                      GraphType *>::type graph,
             const VertexIDType &id)
         : graph_(graph), id_(id) {
       assert(graph_);
@@ -256,32 +256,34 @@ class SmallGraph {
       return vertex_id_set.size();
     }
 
-    EdgeIterator OutEdgeBegin() {
-      assert(HasValue());
-      auto &data = graph_->vertices_.Find(id_)->second;
-      return EdgeIterator(graph_, 
-                          data.out_edges_.begin(),
-                          data.out_edges_.end());
+    inline auto OutEdgeBegin() const {
+      if constexpr (is_const) {
+        assert(HasValue());
+        const auto &data = graph_->vertices_.Find(id_)->second;
+        return EdgeConstIterator(graph_, data.out_edges_.cbegin(),
+                                        data.out_edges_.cend());
+      }
+      else{
+        assert(HasValue());
+        auto &data = graph_->vertices_.Find(id_)->second;
+        return EdgeIterator(graph_, 
+                            data.out_edges_.begin(),
+                            data.out_edges_.end());
+      }
     }
 
-    EdgeConstIterator OutEdgeBegin() const {
-      assert(HasValue());
-      const auto &data = graph_->vertices_.Find(id_)->second;
-      return EdgeConstIterator(graph_, data.out_edges_.cbegin(),
-                               data.out_edges_.cend());
-    }
-
-    EdgeIterator InEdgeBegin() {
-      assert(HasValue());
-      auto &data = graph_->vertices_.Find(id_)->second;
-      return EdgeIterator(graph_, data.in_edges_.begin(), data.in_edges_.end());
-    }
-
-    EdgeConstIterator InEdgeBegin() const {
-      assert(HasValue());
-      const auto &data = graph_->vertices_.Find(id_)->second;
-      return EdgeConstIterator(graph_, data.in_edges_.cbegin(),
-                               data.in_edges_.cend());
+    inline auto InEdgeBegin() const {
+      if constexpr (is_const) {
+        assert(HasValue());
+        const auto &data = graph_->vertices_.Find(id_)->second;
+        return EdgeConstIterator(graph_, data.in_edges_.cbegin(),
+                                data.in_edges_.cend());
+      }
+      else {
+        assert(HasValue());
+        auto &data = graph_->vertices_.Find(id_)->second;
+        return EdgeIterator(graph_, data.in_edges_.begin(), data.in_edges_.end());
+      }
     }
 
     bool operator==(const _Vertex &b) const {
@@ -322,9 +324,14 @@ class SmallGraph {
     }
 
    private:
-    void Reset() { graph_ = nullptr; }
+    inline void Reset() { 
+      graph_ = nullptr; 
+      return;
+    }
 
-    bool HasValue() const { return (graph_ != nullptr); }
+    inline bool HasValue() const { 
+      return (graph_ != nullptr); 
+    }
 
     typename std::conditional<is_const, const GraphType *, GraphType *>::type
         graph_;
@@ -406,7 +413,7 @@ class SmallGraph {
     auto src_handle() const {
       assert(HasValue());
       if constexpr (is_const) {
-        return VertexConstPtr(ConstVertex(graph_, src_));
+        return this->const_src_handle();
       }
       else {
         return VertexPtr(Vertex(graph_, src_));
@@ -421,7 +428,7 @@ class SmallGraph {
     auto dst_handle() const {
       assert(HasValue());
       if constexpr (is_const) {
-        return VertexConstPtr(ConstVertex(graph_, dst_));
+        return this->const_dst_handle();
       }
       else {
         return VertexPtr(Vertex(graph_, dst_));
