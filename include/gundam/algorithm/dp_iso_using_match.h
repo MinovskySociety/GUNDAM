@@ -757,6 +757,90 @@ inline void UpdateCandidateSet(
   return;
 }
 
+// build a dag based on the given src vertexes
+// only calc the parents of each vertex on the 
+// only one of its parent has been matched 
+template <typename QueryGraph>
+inline void BuildDag(             QueryGraph& query_graph,
+   std::set<typename VertexHandle<QueryGraph>::type>& src_vertex_set,
+   std::map<typename VertexHandle<QueryGraph>::type, 
+std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
+  assert(!src_vertex_set.empty());
+  assert(parent.empty());
+  
+  using QueryVertexHandleType 
+  = typename VertexHandle<QueryGraph>::type;
+
+  std::set<QueryVertexHandleType> visited_vertex_set
+                                    = src_vertex_set;
+
+  auto build_dag_callback 
+    = [&visited_vertex_set,
+       &parent](const QueryVertexHandleType& query_vertex_handle) {
+
+    // query_vertex_handle should not have been visited
+    assert(visited_vertex_set.find(query_vertex_handle)
+        != visited_vertex_set.end());
+
+    auto [ parent_it,
+           parent_ret ] 
+         = parent.emplace(query_vertex_handle, std::vector<QueryVertexHandleType>());
+    // should be added successfully
+    assert(parent_ret);
+    parent_it->second.emplace_back(query_vertex_handle);
+    
+    for (auto out_edge_it = query_vertex_handle->OutEdgeBegin();
+             !out_edge_it.IsDone();
+              out_edge_it++) {
+      auto opp_vertex_handle = out_edge_it->dst_handle();
+      if (visited_vertex_set.find(opp_vertex_handle)
+       == visited_vertex_set.end()) {
+        // this vertex has not been added into the dag
+        // would not be added as the parent of 
+        // query_vertex_handle
+        continue;
+      }
+      parent_it->second.emplace_back(opp_vertex_handle);
+    }
+    
+    for (auto in_edge_it = query_vertex_handle->InEdgeBegin();
+             !in_edge_it.IsDone();
+              in_edge_it++) {
+      auto opp_vertex_handle = in_edge_it->src_handle();
+      if (visited_vertex_set.find(opp_vertex_handle)
+       == visited_vertex_set.end()) {
+        // this vertex has not been added into the dag
+        // would not be added as the parent of 
+        // query_vertex_handle
+        continue;
+      }
+      parent_it->second.emplace_back(opp_vertex_handle);
+    }
+
+    auto [ visited_vertex_it,
+           visited_vertex_ret ] 
+         = visited_vertex_set.emplace(query_vertex_handle);
+    // should added successfully
+    assert(visited_vertex_ret);
+    return true;
+  };
+
+  Bfs(src_vertex_set, build_dag_callback);
+  for (auto& [query_vertex_handle,
+              query_vertex_parent] : parent) {
+    assert( query_vertex_handle);
+    assert(!query_vertex_parent.empty());
+    std::sort(query_vertex_parent.begin(), 
+              query_vertex_parent.end());
+    // could contain duplicated vertex in parent if there
+    // are more than one edge between two vertexes
+    auto erase_it = std::unique(query_vertex_parent.begin(), 
+                                query_vertex_parent.end());
+    query_vertex_parent.erase(erase_it, query_vertex_parent.end());
+  }
+  return;
+}
+
 template <typename  QueryGraph, 
           typename TargetGraph>
 inline void RestoreState(
@@ -1627,6 +1711,34 @@ inline int DPISOUsingMatch_Recursive(
   }
   #endif // NDEBUG
 
+  std::set<typename VertexHandle<QueryGraph>::type> src_vertex_handle_set;
+  if (!partial_match.empty()) {
+    // has specified partial match, build the dag rooted at
+    // the matched vertexes
+    for (auto map_it = partial_match.MapBegin();
+             !map_it.IsDone();
+              map_it++) {
+      assert(map_it->src_handle());
+      assert(map_it->dst_handle());
+      auto [ src_vertex_handle_it,
+             src_vertex_handle_ret ]
+           = src_vertex_handle_set.emplace(map_it->src_handle());
+      assert(src_vertex_handle_ret);
+    }
+    // the first vertex to query should not be contained in the 
+    // partial match
+    assert(src_vertex_handle_set.find(next_query_handle)
+        == src_vertex_handle_set.end());
+  }
+  else {
+    // does not specified partial match, build the 
+    // dag rooted at the first vertex to query
+    src_vertex_handle_set.emplace(next_query_handle);
+  }
+  // std:: map  <typename VertexHandle<QueryGraph>::type,
+  // std::vector<typename VertexHandle<QueryGraph>::type>> parent;
+  // BuildDag(query_graph, src_vertex_handle_set, parent);
+
   const bool kUseFailSet = query_graph.CountEdge() >= large_query_edge;
 
   assert(!partial_match.HasMap(next_query_handle));
@@ -1673,28 +1785,6 @@ inline int DPISOUsingMatch_Recursive(
         match_target_handle, 
         temp_candidate_set,
         temp_match_state);
-    // if (query_graph.CountEdge() >= large_query_edge) {
-    //   std::map<QueryVertexHandle, std::vector<QueryVertexHandle>>
-    //       parent;
-    //   for (auto map_it = temp_match_state.MapBegin();
-    //            !map_it.IsDone();
-    //             map_it++) {
-    //     _dp_iso_using_match::UpdateParent(temp_match_state, 
-    //                                       map_it->src_handle(), 
-    //                                       parent);
-    //   }
-    //   std::vector<QueryVertexHandle> current_state_fail_set;
-    //   if (!_dp_iso_using_match::_DPISOUsingMatch<match_semantics>(
-    //           temp_candidate_set, 
-    //           temp_match_state,
-    //           temp_target_matched, parent, current_state_fail_set,
-    //           par_user_callback, 
-    //           par_prune_callback, 
-    //           begin_time, query_limit_time)) {
-    //     user_callback_has_return_false = true;
-    //   }
-    //   continue;
-    // }
     if (!kUseFailSet) {
       std:: map  <typename VertexHandle<QueryGraph>::type,
       std::vector<typename VertexHandle<QueryGraph>::type>> temp_parent;

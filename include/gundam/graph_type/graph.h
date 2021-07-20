@@ -617,15 +617,8 @@ class Graph {
         return *this;
       }
       
-      typename std::conditional<is_const_, const InnerVertex_ *,  
-                                                 InnerVertex_ *>::type
-      operator->() {
-        assert(!IsNull());
-        return this->ptr_;
-      }
-
-      typename std::conditional<is_const_, const InnerVertex_ *,
-                                           const InnerVertex_ *>::type
+      inline typename std::conditional<is_const_, const InnerVertex_ *,  
+                                                        InnerVertex_ *>::type
       operator->() const {
         assert(!IsNull());
         return this->ptr_;
@@ -1501,7 +1494,7 @@ class Graph {
                               .template get_const<kVertexPtrIdx>();
       }
 
-      inline EdgeAttributeType& _attribute() {
+      inline EdgeAttributeType& _attribute() const {
         assert(!this->IsNull());
         return *(EdgePtrContent::decomposed_edge_iterator_
                                 .template get<kEdgeAttributePtrIdx>());
@@ -1525,18 +1518,18 @@ class Graph {
       }
 
       template <typename ConcreteDataType>
-      inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key) {
+      inline ConcreteDataType& attribute(const EdgeAttributeKeyType& key) const {
         assert(!this->IsNull());
         return this->_attribute().template attribute<ConcreteDataType>(key);
       }
 
-      inline EdgeAttributeIterator AttributeBegin() {
+      inline EdgeAttributeIterator AttributeBegin() const {
         assert(!this->IsNull());
         return this->_attribute().AttributeBegin();
       }
 
       inline EdgeAttributePtr FindAttribute(
-          const EdgeAttributeKeyType& key) {
+          const EdgeAttributeKeyType& key) const {
         assert(!this->IsNull());
         return this->_attribute().FindAttribute(key);
       }
@@ -1544,7 +1537,7 @@ class Graph {
       template <typename ConcreteDataType>
       inline std::pair<EdgeAttributePtr, bool> AddAttribute(
           const EdgeAttributeKeyType& key, 
-          const     ConcreteDataType& value) {
+          const     ConcreteDataType& value) const {
         assert(!this->IsNull());
         return this->_attribute().AddAttribute(key, value);
       }
@@ -1552,7 +1545,7 @@ class Graph {
       inline std::pair<EdgeAttributePtr, bool> AddAttribute(
           const EdgeAttributeKeyType& key, 
           const enum BasicDataType& data_type,
-          const std::string& value_str) {
+          const std::string& value_str) const {
         assert(!this->IsNull());
         return this->_attribute().AddAttribute(key, 
                                                data_type, 
@@ -1561,18 +1554,18 @@ class Graph {
 
       template <typename ConcreteDataType>
       inline std::pair<EdgeAttributePtr, bool> SetAttribute(
-          const EdgeAttributeKeyType& key, const ConcreteDataType& value) {
+          const EdgeAttributeKeyType& key, const ConcreteDataType& value) const {
         assert(!this->IsNull());
         return this->_attribute().SetAttribute(key, value);
       }
 
       inline EdgeAttributeIterator EraseAttribute(
-          const EdgeAttributeIterator& attribute_iterator) {
+          const EdgeAttributeIterator& attribute_iterator) const {
         assert(!this->IsNull());
         return this->_attribute().EraseAttribute(attribute_iterator);
       }
 
-      inline bool EraseAttribute(const EdgeAttributeKeyType& key) {
+      inline bool EraseAttribute(const EdgeAttributeKeyType& key) const {
         assert(!this->IsNull());
         return this->_attribute().EraseAttribute(key);
       }
@@ -1585,8 +1578,6 @@ class Graph {
       friend class EdgePtr_<!is_const_>;
 
       using EdgePtrContentType = EdgePtrContent_<is_const_, !is_const_>;
-
-      using EdgePtrContentTypePtrType = EdgePtrContentType*;
 
       // add by wangyj
       template <typename              ContainerType_,
@@ -1974,17 +1965,7 @@ class Graph {
                            == EdgePtrContentType::id();
       }
 
-      typename std::conditional<is_const_, const EdgePtrContentType *,  
-                                                 EdgePtrContentType *>::type
-      operator->() {
-        assert(!IsNull());
-        // EdgePtrContentTypePtrType const temp_ptr = this;
-        return this;
-      }
-
-      typename std::conditional<is_const_, const EdgePtrContentType *,
-                                           const EdgePtrContentType *>::type
-      operator->() const {
+      inline const EdgePtrContentType* operator->() const {
         assert(!IsNull());
         // EdgePtrContentTypePtrType const temp_ptr = this;
         return this;
@@ -3780,6 +3761,7 @@ class Graph {
 
     /// Edge Iterators:
     /// output edge:
+
     inline EdgeIterator OutEdgeBegin() {
       return this->EdgeBegin(EdgeDirection::OutputEdge,
                              this->edges_.out_edges());

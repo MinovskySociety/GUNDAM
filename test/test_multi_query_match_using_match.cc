@@ -318,73 +318,72 @@ TEST(TestGUNDAM, MultiQueryDpiso_1) {
            SetEdgeLabelType<uint32_t>,
            SetEdgeAttributeKeyType<std::string>>;
 
-  using LG  = LargeGraph<uint32_t, uint32_t, std::string, 
+  using LG  = LargeGraph<uint32_t, uint32_t, std::string,
                          uint32_t, uint32_t, std::string>;
-  using LG2 = LargeGraph2<uint32_t, uint32_t, std::string, 
+  using LG2 = LargeGraph2<uint32_t, uint32_t, std::string,
                           uint32_t, uint32_t, std::string>;
   using SG  =       SmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
   using SSG = SimpleSmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
 
-  TestMultiQuery<G1, G1, GUNDAM::MatchAlgorithm::kVf2>();
   TestMultiQuery<G1, G1, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<G1, G2, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<G1, G3, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<G1, SG, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<G1, LG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G1, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G1, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G1, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G1, LG, GUNDAM::MatchAlgorithm::kDagDp>();
 
-  // TestMultiQuery<G2, G1, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<G2, G2, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<G2, G3, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<G2, SG, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<G2, LG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G2, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G2, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G2, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G2, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G2, LG, GUNDAM::MatchAlgorithm::kDagDp>();
 
-  // TestMultiQuery<G3, G1, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<G3, G2, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<G3, G3, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<G3, SG, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<G3, LG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G3, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G3, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G3, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G3, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<G3, LG, GUNDAM::MatchAlgorithm::kDagDp>();
   
-  // TestMultiQuery<LG, G1, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<LG, G2, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<LG, G3, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<LG, SG, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<LG, LG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<LG, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<LG, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<LG, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<LG, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<LG, LG, GUNDAM::MatchAlgorithm::kDagDp>();
 
-  // TestMultiQuery<SG, G1, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<SG, G2, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<SG, G3, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<SG, LG, GUNDAM::MatchAlgorithm::kDagDp>();
-  // TestMultiQuery<SG, SG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<SG, G1, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<SG, G2, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<SG, G3, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<SG, LG, GUNDAM::MatchAlgorithm::kDagDp>();
+  TestMultiQuery<SG, SG, GUNDAM::MatchAlgorithm::kDagDp>();
 
-  // TestMultiQuery<G1, G1, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<G1, G2, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<G1, G3, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<G1, SG, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<G1, LG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G1, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G1, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G1, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G1, SG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G1, LG, GUNDAM::MatchAlgorithm::kVf2>();
 
-  // TestMultiQuery<G2, G1, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<G2, G2, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<G2, G3, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<G2, SG, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<G2, LG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G2, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G2, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G2, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G2, SG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G2, LG, GUNDAM::MatchAlgorithm::kVf2>();
 
-  // TestMultiQuery<G3, G1, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<G3, G2, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<G3, G3, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<G3, SG, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<G3, LG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G3, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G3, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G3, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G3, SG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<G3, LG, GUNDAM::MatchAlgorithm::kVf2>();
   
-  // TestMultiQuery<LG, G1, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<LG, G2, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<LG, G3, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<LG, SG, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<LG, LG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<LG, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<LG, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<LG, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<LG, SG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<LG, LG, GUNDAM::MatchAlgorithm::kVf2>();
 
-  // TestMultiQuery<SG, G1, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<SG, G2, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<SG, G3, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<SG, LG, GUNDAM::MatchAlgorithm::kVf2>();
-  // TestMultiQuery<SG, SG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<SG, G1, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<SG, G2, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<SG, G3, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<SG, LG, GUNDAM::MatchAlgorithm::kVf2>();
+  TestMultiQuery<SG, SG, GUNDAM::MatchAlgorithm::kVf2>();
 
   // TestMultiQuery<SSG, G1>();
   // TestMultiQuery<SSG, G2>();
