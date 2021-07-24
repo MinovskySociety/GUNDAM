@@ -322,15 +322,18 @@ inline bool InitCandidateSet(
   return true;
 }
 
-template <enum EdgeState edge_state, 
+template <bool use_dag_order,
+          enum EdgeState edge_state, 
           typename  QueryGraph, 
           typename TargetGraph>
 inline void GetAdjNotMatchedVertexOneDirection(
-    typename VertexHandle< QueryGraph>::type &query_vertex_handle,
-    const std::map<typename VertexHandle< QueryGraph>::type, 
-       std::vector<typename VertexHandle<TargetGraph>::type>> &candidate_set,
+                const typename VertexHandle< QueryGraph>::type &query_vertex_handle,
+    const std:: map  <typename VertexHandle< QueryGraph>::type, 
+          std::vector<typename VertexHandle<TargetGraph>::type>> &candidate_set,
     const Match<QueryGraph, TargetGraph> &match_state,
-    std::set<typename VertexHandle<QueryGraph>::type> &next_query_set) {
+          std:: set  <typename VertexHandle<QueryGraph>::type> &next_query_set,
+    const std:: map  <typename VertexHandle<QueryGraph>::type,
+          std::vector<typename VertexHandle<QueryGraph>::type>>& parent) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   for (auto edge_iter = (edge_state == EdgeState::kIn ? 
                           query_vertex_handle-> InEdgeBegin()
@@ -343,34 +346,59 @@ inline void GetAdjNotMatchedVertexOneDirection(
     if (!match_state.HasMap(query_opp_vertex_handle)
       && candidate_set.find(query_opp_vertex_handle)
       != candidate_set.end()) {
+      if constexpr (use_dag_order) {
+        if (!parent.empty()) {
+          // "a query vertex u should be processed after all its parents in qD have
+          //  been processed, which is ensured by a DAG ordering"
+          auto parent_it = parent.find(query_opp_vertex_handle);
+          assert(parent_it != parent.end());
+          bool all_parent_matched = true;
+          for (const auto& parent_vertex_handle 
+                        : parent_it->second) {
+            if (match_state.HasMap(query_opp_vertex_handle)) {
+              continue;
+            }
+            all_parent_matched = false;
+            break;
+          }
+          if (!all_parent_matched) {
+            continue;
+          }
+        }
+      }
       next_query_set.emplace(query_opp_vertex_handle);
     }
   }
   return;
 }
 
-template <typename  QueryGraph, 
+template <bool use_dag_order,
+          typename  QueryGraph, 
           typename TargetGraph>
 inline void GetAdjNotMatchedVertex(
-    typename VertexHandle<QueryGraph>::type query_vertex_handle,
-    const std::map<typename VertexHandle< QueryGraph>::type, 
-       std::vector<typename VertexHandle<TargetGraph>::type>> &candidate_set,
+    const typename VertexHandle<QueryGraph>::type& query_vertex_handle,
+    const std:: map  <typename VertexHandle< QueryGraph>::type, 
+          std::vector<typename VertexHandle<TargetGraph>::type>> &candidate_set,
     const Match<QueryGraph, TargetGraph> &match_state,
-    std::set<typename VertexHandle<QueryGraph>::type> &next_query_set) {
-  GetAdjNotMatchedVertexOneDirection<EdgeState::kOut>(
-      query_vertex_handle, candidate_set, match_state, next_query_set);
-  GetAdjNotMatchedVertexOneDirection<EdgeState::kIn>(
-      query_vertex_handle, candidate_set, match_state, next_query_set);
+          std:: set  <typename VertexHandle<QueryGraph>::type> &next_query_set,
+    const std:: map  <typename VertexHandle<QueryGraph>::type,
+          std::vector<typename VertexHandle<QueryGraph>::type>>& parent) {
+  GetAdjNotMatchedVertexOneDirection<use_dag_order, EdgeState::kOut>(
+      query_vertex_handle, candidate_set, match_state, next_query_set, parent);
+  GetAdjNotMatchedVertexOneDirection<use_dag_order, EdgeState::kIn>(
+      query_vertex_handle, candidate_set, match_state, next_query_set, parent);
 }
 
 // to find a un-matched vertex to match
-template <typename  QueryGraph, 
+template <bool use_dag_order,
+          typename  QueryGraph, 
           typename TargetGraph>
 inline typename VertexHandle<QueryGraph>::type NextMatchVertex(
-    const std::map<typename VertexHandle< QueryGraph>::type, 
-       std::vector<typename VertexHandle<TargetGraph>::type>> &candidate_set,
-    const Match<QueryGraph, 
-               TargetGraph> &match_state) {
+    const std:: map  <typename VertexHandle< QueryGraph>::type, 
+          std::vector<typename VertexHandle<TargetGraph>::type>> &candidate_set,
+    const Match<QueryGraph, TargetGraph> &match_state,
+    const std:: map  <typename VertexHandle<QueryGraph>::type,
+          std::vector<typename VertexHandle<QueryGraph>::type>>& parent) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   std::set<QueryVertexHandle> next_query_set;
   // first to find whether there are un-matched vertexes
@@ -378,8 +406,11 @@ inline typename VertexHandle<QueryGraph>::type NextMatchVertex(
   for (auto map_it = match_state.MapBegin();
            !map_it.IsDone();
             map_it++) {
-    GetAdjNotMatchedVertex(map_it->src_handle(), candidate_set, match_state,
-                           next_query_set);
+    GetAdjNotMatchedVertex<use_dag_order>(map_it->src_handle(), 
+                                          candidate_set, 
+                                          match_state,
+                                          next_query_set,
+                                          parent);
   }
   if (next_query_set.empty()) {
     // all vertexes connected to the matched vertexes are 
@@ -761,9 +792,12 @@ inline void UpdateCandidateSet(
 // build a dag based on the given src vertexes
 // only calc the parents of each vertex on the 
 // only one of its parent has been matched 
-template <typename QueryGraph>
+template <typename QueryGraph,
+          typename TargetVertexHandle>
 inline void BuildDag(             QueryGraph& query_graph,
    std::set<typename VertexHandle<QueryGraph>::type>& src_vertex_set,
+   std::map<typename VertexHandle<QueryGraph>::type,
+            std::vector<TargetVertexHandle>> candidate_set,
    std::map<typename VertexHandle<QueryGraph>::type, 
 std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
   assert(!src_vertex_set.empty());
@@ -772,62 +806,286 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
   using QueryVertexHandleType 
   = typename VertexHandle<QueryGraph>::type;
 
-  std::set<QueryVertexHandleType> visited_vertex_set
-                                    = src_vertex_set;
+  std::map<typename QueryGraph::VertexCounterType,
+           std::vector<QueryVertexHandleType>> grouped_query_vertex_set;
 
   auto build_dag_callback 
-    = [&visited_vertex_set,
-       &parent](const QueryVertexHandleType& query_vertex_handle) {
+    = [&grouped_query_vertex_set](
+             const QueryVertexHandleType& query_vertex_handle,
+          typename QueryGraph::VertexCounterType bfx_idx,
+          typename QueryGraph::VertexCounterType distance) {
 
-    // query_vertex_handle should not have been visited
-    assert(visited_vertex_set.find(query_vertex_handle)
-        != visited_vertex_set.end());
-
-    auto [ parent_it,
-           parent_ret ] 
-         = parent.emplace(query_vertex_handle, std::vector<QueryVertexHandleType>());
-    // should be added successfully
-    assert(parent_ret);
-    parent_it->second.emplace_back(query_vertex_handle);
-    
-    for (auto out_edge_it = query_vertex_handle->OutEdgeBegin();
-             !out_edge_it.IsDone();
-              out_edge_it++) {
-      typename EdgeHandle<QueryGraph>::type edge_handle = out_edge_it;
-      QueryVertexHandleType opp_vertex_handle = out_edge_it->dst_handle();
-      if (visited_vertex_set.find(opp_vertex_handle)
-       == visited_vertex_set.end()) {
-        // this vertex has not been added into the dag
-        // would not be added as the parent of 
-        // query_vertex_handle
-        continue;
-      }
-      parent_it->second.emplace_back(opp_vertex_handle);
-    }
-    
-    for (auto in_edge_it = query_vertex_handle->InEdgeBegin();
-             !in_edge_it.IsDone();
-              in_edge_it++) {
-      auto opp_vertex_handle = in_edge_it->src_handle();
-      if (visited_vertex_set.find(opp_vertex_handle)
-       == visited_vertex_set.end()) {
-        // this vertex has not been added into the dag
-        // would not be added as the parent of 
-        // query_vertex_handle
-        continue;
-      }
-      parent_it->second.emplace_back(opp_vertex_handle);
-    }
-
-    auto [ visited_vertex_it,
-           visited_vertex_ret ] 
-         = visited_vertex_set.emplace(query_vertex_handle);
-    // may be already added before
-    // assert(visited_vertex_ret);
+    grouped_query_vertex_set[distance].emplace_back(query_vertex_handle);
     return true;
+
+    // // // query_vertex_handle should not have been visited
+    // // assert(visited_vertex_set.find(query_vertex_handle)
+    // //     != visited_vertex_set.end());
+
+    // auto [ parent_it,
+    //        parent_ret ] 
+    //      = parent.emplace(query_vertex_handle, std::vector<QueryVertexHandleType>());
+    // // should be added successfully
+    // assert(parent_ret);
+    // parent_it->second.emplace_back(query_vertex_handle);
+    
+    // for (auto out_edge_it = query_vertex_handle->OutEdgeBegin();
+    //          !out_edge_it.IsDone();
+    //           out_edge_it++) {
+    //   typename EdgeHandle<QueryGraph>::type edge_handle = out_edge_it;
+    //   QueryVertexHandleType opp_vertex_handle = out_edge_it->dst_handle();
+    //   if (visited_vertex_set.find(opp_vertex_handle)
+    //    == visited_vertex_set.end()) {
+    //     // this vertex has not been added into the dag
+    //     // would not be added as the parent of 
+    //     // query_vertex_handle
+    //     continue;
+    //   }
+    //   parent_it->second.emplace_back(opp_vertex_handle);
+    // }
+    
+    // for (auto in_edge_it = query_vertex_handle->InEdgeBegin();
+    //          !in_edge_it.IsDone();
+    //           in_edge_it++) {
+    //   auto opp_vertex_handle = in_edge_it->src_handle();
+    //   if (visited_vertex_set.find(opp_vertex_handle)
+    //    == visited_vertex_set.end()) {
+    //     // this vertex has not been added into the dag
+    //     // would not be added as the parent of 
+    //     // query_vertex_handle
+    //     continue;
+    //   }
+    //   parent_it->second.emplace_back(opp_vertex_handle);
+    // }
+
+    // auto [ visited_vertex_it,
+    //        visited_vertex_ret ] 
+    //      = visited_vertex_set.emplace(query_vertex_handle);
+    // // may be already added before
+    // // assert(visited_vertex_ret);
+    // return true;
   };
 
   Bfs<true>(query_graph, src_vertex_set, build_dag_callback);
+
+  auto comp = [&candidate_set](const QueryVertexHandleType& a, 
+                               const QueryVertexHandleType& b) -> bool {
+      assert(candidate_set.find(a) != candidate_set.end());
+      assert(candidate_set.find(b) != candidate_set.end());
+      return candidate_set[a].size()
+           > candidate_set[b].size();
+  };
+
+  typename std::map<typename QueryGraph::VertexCounterType,
+                 std::vector<QueryVertexHandleType>>::const_iterator
+    previous_layer_it = grouped_query_vertex_set.end();
+
+  for (auto layer_it  = grouped_query_vertex_set.begin();
+            layer_it != grouped_query_vertex_set.end();
+            layer_it++){
+    const auto& distance = layer_it->first;
+    auto& vertex_set     = layer_it->second;
+    std::sort(vertex_set.begin(),
+              vertex_set.end(), comp);
+    for (const auto& vertex_handle : vertex_set) {
+      // the set of parent for vertex_handle should not have
+      // been added
+      assert(parent.find(vertex_handle) == parent.end());
+      auto [ parent_it, parent_ret ] 
+           = parent.emplace(vertex_handle, std::vector<QueryVertexHandleType>{vertex_handle});
+      // should have been added successfully
+      assert(parent_ret);
+      auto&  parent_vertex_set = parent_it->second;
+      assert(parent_vertex_set.size() == 1
+         && *parent_vertex_set.begin() == vertex_handle);
+    }
+    // add edges from previous layer to this layer
+    if (distance > 0) {
+      // add edge from previous layer only if this
+      // vertex is not the root(s) of the DAG
+      assert(previous_layer_it != grouped_query_vertex_set.end());
+      const auto& previous_layer_vertex_set
+                = previous_layer_it->second;
+      for (const auto& vertex_handle : vertex_set) {
+        // iterate over the vertexes that are connected to
+        // vertex_handle to find whether it is in the previous
+        // layer
+        auto parent_it = parent.find(vertex_handle);
+        assert(parent_it != parent.end()); // should found that vertex
+        auto& parent_vertex_set = parent_it->second;
+        assert(parent_vertex_set.size() == 1
+           && *parent_vertex_set.begin() == vertex_handle);
+
+        for (auto out_edge_it = vertex_handle->OutEdgeBegin();
+                 !out_edge_it.IsDone();
+                  out_edge_it++) {
+          auto opp_vertex_handle = out_edge_it->dst_handle();
+          // to find whether it is contained in the previous layer
+          if (!std::binary_search(previous_layer_vertex_set.begin(),
+                                  previous_layer_vertex_set.end(),
+                                  opp_vertex_handle)){
+            // the opp vertex is not contained in the previous layer 
+            continue;
+          }
+          // the opp vertex is contained in the previous layer,
+          // add an edge from opp vertex to vertex_handle in the DAG
+          auto opp_vertex_handle_parent_it = parent.find(opp_vertex_handle);
+          // should have parent for this vertex
+          assert(opp_vertex_handle_parent_it != parent.end());
+          auto& opp_vertex_handle_parent 
+              = opp_vertex_handle_parent_it->second;
+          
+          int mid = parent_vertex_set.size(); // Store the end of first sorted range
+
+          //First copy the second sorted range into the destination vector
+          std::copy(opp_vertex_handle_parent.begin(), 
+                    opp_vertex_handle_parent.end(), 
+                    std::back_inserter(parent_vertex_set));
+
+          //Then perform the in place merge on the two sub-sorted ranges.
+          std::inplace_merge(parent_vertex_set.begin(), 
+                             parent_vertex_set.begin() + mid, 
+                             parent_vertex_set.end());
+
+          //Remove duplicate elements from the sorted vector
+          parent_vertex_set.erase(std::unique(parent_vertex_set.begin(), 
+                                              parent_vertex_set.end()), 
+                                              parent_vertex_set.end());
+        }
+
+        for (auto in_edge_it = vertex_handle->InEdgeBegin();
+                 !in_edge_it.IsDone();
+                  in_edge_it++) {
+          auto opp_vertex_handle = in_edge_it->src_handle();
+          // to find whether it is contained in the previous layer
+          if (!std::binary_search(previous_layer_vertex_set.begin(),
+                                  previous_layer_vertex_set.end(),
+                                  opp_vertex_handle)) {
+            // the opp vertex is not contained in the previous layer 
+            continue;
+          }
+          // the opp vertex is contained in the previous layer,
+          // add an edge from opp vertex to vertex_handle in the DAG
+          auto opp_vertex_handle_parent_it = parent.find(opp_vertex_handle);
+          // should have parent for this vertex
+          assert(opp_vertex_handle_parent_it != parent.end());
+          auto& opp_vertex_handle_parent 
+              = opp_vertex_handle_parent_it->second;
+          
+          int mid = parent_vertex_set.size(); // Store the end of first sorted range
+
+          //First copy the second sorted range into the destination vector
+          std::copy(opp_vertex_handle_parent.begin(), 
+                    opp_vertex_handle_parent.end(), 
+                   std::back_inserter(parent_vertex_set));
+
+          //Then perform the in place merge on the two sub-sorted ranges.
+          std::inplace_merge(parent_vertex_set.begin(), 
+                             parent_vertex_set.begin() + mid, 
+                             parent_vertex_set.end());
+
+          //Remove duplicate elements from the sorted vector
+          parent_vertex_set.erase(std::unique(parent_vertex_set.begin(), 
+                                              parent_vertex_set.end()), 
+                                              parent_vertex_set.end());
+        }
+      }
+    }
+    previous_layer_it = layer_it;
+    std::vector<QueryVertexHandleType> added_vertex_in_this_layer;
+    // build the edge between the same laeyr
+    for (const auto& vertex_handle : vertex_set) {
+      added_vertex_in_this_layer.emplace_back(vertex_handle);
+      // iterate over the vertexes that are connected to
+      // vertex_handle to find whether it is in the previous
+      // layer
+      auto parent_it = parent.find(vertex_handle);
+      assert(parent_it != parent.end()); // should found that vertex
+      auto& parent_vertex_set = parent_it->second;
+      assert(!parent_vertex_set.empty());
+
+      for (auto out_edge_it = vertex_handle->OutEdgeBegin();
+               !out_edge_it.IsDone();
+                out_edge_it++) {
+        auto opp_vertex_handle = out_edge_it->dst_handle();
+        // to find whether it is contained in the previous layer
+        if (!std::binary_search(added_vertex_in_this_layer.begin(),
+                                added_vertex_in_this_layer.end(),
+                                opp_vertex_handle)){
+          // the opp vertex is not contained in the previous layer 
+          continue;
+        }
+        // the opp vertex is contained in the previous layer,
+        // add an edge from opp vertex to vertex_handle in the DAG
+        auto opp_vertex_handle_parent_it = parent.find(opp_vertex_handle);
+        // should have parent for this vertex
+        assert(opp_vertex_handle_parent_it != parent.end());
+        auto& opp_vertex_handle_parent 
+            = opp_vertex_handle_parent_it->second;
+        
+        int mid = parent_vertex_set.size(); // Store the end of first sorted range
+
+        //First copy the second sorted range into the destination vector
+        std::copy(opp_vertex_handle_parent.begin(), 
+                  opp_vertex_handle_parent.end(), 
+                  std::back_inserter(parent_vertex_set));
+
+        //Then perform the in place merge on the two sub-sorted ranges.
+        std::inplace_merge(parent_vertex_set.begin(), 
+                           parent_vertex_set.begin() + mid, 
+                           parent_vertex_set.end());
+
+        //Remove duplicate elements from the sorted vector
+        parent_vertex_set.erase(std::unique(parent_vertex_set.begin(), 
+                                            parent_vertex_set.end()), 
+                                            parent_vertex_set.end());
+      }
+
+      for (auto in_edge_it = vertex_handle->InEdgeBegin();
+               !in_edge_it.IsDone();
+                in_edge_it++) {
+        auto opp_vertex_handle = in_edge_it->src_handle();
+        // to find whether it is contained in the previous layer
+        if (!std::binary_search(added_vertex_in_this_layer.begin(),
+                                added_vertex_in_this_layer.end(),
+                                opp_vertex_handle)) {
+          // the opp vertex is not contained in the previous layer 
+          continue;
+        }
+        // the opp vertex is contained in the previous layer,
+        // add an edge from opp vertex to vertex_handle in the DAG
+        auto opp_vertex_handle_parent_it = parent.find(opp_vertex_handle);
+        // should have parent for this vertex
+        assert(opp_vertex_handle_parent_it != parent.end());
+        auto& opp_vertex_handle_parent 
+            = opp_vertex_handle_parent_it->second;
+        
+        int mid = parent_vertex_set.size(); // Store the end of first sorted range
+
+        //First copy the second sorted range into the destination vector
+        std::copy(opp_vertex_handle_parent.begin(), 
+                  opp_vertex_handle_parent.end(), 
+                  std::back_inserter(parent_vertex_set));
+
+        //Then perform the in place merge on the two sub-sorted ranges.
+        std::inplace_merge(parent_vertex_set.begin(), 
+                            parent_vertex_set.begin() + mid, 
+                            parent_vertex_set.end());
+
+        //Remove duplicate elements from the sorted vector
+        parent_vertex_set.erase(std::unique(parent_vertex_set.begin(), 
+                                            parent_vertex_set.end()), 
+                                            parent_vertex_set.end());
+      }
+    }
+  }
+
+  // build the edges in the same layer
+  for (auto& [distance, vertex_set] : grouped_query_vertex_set){
+    std::sort(vertex_set.begin(),
+              vertex_set.end(),comp);
+  }
+
   for (auto& [query_vertex_handle,
               query_vertex_parent] : parent) {
     assert( query_vertex_handle);
@@ -923,7 +1181,8 @@ void UpdateParent(
 }
 
 template <enum MatchSemantics match_semantics, 
-          bool use_fail_set = false,
+          bool use_fail_set,
+          bool use_dag_order,
           typename  QueryGraph,
           typename TargetGraph>
 bool _DPISOUsingMatch(
@@ -959,7 +1218,7 @@ bool _DPISOUsingMatch(
   assert(match_state.size() < candidate_set.size());
   // find the next vertex for querying
   QueryVertexHandle next_query_vertex_handle
-   = NextMatchVertex(candidate_set, match_state);
+   = NextMatchVertex<use_dag_order>(candidate_set, match_state, parent);
   // should have found next query vertex since the matching 
   // is not ended
   assert(next_query_vertex_handle);
@@ -972,7 +1231,9 @@ bool _DPISOUsingMatch(
   if constexpr (use_fail_set) {
     // a new vertex in the query graph is selected for querying
     // maintain the parent set of the new added query vertex
-    UpdateParent(match_state, next_query_vertex_handle, parent);
+    if constexpr (!use_dag_order) {
+      UpdateParent(match_state, next_query_vertex_handle, parent);
+    }
     if (candidate_set_for_next_query_vertex.empty()) {
       // #######################################################
       // # is called emptyset-class corresponding to the paper #
@@ -982,9 +1243,11 @@ bool _DPISOUsingMatch(
       // query vertex, set the fail set as all the parent of 
       // the selected query vertex
       current_state_fail_set = parent.find(next_query_vertex_handle)->second;
-      // restore parent
-      auto ret = parent.erase(next_query_vertex_handle);
-      assert(ret > 0);
+      if constexpr (!use_dag_order) {
+        // restore parent
+        auto ret = parent.erase(next_query_vertex_handle);
+        assert(ret > 0);
+      }
       // continue recursive matching
       return true;
     }
@@ -1000,9 +1263,11 @@ bool _DPISOUsingMatch(
         // has found fail set , u is not in fail set and 
         // fail set is not empty!
         // does not need further expand
-        // restore parent
-        auto ret = parent.erase(next_query_vertex_handle);
-        assert(ret > 0);
+        if constexpr (!use_dag_order) {
+          // restore parent
+          auto ret = parent.erase(next_query_vertex_handle);
+          assert(ret > 0);
+        }
         return true;
       }
       if (match_semantics == MatchSemantics::kIsomorphism 
@@ -1076,13 +1341,13 @@ bool _DPISOUsingMatch(
                temp_candidate_set, 
                 match_state);
     std::vector<typename VertexHandle<QueryGraph>::type> next_state_fail_set;
-    if (!_DPISOUsingMatch<match_semantics, use_fail_set>(
+    if (!_DPISOUsingMatch<match_semantics, use_fail_set, use_dag_order>(
             temp_candidate_set, match_state, 
             target_matched, 
             parent, next_state_fail_set,
              user_callback,
             prune_callback, begin_time, query_limit_time)) {
-      if constexpr (use_fail_set) {
+      if constexpr (use_fail_set && !use_dag_order) {
         // restore parent
         auto ret = parent.erase(next_query_vertex_handle);
         assert(ret > 0);
@@ -1112,14 +1377,16 @@ bool _DPISOUsingMatch(
       continue;
     }
     std::vector<QueryVertexHandle> temp_this_state_fail_set;
-    std::set_union(next_state_fail_set.begin(), next_state_fail_set.end(),
-                   current_state_fail_set.begin(), current_state_fail_set.end(),
+    std::set_union(next_state_fail_set.begin(), 
+                   next_state_fail_set.end(),
+                   current_state_fail_set.begin(), 
+                   current_state_fail_set.end(),
                    std::inserter(temp_this_state_fail_set,
                                  temp_this_state_fail_set.begin()));
     std::swap(temp_this_state_fail_set, 
-                   current_state_fail_set);
+                current_state_fail_set);
   }
-  if constexpr (use_fail_set) {
+  if constexpr (use_fail_set && !use_dag_order) {
     // restore parent
     auto ret = parent.erase(next_query_vertex_handle);
     assert(ret > 0);
@@ -1603,6 +1870,7 @@ bool CheckMatchIsLegal(
 }
 
 template <enum MatchSemantics match_semantics, 
+          bool use_dag_order = true,
           typename  QueryGraph,
           typename TargetGraph>
 inline int DPISOUsingMatch_Recursive(
@@ -1701,8 +1969,11 @@ inline int DPISOUsingMatch_Recursive(
       return ret_val;
     };
 
+  std:: map  <typename VertexHandle<QueryGraph>::type,
+  std::vector<typename VertexHandle<QueryGraph>::type>> parent;
+
   QueryVertexHandle next_query_handle =
-      _dp_iso_using_match::NextMatchVertex(candidate_set, partial_match);
+      _dp_iso_using_match::NextMatchVertex<use_dag_order>(candidate_set, partial_match, parent);
 
   #ifndef NDEBUG
   for (auto map_it = partial_match.MapBegin();
@@ -1737,9 +2008,10 @@ inline int DPISOUsingMatch_Recursive(
     // dag rooted at the first vertex to query
     src_vertex_handle_set.emplace(next_query_handle);
   }
-  std:: map  <typename VertexHandle<QueryGraph>::type,
-  std::vector<typename VertexHandle<QueryGraph>::type>> parent;
-  BuildDag(query_graph, src_vertex_handle_set, parent);
+
+  if constexpr (use_dag_order) {
+    BuildDag(query_graph, src_vertex_handle_set, candidate_set, parent);
+  }
 
   const bool kUseFailSet = query_graph.CountEdge() >= large_query_edge;
 
@@ -1791,8 +2063,11 @@ inline int DPISOUsingMatch_Recursive(
       std:: map  <typename VertexHandle<QueryGraph>::type,
       std::vector<typename VertexHandle<QueryGraph>::type>> temp_parent;
       std::vector<typename VertexHandle<QueryGraph>::type>  temp_fail_set;
+      if constexpr (use_dag_order) {
+        temp_parent.swap(parent);
+      }
       user_callback_has_return_false 
-        = !_dp_iso_using_match::_DPISOUsingMatch<match_semantics, false>(
+        = !_dp_iso_using_match::_DPISOUsingMatch<match_semantics, false, use_dag_order>(
             temp_candidate_set, 
             temp_match_state,
             temp_target_matched,
@@ -1808,10 +2083,15 @@ inline int DPISOUsingMatch_Recursive(
     std:: map  <typename VertexHandle<QueryGraph>::type,
     std::vector<typename VertexHandle<QueryGraph>::type>> temp_parent;
     std::vector<typename VertexHandle<QueryGraph>::type>  temp_fail_set;
-    temp_parent.emplace(next_query_handle, 
-                        std::vector<typename VertexHandle<QueryGraph>::type>{next_query_handle});
+    if constexpr (use_dag_order) {
+      temp_parent.swap(parent);
+    }
+    else {
+      temp_parent.emplace(next_query_handle, 
+                          std::vector<typename VertexHandle<QueryGraph>::type>{next_query_handle});
+    }
     user_callback_has_return_false 
-      = !_dp_iso_using_match::_DPISOUsingMatch<match_semantics, true>(
+      = !_dp_iso_using_match::_DPISOUsingMatch<match_semantics, true, use_dag_order>(
           temp_candidate_set, 
           temp_match_state,
           temp_target_matched,

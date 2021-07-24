@@ -32,8 +32,8 @@ void TestMatchUsingMatch_1() {
    QueryGraph  query;
   TargetGraph target;
 
-  std::cout << " QueryGraphType: " << typeid( query).name() << std::endl
-            << "TargetGraphType: " << typeid(target).name() << std::endl;
+  std::cout << "TestMatchUsingMatch_1:  QueryGraphType: " << typeid( query).name() << std::endl
+            << "TestMatchUsingMatch_1: TargetGraphType: " << typeid(target).name() << std::endl;
 
   // query
   query.AddVertex(1, VertexLabelType(0));
@@ -277,7 +277,7 @@ template <class QueryGraph, class TargetGraph,
 void TestMatchUsingMatch_2() {
   using namespace GUNDAM;
 
-  QueryGraph query;
+   QueryGraph  query;
   TargetGraph target;
 
   // query

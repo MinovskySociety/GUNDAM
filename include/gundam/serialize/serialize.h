@@ -46,8 +46,8 @@ std::string& operator<<(std::string& out_string,
              !edge_it.IsDone();
               edge_it++) {
       out_string = std::move(out_string)
-                 + " " + ToString(edge_it->src_id()) 
-                 + " " + ToString(edge_it->dst_id())
+                 + " " + ToString(edge_it->src_handle()->id()) 
+                 + " " + ToString(edge_it->dst_handle()->id())
                  + " " + ToString(edge_it->label())
                  + " " + ToString(edge_it->id());
       if constexpr (GraphParameter<GraphType>::edge_has_attribute){
