@@ -1,0 +1,5 @@
+#ifndef _GUNDAM_NEW_TYPE_MATCH_H
+#define _GUNDAM_NEW_TYPE_MATCH_H
+
+
+#endif // _GUNDAM_NEW_TYPE_MATCH_H
