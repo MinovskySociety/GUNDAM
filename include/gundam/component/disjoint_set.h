@@ -3,14 +3,15 @@
 
 namespace GUNDAM {
 
-template<typename ElementType>
+template<typename ElementType,
+         bool kElementTypeConvertable = true>
 class DisjointSet {
  private:
-  static constexpr bool kElementTypeConvertable
-   = std::is_convertible<ElementType, typename std::vector<ElementType>::size_type>::value;
+  // static constexpr bool kElementTypeConvertable
+  //  = std::is_convertible<ElementType, typename std::vector<ElementType>::size_type>::value;
 
   // return the father of x
-  inline ElementType& GetFather(ElementType x) {
+  inline ElementType& GetFather(const ElementType& x) {
     if constexpr (kElementTypeConvertable) {
       // this->father_ is a vector
       assert(x >= 0);
@@ -53,13 +54,13 @@ class DisjointSet {
     return;
   }
 
-  inline ElementType Find(ElementType x) {
+  inline const ElementType& Find(const ElementType& x) {
     return x == this->GetFather(x) ? 
            x : (this->GetFather(x) = this->Find(this->GetFather(x)));
   }
 
-  inline void Merge(ElementType x,
-                    ElementType y) {
+  inline void Merge(const ElementType& x,
+                    const ElementType& y) {
     this->GetFather(this->Find(x)) = this->Find(y);
     return;
   }

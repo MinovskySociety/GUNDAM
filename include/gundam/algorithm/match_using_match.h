@@ -40,7 +40,7 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -100,8 +100,8 @@ inline size_t MatchUsingMatch(
   //   }
   // }
 
-  if (merge_nec_config == MergeNecConfig::kMerge
-   ||(merge_nec_config == MergeNecConfig::kAdaptive
+  if (merge_query_nec_config == MergeNecConfig::kMerge
+   ||(merge_query_nec_config == MergeNecConfig::kAdaptive
    && target_graph.CountVertex() >= _match_using_match::kLargeGraphSize)) {
     QueryGraph query_graph_removed = RemoveNecVertex(query_graph, partial_match);
     if (query_graph_removed.CountVertex()
@@ -146,7 +146,11 @@ inline size_t MatchUsingMatch(
            &query_graph_removed_to_query_graph,
           &candidate_set,
           &time_limit](
-            const MatchType& partial_match_from_query_graph){
+            const MatchType& partial_match_from_removed) {
+
+        MatchType partial_match_from_query_graph 
+                = partial_match_from_removed(
+          query_graph_removed_to_query_graph.Reverse());
 
         const CandidateSetType& candidate_set_from_query_graph = candidate_set;
 
@@ -303,7 +307,7 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -320,7 +324,7 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_nec_config>(
+                         merge_query_nec_config>(
                          query_graph,
                         target_graph,
                          match_state,
@@ -334,7 +338,7 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -355,19 +359,19 @@ inline size_t MatchUsingMatch(
 
   CandidateSetType candidate_set;
   if (!_dp_iso_using_match::InitCandidateSet<match_semantics>(query_graph,
-                                                 target_graph,
-                                                  candidate_set)) {
+                                                             target_graph,
+                                                              candidate_set)) {
     return 0;
   }
   if (!_dp_iso_using_match::RefineCandidateSet(query_graph, 
-                                  target_graph, 
-                                   candidate_set)) {
+                                              target_graph, 
+                                              candidate_set)) {
     return 0;
   }
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_nec_config>(
+                         merge_query_nec_config>(
                          query_graph,
                         target_graph,
                        partial_match,
@@ -381,7 +385,7 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -421,7 +425,7 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_nec_config>(
+                         merge_query_nec_config>(
                          query_graph,
                         target_graph,
                        partial_match,
@@ -434,7 +438,7 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -449,7 +453,7 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_nec_config>(
+                         merge_query_nec_config>(
                          query_graph,
                         target_graph,
                        partial_match,
@@ -462,7 +466,7 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -504,20 +508,20 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_nec_config>(
-                         query_graph,
-                        target_graph,
-                         match_state,
-                      prune_callback,
-                      match_callback, 
-                          time_limit);
+                         merge_query_nec_config>(
+                            query_graph,
+                          target_graph,
+                            match_state,
+                        prune_callback,
+                        match_callback, 
+                            time_limit);
 }
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -551,18 +555,19 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_nec_config>(query_graph, 
-                                          target_graph,
-                                         partial_match,
-                                          prune_callback,
-                                          match_callback);
+                         merge_query_nec_config>(
+                           query_graph, 
+                          target_graph,
+                         partial_match,
+                          prune_callback,
+                          match_callback);
 }
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -600,7 +605,7 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_nec_config>(
+                         merge_query_nec_config>(
                          query_graph,
                         target_graph,
                          match_state,

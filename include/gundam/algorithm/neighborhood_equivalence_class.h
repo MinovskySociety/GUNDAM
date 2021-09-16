@@ -5,6 +5,8 @@
 
 #include "gundam/type_getter/vertex_handle.h"
 
+#include "gundam/component/disjoint_set.h"
+
 namespace GUNDAM {
 
 namespace _neighborhood_equivalence_class {
@@ -66,7 +68,7 @@ std::vector<std::vector<typename VertexHandle<QueryGraph>::type>>
     }
     VertexHandleType vertex_handle = vertex_it;
     auto adjacent_vertex = _neighborhood_equivalence_class::AdjacentVertex<EdgeLabelType, VertexIDType>(vertex_handle);
-    // add if not exist
+    // add if not existnec_set
     adjacent_vertex_set[std::pair(vertex_handle->label(),
                                   adjacent_vertex)].emplace_back(vertex_it);
   }
@@ -113,6 +115,42 @@ QueryGraph RemoveNecVertex(
     }
   }
   return std::move(query_graph_removed);
+}
+
+// remove duplicate target vertexes that in the same Nec from the
+// candidate set
+template <typename  QueryGraph,
+          typename TargetGraph>
+void RemoveDuplicateCandidate(std::  map <typename VertexHandle< QueryGraph>::type,
+                              std::vector<typename VertexHandle<TargetGraph>::type>>& candidate_set,
+                        const std::vector<
+                              std::vector<typename VertexHandle<TargetGraph>::type>>& nec_set) {
+
+  using TargetVertexHandleType = typename VertexHandle<TargetGraph>::type;
+
+  DisjointSet<TargetVertexHandleType, false> disjoint_set;
+  for (const auto& nec : nec_set) {
+    for (const TargetVertexHandleType& target_handle : nec) {
+      disjoint_set.Merge(target_handle, nec.front());
+    }
+  }
+  
+  for (auto& [query_handle, candidate] : candidate_set) {
+    std::set<TargetVertexHandleType> contained_nec_set;
+    for (auto candidate_it  = candidate.begin(); 
+              candidate_it != candidate. end ();) {
+      const TargetVertexHandleType representive_handle = disjoint_set.Find(*candidate_it);
+      if (contained_nec_set.emplace(representive_handle).second) {
+        // added successfully, the candidate in this nec have been considered before
+        candidate_it++;
+        continue;
+      }
+      // added failed, has already considered this nec before, remove it from the candidate set
+      candidate_it = candidate.erase(candidate_it);
+    }
+  }
+
+  return;
 }
 
 };
