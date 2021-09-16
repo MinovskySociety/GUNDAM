@@ -1048,6 +1048,7 @@ class Document {
     }
   }
 
+ public:
   ssize_t GetColumnIdx(const std::string& pColumnName) const {
     if (mLabelParams.mColumnNameIdx >= 0) {
       if (mColumnNames.find(pColumnName) != mColumnNames.end()) {
@@ -1057,6 +1058,7 @@ class Document {
     return -1;
   }
 
+ private:
   ssize_t GetRowIdx(const std::string& pRowName) const {
     if (mLabelParams.mRowNameIdx >= 0) {
       if (mRowNames.find(pRowName) != mRowNames.end()) {
