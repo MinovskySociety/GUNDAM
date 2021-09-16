@@ -3,9 +3,9 @@
 
 #include "gundam/match/match.h"
 
+#include "gundam/type_getter/vertex_handle.h"
+
 namespace GUNDAM {
-
-
 
 namespace _neighborhood_equivalence_class {
 
@@ -83,12 +83,10 @@ std::vector<std::vector<typename VertexHandle<QueryGraph>::type>>
   return std::move(nec_set);
 }
 
-template <typename  QueryGraph,
-          typename TargetGraph>
-std::vector<std::vector<typename VertexHandle<QueryGraph>::type>> 
-                Nec(QueryGraph& graph)  {
-  return Nec(graph, Match<QueryGraph,
-                         TargetGraph>());
+template <typename GraphType>
+std::vector<std::vector<typename VertexHandle<GraphType>::type>> 
+                Nec(GraphType& graph)  {
+  return Nec(graph, Match<GraphType, GraphType>());
 }
 
 template <typename  QueryGraph,
