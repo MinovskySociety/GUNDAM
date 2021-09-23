@@ -234,7 +234,7 @@ inline size_t MatchUsingMatch(
   else if constexpr (match_algorithm
                    == MatchAlgorithm::kVf2) {
     auto prune_callback_using_map 
-    = [&prune_callback](const MatchMap& match_state) -> bool {
+     = [&prune_callback](const MatchMap& match_state) -> bool {
       Match<QueryGraph, TargetGraph> match;
       for (const auto& map : match_state){
         auto ret = match.AddMap(map.first, map.second);
@@ -244,16 +244,17 @@ inline size_t MatchUsingMatch(
     };
 
     auto match_callback_using_map 
-    = [&match_callback](const MatchMap& match_state) -> bool {
+     = [&match_callback](const MatchMap& match_state) -> bool {
       Match<QueryGraph, TargetGraph> match;
-      for (const auto& map : match_state){
+      for (const auto& map : match_state) {
         auto ret = match.AddMap(map.first, map.second);
         assert(ret);
       }
       return match_callback(match);
     };
+
     MatchMap match_state;
-    if (!partial_match.empty()){
+    if (!partial_match.empty()) {
       for (auto vertex_it = query_graph.VertexBegin(); 
                !vertex_it.IsDone();
                 vertex_it++) {
@@ -340,6 +341,8 @@ template <enum MatchSemantics match_semantics
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_query_nec_config 
              = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
+             = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t MatchUsingMatch(
@@ -369,6 +372,18 @@ inline size_t MatchUsingMatch(
     return 0;
   }
 
+  if constexpr (merge_target_nec_config == MergeNecConfig::kMerge
+             ||(merge_target_nec_config == MergeNecConfig::kAdaptive
+                   && target_graph.CountVertex() >= _match_using_match::kLargeGraphSize)) {
+    // merge the nec in the target graph
+    const std::vector<
+          std::vector<typename VertexHandle<TargetGraph>::type>> 
+          target_nec_set = Nec(target_graph);
+
+    RemoveDuplicateCandidate<QueryGraph, 
+                            TargetGraph>(candidate_set, target_nec_set);
+  }
+
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
                          merge_query_nec_config>(
@@ -386,6 +401,8 @@ template <enum MatchSemantics match_semantics
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -425,7 +442,8 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_query_nec_config>(
+                         merge_query_nec_config,
+                         merge_target_nec_config>(
                          query_graph,
                         target_graph,
                        partial_match,
@@ -440,6 +458,8 @@ template <enum MatchSemantics match_semantics
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_query_nec_config 
              = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
+             = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t MatchUsingMatch(
@@ -453,7 +473,8 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_query_nec_config>(
+                         merge_query_nec_config,
+                         merge_target_nec_config>(
                          query_graph,
                         target_graph,
                        partial_match,
@@ -467,6 +488,8 @@ template <enum MatchSemantics match_semantics
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -488,13 +511,13 @@ inline size_t MatchUsingMatch(
 
   std::function<bool(const MatchType&)>
     match_callback = [&max_match,
-                      &match_counter](const MatchType& match) -> bool{
+                      &match_counter](const MatchType& match) -> bool {
+    match_counter++;
     if (max_match == -1) {
       // does not have support nothing
       // do nothing continue matching
       return true;
     }
-    match_counter++;
     if (match_counter >= max_match){
       // reach max match, end matching
       return false;
@@ -506,15 +529,19 @@ inline size_t MatchUsingMatch(
   // the initial partial match is empty
   MatchType match_state;
 
-  return MatchUsingMatch<match_semantics,
-                         match_algorithm,
-                         merge_query_nec_config>(
-                            query_graph,
+  auto ret = MatchUsingMatch<match_semantics,
+                             match_algorithm,
+                             merge_query_nec_config,
+                             merge_target_nec_config>(
+                           query_graph,
                           target_graph,
                             match_state,
                         prune_callback,
                         match_callback, 
                             time_limit);
+
+  assert( ret == match_counter );
+  return ret;
 }
 
 template <enum MatchSemantics match_semantics 
@@ -522,6 +549,8 @@ template <enum MatchSemantics match_semantics
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -555,7 +584,8 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_query_nec_config>(
+                         merge_query_nec_config,
+                         merge_target_nec_config>(
                            query_graph, 
                           target_graph,
                          partial_match,
@@ -568,6 +598,8 @@ template <enum MatchSemantics match_semantics
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -605,7 +637,8 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_query_nec_config>(
+                         merge_query_nec_config,
+                         merge_target_nec_config>(
                          query_graph,
                         target_graph,
                          match_state,
