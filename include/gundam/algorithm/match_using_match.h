@@ -15,6 +15,7 @@
 
 #include "gundam/algorithm/dp_iso_using_match.h"
 #include "gundam/algorithm/vf2.h"
+#include "gundam/algorithm/neighborhood_equivalence_class.h"
 
 #include "gundam/match/match.h"
 
@@ -30,110 +31,16 @@ enum MergeNecConfig : uint8_t {
 
 namespace _match_using_match {
 
-enum EdgeState { kIn, kOut };
-
 static constexpr int kLargeGraphSize = 1000;
 
-template<typename    EdgeLabelType,
-         typename     VertexIDType,
-         typename VertexHandleType>
-auto AdjacentVertex(const VertexHandleType& vertex) {
-  std::set<std::tuple<EdgeState,
-                      EdgeLabelType,
-                       VertexIDType>> adjacent_vertex_set;
-  for (auto in_edge_it = vertex->InEdgeBegin();
-           !in_edge_it.IsDone();
-            in_edge_it++) {
-    adjacent_vertex_set.emplace(EdgeState::kIn,
-                             in_edge_it->label(),
-                             in_edge_it->src_handle()->id());
-  }
-  for (auto out_edge_it = vertex->OutEdgeBegin();
-           !out_edge_it.IsDone();
-            out_edge_it++) {
-    adjacent_vertex_set.emplace(EdgeState::kOut,
-                            out_edge_it->label(),
-                            out_edge_it->dst_handle()->id());
-  }
-  return std::move(adjacent_vertex_set);
-}
-
-template <typename  QueryGraph,
-          typename TargetGraph>
-std::vector<std::vector<typename VertexHandle<QueryGraph>::type>> 
-                Nec(QueryGraph& graph,
-        const Match<QueryGraph,
-                   TargetGraph>& partial_match) {
-  using VertexHandleType = typename VertexHandle<QueryGraph>::type;
-  using VertexLabelType = typename QueryGraph::VertexType::LabelType;
-  using   EdgeLabelType = typename QueryGraph::  EdgeType::LabelType;
-  using    VertexIDType = typename QueryGraph::VertexType::   IDType;
-  std::map<std::pair<VertexLabelType,
-           std::set<std::tuple<EdgeState,
-                               EdgeLabelType,
-                               VertexIDType>>>,
-           std::vector<VertexHandleType>> adjacent_vertex_set;
-
-  for (auto vertex_it = graph.VertexBegin();
-           !vertex_it.IsDone();
-            vertex_it++) {
-    // does not consider those vertexes that have already been mapped
-    // on the target graph
-    if (partial_match.HasMap(vertex_it)) {
-      continue;
-    }
-    VertexHandleType vertex_handle = vertex_it;
-    auto adjacent_vertex = AdjacentVertex<EdgeLabelType, VertexIDType>(vertex_handle);
-    // add if not exist
-    adjacent_vertex_set[std::pair(vertex_handle->label(),
-                                  adjacent_vertex)].emplace_back(vertex_it);
-  }
-
-  std::vector<std::vector<VertexHandleType>> nec_set;
-  for (const auto& adjacent_vertex
-                 : adjacent_vertex_set) {
-    assert(!adjacent_vertex.second.empty());
-    if (adjacent_vertex.second.size() == 1) {
-      continue;
-    }
-    nec_set.emplace_back(adjacent_vertex.second);
-  }
-  return std::move(nec_set);
-}
-
-template <typename  QueryGraph,
-          typename TargetGraph>
-QueryGraph RemoveNecVertex(
-                     QueryGraph& query_graph,
-         const Match<QueryGraph,
-                    TargetGraph>& partial_match) {
-  auto nec_set = Nec(query_graph, partial_match);
-  std::remove_const_t<QueryGraph> query_graph_removed(query_graph);
-  for (const auto& nec : nec_set){
-    assert(nec.size() >= 2);
-    auto vertex_remove_begin_it = nec.begin();
-    assert(vertex_remove_begin_it != nec.end());
-    // preserve the first one in nec
-    while (true) {
-      vertex_remove_begin_it++;
-      if (vertex_remove_begin_it == nec.end()){
-        break;
-      }
-      auto erase_vertex_ret = query_graph_removed.EraseVertex(
-                                 (*vertex_remove_begin_it)->id());
-      assert(erase_vertex_ret);
-    }
-  }
-  return std::move(query_graph_removed);
-}
-
 };
+
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -193,8 +100,8 @@ inline size_t MatchUsingMatch(
   //   }
   // }
 
-  if (merge_nec_config == MergeNecConfig::kMerge
-   ||(merge_nec_config == MergeNecConfig::kAdaptive
+  if (merge_query_nec_config == MergeNecConfig::kMerge
+   ||(merge_query_nec_config == MergeNecConfig::kAdaptive
    && target_graph.CountVertex() >= _match_using_match::kLargeGraphSize)) {
     QueryGraph query_graph_removed = RemoveNecVertex(query_graph, partial_match);
     if (query_graph_removed.CountVertex()
@@ -239,7 +146,11 @@ inline size_t MatchUsingMatch(
            &query_graph_removed_to_query_graph,
           &candidate_set,
           &time_limit](
-            const MatchType& partial_match_from_query_graph){
+            const MatchType& partial_match_from_removed) {
+
+        MatchType partial_match_from_query_graph 
+                = partial_match_from_removed(
+          query_graph_removed_to_query_graph.Reverse());
 
         const CandidateSetType& candidate_set_from_query_graph = candidate_set;
 
@@ -323,7 +234,7 @@ inline size_t MatchUsingMatch(
   else if constexpr (match_algorithm
                    == MatchAlgorithm::kVf2) {
     auto prune_callback_using_map 
-    = [&prune_callback](const MatchMap& match_state) -> bool {
+     = [&prune_callback](const MatchMap& match_state) -> bool {
       Match<QueryGraph, TargetGraph> match;
       for (const auto& map : match_state){
         auto ret = match.AddMap(map.first, map.second);
@@ -333,16 +244,17 @@ inline size_t MatchUsingMatch(
     };
 
     auto match_callback_using_map 
-    = [&match_callback](const MatchMap& match_state) -> bool {
+     = [&match_callback](const MatchMap& match_state) -> bool {
       Match<QueryGraph, TargetGraph> match;
-      for (const auto& map : match_state){
+      for (const auto& map : match_state) {
         auto ret = match.AddMap(map.first, map.second);
         assert(ret);
       }
       return match_callback(match);
     };
+
     MatchMap match_state;
-    if (!partial_match.empty()){
+    if (!partial_match.empty()) {
       for (auto vertex_it = query_graph.VertexBegin(); 
                !vertex_it.IsDone();
                 vertex_it++) {
@@ -396,7 +308,7 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -413,7 +325,7 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_nec_config>(
+                         merge_query_nec_config>(
                          query_graph,
                         target_graph,
                          match_state,
@@ -427,7 +339,9 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -448,19 +362,31 @@ inline size_t MatchUsingMatch(
 
   CandidateSetType candidate_set;
   if (!_dp_iso_using_match::InitCandidateSet<match_semantics>(query_graph,
-                                                 target_graph,
-                                                  candidate_set)) {
+                                                             target_graph,
+                                                              candidate_set)) {
     return 0;
   }
   if (!_dp_iso_using_match::RefineCandidateSet(query_graph, 
-                                  target_graph, 
-                                   candidate_set)) {
+                                              target_graph, 
+                                              candidate_set)) {
     return 0;
+  }
+
+  if constexpr (merge_target_nec_config == MergeNecConfig::kMerge
+             ||(merge_target_nec_config == MergeNecConfig::kAdaptive
+                   && target_graph.CountVertex() >= _match_using_match::kLargeGraphSize)) {
+    // merge the nec in the target graph
+    const std::vector<
+          std::vector<typename VertexHandle<TargetGraph>::type>> 
+          target_nec_set = Nec(target_graph);
+
+    RemoveDuplicateCandidate<QueryGraph, 
+                            TargetGraph>(candidate_set, target_nec_set);
   }
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_nec_config>(
+                         merge_query_nec_config>(
                          query_graph,
                         target_graph,
                        partial_match,
@@ -474,7 +400,9 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -514,7 +442,8 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_nec_config>(
+                         merge_query_nec_config,
+                         merge_target_nec_config>(
                          query_graph,
                         target_graph,
                        partial_match,
@@ -527,7 +456,9 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -542,7 +473,8 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_nec_config>(
+                         merge_query_nec_config,
+                         merge_target_nec_config>(
                          query_graph,
                         target_graph,
                        partial_match,
@@ -555,7 +487,9 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -577,13 +511,13 @@ inline size_t MatchUsingMatch(
 
   std::function<bool(const MatchType&)>
     match_callback = [&max_match,
-                      &match_counter](const MatchType& match) -> bool{
+                      &match_counter](const MatchType& match) -> bool {
+    match_counter++;
     if (max_match == -1) {
       // does not have support nothing
       // do nothing continue matching
       return true;
     }
-    match_counter++;
     if (match_counter >= max_match){
       // reach max match, end matching
       return false;
@@ -595,22 +529,28 @@ inline size_t MatchUsingMatch(
   // the initial partial match is empty
   MatchType match_state;
 
-  return MatchUsingMatch<match_semantics,
-                         match_algorithm,
-                         merge_nec_config>(
-                         query_graph,
-                        target_graph,
-                         match_state,
-                      prune_callback,
-                      match_callback, 
-                          time_limit);
+  auto ret = MatchUsingMatch<match_semantics,
+                             match_algorithm,
+                             merge_query_nec_config,
+                             merge_target_nec_config>(
+                           query_graph,
+                          target_graph,
+                            match_state,
+                        prune_callback,
+                        match_callback, 
+                            time_limit);
+
+  assert( ret == match_counter );
+  return ret;
 }
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -644,18 +584,22 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_nec_config>(query_graph, 
-                                          target_graph,
-                                         partial_match,
-                                          prune_callback,
-                                          match_callback);
+                         merge_query_nec_config,
+                         merge_target_nec_config>(
+                           query_graph, 
+                          target_graph,
+                         partial_match,
+                          prune_callback,
+                          match_callback);
 }
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
              = MatchAlgorithm::kDagDp,
-          enum MergeNecConfig merge_nec_config 
+          enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
           typename TargetGraph>
@@ -693,7 +637,8 @@ inline size_t MatchUsingMatch(
 
   return MatchUsingMatch<match_semantics,
                          match_algorithm,
-                         merge_nec_config>(
+                         merge_query_nec_config,
+                         merge_target_nec_config>(
                          query_graph,
                         target_graph,
                          match_state,

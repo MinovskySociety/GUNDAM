@@ -320,7 +320,7 @@ int ReadCSVVertexSetFileWithCallback(
     // check attributes
     if constexpr (read_attr && !GraphParameter<GraphType>::vertex_has_attribute) {
       if (col_num >= 3) {
-        std::cout << "vertex file has attribute but graph does not support!"
+        std::cout << "vertex fcount_failile has attribute but graph does not support!"
                   << std::endl;
         return -1;
       }
@@ -667,12 +667,15 @@ int ReadCSVEdgeFileWithCallback(const std::string& e_file, GraphType& graph,
 
     size_t col_num = attr_info.size();
     // check col_num >= 4
-    if (col_num < 4 || attr_info[0].first != "edge_id" ||
-        attr_info[1].first != "source_id" ||
-        attr_info[2].first != "target_id" || attr_info[3].first != "label_id") {
+    if (col_num < 4 
+     || attr_info[0].first != "edge_id" 
+     || attr_info[1].first != "source_id" 
+     || attr_info[2].first != "target_id" 
+     || attr_info[3].first != "label_id") {
       std::cout << "edge file is not correct!(col num must >=4)" << std::endl;
       return -1;
     }
+
     if constexpr (read_attr && !GraphParameter<GraphType>::edge_has_attribute) {
       if (col_num >= 5) {
         std::cout << "Edge file has attribute but graph does not support!"
@@ -695,8 +698,10 @@ int ReadCSVEdgeFileWithCallback(const std::string& e_file, GraphType& graph,
     for (size_t row = 0; row < sz; row++) {
       bool r;
       EdgeHandleType edge_handle;
-      std::tie(edge_handle, r) = graph.AddEdge(source_id[row], target_id[row],
-                                               label_id[row], edge_id[row]);
+      std::tie(edge_handle, r) = graph.AddEdge(source_id[row], 
+                                               target_id[row],
+                                                label_id[row], 
+                                                 edge_id[row]);
       if (r) {
         if constexpr (read_attr) {
           r = ReadAttribues<GraphParameter<GraphType>::edge_has_attribute>(
@@ -785,14 +790,16 @@ int ReadCSVGraphWithCallback(GraphType& graph,
   int count_v = 0;
   for (const auto& v_file : v_list) {
     int res = ReadCSVVertexFileWithCallback(v_file, graph, rv_callback);
-    if (res < 0) return res;
+    if (res < 0) 
+      return res;
     count_v += res;
   }
 
   int count_e = 0;
   for (const auto& e_file : e_list) {
     int res = ReadCSVEdgeFileWithCallback(e_file, graph, re_callback);
-    if (res < 0) return res;
+    if (res < 0) 
+      return res;
     count_e += res;
   }
 
