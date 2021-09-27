@@ -80,6 +80,23 @@ inline bool MergeById(GraphType0& graph0,
   return true;
 }
 
+template <typename ExportGraphType,
+          typename GraphType0,
+          typename GraphType1>
+inline ExportGraphType&& MergeByIdAndGenerate(
+             const GraphType0& graph0,
+             const GraphType1& graph1) {
+  ExportGraphType ret_graph(graph0);
+  MergeById(ret_graph, graph1);
+  return std::move(ret_graph);
+}
+
+template <typename GraphType0,
+          typename GraphType1>
+inline GraphType0&& MergeByIdAndGenerate(
+             const GraphType0& graph0,
+             const GraphType1& graph1) {
+  return MergeByIdAndGenerate<GraphType0>(graph0, graph1);
 }
 
 #endif // _GUNDAM_TOOL_MERGE_BY_ID_H
