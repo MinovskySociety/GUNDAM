@@ -101,7 +101,7 @@ inline size_t TopoSort(QueryGraph& graph,
     auto [ in_degree_it,
            in_degree_ret ] = in_degree.emplace(vertex_handle,
                                                vertex_in_degree);
-    assert(in_degree_ret)
+    assert(in_degree_ret);
   }
 
   assert(in_degree.size() == graph.CountVertex());
@@ -126,7 +126,7 @@ inline size_t TopoSort(QueryGraph& graph,
        = [&topo_seq](const QueryVertexHandle& vertex_handle) -> bool {
     topo_seq.emplace_back(vertex_handle);
     return true;
-  }
+  };
 
   return TopoSort<bidirectional>(graph, topo_callback);
 }

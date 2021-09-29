@@ -14,9 +14,14 @@
 #include "gundam/graph_type/graph_parameter.h"
 #include "gundam/graph_type/graph_base.h"
 
+#include "gundam/type_getter/vertex_id.h"
+#include "gundam/type_getter/vertex_label.h"
 #include "gundam/type_getter/vertex_handle.h"
-#include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_attribute_handle.h"
+
+#include "gundam/type_getter/edge_id.h"
+#include "gundam/type_getter/edge_label.h"
+#include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/edge_attribute_handle.h"
 
 #include "gundam/serialize/serialize.h"
@@ -566,6 +571,12 @@ class LargeGraph {
 
   friend class EdgeHandle<LargeGraph>;
   friend class EdgeHandle<const LargeGraph>;
+
+  friend class VertexID<LargeGraph>;
+  friend class VertexLabel<const LargeGraph>;
+
+  friend class EdgeID<LargeGraph>;
+  friend class EdgeLabel<const LargeGraph>;
 
   friend class GraphBase<LargeGraph>;
 

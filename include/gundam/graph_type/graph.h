@@ -14,10 +14,16 @@
 #include "gundam/component/generator.h"
 #include "gundam/component/container.h"
 
+#include "gundam/type_getter/vertex_id.h"
+#include "gundam/type_getter/vertex_label.h"
 #include "gundam/type_getter/vertex_handle.h"
-#include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_attribute_handle.h"
+
+#include "gundam/type_getter/edge_id.h"
+#include "gundam/type_getter/edge_label.h"
+#include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/edge_attribute_handle.h"
+
 #include "gundam/type_getter/graph_type.h"
 
 #include "gundam/serialize/serialize.h"
@@ -139,6 +145,9 @@ class Graph {
 
   friend class EdgeHandle<Graph>;
   friend class EdgeHandle<const Graph>;
+
+  friend class EdgeID<Graph>;
+  friend class EdgeLabel<const Graph>;
 
   friend class GraphBase<Graph>;
 

@@ -10,6 +10,14 @@ template <typename GraphType0,
           typename GraphType1>
 inline bool MergeById(GraphType0& graph0,
                       GraphType1& graph1) {
+                      
+  static_assert(GraphParameter<GraphType0>::vertex_has_attribute
+             == GraphParameter<GraphType1>::vertex_has_attribute, 
+  "GraphType0 and GraphType1 should both have attribute or both not have attribute on vertex");
+                      
+  static_assert(GraphParameter<GraphType0>::edge_has_attribute
+             == GraphParameter<GraphType1>::edge_has_attribute, 
+  "GraphType0 and GraphType1 should both have attribute or both not have attribute on edge");
 
   GUNDAM::Match<GraphType1, 
                 GraphType0> match(graph1, graph0, "same_id_map");
@@ -32,14 +40,17 @@ inline bool MergeById(GraphType0& graph0,
       // is not added successfully
       return false;
     }
-    for (auto attr_it = graph1_vertex_it->AttributeBegin();
-             !attr_it.IsDone(); attr_it++){
-      auto [attr_handle, attr_ret] 
-        = vertex_handle->AddAttribute(attr_it->key(), 
-                                      attr_it->value_type(), 
-                                      attr_it->value_str());
-      assert(!attr_handle.IsNull());
-      assert(attr_ret);
+    if constexpr (GraphParameter<GraphType0>::vertex_has_attribute) {
+      for (auto attr_it = graph1_vertex_it->AttributeBegin();
+               !attr_it.IsDone(); 
+                attr_it++){
+        auto [attr_handle, attr_ret] 
+          = vertex_handle->AddAttribute(attr_it->key(), 
+                                        attr_it->value_type(), 
+                                        attr_it->value_str());
+        assert(!attr_handle.IsNull());
+        assert(attr_ret);
+      }
     }
   }
 
@@ -65,15 +76,17 @@ inline bool MergeById(GraphType0& graph0,
         continue;
       }
       assert(edge_handle);
-      for (auto attr_it = out_edge_it->AttributeBegin();
-               !attr_it.IsDone(); 
-                attr_it++){
-        auto [attr_handle, attr_ret] 
-            = edge_handle->AddAttribute(attr_it->key(), 
-                                        attr_it->value_type(), 
-                                        attr_it->value_str());
-        assert(!attr_handle.IsNull());
-        assert(attr_ret);
+      if constexpr (GraphParameter<GraphType0>::edge_has_attribute) {
+        for (auto attr_it = out_edge_it->AttributeBegin();
+                 !attr_it.IsDone(); 
+                  attr_it++){
+          auto [attr_handle, attr_ret] 
+              = edge_handle->AddAttribute(attr_it->key(), 
+                                          attr_it->value_type(), 
+                                          attr_it->value_str());
+          assert(!attr_handle.IsNull());
+          assert(attr_ret);
+        }
       }
     }
   }
@@ -83,7 +96,7 @@ inline bool MergeById(GraphType0& graph0,
 template <typename ExportGraphType,
           typename GraphType0,
           typename GraphType1>
-inline ExportGraphType&& MergeByIdAndGenerate(
+inline ExportGraphType MergeByIdAndGenerate(
              const GraphType0& graph0,
              const GraphType1& graph1) {
   ExportGraphType ret_graph(graph0);
@@ -93,10 +106,14 @@ inline ExportGraphType&& MergeByIdAndGenerate(
 
 template <typename GraphType0,
           typename GraphType1>
-inline GraphType0&& MergeByIdAndGenerate(
+inline GraphType0 MergeByIdAndGenerate(
              const GraphType0& graph0,
              const GraphType1& graph1) {
-  return MergeByIdAndGenerate<GraphType0>(graph0, graph1);
+  return MergeByIdAndGenerate<GraphType0,
+                              GraphType0,
+                              GraphType1>(graph0, graph1);
 }
+
+};
 
 #endif // _GUNDAM_TOOL_MERGE_BY_ID_H
