@@ -1105,24 +1105,24 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
 
   #ifndef NDEBUG
 
-  std::cout << "###  src vertex id  ###" << std::endl;
-  for (const auto& src_vertex_it : src_vertex_set) {
-    std::cout << "\t" << src_vertex_it->id();
-  }
-  std::cout << std::endl;
+  // std::cout << "###  src vertex id  ###" << std::endl;
+  // for (const auto& src_vertex_it : src_vertex_set) {
+  //   std::cout << "\t" << src_vertex_it->id();
+  // }
+  // std::cout << std::endl;
 
-  std::cout << "###  parent vertex id  ###" << std::endl;
-  for (const auto& [query_vertex_handle,
-                    query_vertex_parent] : parent) {
-    std::cout << "\t" << query_vertex_handle->id();
-  }
-  std::cout << std::endl;
+  // std::cout << "###  parent vertex id  ###" << std::endl;
+  // for (const auto& [query_vertex_handle,
+  //                   query_vertex_parent] : parent) {
+  //   std::cout << "\t" << query_vertex_handle->id();
+  // }
+  // std::cout << std::endl;
   
   for (auto vertex_it = query_graph.VertexBegin();
            !vertex_it.IsDone();
             vertex_it++) {
     QueryVertexHandleType vertex_handle = vertex_it;
-    std::cout << "query vertex id: " << vertex_handle->id() << std::endl;
+    // std::cout << "query vertex id: " << vertex_handle->id() << std::endl;
     auto parent_it = parent.find(vertex_handle);
     // the parent set should contain each vertex in query graph
     assert(parent_it != parent.end());
