@@ -94,9 +94,9 @@ inline size_t TopoSort(QueryGraph& graph,
            !vertex_it.IsDone();
             vertex_it++) {
     QueryVertexHandle vertex_handle = vertex_it;
-    size_t vertex_in_degree = vertex_handle->CountOutEdge();
+    size_t vertex_in_degree = vertex_handle->CountInEdge();
     if constexpr (bidirectional) {
-      vertex_in_degree += vertex_handle->CountInEdge();
+      vertex_in_degree += vertex_handle->CountOutEdge();
     }
     auto [ in_degree_it,
            in_degree_ret ] = in_degree.emplace(vertex_handle,
