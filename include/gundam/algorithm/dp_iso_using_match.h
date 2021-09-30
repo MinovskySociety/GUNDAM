@@ -17,6 +17,7 @@
 
 #include "assert.h"
 #include "gundam/type_getter/edge_handle.h"
+#include "gundam/type_getter/edge_label.h"
 #include "gundam/type_getter/vertex_handle.h"
 #include "match_helper.h"
 #include "match_semantics.h"
@@ -36,9 +37,8 @@ constexpr size_t large_query_edge = 4;
 constexpr size_t adj_vertex_limit = 200000;
 
 template <typename GraphType>
-size_t CountInVertex(
-    typename VertexHandle<GraphType>::type &vertex_handle,
-    const typename GraphType::EdgeType::LabelType &edge_label) {
+size_t CountInVertex(typename VertexHandle<GraphType>::type &vertex_handle,
+               const typename    EdgeLabel<GraphType>::type &edge_label) {
   if constexpr (GraphParameter<GraphType>::vertex_level_edge_label_index) {
     return vertex_handle->CountInVertex(edge_label);
   } else {
@@ -57,9 +57,8 @@ size_t CountInVertex(
 }
 
 template <typename GraphType>
-size_t CountOutVertex(
-    typename VertexHandle<GraphType>::type &vertex_handle,
-    const typename GraphType::EdgeType::LabelType &edge_label) {
+size_t CountOutVertex(typename VertexHandle<GraphType>::type &vertex_handle,
+                const typename    EdgeLabel<GraphType>::type &edge_label) {
   if constexpr (GraphParameter<GraphType>::vertex_level_edge_label_index) {
     return vertex_handle->CountOutVertex(edge_label);
   } else {
@@ -79,7 +78,7 @@ size_t CountOutVertex(
 
 template <typename GraphType>
 size_t CountInEdge(typename VertexHandle<GraphType>::type &vertex_handle,
-                   const typename GraphType::EdgeType::LabelType &edge_label) {
+             const typename    EdgeLabel<GraphType>::type &edge_label) {
   if constexpr (GraphParameter<GraphType>::vertex_level_edge_label_index) {
     return vertex_handle->CountInEdge(edge_label);
   } else {
@@ -98,7 +97,7 @@ size_t CountInEdge(typename VertexHandle<GraphType>::type &vertex_handle,
 
 template <typename GraphType>
 size_t CountOutEdge(typename VertexHandle<GraphType>::type &vertex_handle,
-                    const typename GraphType::EdgeType::LabelType &edge_label) {
+              const typename    EdgeLabel<GraphType>::type &edge_label) {
   if constexpr (GraphParameter<GraphType>::vertex_level_edge_label_index) {
     return vertex_handle->CountOutEdge(edge_label);
   } else {
@@ -116,10 +115,9 @@ size_t CountOutEdge(typename VertexHandle<GraphType>::type &vertex_handle,
 }
 
 template <typename GraphType>
-size_t CountInEdge(
-    typename VertexHandle<GraphType>::type &vertex_handle,
-    const typename GraphType::EdgeType::LabelType &edge_label,
-    const typename VertexHandle<GraphType>::type &src_vertex_handle) {
+size_t CountInEdge(typename VertexHandle<GraphType>::type &vertex_handle,
+             const typename    EdgeLabel<GraphType>::type &edge_label,
+             const typename VertexHandle<GraphType>::type &src_vertex_handle) {
   if constexpr (GraphParameter<GraphType>::vertex_level_edge_label_index) {
     return vertex_handle->CountInEdge(edge_label, src_vertex_handle);
   } else {
@@ -138,10 +136,9 @@ size_t CountInEdge(
 }
 
 template <typename GraphType>
-size_t CountOutEdge(
-    typename VertexHandle<GraphType>::type &vertex_handle,
-    const typename GraphType::EdgeType::LabelType &edge_label,
-    const typename VertexHandle<GraphType>::type &dst_vertex_handle) {
+size_t CountOutEdge(typename VertexHandle<GraphType>::type &vertex_handle,
+              const typename    EdgeLabel<GraphType>::type &edge_label,
+              const typename VertexHandle<GraphType>::type &dst_vertex_handle) {
   if constexpr (GraphParameter<GraphType>::vertex_level_edge_label_index) {
     return vertex_handle->CountOutEdge(edge_label, dst_vertex_handle);
   } else {
@@ -1449,7 +1446,8 @@ inline void BFS(QueryGraph &query_graph,
          std::set<typename VertexHandle<QueryGraph>::type>& src_vertex_set) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using QueryEdgeIDType = typename QueryGraph::EdgeType::IDType;
-  std::set<QueryVertexHandle> temp_src_vertex_set = src_vertex_set, 
+  std::set<QueryVertexHandle> temp_src_vertex_set 
+                                 = src_vertex_set, 
                                   used_vertex;
   std::set<QueryEdgeIDType> used_edge;
   while (used_vertex.size() < query_graph.CountVertex()) {
@@ -1497,9 +1495,11 @@ inline void BFS(QueryGraph &query_graph,
           used_vertex.insert(next_vertex_handle);
         }
       }
-      for (auto edge_it = now_vertex_handle->InEdgeBegin(); !edge_it.IsDone();
-           edge_it++) {
-        if (used_edge.count(edge_it->id())) continue;
+      for (auto edge_it = now_vertex_handle->InEdgeBegin(); 
+               !edge_it.IsDone();
+                edge_it++) {
+        if (used_edge.count(edge_it->id())) 
+          continue;
         QueryVertexHandle next_vertex_handle = edge_it->src_handle();
         used_edge.insert(edge_it->id());
         in_degree[next_vertex_handle]++;

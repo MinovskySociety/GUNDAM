@@ -15,9 +15,14 @@
 #include "gundam/graph_type/graph_parameter.h"
 #include "gundam/graph_type/graph_base.h"
 
+#include "gundam/type_getter/vertex_id.h"
+#include "gundam/type_getter/vertex_label.h"
 #include "gundam/type_getter/vertex_handle.h"
-#include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_attribute_handle.h"
+
+#include "gundam/type_getter/edge_id.h"
+#include "gundam/type_getter/edge_label.h"
+#include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/edge_attribute_handle.h"
 
 #include "gundam/serialize/serialize.h"
@@ -93,6 +98,12 @@ class SmallGraph {
   
   friend class EdgeHandle<SmallGraph>;
   friend class EdgeHandle<const SmallGraph>;
+
+  friend class VertexID<SmallGraph>;
+  friend class VertexLabel<const SmallGraph>;
+
+  friend class EdgeID<SmallGraph>;
+  friend class EdgeLabel<const SmallGraph>;
 
   friend class GraphBase<SmallGraph>;
 
@@ -609,7 +620,7 @@ class SmallGraph {
   EdgeConstPtr FindEdge(const EdgeIDType &id) const {
     auto it = edges_.Find(id);
     if (it == edges_.end()) return EdgeConstPtr();
-    return EdgeConstPtr(Edge(this, *it));
+    return EdgeConstPtr(ConstEdge(this, *it));
   }
 
   EdgeIterator EdgeBegin() {
