@@ -877,11 +877,11 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
            > candidate_set[b].size();
   };
 
-  // by wenzhi
-  std::string query_graph_str;
-  query_graph_str << query_graph;
-  std::cout << "query graph str" << std::endl
-            <<  query_graph_str  << std::endl;
+  // // by wenzhi
+  // std::string query_graph_str;
+  // query_graph_str << query_graph;
+  // std::cout << "query graph str" << std::endl
+  //           <<  query_graph_str  << std::endl;
 
   typename std::map<typename QueryGraph::VertexCounterType,
                  std::vector<QueryVertexHandleType>>::const_iterator
@@ -1953,11 +1953,11 @@ inline int DPISOUsingMatch_Recursive(
   // std::cout << "##  target_graph.CountVertex(): "
   //           <<      target_graph.CountVertex() << std::endl;
 
-  // by wenzhi
-  std::string query_graph_str;
-  query_graph_str << query_graph;
-  std::cout << "##  query graph str" << std::endl
-            <<      query_graph_str  << std::endl;
+  // // by wenzhi
+  // std::string query_graph_str;
+  // query_graph_str << query_graph;
+  // std::cout << "##  query graph str" << std::endl
+  //           <<      query_graph_str  << std::endl;
 
   // std::cout << "candidate_set size()" << std::endl;
 
@@ -2190,11 +2190,11 @@ inline int DPISOUsingMatch_Recursive(
     // all vertexes have been matched, cannot 
     // find the next vertex to match
     if (par_prune_callback(partial_match)) {
-      std::cout << "##  match ended 0  ##" << std::endl;
+      // std::cout << "##  match ended 0  ##" << std::endl;
       return 0;
     }
     par_user_callback(partial_match);
-    std::cout << "##  match ended 1  ##" << std::endl;
+    // std::cout << "##  match ended 1  ##" << std::endl;
     return static_cast<int>(result_count);
   }
   // partition next ptr's candiate
@@ -2290,7 +2290,7 @@ inline int DPISOUsingMatch_Recursive(
       temp_parent.emplace(next_query_handle, 
                           std::vector<typename VertexHandle<QueryGraph>::type>{next_query_handle});
     }
-    std::cout << "## _DPISOUsingMatch 1 ##" << std::endl;
+    // std::cout << "## _DPISOUsingMatch 1 ##" << std::endl;
     user_callback_has_return_false 
       = !_dp_iso_using_match::_DPISOUsingMatch<match_semantics, true, use_dag_order>(
           temp_candidate_set, 
@@ -2308,7 +2308,7 @@ inline int DPISOUsingMatch_Recursive(
     // there is also no need to unset it
     // omp_unset_lock(&user_callback_lock);
   }
-  std::cout << "##  match ended 2  ##" << std::endl;
+  // std::cout << "##  match ended 2  ##" << std::endl;
   return static_cast<int>(result_count);
 }
 
