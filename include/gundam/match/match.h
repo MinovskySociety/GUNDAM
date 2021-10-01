@@ -267,12 +267,9 @@ class Match {
 
   /// constant dst
   inline DstVertexHandleType MapTo(const SrcVertexIDType& src_id) const {
-    std::cout << "src_id: " << src_id << std::endl;
     for (auto it  = this->match_container_.begin();
               it != this->match_container_.end();
               it++){
-      std::cout << "###########" << std::endl;
-      std::cout << "\t" << it.template get_const<kSrcVertexPtrIdx>()->id() << std::endl;
       if ((it.template get_const<kSrcVertexPtrIdx>())->id() == src_id)
         return it.template get_const<kDstVertexPtrIdx>();
     }
