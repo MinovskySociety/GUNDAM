@@ -58,11 +58,11 @@ class Match {
   static constexpr TupleIdxType kSrcVertexPtrIdx = 0;
   static constexpr TupleIdxType kDstVertexPtrIdx = 1;
 
-  using MapContainerType =
-      Container<map_container_type,
-                map_container_sort_type,
-                SrcVertexHandleType,
-                DstVertexHandleType>;
+  using MapContainerType
+         = Container<map_container_type,
+                     map_container_sort_type,
+                     SrcVertexHandleType,
+                     DstVertexHandleType>;
 
   template <typename ContainerType_,
             bool is_const_,
@@ -191,7 +191,8 @@ class Match {
 
   inline bool HasMap(const SrcVertexIDType& src_id) const {
     for (auto cit  = this->match_container_.cbegin();
-              cit != this->match_container_.cend();cit++){
+              cit != this->match_container_.cend();
+              cit++){
       if (cit.template get_const<kSrcVertexPtrIdx>()->id() == src_id)
         return true;
     }
@@ -229,6 +230,7 @@ class Match {
     if (!ret.second) {
       /// does not find src_ptr
       /// this just a partial match and does not contain
+      assert(!this->HasMap(src_ptr));
       return DstVertexHandleType();
     }
     /// found that
@@ -265,12 +267,17 @@ class Match {
 
   /// constant dst
   inline DstVertexHandleType MapTo(const SrcVertexIDType& src_id) const {
+    std::cout << "src_id: " << src_id << std::endl;
     for (auto it  = this->match_container_.begin();
-              it != this->match_container_.end();it++){
-      if (it.template get_const<kSrcVertexPtrIdx>()->id() == src_id)
+              it != this->match_container_.end();
+              it++){
+      std::cout << "###########" << std::endl;
+      std::cout << "\t" << it.template get_const<kSrcVertexPtrIdx>()->id() << std::endl;
+      if ((it.template get_const<kSrcVertexPtrIdx>())->id() == src_id)
         return it.template get_const<kDstVertexPtrIdx>();
     }
     /// not found
+    assert(!this->HasMap(src_id));
     return DstVertexHandleType();
   }
 

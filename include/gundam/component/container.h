@@ -177,10 +177,10 @@ class Container<ContainerType::Vector,
   Container& operator=(Container&&) = default;	
 
   inline const_iterator cbegin() const {
-    return const_iterator(this->container_.cbegin());
+    return this->begin();
   }
   inline const_iterator cend() const {
-    return const_iterator(this->container_.cend());
+    return this->end();
   }
   inline iterator begin() {
     return iterator(this->container_.begin());
@@ -189,10 +189,10 @@ class Container<ContainerType::Vector,
     return iterator(this->container_.end());
   }
   inline const_iterator begin() const {
-    return this->cbegin();
+    return const_iterator(this->container_.begin());
   }
   inline const_iterator end() const {
-    return this->cbegin();
+    return const_iterator(this->container_.end());
   }
   inline const_reverse_iterator crbegin() const {
     return const_reverse_iterator(this->container_.crbegin());
@@ -437,10 +437,10 @@ class Container<ContainerType::Set,
   Container& operator=(Container&&) = default;	
 
   inline const_iterator cbegin() const {
-    return const_iterator(this->container_.cbegin());
+    return this->begin();
   }
   inline const_iterator cend() const {
-    return const_iterator(this->container_.cend());
+    return this->end();
   }
   inline iterator begin() {
     return iterator(this->container_.begin());
@@ -449,10 +449,10 @@ class Container<ContainerType::Set,
     return iterator(this->container_.end());
   }
   inline const_iterator begin() const {
-    return this->cbegin();
+    return const_iterator(this->container_.begin());
   }
   inline const_iterator end() const {
-    return this->cend();
+    return const_iterator(this->container_.end());
   }
   inline size_type size() const {
     return this->container_.size();
@@ -669,10 +669,10 @@ class Container<ContainerType::Map,
   Container& operator=(Container&&) = default;	
 
   inline const_iterator cbegin() const {
-    return const_iterator(this->container_.cbegin());
+    return this->begin();
   }
   inline const_iterator cend() const {
-    return const_iterator(this->container_.cend());
+    return this->end();
   }
   inline iterator begin() {
     return iterator(this->container_.begin());
@@ -681,10 +681,10 @@ class Container<ContainerType::Map,
     return iterator(this->container_.end());
   }
   inline const_iterator begin() const {
-    return this->cbegin();
+    return const_iterator(this->container_.begin());
   }
   inline const_iterator end() const {
-    return this->cend();
+    return const_iterator(this->container_.end());
   }
   inline const_reverse_iterator crbegin() const {
     return const_reverse_iterator(this->container_.crbegin());
