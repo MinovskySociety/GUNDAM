@@ -35,7 +35,6 @@ static constexpr int kLargeGraphSize = 1000;
 
 };
 
-
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
           enum MatchAlgorithm match_algorithm
@@ -302,6 +301,62 @@ inline size_t MatchUsingMatch(
               != MatchAlgorithm::kDagDp, "unsupported match algorithm");
   }
   return 0;
+}
+
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
+          enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t MatchUsingMatch(
+        QueryGraph&  query_graph,
+       TargetGraph& target_graph,
+  const Match<QueryGraph,
+             TargetGraph>& partial_match,
+  const std::map<typename VertexHandle< QueryGraph>::type,
+     std::vector<typename VertexHandle<TargetGraph>::type>>& candidate_set,
+   int64_t max_match = -1,
+   double time_limit = -1.0) {
+  
+  using MatchType = Match<QueryGraph, 
+                         TargetGraph>;
+
+  std::function<bool(const MatchType&)>
+    prune_callback = [](const MatchType& match) -> bool{
+    // prune nothing, continue matching
+    return false;
+  };
+
+  int64_t match_counter = 0;
+
+  std::function<bool(const MatchType&)>
+    match_callback = [&max_match,
+                      &match_counter](const MatchType& match) -> bool {
+    if (max_match == -1) {
+      // does not have support nothing
+      // do nothing continue matching
+      return true;
+    }
+    match_counter++;
+    if (match_counter >= max_match){
+      // reach max match, end matching
+      return false;
+    }
+    // does not reach max match, continue matching
+    return true;
+  };
+
+  return MatchUsingMatch<match_semantics,
+                         match_algorithm,
+                         merge_query_nec_config>(query_graph,
+                                                target_graph,
+                                                partial_match,
+                                                candidate_set,
+                                                prune_callback,
+                                                match_callback);
 }
 
 template <enum MatchSemantics match_semantics 
