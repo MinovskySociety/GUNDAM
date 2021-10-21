@@ -146,8 +146,8 @@ size_t CountOutEdge(typename VertexHandle<GraphType>::type &vertex_handle,
     for (auto edge_it = vertex_handle->OutEdgeBegin(); 
              !edge_it.IsDone();
               edge_it++) {
-      if (edge_it->label() == edge_label &&
-          edge_it->dst_handle() == dst_vertex_handle) {
+      if (edge_it->label() == edge_label 
+       && edge_it->dst_handle() == dst_vertex_handle) {
         counter++;
       }
     }
