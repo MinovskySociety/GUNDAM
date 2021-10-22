@@ -14,7 +14,7 @@ namespace GUNDAM {
 // is not added in the Match class
 template <typename GraphPatternType,
           typename    DataGraphType>
-inline auto MapEdgeTo(
+inline typename EdgeHandle<DataGraphType>::type MapEdgeTo(
        const Match<GraphPatternType,
                       DataGraphType>& match,
    const typename EdgeHandle<GraphPatternType>::type& edge_handle) {
