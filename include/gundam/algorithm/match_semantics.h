@@ -3,9 +3,12 @@
 
 namespace GUNDAM {
 
-enum MatchSemantics : bool { 
-  kIsomorphism, 
-  kHomomorphism 
+enum MatchSemantics : uint8_t {
+   kIsomorphism,
+  kHomomorphism,
+        kSimulation,
+    kDualSimulation,
+  kStrongSimulation
 };
 
 enum MatchAlgorithm : bool {
