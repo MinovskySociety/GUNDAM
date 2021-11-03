@@ -7,7 +7,8 @@
 
 namespace GUNDAM {
 
-template<typename GraphType>
+template <bool bidirectional = true,
+          typename GraphType>
 GraphType KHop(GraphType& graph,
          const std::set<typename GUNDAM::VertexHandle<GraphType>::type>& src_handle_set,
                size_t k){
@@ -97,9 +98,21 @@ GraphType KHop(GraphType& graph,
     return true;
   };
 
-  GUNDAM::Bfs<true>(graph, src_handle_set, hop_callback, k);
+  GUNDAM::Bfs<bidirectional>(graph, src_handle_set, hop_callback, k);
 
   return k_hop;
+}
+
+template <bool bidirectional = true,
+          typename GraphType>
+GraphType KHop(GraphType& graph,
+  typename VertexHandle<GraphType>::type& src_handle,
+               size_t k){
+
+  const std::set<typename GUNDAM::VertexHandle<GraphType>::type>
+    src_handle_set = {src_handle};
+
+  return KHop<bidirectional>(graph, src_handle_set, k);
 }
 
 }; // namespace GUNDAM
