@@ -56,8 +56,10 @@ inline GraphType PreserveVertexSet(GraphType& data_graph,
       // should added successfully
       assert(substructure_edge_handle);
       assert(substructure_edge_ret);
-      GUNDAM::CopyAllAttributes(out_edge_it, 
-                       substructure_edge_handle);
+      if constexpr () {
+        GUNDAM::CopyAllAttributes(out_edge_it, 
+                        substructure_edge_handle);
+      }
     }
 
     for (auto in_edge_it = vertex_handle->InEdgeBegin();
@@ -86,17 +88,10 @@ inline GraphType PreserveVertexSet(GraphType& data_graph,
     return true;
   };
 
-  std::set<DataGraphVertexHandle> src_vertex_handle_set;
-  for (const auto& supp_vertex_set
-                  : supp_vertex_set_batch) {
-    for (auto& supp_vertex_handle : supp_vertex_set){
-      src_vertex_handle_set.emplace(supp_vertex_handle);
-    }
-  }
   VertexCounterType vertex_num = 0;
-  vertex_num += GUNDAM::Bfs<true>(data_graph, supp_vertex_set_batch.front(),   
-                                    construct_substructure_callback,
-                                 prune_not_in_substructure_callback);
+  vertex_num += GUNDAM::Dfs<true>(data_graph, vertex_set_to_preserve.front(),
+                                     construct_substructure_callback,
+                                  prune_not_in_substructure_callback);
   assert(vertex_num == substructure.CountVertex());
   return substructure;
 }
