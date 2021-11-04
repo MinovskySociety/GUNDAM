@@ -109,9 +109,14 @@ inline GraphType PreserveVertexSet(GraphType& graph,
   };
 
   VertexCounterType vertex_num = 0;
-  vertex_num = GUNDAM::Dfs<true>(graph, vertex_set_to_preserve.front(),
+  for (const auto& vertex_handle : vertex_set_to_preserve) {
+    if (substructure.FindVertex(vertex_handle->id())) {
+      continue;
+    }
+    vertex_num += GUNDAM::Dfs<true>(graph, vertex_handle,
                                     construct_substructure_callback,
                                              prune_nothing_callback);
+  }
   assert(vertex_num == substructure.CountVertex());
   return substructure;
 }

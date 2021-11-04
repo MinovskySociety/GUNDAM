@@ -112,7 +112,7 @@ GraphType KHop(GraphType& graph,
 template <bool bidirectional = true,
           typename GraphType>
 GraphType KHop(GraphType& graph,
-  typename VertexHandle<GraphType>::type& src_handle,
+  typename VertexHandle<GraphType>::type src_handle,
                size_t k){
 
   const std::set<typename GUNDAM::VertexHandle<GraphType>::type>

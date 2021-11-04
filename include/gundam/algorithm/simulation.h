@@ -76,23 +76,31 @@ inline std::vector<TargetGraph> StrongSimulation(
             vertex_it++) {
     TargetVerteHandleType w_vertex_handle = vertex_it;
     // to obtain the ball
-    TargetGraph ball = KHop<true>(target_graph, w_vertex_handle, dQ);
+    TargetGraph ball = KHop<true>(target_graph, w_vertex_handle, 2 * dQ);
     CandidateSet match_set_in_ball;
-    Simulation<MatchSemantics::kDualSimulation>(
+    if (Simulation<MatchSemantics::kDualSimulation>(
                     query_graph, ball,
-                    match_set_in_ball);
+                    match_set_in_ball) == 0) {
+      continue;
+    }
+
+    TargetVerteHandleType w_vertex_handle_in_ball
+        = ball.FindVertex(w_vertex_handle->id());
+    assert(w_vertex_handle_in_ball);
 
     // ExtractMaxPG(query_graph, ball, match_set_in_ball);
     std::vector<TargetVerteHandleType> vertex_handle_to_preserve;
     bool contained_in_sw = false;
     for (auto& [query_handle,
                 candidate_set] : match_set_in_ball) {
-      std::copy(vertex_handle_to_preserve.begin(), 
-                vertex_handle_to_preserve.end(), 
-                std::back_inserter(candidate_set));
+      std::sort(candidate_set.begin(),
+                candidate_set.end());
+      std::copy(candidate_set.begin(), 
+                candidate_set.end(), 
+                std::back_inserter(vertex_handle_to_preserve));
       if (std::binary_search(candidate_set.begin(),
                              candidate_set.end(), 
-                             w_vertex_handle)) {
+                             w_vertex_handle_in_ball)) {
         contained_in_sw = true;
       }
     }
@@ -151,9 +159,9 @@ inline std::vector<TargetGraph> StrongSimulation(
 
     TargetGraph Gm = Preserve(ball, vertex_handle_to_preserve,
                                       edge_handle_to_preserve);
-
+    assert(Gm.FindVertex(w_vertex_handle->id()));
     // find connected component containing w
-    maximum_perfect_subgraphs.emplace_back(ConnectedComponent<true>(Gm, vertex_it));
+    maximum_perfect_subgraphs.emplace_back(ConnectedComponent<true>(Gm, Gm.FindVertex(w_vertex_handle->id())));
   }
   return std::move(maximum_perfect_subgraphs);
 };

@@ -50,8 +50,16 @@ void TestStrongSimulation_1() {
   target.AddEdge(3, 2, EdgeLabelType(1), 2);
   target.AddEdge(3, 1, EdgeLabelType(1), 3);
 
-  GUNDAM::StrongSimulation<GUNDAM::MatchSemantics
-                                 ::kStrongSimulation>(query, target);                
+  auto result_pattern_set = GUNDAM::StrongSimulation<GUNDAM::MatchSemantics
+                                  ::kStrongSimulation>(query, target);
+  std::cout << "result_pattern_set.size(): "
+            <<  result_pattern_set.size() << std::endl;
+  for (const auto& result_pattern 
+                 : result_pattern_set) {
+    std::string str;
+    str << result_pattern;
+    std::cout << "result_pattern: " << str << std::endl;
+  }
   // ASSERT_EQ(count, 2);
   // ASSERT_EQ(count, match_result1.size());
   // std::cout << "count: " << match_result1.size() << std::endl;
@@ -124,34 +132,34 @@ TEST(TestGUNDAM, StrongSimulation_1) {
   using SSG = SimpleSmallGraph<uint32_t, uint32_t, uint32_t, uint32_t>;
 
   TestStrongSimulation_1<G1, G1>();
-  TestStrongSimulation_1<G1, G2>();
-  TestStrongSimulation_1<G1, G3>();
-  TestStrongSimulation_1<G1, SG>();
-  TestStrongSimulation_1<G1, LG>();
+  // TestStrongSimulation_1<G1, G2>();
+  // TestStrongSimulation_1<G1, G3>();
+  // TestStrongSimulation_1<G1, SG>();
+  // TestStrongSimulation_1<G1, LG>();
 
-  TestStrongSimulation_1<G2, G1>();
-  TestStrongSimulation_1<G2, G2>();
-  TestStrongSimulation_1<G2, G3>();
-  TestStrongSimulation_1<G2, SG>();
-  TestStrongSimulation_1<G2, LG>();
+  // TestStrongSimulation_1<G2, G1>();
+  // TestStrongSimulation_1<G2, G2>();
+  // TestStrongSimulation_1<G2, G3>();
+  // TestStrongSimulation_1<G2, SG>();
+  // TestStrongSimulation_1<G2, LG>();
 
-  TestStrongSimulation_1<G3, G1>();
-  TestStrongSimulation_1<G3, G2>();
-  TestStrongSimulation_1<G3, G3>();
-  TestStrongSimulation_1<G3, SG>();
-  TestStrongSimulation_1<G3, LG>();
+  // TestStrongSimulation_1<G3, G1>();
+  // TestStrongSimulation_1<G3, G2>();
+  // TestStrongSimulation_1<G3, G3>();
+  // TestStrongSimulation_1<G3, SG>();
+  // TestStrongSimulation_1<G3, LG>();
   
-  TestStrongSimulation_1<LG, G1>();
-  TestStrongSimulation_1<LG, G2>();
-  TestStrongSimulation_1<LG, G3>();
-  TestStrongSimulation_1<LG, SG>();
-  TestStrongSimulation_1<LG, LG>();
+  // TestStrongSimulation_1<LG, G1>();
+  // TestStrongSimulation_1<LG, G2>();
+  // TestStrongSimulation_1<LG, G3>();
+  // TestStrongSimulation_1<LG, SG>();
+  // TestStrongSimulation_1<LG, LG>();
 
-  TestStrongSimulation_1<SG, G1>();
-  TestStrongSimulation_1<SG, G2>();
-  TestStrongSimulation_1<SG, G3>();
-  TestStrongSimulation_1<SG, LG>();
-  TestStrongSimulation_1<SG, SG>();
+  // TestStrongSimulation_1<SG, G1>();
+  // TestStrongSimulation_1<SG, G2>();
+  // TestStrongSimulation_1<SG, G3>();
+  // TestStrongSimulation_1<SG, LG>();
+  // TestStrongSimulation_1<SG, SG>();
 
   // TestStrongSimulation_1<SSG, G1>();
   // TestStrongSimulation_1<SSG, G2>();

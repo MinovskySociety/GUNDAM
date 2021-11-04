@@ -11,6 +11,8 @@ template <bool bidirectional = true,
           typename GraphType>
 GraphType ConnectedComponent(GraphType& graph,
        typename VertexHandle<GraphType>::type vertex_handle) {
+  assert(vertex_handle);
+  assert(graph.FindVertex(vertex_handle->id()));
   assert(graph.FindVertex(vertex_handle->id())
                        == vertex_handle);
   return KHop<bidirectional>(graph, vertex_handle, 
