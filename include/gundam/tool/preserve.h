@@ -22,22 +22,7 @@ inline GraphType PreserveVertexSet(GraphType& graph,
 
   GraphType substructure;
 
-  auto prune_nothing_callback 
-    = [](const VertexHandleType vertex_handle){
-    // prune nothing
-    return false;
-  };
-
-  auto construct_substructure_callback 
-    = [&substructure,
-       &vertex_set_to_preserve](const VertexHandleType& vertex_handle){
-    if (!std::binary_search(vertex_set_to_preserve.begin(),
-                            vertex_set_to_preserve.end(),
-                            vertex_handle)) {
-      // this vertex is not contained in the vertex_handle_set
-      // does not need to be preserved
-      return true;
-    }
+  for (const auto& vertex_handle : vertex_set_to_preserve) {
     // this vertex is contained in the vertex_handle_set
     // needs to be preserved
     auto [substructure_vertex_handle,
@@ -105,19 +90,8 @@ inline GraphType PreserveVertexSet(GraphType& graph,
                         substructure_edge_handle);
       }
     }
-    return true;
-  };
-
-  VertexCounterType vertex_num = 0;
-  for (const auto& vertex_handle : vertex_set_to_preserve) {
-    if (substructure.FindVertex(vertex_handle->id())) {
-      continue;
-    }
-    vertex_num += GUNDAM::Dfs<true>(graph, vertex_handle,
-                                    construct_substructure_callback,
-                                             prune_nothing_callback);
   }
-  assert(vertex_num == substructure.CountVertex());
+  assert(vertex_set_to_preserve.size() == substructure.CountVertex());
   return substructure;
 }
 
