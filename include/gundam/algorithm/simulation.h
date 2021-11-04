@@ -8,6 +8,7 @@
 
 #include "gundam/tool/connected_component.h"
 #include "gundam/tool/diameter.h"
+#include "gundam/tool/preserve.h"
 
 #include "gundam/match/match.h"
 
@@ -17,7 +18,7 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kDualSimulation,
           typename  QueryGraph,
           typename TargetGraph>
-inline size_t MatchUsingMatch(
+inline size_t Simulation(
         QueryGraph&  query_graph,
        TargetGraph& target_graph,
      std::map<typename VertexHandle< QueryGraph>::type,
@@ -53,16 +54,15 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kStrongSimulation,
           typename  QueryGraph,
           typename TargetGraph>
-inline size_t MatchUsingMatch(
+inline std::vector<QueryGraph> StrongSimulation(
         QueryGraph&  query_graph,
-       TargetGraph& target_graph,
-     std::map<typename VertexHandle< QueryGraph>::type,
-  std::vector<typename VertexHandle<TargetGraph>::type>>& match_set) {
+       TargetGraph& target_graph) {
 
   static_assert(match_semantics == MatchSemantics::kStrongSimulation);
 
   using  QueryVerteHandleType = typename VertexHandle< QueryGraph>::type;
   using TargetVerteHandleType = typename VertexHandle<TargetGraph>::type;
+  using  TargetEdgeHandleType = typename   EdgeHandle<TargetGraph>::type;
 
   using CandidateSet =  std::map< QueryVerteHandleType,
                      std::vector<TargetVerteHandleType>>;
@@ -74,43 +74,88 @@ inline size_t MatchUsingMatch(
   for (auto vertex_it = target_graph.VertexBegin();
            !vertex_it.IsDone();
             vertex_it++) {
+    TargetVerteHandleType w_vertex_handle = vertex_it;
     // to obtain the ball
-    TargetGraph ball = KHop<true>(target_graph, vertex_it, dQ);
+    TargetGraph ball = KHop<true>(target_graph, w_vertex_handle, dQ);
     CandidateSet match_set_in_ball;
-    MatchUsingMatch<MatchSemantics::kDualSimulation>(
+    Simulation<MatchSemantics::kDualSimulation>(
                     query_graph, ball,
                     match_set_in_ball);
 
     // ExtractMaxPG(query_graph, ball, match_set_in_ball);
-    std::vector<TargetVerteHandleType> vertex_in_ball;
+    std::vector<TargetVerteHandleType> vertex_handle_to_preserve;
     bool contained_in_sw = false;
-    for (const auto& [query_handle,
-                      candidate_set] : match_set_in_ball) {
-      std::copy(vertex_in_ball.begin(), 
-                vertex_in_ball.end(), 
+    for (auto& [query_handle,
+                candidate_set] : match_set_in_ball) {
+      std::copy(vertex_handle_to_preserve.begin(), 
+                vertex_handle_to_preserve.end(), 
                 std::back_inserter(candidate_set));
-      if (std::find(candidate_set.begin(),
-                    candidate_set.end(), vertex_it)) {
+      if (std::binary_search(candidate_set.begin(),
+                             candidate_set.end(), 
+                             w_vertex_handle)) {
         contained_in_sw = true;
       }
     }
     if (!contained_in_sw) {
       continue;
     }
-    std::sort( vertex_in_ball.begin(), 
-               vertex_in_ball.end() );
-    vertex_in_ball.erase(
-      std::unique( vertex_in_ball.begin(),
-                   vertex_in_ball.end() ),
-                   vertex_in_ball.end() );
-    assert(vertex_in_ball.size() <= ball.CountVertex());
-    // construct the matching graph Gm
-    QueryGraph Gm = PreserveVertexSet(ball, vertex_in_ball);
+    std::sort( vertex_handle_to_preserve.begin(), 
+               vertex_handle_to_preserve.end() );
+    vertex_handle_to_preserve.erase(
+      std::unique( vertex_handle_to_preserve.begin(),
+                   vertex_handle_to_preserve.end() ),
+                   vertex_handle_to_preserve.end() );
+    assert(vertex_handle_to_preserve.size() <= ball.CountVertex());
+    // to select the edge, map each edge in query_graph
+    std::vector<TargetEdgeHandleType> edge_handle_to_preserve;
+    for (auto vertex_it = query_graph.VertexBegin();
+             !vertex_it.IsDone();
+              vertex_it++) {
+      for (auto out_edge_it = vertex_it->OutEdgeBegin();
+               !out_edge_it.IsDone();
+                out_edge_it++) {
+        // to find the set of edges that can be matched by
+        // this edge can
+        assert(match_set_in_ball.find(vertex_it)
+            != match_set_in_ball. end());
+        const auto& candidate_set_u0 = match_set_in_ball.find(vertex_it)->second;
+        assert(match_set_in_ball.find(out_edge_it->dst_handle())
+            != match_set_in_ball. end());
+        const auto& candidate_set_u1 = match_set_in_ball.find(out_edge_it->dst_handle())->second;
+        for (const auto& dst_handle_u0 : candidate_set_u0) {
+          for (const auto& dst_handle_u1 : candidate_set_u1) {
+            // to find whether there is an edge from dst_handle_u0 
+            // to dst_handle_u1
+            for (auto out_edge_it = dst_handle_u0->OutEdgeBegin();
+                     !out_edge_it.IsDone();
+                      out_edge_it++) {
+              if (out_edge_it->dst_handle() != dst_handle_u1) {
+                continue;
+              }
+              edge_handle_to_preserve.emplace_back(out_edge_it);
+              // in case there are more than one edge between these two 
+              // vertexes
+              // break;
+            }
+          }
+        }
+      }
+    }
+
+    std::sort( edge_handle_to_preserve.begin(),
+               edge_handle_to_preserve.end() );
+    edge_handle_to_preserve.erase(
+      std::unique( edge_handle_to_preserve.begin(),
+                   edge_handle_to_preserve.end() ),
+                   edge_handle_to_preserve.end() );
+
+    QueryGraph Gm = Preserve(ball, vertex_handle_to_preserve,
+                                     edge_handle_to_preserve);
+
     // find connected component containing w
-    QueryGraph Gs = ConnectedComponent<true>(Gm, vertex_it);
-    maximum_perfect_subgraphs.emplace_back(std::move(Gs));
+    maximum_perfect_subgraphs.emplace_back(ConnectedComponent<true>(Gm, vertex_it));
   }
-  return match_count;
+  return std::move(maximum_perfect_subgraphs);
 };
 
 };

@@ -49,7 +49,7 @@ template <bool bidirectional = false,
                                                typename  GraphType::VertexCounterType,
                                                typename  GraphType::VertexCounterType)> >, bool> = false>
 inline size_t Dfs(GraphType& graph,
-              typename VertexHandle<GraphType>::type& src_vertex_handle,
+              typename VertexHandle<GraphType>::type src_vertex_handle,
            UserCallBackType  user_callback,
           PruneCallBackType prune_callback) {
   using VertexCounterType = typename  GraphType::VertexCounterType;
