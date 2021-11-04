@@ -54,7 +54,7 @@ template <enum MatchSemantics match_semantics
              = MatchSemantics::kStrongSimulation,
           typename  QueryGraph,
           typename TargetGraph>
-inline std::vector<QueryGraph> StrongSimulation(
+inline std::vector<TargetGraph> StrongSimulation(
         QueryGraph&  query_graph,
        TargetGraph& target_graph) {
 
@@ -69,7 +69,7 @@ inline std::vector<QueryGraph> StrongSimulation(
 
   const size_t dQ = Diameter<true>(query_graph);
 
-  std::vector<QueryGraph> maximum_perfect_subgraphs;
+  std::vector<TargetGraph> maximum_perfect_subgraphs;
 
   for (auto vertex_it = target_graph.VertexBegin();
            !vertex_it.IsDone();
@@ -149,8 +149,8 @@ inline std::vector<QueryGraph> StrongSimulation(
                    edge_handle_to_preserve.end() ),
                    edge_handle_to_preserve.end() );
 
-    QueryGraph Gm = Preserve(ball, vertex_handle_to_preserve,
-                                     edge_handle_to_preserve);
+    TargetGraph Gm = Preserve(ball, vertex_handle_to_preserve,
+                                      edge_handle_to_preserve);
 
     // find connected component containing w
     maximum_perfect_subgraphs.emplace_back(ConnectedComponent<true>(Gm, vertex_it));

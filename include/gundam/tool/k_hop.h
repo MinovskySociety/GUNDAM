@@ -32,14 +32,16 @@ GraphType KHop(GraphType& graph,
                                                     vertex_handle->label());
     assert(new_vertex_handle);
 
-    // add attribute to new_vertex
-    for (auto attr_it = vertex_handle->AttributeBegin();
-             !attr_it.IsDone();
-              attr_it++){
-      auto [attr_handle, ret] = new_vertex_handle->AddAttribute(
-                                      attr_it->key(),
-                                      attr_it->value_type(),
-                                      attr_it->value_str());
+    if constexpr (GraphParameter<GraphType>::vertex_has_attribute) {
+      // add attribute to new_vertex
+      for (auto attr_it = vertex_handle->AttributeBegin();
+               !attr_it.IsDone();
+                attr_it++){
+        auto [attr_handle, ret] = new_vertex_handle->AddAttribute(
+                                        attr_it->key(),
+                                        attr_it->value_type(),
+                                        attr_it->value_str());
+      }
     }
 
     for (auto out_edge_it = vertex_handle->OutEdgeBegin();
@@ -59,13 +61,15 @@ GraphType KHop(GraphType& graph,
                           out_edge_it->label(),
                           out_edge_it->id());
       assert(k_hop_edge_handle);
-      for (auto attr_it = out_edge_it->AttributeBegin();
-               !attr_it.IsDone();
-                attr_it++){
-        auto [attr_handle, ret] = k_hop_edge_handle->AddAttribute(
-                                        attr_it->key(),
-                                        attr_it->value_type(),
-                                        attr_it->value_str());
+      if constexpr (GraphParameter<GraphType>::edge_has_attribute) {
+        for (auto attr_it = out_edge_it->AttributeBegin();
+                 !attr_it.IsDone();
+                  attr_it++){
+          auto [attr_handle, ret] = k_hop_edge_handle->AddAttribute(
+                                          attr_it->key(),
+                                          attr_it->value_type(),
+                                          attr_it->value_str());
+        }
       }
     }
 
@@ -86,13 +90,15 @@ GraphType KHop(GraphType& graph,
                           in_edge_it->label(),
                           in_edge_it->id());
       assert(k_hop_edge_handle);
-      for (auto attr_it = in_edge_it->AttributeBegin();
-               !attr_it.IsDone();
-                attr_it++){
-        auto [attr_handle, ret] = k_hop_edge_handle->AddAttribute(
-                                        attr_it->key(),
-                                        attr_it->value_type(),
-                                        attr_it->value_str());
+      if constexpr (GraphParameter<GraphType>::edge_has_attribute) {
+        for (auto attr_it = in_edge_it->AttributeBegin();
+                 !attr_it.IsDone();
+                  attr_it++){
+          auto [attr_handle, ret] = k_hop_edge_handle->AddAttribute(
+                                          attr_it->key(),
+                                          attr_it->value_type(),
+                                          attr_it->value_str());
+        }
       }
     }
     return true;
