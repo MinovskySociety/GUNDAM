@@ -300,9 +300,10 @@ class Graph {
     using InnerIteratorType::InnerIteratorType;
     using InnerIteratorType::IsDone;
     using InnerIteratorType::ToNext;
-    using ContentPtr = typename std::conditional<is_const_, 
-                           const EdgeLabelContentIterator_*,
-                                 EdgeLabelContentIterator_*>::type;
+    using ContentPtr = const EdgeLabelContentIterator_*;
+                      //  typename std::conditional<is_const_, 
+                      //      const EdgeLabelContentIterator_*,
+                      //            EdgeLabelContentIterator_*>::type;
     static constexpr bool kIsConst_ = is_const_;
 
     // template <bool judge = is_const_,
@@ -1173,9 +1174,10 @@ class Graph {
     protected:
       using InnerIteratorType::IsDone;
       using InnerIteratorType::ToNext;
-      using ContentPtr = typename std::conditional<is_const_, 
-                const EdgeContentIteratorSpecifiedEdgeLabelVertexPtr_*,
-                      EdgeContentIteratorSpecifiedEdgeLabelVertexPtr_*>::type;
+      using ContentPtr = const EdgeContentIteratorSpecifiedEdgeLabelVertexPtr_*;
+                //          typename std::conditional<is_const_, 
+                // const EdgeContentIteratorSpecifiedEdgeLabelVertexPtr_*,
+                //       EdgeContentIteratorSpecifiedEdgeLabelVertexPtr_*>::type;
       static constexpr bool kIsConst_ = is_const_;
 
       // template <bool judge = is_const_,
