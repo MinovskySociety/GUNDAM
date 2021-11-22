@@ -316,20 +316,21 @@ class Attribute_<AttributeType::kSeparated,
    protected:
     using InnerIteratorType::IsDone;
     using InnerIteratorType::ToNext;
-    using ContentPtr = typename std::conditional<_is_const_, 
-                            const AttributeContentIterator_*,
-                                  AttributeContentIterator_*>::type;
+    using ContentPtr = const AttributeContentIterator_*;
+                    //  = typename std::conditional<_is_const_, 
+                    //         const AttributeContentIterator_*,
+                    //               AttributeContentIterator_*>::type;
     static constexpr bool kIsConst_ = _is_const_;
 
-    template <bool judge = _is_const_,
-              typename std::enable_if<!judge, bool>::type = false>
-    ContentPtr content_ptr() {
-      ContentPtr const temp_this_ptr = this;
-      return temp_this_ptr;
-    }
+    // template <bool judge = _is_const_,
+    //           typename std::enable_if<!judge, bool>::type = false>
+    // ContentPtr content_ptr() {
+    //   ContentPtr const temp_this_ptr = this;
+    //   return temp_this_ptr;
+    // }
 
-    template <bool judge = _is_const_,
-              typename std::enable_if<judge, bool>::type = false>
+    // template <bool judge = _is_const_,
+    //           typename std::enable_if<judge, bool>::type = false>
     ContentPtr content_ptr() const {
       ContentPtr const temp_this_ptr = this;
       return temp_this_ptr;
@@ -661,9 +662,10 @@ class Attribute_<AttributeType::kGrouped,
 
      protected:
       using InnerIteratorType::IsDone;
-      using ContentPtr = typename std::conditional<is_const_, 
-                             const AttributeContentIterator_*,
-                                   AttributeContentIterator_*>::type;
+      using ContentPtr = const AttributeContentIterator_*;
+                      //  = typename std::conditional<is_const_, 
+                      //        const AttributeContentIterator_*,
+                      //              AttributeContentIterator_*>::type;
       static constexpr bool kIsConst_ = is_const_;
 
       inline void ToNext() {
@@ -678,16 +680,16 @@ class Attribute_<AttributeType::kGrouped,
         return;
       }
 
-      template <bool judge = is_const_,
-                typename std::enable_if<!judge, bool>::type = false>
-      inline ContentPtr content_ptr() {
-        assert(!this->IsDone());
-        ContentPtr const temp_this_ptr = this;
-        return temp_this_ptr;
-      }
+      // template <bool judge = is_const_,
+      //           typename std::enable_if<!judge, bool>::type = false>
+      // inline ContentPtr content_ptr() {
+      //   assert(!this->IsDone());
+      //   ContentPtr const temp_this_ptr = this;
+      //   return temp_this_ptr;
+      // }
 
-      template <bool judge = is_const_,
-                typename std::enable_if<judge, bool>::type = false>
+      // template <bool judge = is_const_,
+      //           typename std::enable_if<judge, bool>::type = false>
       inline ContentPtr content_ptr() const {
         assert(!this->IsDone());
         ContentPtr const temp_this_ptr = this;
@@ -732,7 +734,7 @@ class Attribute_<AttributeType::kGrouped,
       template <typename ConcreteDataType,
                 bool judge = is_const_,
                 typename std::enable_if<!judge, bool>::type = false>
-      inline ConcreteDataType& value() {
+      inline ConcreteDataType& value() const {
         static_assert(judge == is_const_, "illegal usage of this method");
         assert(!this->IsDone());
         return this->attribute_list_ptr()
@@ -778,7 +780,7 @@ class Attribute_<AttributeType::kGrouped,
      private:
       template<bool judge = is_const_,
               typename std::enable_if<!judge, bool>::type = false>
-      inline AttributeListPtr attribute_list_ptr() {
+      inline AttributeListPtr attribute_list_ptr() const {
         return this->attribute_list_ptr_container_iterator_
                     .template get<attribute_list_ptr_idx_>();
       }
@@ -825,14 +827,17 @@ class Attribute_<AttributeType::kGrouped,
                     ->template const_value<ConcreteDataType>(this->container_id_);
       }
 
-      template <typename ConcreteDataType,
-                bool judge = is_const_,
-                typename std::enable_if<!judge, bool>::type = false>
-      inline ConcreteDataType& value() {
-        static_assert(judge == is_const_, "illegal usage of this method");
+      template <typename ConcreteDataType>
+      inline auto& value() const {
         assert(!this->IsNull());
-        return this->attribute_list_ptr()
-                    ->template value<ConcreteDataType>(this->container_id_);
+        if constexpr (is_const_) {
+          return this->attribute_list_const_ptr()
+                     ->template const_value<ConcreteDataType>(this->container_id_);
+        }
+        else {
+          return this->attribute_list_ptr()
+                     ->template value<ConcreteDataType>(this->container_id_);
+        }
       }
 
       inline std::string value_str() const {
@@ -901,19 +906,19 @@ class Attribute_<AttributeType::kGrouped,
         return !this->IsNull();
       }
 
-      template<bool judge = is_const_,
-                typename std::enable_if<judge, bool>::type = false>
+      // template<bool judge = is_const_,
+      //           typename std::enable_if<judge, bool>::type = false>
       inline const AttributeContentPtrType* operator->() const{
         const void* temp_ptr = static_cast<const void*>(this);
         return static_cast<const AttributeContentPtrType*>(temp_ptr);
       }
 
-      template<bool judge = is_const_,
-                typename std::enable_if<!judge, bool>::type = false>
-      inline AttributeContentPtrType* operator->(){
-        void* temp_ptr = static_cast<void*>(this);
-        return static_cast<AttributeContentPtrType*>(temp_ptr);
-      }
+      // template<bool judge = is_const_,
+      //           typename std::enable_if<!judge, bool>::type = false>
+      // inline AttributeContentPtrType* operator->(){
+      //   void* temp_ptr = static_cast<void*>(this);
+      //   return static_cast<AttributeContentPtrType*>(temp_ptr);
+      // }
     };
 
     class AttributeList_{

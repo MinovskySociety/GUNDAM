@@ -99,18 +99,18 @@ class InnerIterator_<Container<container_type_,
             IteratorDepthType depth,
             std::enable_if_t<depth == 0, 
                              bool> = false>
-  inline auto& get() {
+  inline auto& get() const {
     return (this->iterator_.template get<return_idx>());
   }
   
-  template <TupleIdxType return_idx,
-            IteratorDepthType depth,
-            std::enable_if_t<depth == 0, 
-                             bool> = false>
-  inline const auto& get() const {
-    return this->template get_const<return_idx,
-                                        depth>();
-  }
+  // template <TupleIdxType return_idx,
+  //           IteratorDepthType depth,
+  //           std::enable_if_t<depth == 0, 
+  //                            bool> = false>
+  // inline const auto& get() const {
+  //   return this->template get_const<return_idx,
+  //                                       depth>();
+  // }
 
   template <TupleIdxType return_idx,
             IteratorDepthType depth,
@@ -212,18 +212,18 @@ class InnerIterator_<Container<container_type_,
             IteratorDepthType depth,
             typename std::enable_if<depth == 0, 
                                     bool>::type = false>
-  inline auto& get() {
+  inline auto& get() const {
     return (this->iterator_.template get<return_idx>());
   }
 
-  template <TupleIdxType return_idx,
-            IteratorDepthType depth,
-            typename std::enable_if<depth == 0, 
-                                    bool>::type = false>
-  inline const auto& get() const {
-    return this->template get_const<return_idx,
-                                         depth>();
-  }
+  // template <TupleIdxType return_idx,
+  //           IteratorDepthType depth,
+  //           typename std::enable_if<depth == 0, 
+  //                                   bool>::type = false>
+  // inline const auto& get() const {
+  //   return this->template get_const<return_idx,
+  //                                        depth>();
+  // }
 
   template <TupleIdxType return_idx,
             IteratorDepthType depth,
@@ -378,7 +378,7 @@ class InnerIterator_<Container<container_type_,
 
   template <TupleIdxType return_idx,
             IteratorDepthType depth>
-  inline auto& get() {
+  inline auto& get() const {
     if constexpr (depth == 0)
       return (this->iterator_.template get<return_idx>());
     if constexpr (depth != 0)
@@ -386,11 +386,11 @@ class InnerIterator_<Container<container_type_,
                                                   depth>();
   }
 
-  template <TupleIdxType return_idx,
-            IteratorDepthType depth>
-  inline const auto& get() const {
-    return this->template get_const<return_idx, depth>();
-  }
+  // template <TupleIdxType return_idx,
+  //           IteratorDepthType depth>
+  // inline const auto& get() const {
+  //   return this->template get_const<return_idx, depth>();
+  // }
 
   template <TupleIdxType return_idx,
             IteratorDepthType depth>
@@ -532,18 +532,18 @@ class _InnerIterator_<Container<container_type_,
 
   template <TupleIdxType return_idx, 
             IteratorDepthType depth>
-  inline auto& get() {
+  inline auto& get() const {
     if constexpr (depth == now_depth_ - 1)
       return (this->iterator_.template get<return_idx>());
     if constexpr (depth != now_depth_ - 1)
       return InnerIteratorType::template get<return_idx, depth>();
   }
   
-  template <TupleIdxType return_idx, 
-            IteratorDepthType depth>
-  inline const auto& get() const {
-    return this->template get_const<return_idx, depth>();
-  }
+  // template <TupleIdxType return_idx, 
+  //           IteratorDepthType depth>
+  // inline const auto& get() const {
+  //   return this->template get_const<return_idx, depth>();
+  // }
 
   template <TupleIdxType return_idx, 
             IteratorDepthType depth>
@@ -624,17 +624,17 @@ class _InnerIterator_<Container<container_type_,
             IteratorDepthType depth,
             std::enable_if_t<depth == depth_ - 1, 
                              bool> = false>
-  inline auto& get() {
+  inline auto& get() const {
     return (this->iterator_.template get<return_idx>());
   }
 
-  template <TupleIdxType return_idx,
-            IteratorDepthType depth,
-            std::enable_if_t<depth == depth_ - 1, 
-                             bool> = false>
-  inline const auto& get() const {
-    return this->template get_const<return_idx, depth>();
-  }
+  // template <TupleIdxType return_idx,
+  //           IteratorDepthType depth,
+  //           std::enable_if_t<depth == depth_ - 1, 
+  //                            bool> = false>
+  // inline const auto& get() const {
+  //   return this->template get_const<return_idx, depth>();
+  // }
 
   template <TupleIdxType return_idx,
             IteratorDepthType depth,
@@ -721,18 +721,18 @@ class _InnerIterator_<Container<container_type_,
             IteratorDepthType depth,
             std::enable_if_t<depth == depth_ - 1, 
                              bool> = false>
-  inline auto& get() {
+  inline auto& get() const {
     return (this->iterator_.template get<return_idx>());
   }
 
-  template <TupleIdxType return_idx,
-            IteratorDepthType depth,
-            std::enable_if_t<depth == depth_ - 1, 
-                             bool> = false>
-  inline const auto& get() const {
-    return this->template get_const<return_idx,
-                                         depth>();
-  }
+  // template <TupleIdxType return_idx,
+  //           IteratorDepthType depth,
+  //           std::enable_if_t<depth == depth_ - 1, 
+  //                            bool> = false>
+  // inline const auto& get() const {
+  //   return this->template get_const<return_idx,
+  //                                        depth>();
+  // }
 
   template <TupleIdxType return_idx,
             IteratorDepthType depth,
@@ -764,15 +764,15 @@ class Iterator_ : protected ContentIterator_ {
  public:
   using ContentIterator_::ContentIterator_;
 
-  template <bool judge = ContentIterator_::kIsConst_,
-            typename std::enable_if<!judge, bool>::type = false>
-  inline ContentPtr operator->() {
-    assert(!this->IsDone());
-    return ContentIterator_::content_ptr();
-  }
+  // template <bool judge = ContentIterator_::kIsConst_,
+  //           typename std::enable_if<!judge, bool>::type = false>
+  // inline ContentPtr operator->() {
+  //   assert(!this->IsDone());
+  //   return ContentIterator_::content_ptr();
+  // }
 
-  template <bool judge = ContentIterator_::kIsConst_,
-            typename std::enable_if<judge, bool>::type = false>
+  // template <bool judge = ContentIterator_::kIsConst_,
+  //           typename std::enable_if<judge, bool>::type = false>
   inline ContentPtr operator->() const {
     assert(!this->IsDone());
     return ContentIterator_::content_ptr();
