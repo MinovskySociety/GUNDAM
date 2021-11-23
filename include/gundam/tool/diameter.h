@@ -13,9 +13,13 @@ namespace GUNDAM {
 // using floyd algorithm, only works for small graph
 template <bool bidirectional = false,
           typename GraphType>
-inline size_t Diameter(const GraphType& graph) {
+inline size_t Diameter(GraphType& graph,
+          typename VertexHandle<GraphType>::type 
+  pivot = typename VertexHandle<GraphType>::type()) {
   using VertexIDType = typename GraphType::VertexType::IDType;
   std::map<VertexIDType, size_t> vertex_id_dict;
+
+  assert(!pivot || pivot == graph.FindVertex(pivot->id()));
 
   // construct the map from vertex id to continued index
   for (auto vertex_it = graph.VertexBegin();
@@ -82,6 +86,28 @@ inline size_t Diameter(const GraphType& graph) {
   }
 
   size_t diameter = 0;
+  
+  if (pivot) {
+    assert(vertex_id_dict.find(pivot->id())
+        != vertex_id_dict.end());
+    const auto kSrcIdx = vertex_id_dict.find(pivot->id())->second;
+    for (size_t i = 0; i < kVertexNum; i++) {
+      if (distance[kSrcIdx][i] == std::numeric_limits<DistanceType>::max()){
+        continue;
+      }
+      diameter = diameter > distance[kSrcIdx][i]?
+                 diameter : distance[kSrcIdx][i];
+    }
+    for (size_t i = 0; i < kVertexNum; i++) {
+      if (distance[i][kSrcIdx] == std::numeric_limits<DistanceType>::max()){
+        continue;
+      }
+      diameter = diameter > distance[i][kSrcIdx]?
+                 diameter : distance[i][kSrcIdx];
+    }
+    return diameter;
+  }
+
   for (size_t i = 0; i < kVertexNum; i++) {
     for (size_t j = 0; j < kVertexNum; j++) {
       if (distance[i][j] == std::numeric_limits<DistanceType>::max()){
