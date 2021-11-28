@@ -110,11 +110,11 @@ for (int i=1;i<=10;i++){
     }
 }
 //visit all vertex
-for (auto it = g.VertexBegin();!it.IsDone();it++{
+for (auto it = g.VertexBegin();!it.IsDone();it++) {
     std::cout<<it->id()<<" "<< it->label()<<std::endl;
 }
 //visit all 2-label vertex
-for (auto it = g.VertexBegin(2);!it.IsDone();it++{
+for (auto it = g.VertexBegin(2);!it.IsDone();it++) {
     std::cout<<it->id()<<" "<< it->label()<<std::endl;
 }
 //vertex num

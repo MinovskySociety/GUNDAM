@@ -372,7 +372,7 @@ int ReadCSVVertexSetFileWithCallback(
       count_success++;
     }
     if (count_fail > 0) {
-      std::cout << "Failed: " << count_fail << std::endl;
+      std::cout << "load vertex set file failed: " << count_fail << std::endl;
     }
     return count_success;
   } catch (...) {
@@ -455,7 +455,7 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
       }
     }
     if (count_fail > 0) {
-      std::cout << "Failed: " << count_fail << std::endl;
+      std::cout << "load vertex file failed: " << count_fail << std::endl;
     }
     return count_success;
   } catch (...) {
@@ -633,7 +633,7 @@ int ReadCSVEdgeSetFileWithCallback(
       ++count_success;
     }
     if (count_fail > 0) {
-      std::cout << "Failed: " << count_fail << std::endl;
+      std::cout << "load edge set file failed: " << count_fail << std::endl;
     }
     return count_success;
   } catch (...) {
@@ -719,7 +719,7 @@ int ReadCSVEdgeFileWithCallback(const std::string& e_file, GraphType& graph,
       }
     }
     if (count_fail > 0) {
-      std::cout << "Failed: " << count_fail << std::endl;
+      std::cout << "load edge file failed: " << count_fail << std::endl;
     }
     return count_success;
   } catch (...) {

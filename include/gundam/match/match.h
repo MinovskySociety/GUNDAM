@@ -75,24 +75,24 @@ class Match {
     using InnerIteratorType = InnerIterator_<ContainerType_, is_const_, depth_>;
 
    protected:
-    using ContentPtr =
-        typename std::conditional<is_const_,
-                  const MapContentIterator_*,
-                        MapContentIterator_*>::type;
+    using ContentPtr = const MapContentIterator_*;
+        // typename std::conditional<is_const_,
+        //           const MapContentIterator_*,
+        //                 MapContentIterator_*>::type;
 
     using InnerIteratorType::IsDone;
     using InnerIteratorType::ToNext;
     static constexpr bool kIsConst_ = is_const_;
 
-    template <bool judge = is_const_,
-              typename std::enable_if<!judge, bool>::type = false>
-    inline ContentPtr content_ptr() {
-      assert(!this->IsDone());
-      ContentPtr const temp_this_ptr = this;
-      return temp_this_ptr;
-    }
-    template <bool judge = is_const_,
-              typename std::enable_if<judge, bool>::type = false>
+    // template <bool judge = is_const_,
+    //           typename std::enable_if<!judge, bool>::type = false>
+    // inline ContentPtr content_ptr() {
+    //   assert(!this->IsDone());
+    //   ContentPtr const temp_this_ptr = this;
+    //   return temp_this_ptr;
+    // }
+    // template <bool judge = is_const_,
+    //           typename std::enable_if<judge, bool>::type = false>
     inline ContentPtr content_ptr() const {
       assert(!this->IsDone());
       ContentPtr const temp_this_ptr = this;
@@ -442,11 +442,10 @@ class MatchSet {
 
     template <bool judge = is_const_,
               typename std::enable_if<!judge, bool>::type = false>
-    inline ContentPtr content_ptr() {
+    inline ContentPtr content_ptr() const {
       static_assert(judge == is_const_, "illegal usage of this method");
       assert(!this->IsDone());
-      return &(
-          InnerIteratorType::template get<key_idx_, depth_ - 1>());
+      return &(InnerIteratorType::template get<key_idx_, depth_ - 1>());
     }
 
     template <bool judge = is_const_,

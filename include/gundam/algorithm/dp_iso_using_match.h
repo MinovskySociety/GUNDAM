@@ -1443,12 +1443,12 @@ namespace _DAGDP {
 template <class QueryGraph, class InDegreeContainer>
 inline void BFS(QueryGraph &query_graph, 
          InDegreeContainer &in_degree,
-         std::set<typename VertexHandle<QueryGraph>::type>& src_vertex_set) {
+  const std::set<typename VertexHandle<QueryGraph>::type>& src_vertex_set) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using QueryEdgeIDType = typename QueryGraph::EdgeType::IDType;
-  std::set<QueryVertexHandle> temp_src_vertex_set 
-                                 = src_vertex_set, 
-                                  used_vertex;
+  std::set<QueryVertexHandle> used_vertex,
+                          temp_src_vertex_set
+                             = src_vertex_set;
   std::set<QueryEdgeIDType> used_edge;
   while (used_vertex.size() < query_graph.CountVertex()) {
     if (temp_src_vertex_set.empty()) {
@@ -1556,23 +1556,27 @@ inline void TopoSort(QueryGraph &query_graph, InDegreeContainer &in_degree,
   return;
 }
 
-template <class QueryGraph, class TopoSeqContainer>
-inline void GetTopoSeq(QueryGraph &query_graph, TopoSeqContainer &topo_seq) {
+template <class QueryGraph, 
+          class TopoSeqContainer>
+inline void GetTopoSeq(QueryGraph &query_graph, 
+                 TopoSeqContainer &topo_seq,
+  const std::set<typename VertexHandle<QueryGraph>::type>& src_vertex_set) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using QueryEdgeIDType = typename QueryGraph::EdgeType::IDType;
   std::map<QueryVertexHandle, int> in_degree;
-  std::set<QueryVertexHandle> src_vertex_set;
   BFS(query_graph, in_degree, src_vertex_set);
   assert(in_degree.size() == query_graph.CountVertex());
   TopoSort(query_graph, in_degree, topo_seq);
+  return;
 }
 
-template <class QueryGraph, 
-          class TopoSeqContainer,
-          typename MatchType>
-inline void GetTopoSeq(QueryGraph &query_graph, 
-                 TopoSeqContainer &topo_seq, 
-                        MatchType& partial_match) {
+template <class  QueryGraph, 
+          class TargetGraph,
+          class TopoSeqContainer>
+inline void GetTopoSeq(QueryGraph& query_graph, 
+                 TopoSeqContainer& topo_seq, 
+           const Match<QueryGraph,
+                      TargetGraph>& partial_match) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using QueryEdgeIDType = typename QueryGraph::EdgeType::IDType;
   std::map<QueryVertexHandle, int> in_degree;
@@ -1828,10 +1832,17 @@ template <typename  QueryGraph,
           class CandidateSetContainer>
 inline bool RefineCandidateSet(QueryGraph  &query_graph,
                               TargetGraph &target_graph,
-                               CandidateSetContainer &candidate_set) {
+                               CandidateSetContainer &candidate_set,
+                            typename VertexHandle<QueryGraph>::type root_vertex = typename VertexHandle<QueryGraph>::type()) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   std::vector<QueryVertexHandle> topo_seq;
-  _DAGDP::GetTopoSeq(query_graph, topo_seq);
+  std::set<QueryVertexHandle> root_vertex_set;
+  if (root_vertex) {
+    // is not null
+    root_vertex_set.emplace(root_vertex);
+    assert(root_vertex_set.size() == 1);
+  }
+  _DAGDP::GetTopoSeq(query_graph, topo_seq, root_vertex_set);
   if (!DAGDP(query_graph, target_graph, topo_seq, candidate_set)) 
     return false;
   constexpr int loop_num = 2;
