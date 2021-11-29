@@ -29,14 +29,14 @@ inline size_t Simulation(
   static_assert(match_semantics == MatchSemantics::kDualSimulation);
 
   if (!_dp_iso_using_match::InitCandidateSet<match_semantics>(query_graph,
-                                                            target_graph,
+                                                             target_graph,
                                                               match_set)) {
     return 0;
   }
 
   if (!_dp_iso_using_match::RefineCandidateSet(query_graph, 
                                               target_graph, 
-                                              match_set)) {
+                                               match_set)) {
     return 0;
   }
 

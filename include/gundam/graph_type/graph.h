@@ -4113,6 +4113,12 @@ class Graph {
                          .template get<kVertexIDContainerIdx>()
                          .Insert(id, std::move(temp_vertex_ptr));
     assert(vertex_id_ret.second);
+    auto [ vertex_id_ptr_map_it,
+           vertex_id_ptr_map_ret ] 
+    =this->vertex_id_ptr_map_.emplace(id, vertex_id_ret
+                                        .first
+                                        .template get<kVertexPtrIdx>());  
+    assert(vertex_id_ptr_map_ret);
     return std::pair<VertexPtr, bool>(vertex_id_ret.first
                                                    .template get<kVertexPtrIdx>(),
                                       true);
@@ -4358,35 +4364,45 @@ class Graph {
   ///     ...
 
   inline VertexPtr FindVertex(const typename VertexType::IDType& id) {
-    for (auto vertex_label_it  = this->vertexes_.begin();
-              vertex_label_it != this->vertexes_.end();
-            ++vertex_label_it) {
-      /// <iterator of ID container, bool>
-      const auto ret = vertex_label_it.template get<kVertexIDContainerIdx>().Find(id);
-      if (ret.second) {
-        /// found it
-        return ret.first.template get_const<kVertexPtrIdx>();
-      }
+    auto vertex_id_ptr_map_it =  this->vertex_id_ptr_map_.find(id);
+    if ( vertex_id_ptr_map_it == this->vertex_id_ptr_map_. end()) {
+      return VertexPtr();
     }
-    /// not found
-    return VertexPtr();
+    return vertex_id_ptr_map_it->second;
+    // for (auto vertex_label_it  = this->vertexes_.begin();
+    //           vertex_label_it != this->vertexes_.end();
+    //         ++vertex_label_it) {
+    //   /// <iterator of ID container, bool>
+    //   const auto ret = vertex_label_it.template get<kVertexIDContainerIdx>().Find(id);
+    //   if (ret.second) {
+    //     /// found it
+    //     return ret.first.template get_const<kVertexPtrIdx>();
+    //   }
+    // }
+    // /// not found
+    // return VertexPtr();
   }
   
   inline VertexConstPtr FindVertex(
       const typename VertexType::IDType& id) const {
-    for (auto vertex_label_cit  = this->vertexes_.cbegin();
-              vertex_label_cit != this->vertexes_.cend();
-            ++vertex_label_cit) {
-      /// <iterator of ID container, bool>
-      const auto ret = vertex_label_cit.template get_const<kVertexIDContainerIdx>()
-                                       .FindConst(id);
-      if (ret.second) {
-        /// found it
-        return ret.first.template get_const<kVertexPtrIdx>();
-      }
+    auto vertex_id_ptr_map_it =  this->vertex_id_ptr_map_.find(id);
+    if ( vertex_id_ptr_map_it == this->vertex_id_ptr_map_. end()) {
+      return VertexConstPtr();
     }
-    /// not found
-    return VertexConstPtr();
+    return vertex_id_ptr_map_it->second;
+    // for (auto vertex_label_cit  = this->vertexes_.cbegin();
+    //           vertex_label_cit != this->vertexes_.cend();
+    //         ++vertex_label_cit) {
+    //   /// <iterator of ID container, bool>
+    //   const auto ret = vertex_label_cit.template get_const<kVertexIDContainerIdx>()
+    //                                    .FindConst(id);
+    //   if (ret.second) {
+    //     /// found it
+    //     return ret.first.template get_const<kVertexPtrIdx>();
+    //   }
+    // }
+    // /// not found
+    // return VertexConstPtr();
   }
 
   inline VertexPtr FindVertex(const typename VertexType::IDType& id,
@@ -4546,6 +4562,11 @@ class Graph {
  private:
   /// data member
   VertexLabelContainerType vertexes_;
+
+  // vertex id - vertex ptr map, in order to quickly
+  // find the ptr of the given id when the labls of vertexes
+  // are too many 
+  std::map<VertexIDType, VertexPtr> vertex_id_ptr_map_;
 };
 
 }  // namespace GUNDAM
