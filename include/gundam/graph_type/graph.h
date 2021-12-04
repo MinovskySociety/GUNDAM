@@ -300,24 +300,25 @@ class Graph {
     using InnerIteratorType::InnerIteratorType;
     using InnerIteratorType::IsDone;
     using InnerIteratorType::ToNext;
-    using ContentPtr = typename std::conditional<is_const_, 
-                           const EdgeLabelContentIterator_*,
-                                 EdgeLabelContentIterator_*>::type;
+    using ContentPtr = const EdgeLabelContentIterator_*;
+                      //  typename std::conditional<is_const_, 
+                      //      const EdgeLabelContentIterator_*,
+                      //            EdgeLabelContentIterator_*>::type;
     static constexpr bool kIsConst_ = is_const_;
 
-    template <bool judge = is_const_,
-              typename std::enable_if<!judge, bool>::type = false>
-    inline ContentPtr content_ptr() {
-      static_assert(judge == is_const_, "illegal usage of this method");
-      assert(!this->IsDone());
-      ContentPtr const temp_this_ptr = this;
-      return temp_this_ptr;
-    }
+    // template <bool judge = is_const_,
+    //           typename std::enable_if<!judge, bool>::type = false>
+    // inline ContentPtr content_ptr() {
+    //   static_assert(judge == is_const_, "illegal usage of this method");
+    //   assert(!this->IsDone());
+    //   ContentPtr const temp_this_ptr = this;
+    //   return temp_this_ptr;
+    // }
 
-    template <bool judge = is_const_,
-              typename std::enable_if<judge, bool>::type = false>
+    // template <bool judge = is_const_,
+    //           typename std::enable_if<judge, bool>::type = false>
     inline ContentPtr content_ptr() const {
-      static_assert(judge == is_const_, "illegal usage of this method");
+      // static_assert(judge == is_const_, "illegal usage of this method");
       assert(!this->IsDone());
       ContentPtr const temp_this_ptr = this;
       return temp_this_ptr;
@@ -671,16 +672,16 @@ class Graph {
                                                     is_const_,
                                                        depth_>;
 
-      template <bool judge = is_const_,
-                typename std::enable_if<!judge, bool>::type = false>
-      inline VertexPtr& vertex_ptr() {
-        return InnerIteratorType::template get<vertex_ptr_idx_,
-                                               depth_ - 1>();
-      }
+      // template <bool judge = is_const_,
+      //           typename std::enable_if<!judge, bool>::type = false>
+      // inline VertexPtr& vertex_ptr() {
+      //   return InnerIteratorType::template get<vertex_ptr_idx_,
+      //                                          depth_ - 1>();
+      // }
 
-      template <bool judge = is_const_,
-                typename std::enable_if<judge, bool>::type = false>
-      inline VertexConstPtr vertex_ptr() const {
+      // template <bool judge = is_const_,
+      //           typename std::enable_if<judge, bool>::type = false>
+      inline VertexPtrType vertex_ptr() const {
         auto temp_vertex_ptr =
             InnerIteratorType::template get_const<vertex_ptr_idx_,
                                                   depth_ - 1>();
@@ -709,15 +710,15 @@ class Graph {
       using ContentPtr = VertexPtrType;
       static constexpr bool kIsConst_ = is_const_;
 
-      template <bool judge = is_const_,
-                typename std::enable_if<!judge, bool>::type = false>
-      inline ContentPtr& content_ptr() {
-        assert(!this->IsDone());
-        return this->vertex_ptr();
-      }
+      // template <bool judge = is_const_,
+      //           typename std::enable_if<!judge, bool>::type = false>
+      // inline ContentPtr& content_ptr() {
+      //   assert(!this->IsDone());
+      //   return this->vertex_ptr();
+      // }
 
-      template <bool judge = is_const_,
-                typename std::enable_if<judge, bool>::type = false>
+      // template <bool judge = is_const_,
+      //           typename std::enable_if<judge, bool>::type = false>
       inline ContentPtr content_ptr() const {
         assert(!this->IsDone());
         return this->vertex_ptr();
@@ -779,7 +780,7 @@ class Graph {
         return this->vertex_ptr_; 
       }
 
-      inline EdgeAttributeType& _attribute() {
+      inline EdgeAttributeType& _attribute() const {
         assert(!this->IsDone());
         return *(
             InnerIteratorType::template get<edge_attribute_ptr_idx_, 
@@ -811,21 +812,22 @@ class Graph {
     protected:
       using InnerIteratorType::IsDone;
       using InnerIteratorType::ToNext;
-      using ContentPtr = typename std::conditional<is_const_, 
-                                  const EdgeContentIterator_*,
-                                        EdgeContentIterator_*>::type;
+      using ContentPtr = const EdgeContentIterator_*;
+                      //  = typename std::conditional<is_const_, 
+                      //             const EdgeContentIterator_*,
+                      //                   EdgeContentIterator_*>::type;
       static constexpr bool kIsConst_ = is_const_;
 
-      template <bool judge = is_const_,
-                typename std::enable_if<!judge, bool>::type = false>
-      inline ContentPtr content_ptr() {
-        assert(!this->IsDone());
-        ContentPtr const temp_this_ptr = this;
-        return temp_this_ptr;
-      }
+      // template <bool judge = is_const_,
+      //           typename std::enable_if<!judge, bool>::type = false>
+      // inline ContentPtr content_ptr() {
+      //   assert(!this->IsDone());
+      //   ContentPtr const temp_this_ptr = this;
+      //   return temp_this_ptr;
+      // }
 
-      template <bool judge = is_const_,
-                typename std::enable_if<judge, bool>::type = false>
+      // template <bool judge = is_const_,
+      //           typename std::enable_if<judge, bool>::type = false>
       inline ContentPtr content_ptr() const {
         assert(!this->IsDone());
         ContentPtr const temp_this_ptr = this;
@@ -1049,21 +1051,22 @@ class Graph {
     protected:
       using InnerIteratorType::IsDone;
       using InnerIteratorType::ToNext;
-      using ContentPtr = typename std::conditional<is_const_, 
-                const EdgeContentIteratorSpecifiedEdgeLabel_*,
-                      EdgeContentIteratorSpecifiedEdgeLabel_*>::type;
+      using ContentPtr = const EdgeContentIteratorSpecifiedEdgeLabel_*;
+                //           typename std::conditional<is_const_, 
+                // const EdgeContentIteratorSpecifiedEdgeLabel_*,
+                //       EdgeContentIteratorSpecifiedEdgeLabel_*>::type;
       static constexpr bool kIsConst_ = is_const_;
 
-      template <bool judge = is_const_,
-                typename std::enable_if<!judge, bool>::type = false>
-      inline ContentPtr content_ptr() {
-        assert(!this->IsDone());
-        ContentPtr const temp_this_ptr = this;
-        return temp_this_ptr;
-      }
+      // template <bool judge = is_const_,
+      //           typename std::enable_if<!judge, bool>::type = false>
+      // inline ContentPtr content_ptr() {
+      //   assert(!this->IsDone());
+      //   ContentPtr const temp_this_ptr = this;
+      //   return temp_this_ptr;
+      // }
 
-      template <bool judge = is_const_,
-                typename std::enable_if<judge, bool>::type = false>
+      // template <bool judge = is_const_,
+      //           typename std::enable_if<judge, bool>::type = false>
       inline ContentPtr content_ptr() const {
         assert(!this->IsDone());
         ContentPtr const temp_this_ptr = this;
@@ -1171,21 +1174,22 @@ class Graph {
     protected:
       using InnerIteratorType::IsDone;
       using InnerIteratorType::ToNext;
-      using ContentPtr = typename std::conditional<is_const_, 
-                const EdgeContentIteratorSpecifiedEdgeLabelVertexPtr_*,
-                      EdgeContentIteratorSpecifiedEdgeLabelVertexPtr_*>::type;
+      using ContentPtr = const EdgeContentIteratorSpecifiedEdgeLabelVertexPtr_*;
+                //          typename std::conditional<is_const_, 
+                // const EdgeContentIteratorSpecifiedEdgeLabelVertexPtr_*,
+                //       EdgeContentIteratorSpecifiedEdgeLabelVertexPtr_*>::type;
       static constexpr bool kIsConst_ = is_const_;
 
-      template <bool judge = is_const_,
-                typename std::enable_if<!judge, bool>::type = false>
-      inline ContentPtr content_ptr() {
-        assert(!this->IsDone());
-        ContentPtr const temp_this_ptr = this;
-        return temp_this_ptr;
-      }
+      // template <bool judge = is_const_,
+      //           typename std::enable_if<!judge, bool>::type = false>
+      // inline ContentPtr content_ptr() {
+      //   assert(!this->IsDone());
+      //   ContentPtr const temp_this_ptr = this;
+      //   return temp_this_ptr;
+      // }
 
-      template <bool judge = is_const_,
-                typename std::enable_if<judge, bool>::type = false>
+      // template <bool judge = is_const_,
+      //           typename std::enable_if<judge, bool>::type = false>
       inline ContentPtr content_ptr() const {
         assert(!this->IsDone());
         ContentPtr const temp_this_ptr = this;

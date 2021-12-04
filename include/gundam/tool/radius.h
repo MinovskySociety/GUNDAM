@@ -1,5 +1,5 @@
-#ifndef _GUNDAM_TOOL_DIAMETER_H
-#define _GUNDAM_TOOL_DIAMETER_H
+#ifndef _GUNDAM_TOOL_RADIUS_H
+#define _GUNDAM_TOOL_RADIUS_H
 
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
@@ -13,9 +13,8 @@ namespace GUNDAM {
 // using floyd algorithm, only works for small graph
 template <bool bidirectional = false,
           typename GraphType>
-inline size_t Diameter(GraphType& graph,
-          typename VertexHandle<GraphType>::type 
-  pivot = typename VertexHandle<GraphType>::type()) {
+inline size_t Radius(GraphType& graph,
+          typename VertexHandle<GraphType>::type pivot) {
   using VertexIDType = typename GraphType::VertexType::IDType;
   std::map<VertexIDType, size_t> vertex_id_dict;
 
@@ -85,41 +84,28 @@ inline size_t Diameter(GraphType& graph,
     }
   }
 
-  size_t diameter = 0;
-  
-  if (pivot) {
-    assert(vertex_id_dict.find(pivot->id())
-        != vertex_id_dict.end());
-    const auto kSrcIdx = vertex_id_dict.find(pivot->id())->second;
-    for (size_t i = 0; i < kVertexNum; i++) {
-      if (distance[kSrcIdx][i] == std::numeric_limits<DistanceType>::max()){
-        continue;
-      }
-      diameter = diameter > distance[kSrcIdx][i]?
-                 diameter : distance[kSrcIdx][i];
-    }
-    for (size_t i = 0; i < kVertexNum; i++) {
-      if (distance[i][kSrcIdx] == std::numeric_limits<DistanceType>::max()){
-        continue;
-      }
-      diameter = diameter > distance[i][kSrcIdx]?
-                 diameter : distance[i][kSrcIdx];
-    }
-    return diameter;
-  }
+  size_t radius = 0;
 
+  assert(vertex_id_dict.find(pivot->id())
+      != vertex_id_dict.end());
+  const auto kSrcIdx = vertex_id_dict.find(pivot->id())->second;
   for (size_t i = 0; i < kVertexNum; i++) {
-    for (size_t j = 0; j < kVertexNum; j++) {
-      if (distance[i][j] == std::numeric_limits<DistanceType>::max()){
-        continue;
-      }
-      diameter = diameter > distance[i][j] ?
-                 diameter : distance[i][j];
+    if (distance[kSrcIdx][i] == std::numeric_limits<DistanceType>::max()){
+      continue;
     }
+    radius = radius > distance[kSrcIdx][i]?
+                radius : distance[kSrcIdx][i];
   }
-  return diameter;
+  for (size_t i = 0; i < kVertexNum; i++) {
+    if (distance[i][kSrcIdx] == std::numeric_limits<DistanceType>::max()){
+      continue;
+    }
+    radius = radius > distance[i][kSrcIdx]?
+                radius : distance[i][kSrcIdx];
+  }
+  return radius;
 }
 
 }; // GUNDAM
 
-#endif // _GUNDAM_TOOL_DIAMETER_H
+#endif // _GUNDAM_TOOL_RADIUS_H
