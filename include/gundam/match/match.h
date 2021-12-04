@@ -152,6 +152,11 @@ class Match {
   Match() = default;
 
   Match(const Match&) = default;
+
+  // Match(const Match& match) : match_container_(match.match_container_) {
+  //   std::cout << "Copy Match" << std::endl;
+  //   return;
+  // }
   Match(Match&&) = default;
 
   Match& operator=(const Match&) = default;
