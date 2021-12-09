@@ -23,3 +23,4 @@
 
 2. GPointer没有 const ptr = 非const ptr方式
 
+3. EdgeIterator of SmallGraph cannot convert to EdgeHandle
