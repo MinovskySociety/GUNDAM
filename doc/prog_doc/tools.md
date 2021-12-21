@@ -1,7 +1,5 @@
 # Tools
 
-
-
 ## ConnectedComponent
 
 [head file](/include/gundam/tool/connected_component.h):
