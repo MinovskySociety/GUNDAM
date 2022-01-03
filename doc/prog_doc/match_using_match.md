@@ -114,7 +114,6 @@ Input parameters:
 ## Example
 
 ```c++
-
 GraphPatternType graph_pattern;
    DataGraphType    data_graph;
 
@@ -155,13 +154,6 @@ if (!_dp_iso_using_match::RefineCandidateSet(
 }
 
 double time_limit = 1000.0; // time limit set to 1000.0s
-
-std::function<bool(const GUNDAM::Match<GraphPatternType, DataGraphType>&)> 
-prune_nothing_callback
-= [](const MatchType& partial_match) {
-   // prune nothing, continue the matching
-   return false;
-};
 
 std::function<bool(const GUNDAM::Match<GraphPatternType, DataGraphType>&)> 
 prune_nothing_callback
@@ -232,14 +224,11 @@ inline size_t MatchUsingMatch(
 
 ### Description
 
-Match begins at parital match and 
+Match begins at parital match in the imported candidate set, can limit match count and match time.
 
 ### Example
 
 ```c++
-
-const size_t kMaxMatch = 1000;
-
 GraphPatternType graph_pattern;
    DataGraphType    data_graph;
 
@@ -317,10 +306,71 @@ inline size_t MatchUsingMatch(
 
 ### Description
 
+Match begins in the imported candidate set, support prune callback and match callback.
 
 
 ### Example
 
 ```c++
+GraphPatternType graph_pattern;
+   DataGraphType    data_graph;
 
+/* #############################################
+ *    initialize graph_pattern and data_graph
+ * #############################################*/
+
+using  QueryVertexHandle = typename GUNDAM::VertexHandle< QueryGraph>::type;
+using TargetVertexHandle = typename GUNDAM::VertexHandle<TargetGraph>::type;
+
+using CandidateSetType = std::map<QueryVertexHandle, 
+                     std::vector<TargetVertexHandle>>;
+
+CandidateSetType candidate_set;
+if (!_dp_iso_using_match::InitCandidateSet<MatchSemantics::kIsomorphism>(
+              graph_pattern,
+                 data_graph,
+              candidate_set)) {
+  // initialize failed, there is no legal matching 
+  return 0;
+}
+if (!_dp_iso_using_match::RefineCandidateSet(
+              graph_pattern,
+                 data_graph,
+              candidate_set)) {
+  // refine failed, there is no legal matching 
+  return 0;
+}
+
+double time_limit = 1000.0; // time limit set to 1000.0s
+
+std::function<bool(const GUNDAM::Match<GraphPatternType, DataGraphType>&)> 
+prune_nothing_callback
+= [](const MatchType& partial_match) {
+   // prune nothing, continue the matching
+   return false;
+};
+
+const size_t kMatchLimit = 100; // consider only 100 matches
+size_t match_counter = 0; // count how many matches have been considered so far
+
+std::function<bool(const GUNDAM::Match<GraphPatternType, DataGraphType>&)> 
+pattern_match_callback
+= [&kMatchLimit,
+   &match_counter](const MatchType& partial_match) {
+   match_counter++;
+   if (match_counter >= kMatchLimit) {
+      // has reached the match limit, stop matching
+      return false;
+   }
+   // continue matching
+   return true;
+};
+
+auto ret = GUNDAM::MatchUsingMatch(graph_pattern,
+                                      data_graph,
+                                   candidate_set, 
+                          prune_nothing_callback, 
+                          pattern_match_callback,
+                                      time_limit);
+assert(ret >= 0 && ret <= kMatchLimit);
 ```

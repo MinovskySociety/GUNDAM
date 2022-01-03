@@ -1,5 +1,9 @@
 # **G**raph **U**nifined **D**istributed **A**daptive **M**odel
 
+## all works developed so far 
+![](doc/images/all_works.png)
+
+
 ## interface
 
 Graph
