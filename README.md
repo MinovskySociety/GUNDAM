@@ -1,8 +1,8 @@
 # **G**raph **U**nifined **D**istributed **A**daptive **M**odel
 
-## all works developed so far 
-![](doc/images/all_works.png)
-
+## all works
+### works with publication
+![](doc/images/all_works.svg)
 
 ## interface
 
