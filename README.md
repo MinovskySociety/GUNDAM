@@ -1,4 +1,4 @@
-# **G**raph **U**nifined **D**istributed **A**daptive **M**odel
+# **G**raph **U**nifined **N**on-overhead **D**istributed **A**daptive **M**odel
 
 ## interface
 
