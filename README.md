@@ -1,9 +1,5 @@
 # **G**raph **U**nifined **D**istributed **A**daptive **M**odel
 
-## all works
-### works with publication
-![](doc/images/all_works.svg)
-
 ## interface
 
 Graph
@@ -25,3 +21,6 @@ Dfs
 ## tools
 
 [tools](/doc/prog_doc/tools.md)
+
+## works with publication
+![](doc/images/all_works.svg)
