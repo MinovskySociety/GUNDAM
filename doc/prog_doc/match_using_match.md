@@ -374,3 +374,186 @@ auto ret = GUNDAM::MatchUsingMatch(graph_pattern,
                                       time_limit);
 assert(ret >= 0 && ret <= kMatchLimit);
 ```
+
+## Helper method2
+
+### Parameter list
+* partial_match
+* prune_callback
+* match_callback
+* time_limit (optional, < 0 as no limit)
+
+```c++
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
+          enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
+             = MergeNecConfig::kNotMerge,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t MatchUsingMatch(
+        QueryGraph&  query_graph,
+       TargetGraph& target_graph,
+  const Match<QueryGraph, 
+             TargetGraph>& partial_match,
+  const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& prune_callback,
+  const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& match_callback,
+   double time_limit = -1.0);
+```
+
+### Description
+
+Match begins at the input partial_match, would check whether the input partial is legal. Support prune callback and match callback.
+
+## Helper method3
+
+### Parameter list
+* partial_match
+* time_limit (optional, < 0 as no limit)
+
+```c++
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
+          enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
+             = MergeNecConfig::kNotMerge,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t MatchUsingMatch(
+        QueryGraph&  query_graph,
+       TargetGraph& target_graph,
+  const Match<QueryGraph, TargetGraph>& partial_match,
+   int64_t max_match = -1,
+   double time_limit = -1.0);
+```
+
+### Description
+
+Match begins at the input partial_match, would check whether the input partial is legal.
+
+## Helper method4
+
+### Parameter list
+* prune_callback
+* match_callback
+* time_limit (optional, < 0 as no limit)
+
+```c++
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
+          enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
+             = MergeNecConfig::kNotMerge,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t MatchUsingMatch(
+        QueryGraph&  query_graph,
+       TargetGraph& target_graph,
+  const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& prune_callback,
+  const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& match_callback,
+   double time_limit = -1.0);
+```
+
+### Description
+
+Match support prune callback and match callback.
+
+## Helper method5
+
+### Parameter list
+* max_match  (optional, < 0 as no limit)
+* time_limit (optional, < 0 as no limit)
+
+```c++
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
+          enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
+             = MergeNecConfig::kNotMerge,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t MatchUsingMatch(
+   QueryGraph&  query_graph, 
+  TargetGraph& target_graph,
+   int64_t max_match = -1,
+   double time_limit = -1.0);
+```
+
+### Description
+
+Match returns only match count.
+
+## Helper method6
+
+### Parameter list
+* partial_match
+* match_result
+* max_match  (optional, < 0 as no limit)
+* time_limit (optional, < 0 as no limit)
+
+```c++
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
+          enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
+             = MergeNecConfig::kNotMerge,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t MatchUsingMatch(
+   QueryGraph&  query_graph, 
+  TargetGraph& target_graph,
+  const Match<QueryGraph, TargetGraph>& partial_match,
+     MatchSet<QueryGraph, TargetGraph>& match_result,
+   int64_t max_match = -1,
+   double time_limit = -1.0);
+```
+
+### Description
+
+Match begins at input partial_match and store all match result into match_result. Would check whether the input partial_match is legal.
+
+## Helper method7
+
+### Parameter list
+* match_result
+* max_match  (optional, < 0 as no limit)
+* time_limit (optional, < 0 as no limit)
+
+```c++
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
+          enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
+          enum MergeNecConfig merge_target_nec_config 
+             = MergeNecConfig::kNotMerge,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t MatchUsingMatch(
+   QueryGraph&  query_graph, 
+  TargetGraph& target_graph,
+     MatchSet<QueryGraph, TargetGraph>& match_result,
+   int64_t max_match = -1,
+   double time_limit = -1.0);
+```
+
+### Description
+
+Match that stores all match result into match_result.
+

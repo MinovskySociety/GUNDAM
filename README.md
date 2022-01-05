@@ -18,14 +18,14 @@ GUNDAM provides a graph-level abstraction that only allows programers to access 
 
 ```c++
 GraphType graph;
-typename GUNDAM::VertexHandle<GraphType>::type vertex_hanlde = graph.FindVertex(0);
-// to simplify the code use:
-// auto vertex_hanlde = graph.FindVertex(0);
-if (!vertex_hanlde) {
+typename GUNDAM::VertexHandle<GraphType>::type vertex_handle = graph.FindVertex(0);
+// to simplify the code, use:
+// auto vertex_handle = graph.FindVertex(0);
+if (!vertex_handle) {
   std::cout << "graph does not have vertex with id 0" << std::endl;
   return;
 }
-assert(vertex_hanlde->id() == 0);
+assert(vertex_handle->id() == 0);
 ```
 
 To store the 
@@ -45,6 +45,8 @@ for (auto vertex_0_it = graph_0.VertexBegin();
           vertex_0_it++) {
   std::vector<VertexIDType1>& candidate_set
                      = vertex_candidate_set[vertex_0_it->id()];
+  // to simplify the code, use:
+  // auto& candidate_set = vertex_candidate_set[vertex_0_it->id()];
   for (vertex_1_it = graph_1.VertexBegin();
       !vertex_1_it.IsDone();
        vertex_1_it++) {
@@ -64,7 +66,7 @@ for (const auto& [vertex_id, candidate_set]
 }
 ```
 
-The above example works but 
+The above example works but is not an efficient implementation since it requires access the .
 
 ```c++
 GraphType graph;
