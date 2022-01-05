@@ -16,11 +16,23 @@ Interface of all graph types see [here](/doc/接口统计_分类.pdf). Detailed 
 
 ### Initialization
 
+#### Load graph from CSV file
+
+#### Modify graph
+
+##### Add Vertex
+
+##### Erase Vertex
+
+##### Add Edge
+
+##### Erase Edge
+
 ### Access vertex in graph
 
 GUNDAM provides a graph-level abstraction that only allows programers to access *Vertex* through the *Handle* and *Iterator*.
 
-### Access vertex through iterator
+#### Access vertex through iterator
 
 Similar to the containers in STL, graph types in GUNDAM allow users to iterate over all vertexes in the graph:
 
@@ -102,7 +114,7 @@ for (auto vertex_it = graph.VertexBegin();
 }
 ```
 
-### Access vertex through handle
+#### Access vertex through handle
 
 Expect the iterator, Each vertex has an unique ID in the data graph  which allows the user to directly access the vertex through ID as shown in the following example:
 
@@ -188,6 +200,12 @@ for (const auto& vertex_id : vertex_id_set_to_collect) {
 }
 
 ```
+
+### Access edge in graph
+
+#### Access edge through iterator
+
+#### Access edge through handle
 
 ### GraphTypes
 
