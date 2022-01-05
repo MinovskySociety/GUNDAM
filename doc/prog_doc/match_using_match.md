@@ -199,13 +199,13 @@ Several helper methods are provided to simplify the usage of MatchUsingMatch.
 
 ### Helper method0
 
-### Parameter list
+#### Parameter list
 * partial_match
 * candidate_set
 * max_match (optional, < 0 as no limit) 
 * time_limit (optional, < 0 as no limit) 
 
-### Declaration
+#### Declaration
 ```c++
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kIsomorphism,
@@ -226,11 +226,11 @@ inline size_t MatchUsingMatch(
    double time_limit = -1.0);
 ```
 
-### Description
+#### Description
 
 Match begins at parital match in the imported candidate set, can limit match count and match time.
 
-### Example
+#### Example
 
 ```c++
 GraphPatternType graph_pattern;
@@ -283,7 +283,7 @@ assert(ret >= 0 && ret <= kMatchLimit);
 
 ### Helper method1
 
-### Parameter list
+#### Parameter list
 * candidate_set
 * prune_callback
 * match_callback
@@ -308,12 +308,12 @@ inline size_t MatchUsingMatch(
    double time_limit = -1.0);
 ```
 
-### Description
+#### Description
 
 Match begins in the imported candidate set, support prune callback and match callback.
 
 
-### Example
+#### Example
 
 ```c++
 GraphPatternType graph_pattern;
@@ -381,7 +381,7 @@ assert(ret >= 0 && ret <= kMatchLimit);
 
 ### Helper method2
 
-### Parameter list
+#### Parameter list
 * partial_match
 * prune_callback
 * match_callback
@@ -408,13 +408,13 @@ inline size_t MatchUsingMatch(
    double time_limit = -1.0);
 ```
 
-### Description
+#### Description
 
 Match begins at the input partial_match, would check whether the input partial is legal. Support prune callback and match callback.
 
 ### Helper method3
 
-### Parameter list
+#### Parameter list
 * partial_match
 * time_limit (optional, < 0 as no limit)
 
@@ -437,13 +437,13 @@ inline size_t MatchUsingMatch(
    double time_limit = -1.0);
 ```
 
-### Description
+#### Description
 
 Match begins at the input partial_match, would check whether the input partial is legal.
 
 ### Helper method4
 
-### Parameter list
+#### Parameter list
 * prune_callback
 * match_callback
 * time_limit (optional, < 0 as no limit)
@@ -467,13 +467,13 @@ inline size_t MatchUsingMatch(
    double time_limit = -1.0);
 ```
 
-### Description
+#### Description
 
 Match support prune callback and match callback.
 
 ### Helper method5
 
-### Parameter list
+#### Parameter list
 * max_match  (optional, < 0 as no limit)
 * time_limit (optional, < 0 as no limit)
 
@@ -495,13 +495,13 @@ inline size_t MatchUsingMatch(
    double time_limit = -1.0);
 ```
 
-### Description
+#### Description
 
 Match returns only match count.
 
 ### Helper method6
 
-### Parameter list
+#### Parameter list
 * partial_match
 * match_result
 * max_match  (optional, < 0 as no limit)
@@ -527,13 +527,13 @@ inline size_t MatchUsingMatch(
    double time_limit = -1.0);
 ```
 
-### Description
+#### Description
 
 Match begins at input partial_match and store all match result into match_result. Would check whether the input partial_match is legal.
 
 ### Helper method7
 
-### Parameter list
+#### Parameter list
 * match_result
 * max_match  (optional, < 0 as no limit)
 * time_limit (optional, < 0 as no limit)
@@ -557,7 +557,7 @@ inline size_t MatchUsingMatch(
    double time_limit = -1.0);
 ```
 
-### Description
+#### Description
 
 Match that stores all match result into match_result.
 
