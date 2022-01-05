@@ -7,7 +7,15 @@ namespace GUNDAM {
 
 template <bool is_const, class ContentType, 
                     class ConstContentType>
+class GPointer;
+
+template <bool is_const, class ContentType, 
+                    class ConstContentType>
 class GPointer {
+ private:
+  friend class GPointer<!is_const, ContentType,
+                              ConstContentType>;
+
  public:
   GPointer() = default;
 
@@ -75,11 +83,42 @@ class GPointer {
     return !(*this == b); 
   }
 
-  bool operator<(const GPointer &b) const { return v_ < b.v_; }
+  bool operator<(const GPointer &b) const { 
+    return v_ < b.v_; 
+  }
+
+  template <bool input_is_const,
+            typename InputConstContentType,
+            typename      InputContentType>
+  bool operator==(const GPointer<input_is_const, 
+                          InputConstContentType,
+                               InputContentType> &b) const { 
+    return v_ == b.v_; 
+  }
+
+  template <bool input_is_const,
+            typename InputConstContentType,
+            typename      InputContentType>
+  bool operator!=(const GPointer<input_is_const, 
+                          InputConstContentType,
+                               InputContentType> &b) const { 
+    return !(*this == b); 
+  }
+
+  template <bool input_is_const,
+            typename InputConstContentType,
+            typename      InputContentType>
+  bool operator<(const GPointer<input_is_const, 
+                         InputConstContentType,
+                              InputContentType> &b) const { 
+    return v_ < b.v_; 
+  }
 
   bool IsNull() const { return !v_.HasValue(); }
 
-  operator bool() const { return v_.HasValue(); };
+  operator bool() const { 
+    return v_.HasValue(); 
+  };
 
  private:
   typename std::conditional<is_const, ConstContentType, ContentType>::type v_;

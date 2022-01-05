@@ -137,6 +137,9 @@ class SmallGraph {
  private:
   template <bool is_const>
   class _Vertex {
+   private:
+    friend class _Vertex<!is_const>;
+
    public:
     using GraphType = SmallGraph;
 
@@ -297,7 +300,8 @@ class SmallGraph {
       }
     }
 
-    bool operator==(const _Vertex &b) const {
+    template <bool input_is_const>
+    bool operator==(const _Vertex<input_is_const> &b) const {
       // std::cout << "this->graph_: " << this->graph_ << std::endl;
       // std::cout << "this->id_   : " << this->id_    << std::endl;
       // std::cout << "b.graph_: " << b.graph_ << std::endl;
@@ -321,7 +325,8 @@ class SmallGraph {
       return id_ == b.id_;
     }
 
-    bool operator<(const _Vertex &b) const {
+    template <bool input_is_const>
+    bool operator<(const _Vertex<input_is_const> &b) const {
       // std::cout << "this->graph_: " << this->graph_ << std::endl;
       // std::cout << "this->id_   : " << this->id_    << std::endl;
       // std::cout << "b.graph_: " << b.graph_ << std::endl;
