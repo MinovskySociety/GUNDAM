@@ -4,6 +4,8 @@
 
 GUNDAM is a fundamental library for graph computing that provides a *unified*, *graph-level*, *static* abstraction without bring overhead.
 
+#
+
 ## Getting start
 
 All graph types currently supported are listed here:
@@ -13,6 +15,8 @@ All graph types currently supported are listed here:
 * Graph
 
 Interface of all graph types see [here](/doc/接口统计_分类.pdf). Detailed illustration of those graph types see [here](###GraphTypes)
+
+#
 
 ## Initialization
 
@@ -27,6 +31,8 @@ Interface of all graph types see [here](/doc/接口统计_分类.pdf). Detailed 
 ##### Add Edge
 
 ##### Erase Edge
+
+#
 
 ## Access vertex in graph
 
@@ -201,17 +207,21 @@ for (const auto& vertex_id : vertex_id_set_to_collect) {
 
 ```
 
+#
+
 ## Access edge in graph
 
 ### Access edge through iterator
 
 ### Access edge through handle
 
-### GraphTypes
+#
+
+## GraphTypes
 
 #
 
-#### SmallGraph
+### SmallGraph
 
 * Does not support index.
 * Does not support attribute on vertex.
@@ -234,7 +244,7 @@ Light-weight graph type for small graph to save memory, does not support index. 
 
 #
 
-#### LargeGraph
+### LargeGraph
 
 * Support index.
 * Support attribute on vertex.
@@ -260,7 +270,7 @@ Use map/set (red-black tree) as low level container, fast to load graph no matte
 
 #
 
-#### LargeGraph2
+### LargeGraph2
 
 * Support index.
 * Support attribute on vertex.
@@ -286,7 +296,7 @@ The only difference compare to LargeGraph is this data type use vector as low le
 
 #
 
-#### Graph
+### Graph
 
 * Support index.
 * Support attribute on vertex, separated or grouped.
@@ -304,40 +314,40 @@ class Graph;
 
 #
 
-### Vertex
-#### VertexHandle
+## Vertex
+### VertexHandle
 ```c++
 using VertexHandleType = typename GUNDAM::VertexHandle<GraphType>::type
 ```
-#### VertexID
+### VertexID
 ```c++
 using VertexIDType = typename GUNDAM::VertexID<GraphType>::type
 ```
-#### VertexLabel
+### VertexLabel
 ```c++
 using VertexLabelType = typename GUNDAM::VertexLabel<GraphType>::type
 ```
-#### VertexAttributeHandle
+### VertexAttributeHandle
 ```c++
 using VertexAttributeHandleType = typename GUNDAM::VertexAttributeHandle<GraphType>::type
 ```
 
 #
 
-### Edge
-#### EdgeHandle 
+## Edge
+### EdgeHandle 
 ```c++
 using EdgeHandleType = typename GUNDAM::EdgeHandle<GraphType>::type
 ```
-#### EdgeID
+### EdgeID
 ```c++
 using EdgeIDType = typename GUNDAM::EdgeID<GraphType>::type
 ```
-#### EdgeLabel
+### EdgeLabel
 ```c++
 using EdgeLabelType = typename GUNDAM::EdgeLabel<GraphType>::type
 ```
-#### EdgeAttributeHandle
+### EdgeAttributeHandle
 ```c++
 using EdgeAttributeHandleType = typename GUNDAM::EdgeAttributeHandle<GraphType>::type
 ```
