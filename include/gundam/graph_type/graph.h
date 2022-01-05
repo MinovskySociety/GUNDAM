@@ -606,7 +606,8 @@ class Graph {
         assert(this->ptr_ != ptr.ptr_ || this->ptr_->id() == ptr.ptr_->id());
         return this->ptr_ == ptr.ptr_;
       }
-      inline bool operator==(const VertexPtr_<!is_const_>& ptr) const {
+      template <bool input_is_const>
+      inline bool operator==(const VertexPtr_<input_is_const>& ptr) const {
         assert(this->ptr_ != ptr.ptr_ || this->ptr_->id() == ptr.ptr_->id());
         return this->ptr_ == ptr.ptr_;
       }
@@ -615,7 +616,8 @@ class Graph {
         assert(this->ptr_ != ptr.ptr_ || this->ptr_->id() == ptr.ptr_->id());
         return this->ptr_ != ptr.ptr_;
       }
-      inline bool operator!=(const VertexPtr_<!is_const_>& ptr) const {
+      template <bool input_is_const>
+      inline bool operator!=(const VertexPtr_<input_is_const>& ptr) const {
         assert(this->ptr_ != ptr.ptr_ || this->ptr_->id() == ptr.ptr_->id());
         return this->ptr_ != ptr.ptr_;
       }
@@ -623,28 +625,32 @@ class Graph {
       inline bool operator<(const VertexPtr_& ptr) const {
         return this->ptr_ < ptr.ptr_;
       }
-      inline bool operator<(const VertexPtr_<!is_const_>& ptr) const {
+      template <bool input_is_const>
+      inline bool operator<(const VertexPtr_<input_is_const>& ptr) const {
         return this->ptr_ < ptr.ptr_;
       }
 
       inline bool operator>(const VertexPtr_& ptr) const {
         return this->ptr_ > ptr.ptr_;
       }
-      inline bool operator>(const VertexPtr_<!is_const_>& ptr) const {
+      template <bool input_is_const>
+      inline bool operator>(const VertexPtr_<input_is_const>& ptr) const {
         return this->ptr_ > ptr.ptr_;
       }
 
       inline bool operator<=(const VertexPtr_& ptr) const {
         return this->ptr_ <= ptr.ptr_;
       }
-      inline bool operator<=(const VertexPtr_<!is_const_>& ptr) const {
+      template <bool input_is_const>
+      inline bool operator<=(const VertexPtr_<input_is_const>& ptr) const {
         return this->ptr_ <= ptr.ptr_;
       }
 
       inline bool operator>=(const VertexPtr_& ptr) const {
         return this->ptr_ >= ptr.ptr_;
       }
-      inline bool operator>=(const VertexPtr_<!is_const_>& ptr) const {
+      template <bool input_is_const>
+      inline bool operator>=(const VertexPtr_<input_is_const>& ptr) const {
         return this->ptr_ >= ptr.ptr_;
       }
 
