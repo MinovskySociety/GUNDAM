@@ -2,7 +2,7 @@
 
 ## Introduction
 
-GUNDAM is a fundamental library for graph computing that provides a unified graph-level abstraction without bring overhead.
+GUNDAM is a fundamental library for graph computing that provides a *unified*, *graph-level*, *static* abstraction without bring overhead.
 
 ## Getting start
 
@@ -14,10 +14,104 @@ All graph types currently supported are listed here:
 
 Interface of all graph types see [here](/doc/接口统计_分类.pdf). Detailed illustration of those graph types see [here](###GraphTypes)
 
-GUNDAM provides a graph-level abstraction that only allows programers to access *Vertex* & *Edge* through the *Handle* & *Iterator*. The following example shows how to access vertex in graph through id:
+### Initialization
+
+### Access vertex in graph
+
+GUNDAM provides a graph-level abstraction that only allows programers to access *Vertex* through the *Handle* and *Iterator*.
+
+### Access vertex through iterator
+
+Similar to the containers in STL, graph types in GUNDAM allow users to iterate over all vertexes in the graph:
 
 ```c++
 GraphType graph;
+/* ########################### *
+ *    initialize graph here    *
+ * ########################### */
+
+for (auto vertex_it = graph.VertexBegin();
+         !vertex_it.IsDone();
+          vertex_it++) {
+  std::cout << "accessing vertex: " << vertex_it->id() << std::endl;
+  /* ########################################### *
+   *     do something through vertex_it here     *
+   * ########################################### */
+}
+```
+
+For the graph types that support graph-level vertex-label-index, it is also allowed to iterate over all vertexes with the specified label:
+
+```c++
+GraphType graph;
+/* ########################### *
+ *    initialize graph here    *
+ * ########################### */
+
+typename GUNDAM::VertexLabel<GraphType>::type vertex_label = /* some vertex label */;
+for (auto vertex_it = graph.VertexBegin(vertex_label);
+         !vertex_it.IsDone();
+          vertex_it++) {
+  std::cout << "accessing vertex: " << vertex_it->id() 
+            <<      " with label: " << vertex_it->label() << std::endl;
+  /* ########################################### *
+   *     do something through vertex_it here     *
+   * ########################################### */
+}
+```
+
+The above example works the same but is more efficient compared to the naive implementation without using index:
+
+```c++
+GraphType graph;
+/* ########################### *
+ *    initialize graph here    *
+ * ########################### */
+
+typename GUNDAM::VertexLabel<GraphType>::type vertex_label = /* some vertex label */;
+for (auto vertex_it = graph.VertexBegin();
+         !vertex_it.IsDone();
+          vertex_it++) {
+  if (vertex_it->label() != vertex_label) {
+    continue;
+  }
+  std::cout << "accessing vertex: " << vertex_it->id() 
+            <<      " with label: " << vertex_it->label() << std::endl;
+  /* ########################################### *
+   *     do something through vertex_it here     *
+   * ########################################### */
+}
+```
+
+It should be noticed that, similiar to the containers in STL, modifying the graph may invalidate the iterator:
+
+```c++
+GraphType graph;
+/* ########################### *
+ *    initialize graph here    *
+ * ########################### */
+typename GUNDAM::VertexID<GraphType>::type vertex_id_allocator = /* maximum vertex id in graph */;
+for (auto vertex_it = graph.VertexBegin();
+         !vertex_it.IsDone();
+          vertex_it++) {
+  // add new vertex while iterating
+  graph.AddVertex(vertex_id_allocator++, vertex_it->label());
+  /* ################################## *
+   *    vertex_it is invalidate here    *
+   * ################################## */
+}
+```
+
+### Access vertex through handle
+
+Expect the iterator, Each vertex has an unique ID in the data graph  which allows the user to directly access the vertex through ID as shown in the following example:
+
+```c++
+GraphType graph;
+/* ########################### *
+ *    initialize graph here    *
+ * ########################### */
+
 typename GUNDAM::VertexHandle<GraphType>::type vertex_handle = graph.FindVertex(0);
 // to simplify the code, use:
 // auto vertex_handle = graph.FindVertex(0);
@@ -28,12 +122,17 @@ if (!vertex_handle) {
 assert(vertex_handle->id() == 0);
 ```
 
-To store the 
-
 ```c++
 // work but low efficiency 
 GraphType0 graph_0;
+/* ############################# *
+ *    initialize graph_0 here    *
+ * ############################# */
+
 GraphType0 graph_1;
+/* ############################# *
+ *    initialize graph_1 here    *
+ * ############################# */
 
 using VertexIDType0 = typename GUNDAM::VertexID<GraphType0>::type;
 using VertexIDType1 = typename GUNDAM::VertexID<GraphType1>::type;
@@ -70,6 +169,10 @@ The above example works but is not an efficient implementation since it requires
 
 ```c++
 GraphType graph;
+/* ########################### *
+ *    initialize graph here    *
+ * ########################### */
+
 using VertexIDType = typename GUNDAM::VertexID<GraphType>::type;
 std::vector<VertexIDType> vertex_id_set_to_collect = {0, 1, 2, 3};
 
