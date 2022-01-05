@@ -193,7 +193,11 @@ auto ret = GUNDAM::MatchUsingMatch<
 assert(ret == match_counter);
 ```
 
-## Helper method0
+## Helper methods
+
+Several helper methods are provided to simplify the usage of MatchUsingMatch.
+
+### Helper method0
 
 ### Parameter list
 * partial_match
@@ -277,7 +281,7 @@ auto ret = GUNDAM::MatchUsingMatch(graph_pattern,
 assert(ret >= 0 && ret <= kMatchLimit);
 ```
 
-## Helper method1
+### Helper method1
 
 ### Parameter list
 * candidate_set
@@ -375,7 +379,7 @@ auto ret = GUNDAM::MatchUsingMatch(graph_pattern,
 assert(ret >= 0 && ret <= kMatchLimit);
 ```
 
-## Helper method2
+### Helper method2
 
 ### Parameter list
 * partial_match
@@ -408,7 +412,7 @@ inline size_t MatchUsingMatch(
 
 Match begins at the input partial_match, would check whether the input partial is legal. Support prune callback and match callback.
 
-## Helper method3
+### Helper method3
 
 ### Parameter list
 * partial_match
@@ -437,7 +441,7 @@ inline size_t MatchUsingMatch(
 
 Match begins at the input partial_match, would check whether the input partial is legal.
 
-## Helper method4
+### Helper method4
 
 ### Parameter list
 * prune_callback
@@ -467,7 +471,7 @@ inline size_t MatchUsingMatch(
 
 Match support prune callback and match callback.
 
-## Helper method5
+### Helper method5
 
 ### Parameter list
 * max_match  (optional, < 0 as no limit)
@@ -495,7 +499,7 @@ inline size_t MatchUsingMatch(
 
 Match returns only match count.
 
-## Helper method6
+### Helper method6
 
 ### Parameter list
 * partial_match
@@ -527,7 +531,7 @@ inline size_t MatchUsingMatch(
 
 Match begins at input partial_match and store all match result into match_result. Would check whether the input partial_match is legal.
 
-## Helper method7
+### Helper method7
 
 ### Parameter list
 * match_result
