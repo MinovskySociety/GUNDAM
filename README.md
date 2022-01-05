@@ -353,17 +353,165 @@ using EdgeAttributeHandleType = typename GUNDAM::EdgeAttributeHandle<GraphType>:
 ```
 
 ## Interface
-Graph
 
-## match
+The interface of all graph types are illustrated in [here](/doc/接口统计_分类.pdf). The same method of different graph types have the same semantics and shares this document.
+
+#
+
+### Graph interface
+
+#### VertexBegin()
+
+#### VertexBegin(vertex_label)
+
+#### CountVertex()
+
+#### CountVertex(label)
+
+#### CountEdge()
+
+#### AddVertex(id, label)
+
+#### AddEdge(src_id, dst_id, edge_label, edge_id)
+
+#### Clear()
+
+#### EraseVertex(id) 
+
+#### EraseVertex(vertex_handle)
+
+#### EraseVertex(vertex_iterator)
+
+#### EraseEdge(id)
+
+#### EdgeBegin()
+
+#### FindVertex(id)
+
+#### FindVertex(id, vertex_label)
+
+#### FindEdge(id)
+
+#
+
+### Vertex interface
+
+#### id()
+
+#### label()
+
+#### OutEdgeBegin()
+
+#### InEdgeBegin()
+
+#### OutEdgeBegin(edge_label)
+
+#### InEdgeBegin(edge_label)
+
+#### OutEdgeBegin(edge_label, vertex_handle)
+
+#### InEdgeBegin(edge_label, vertex_handle)
+
+#### OutEdgeBegin(vertex_handle)
+
+#### InEdgeBegin(vertex_handle)
+
+#### CountOutEdgeLabel()
+
+#### CountInEdgeLabel()
+
+#### CountOutVertex()
+
+#### CountInVertex()
+
+#### CountOutVertex(edge_label)
+
+#### CountInVertex(edge_label)
+
+#### CountOutEdge()
+
+#### CountInEdge()
+
+#### CountOutEdge(edge_label)
+
+#### CountInEdge(edge_label)
+
+#### CountOutEdge(vertex_handle)
+
+#### CountInEdge(vertex_handle)
+
+#### CountOutEdge(edge_label, vertex_handle)
+
+#### CountInEdge(edge_label, vertex_handle)
+
+#### CountOutEdge(vertex_handle)
+
+#### CountInEdge(vertex_handle)
+
+
+#### OutVertexBegin()
+
+#### InVertexBegin()
+
+#### OutVertexBegin(edge_label)
+
+#### InVertexBegin(edge_label)
+
+#### AddAttribute(key, value)
+
+#### attribute(key)
+
+#### AttributeBegin()
+
+#### FindAttribute(key)
+
+#### SetAttribute(key)
+
+#### EraseAttribute(attribute_iterator)
+
+#### EraseAttribute(key)
+
+#
+
+### Edge interface
+
+#### id()
+
+#### label()
+
+#### src_id()
+
+#### dst_id()
+
+#### src_handle()
+
+#### dst_handle()
+
+#### AddAttribute(key, value)
+
+#### attribute(key)
+
+#### AttributeBegin()
+
+#### FindAttribute(key)
+
+#### SetAttribute(key)
+
+#### EraseAttribute(attribute_iterator)
+
+#### EraseAttribute(key)
+
+#
+
+## Match
 
 [Match](/doc/prog_doc/match.md)
 
-## algorithem
+MatchSet
 
-VF2
+## Algorithem
 
-Dpiso
+[MatchUsingMatch](/doc/prog_doc/match_using_match.md)
 
 Bfs
 
