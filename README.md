@@ -1,11 +1,90 @@
 # **G**raph **U**nifined **N**on-overhead **D**istributed **A**daptive **M**odel
 
+## Introduction
 
-## Type
+GUNDAM is a fundamental library for graph computing that provides a unified graph-level abstraction without bring overhead.
 
-### GraphType
+## Getting start
 
-Interface of all graph types see [here](/doc/接口统计_分类.pdf).
+All graph types currently supported are listed here:
+* SmallGraph
+* LargeGraph
+* LargeGraph2
+* Graph
+
+Interface of all graph types see [here](/doc/接口统计_分类.pdf). Detailed illustration of those graph types see [here](###GraphTypes)
+
+GUNDAM provides a graph-level abstraction that only allows programers to access *Vertex* & *Edge* through the *Handle* & *Iterator*. The following example shows how to access vertex in graph through id:
+
+```c++
+GraphType graph;
+typename GUNDAM::VertexHandle<GraphType>::type vertex_hanlde = graph.FindVertex(0);
+// to simplify the code use:
+// auto vertex_hanlde = graph.FindVertex(0);
+if (!vertex_hanlde) {
+  std::cout << "graph does not have vertex with id 0" << std::endl;
+  return;
+}
+assert(vertex_hanlde->id() == 0);
+```
+
+To store the 
+
+```c++
+// work but low efficiency 
+GraphType0 graph_0;
+GraphType0 graph_1;
+
+using VertexIDType0 = typename GUNDAM::VertexID<GraphType0>::type;
+using VertexIDType1 = typename GUNDAM::VertexID<GraphType1>::type;
+
+std::map<VertexIDType0, std::vector<VertexIDType1>> vertex_candidate_set;
+
+for (auto vertex_0_it = graph_0.VertexBegin();
+         !vertex_0_it.IsDone();
+          vertex_0_it++) {
+  std::vector<VertexIDType1>& candidate_set
+                     = vertex_candidate_set[vertex_0_it->id()];
+  for (vertex_1_it = graph_1.VertexBegin();
+      !vertex_1_it.IsDone();
+       vertex_1_it++) {
+    if (vertex_0_it->label() 
+     != vertex_1_it->label()) {
+      continue;
+    }
+    candidate_set.emplace_back(vertex_1_it->id());
+  }
+}
+
+for (const auto& [vertex_id, candidate_set] 
+                    : vertex_candidate_set) {
+  for () {
+    
+  }
+}
+```
+
+The above example works but 
+
+```c++
+GraphType graph;
+using VertexIDType = typename GUNDAM::VertexID<GraphType>::type;
+std::vector<VertexIDType> vertex_id_set_to_collect = {0, 1, 2, 3};
+
+using VertexHandleType = typename GUNDAM::VertexHandle<GraphType>::type;
+std::vector<VertexHandleType> vertex_handle_set_collected;
+
+for (const auto& vertex_id : vertex_id_set_to_collect) {
+  auto vertex_handle = graph.FindVertex(vertex_id);
+  if (!vertex_handle) {
+    continue;
+  }
+  vertex_handle_set_collected.emplace_back(vertex_handle);
+}
+
+```
+
+### GraphTypes
 
 #
 
