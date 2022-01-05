@@ -298,40 +298,63 @@ class SmallGraph {
     }
 
     bool operator==(const _Vertex &b) const {
+      // std::cout << "this->graph_: " << this->graph_ << std::endl;
+      // std::cout << "this->id_   : " << this->id_    << std::endl;
+      // std::cout << "b.graph_: " << b.graph_ << std::endl;
+      // std::cout << "b.id_   : " << b.id_    << std::endl;
       if (this->graph_ != b.graph_){
         // cannot be the same
         // at least one is not nullptr
         assert(this->graph_ || b.graph_);
+        // std::cout << "* return 0 *" << std::endl;
         return false;
       }
       // this->graph_ == b.graph_
-      if (!this->graph_){
+      if (this->graph_ == nullptr){
         // this->graph_ is null
-        assert(!b.graph_);
+        assert(b.graph_ == nullptr);
         // both ptr are null
+        // std::cout << "* return 1 *" << std::endl;
         return true;
       }
+      // std::cout << "* return 2 *" << std::endl;
       return id_ == b.id_;
     }
 
     bool operator<(const _Vertex &b) const {
+      // std::cout << "this->graph_: " << this->graph_ << std::endl;
+      // std::cout << "this->id_   : " << this->id_    << std::endl;
+      // std::cout << "b.graph_: " << b.graph_ << std::endl;
+      // std::cout << "b.id_   : " << b.id_    << std::endl;
       if (this->graph_ < b.graph_){
-        // at least one is not nullptr
-        assert(this->graph_ || b.graph_);
+        // one is nullptr and the other is not
+        assert(((this->graph_ == nullptr) && (b.graph_ != nullptr))
+            || ((this->graph_ != nullptr) && (b.graph_ == nullptr)));
+        // std::cout << "# return 0 #" << std::endl;
         return true;
       }
       if (this->graph_ > b.graph_){
-        // at least one is not nullptr
-        assert(this->graph_ || b.graph_);
+        // one is nullptr and the other is not
+        assert(((this->graph_ == nullptr) && (b.graph_ != nullptr))
+            || ((this->graph_ != nullptr) && (b.graph_ == nullptr)));
+        // std::cout << "# return 1 #" << std::endl;
         return false;
       }
       // this->graph_ == b.graph_
       if (this->graph_ == nullptr) {
         assert(!b.graph_);
         // both pointers are null, are the same
+        // std::cout << "# return 2 #" << std::endl;
         return false;
       }
+      // std::cout << "# return 3 #" << std::endl;
       return this->id_ < b.id_;
+    }
+
+    void Print() const {
+      std::cout << "this->graph_: " << this->graph_ << std::endl;
+      std::cout << "this->id_   : " << this->id_    << std::endl;
+      return;
     }
 
    private:

@@ -149,6 +149,8 @@ class Match {
 
   using size_type = typename MapContainerType::size_type;
 
+  using HashType = std::string;
+
   Match() = default;
 
   Match(const Match&) = default;
@@ -184,9 +186,13 @@ class Match {
     return;
   }
 
-  inline size_type size() const { return this->match_container_.size(); }
+  inline size_type size() const { 
+    return this->match_container_.size(); 
+  }
 
-  inline bool empty() const { return this->match_container_.empty(); }
+  inline bool empty() const { 
+    return this->match_container_.empty(); 
+  }
 
   inline bool HasMap(const SrcVertexHandleType& src_ptr) const {
     /// <iterator, bool>
@@ -294,39 +300,111 @@ class Match {
   //   return DstVertexConstHandle();
   // }
 
+  // inline bool operator<(const Match& match) const{
+  //   if (this->size() < match.size())
+  //     return true;
+  //   if (this->size() > match.size())
+  //     return false;
+  //   for (auto  this_cit  = this->match_container_.cbegin(),
+  //             match_cit  = match.match_container_.cbegin();
+  //              this_cit != this->match_container_.cend();
+  //              this_cit++,
+  //             match_cit++) {
+  //     if (this_cit.template get_const<kSrcVertexPtrIdx>()
+  //      < match_cit.template get_const<kSrcVertexPtrIdx>()){
+  //       return true;
+  //     }
+  //     if (this_cit.template get_const<kSrcVertexPtrIdx>()->id()
+  //      > match_cit.template get_const<kSrcVertexPtrIdx>()->id()){
+  //       return false;
+  //     }
+  //     if (this_cit.template get_const<kDstVertexPtrIdx>()->id()
+  //      < match_cit.template get_const<kDstVertexPtrIdx>()->id()){
+  //       return true;
+  //     }
+  //     if (this_cit.template get_const<kDstVertexPtrIdx>()->id()
+  //      > match_cit.template get_const<kDstVertexPtrIdx>()->id()){
+  //       return false;
+  //     }
+  //   }
+  //   return true;
+  // }
+
   inline bool operator<(const Match& match) const{
     if (this->size() < match.size())
       return true;
     if (this->size() > match.size())
       return false;
-    for (auto  this_cit  = this->match_container_.cbegin(),
-              match_cit  = match.match_container_.cbegin();
-               this_cit != this->match_container_.cend();
-               this_cit++,
-              match_cit++) {
-      if (this_cit.template get_const<kSrcVertexPtrIdx>()
-       < match_cit.template get_const<kSrcVertexPtrIdx>()){
-        return true;
-      }
-      if (this_cit.template get_const<kSrcVertexPtrIdx>()->id()
-       > match_cit.template get_const<kSrcVertexPtrIdx>()->id()){
-        return false;
-      }
-      if (this_cit.template get_const<kDstVertexPtrIdx>()->id()
-       < match_cit.template get_const<kDstVertexPtrIdx>()->id()){
-        return true;
-      }
-      if (this_cit.template get_const<kDstVertexPtrIdx>()->id()
-       > match_cit.template get_const<kDstVertexPtrIdx>()->id()){
-        return false;
-      }
+
+    // sort this match container
+    std::vector<std::pair<SrcVertexHandleType,
+                          DstVertexHandleType>> sorted_this_match_container;
+    for (auto map_it  = this->match_container_.cbegin();
+              map_it != this->match_container_.cend ();
+              map_it++) {
+      sorted_this_match_container.emplace_back(
+             map_it.template get_const<kSrcVertexPtrIdx>(),
+             map_it.template get_const<kDstVertexPtrIdx>());
     }
-    return true;
+    std::sort(sorted_this_match_container.begin(),
+              sorted_this_match_container.end());
+            
+    // sort match match container
+    std::vector<std::pair<SrcVertexHandleType,
+                          DstVertexHandleType>> sorted_match_match_container;
+    for (auto map_it  = match.match_container_.cbegin();
+              map_it != match.match_container_.cend ();
+              map_it++) {
+      sorted_match_match_container.emplace_back(
+             map_it.template get_const<kSrcVertexPtrIdx>(),
+             map_it.template get_const<kDstVertexPtrIdx>());
+    }
+    std::sort(sorted_match_match_container.begin(),
+              sorted_match_match_container.end());
+
+    assert(sorted_this_match_container.size()
+       == sorted_match_match_container.size());
+
+    for (size_t idx = 0; idx < this->match_container_.size(); idx++) {
+      // ##################################
+      // #  first compare the src handle  #
+      // ##################################
+      if (sorted_this_match_container[idx].first
+       < sorted_match_match_container[idx].first) {
+        return true;
+      }
+      if (sorted_this_match_container[idx].first
+       > sorted_match_match_container[idx].first) {
+        return false;
+      }
+      assert(sorted_this_match_container[idx].first
+         == sorted_match_match_container[idx].first);
+
+      // #################################
+      // #  then compare the dst handle  #
+      // #################################
+      if (sorted_this_match_container[idx].second
+       < sorted_match_match_container[idx].second) {
+        return true;
+      }
+      if (sorted_this_match_container[idx].second
+       > sorted_match_match_container[idx].second) {
+        return false;
+      }
+      assert(sorted_this_match_container[idx].second
+         == sorted_match_match_container[idx].second);
+    }
+    // both are the same
+    return false;
   }
 
   bool operator==(const Match& match) const {
+    if (this->size() != match.size())
+      return false;
+
     for (auto cit  = this->match_container_.cbegin();
-              cit != this->match_container_.cend(); cit++) {
+              cit != this->match_container_.cend(); 
+              cit++) {
       if (match.MapTo(cit.template get_const<kSrcVertexPtrIdx>())
                    != cit.template get_const<kDstVertexPtrIdx>()) {
         /// not equal
@@ -334,6 +412,59 @@ class Match {
       }
     }
     return true;
+  }
+
+  // wenzhi: optimize me
+  inline std::string hash() const {
+    // sort this match container
+    std::vector<std::pair<SrcVertexHandleType,
+                          DstVertexHandleType>> sorted_this_match_container;
+    for (auto map_it  = this->match_container_.cbegin();
+              map_it != this->match_container_.cend ();
+              map_it++) {
+      sorted_this_match_container.emplace_back(
+             map_it.template get_const<kSrcVertexPtrIdx>(),
+             map_it.template get_const<kDstVertexPtrIdx>());
+    }
+    std::sort(sorted_this_match_container.begin(),
+              sorted_this_match_container.end());
+    std::string hash;
+    for (const auto& [src_handle, dst_handle] 
+                    : sorted_this_match_container) {
+      hash = std::move(hash) + "#" + ToString(src_handle->id())
+                             + "#" + ToString(dst_handle->id());
+    }
+    return hash;
+  }
+
+  inline std::string hash(const std::vector<SrcVertexHandleType>& pivot_set) const {
+    // sort this match container
+    std::vector<std::pair<SrcVertexHandleType,
+                          DstVertexHandleType>> sorted_this_match_container;
+    #ifndef NDEBUG 
+    std::set<SrcVertexHandleType> test_pivot_set;
+    #endif // NDEBUG
+    for (const auto& vertex_hanlde : pivot_set) {
+      assert(this->HasMap(vertex_hanlde));
+      sorted_this_match_container.emplace_back(vertex_hanlde,
+                                   this->MapTo(vertex_hanlde));
+      #ifndef NDEBUG 
+      auto [ test_pivot_set_it,
+             test_pivot_set_ret ] = test_pivot_set.emplace(vertex_hanlde);
+      assert(test_pivot_set_ret);
+      #endif // NDEBUG
+    }
+    assert(pivot_set.size() == test_pivot_set.size());
+    assert(pivot_set.size() == sorted_this_match_container.size());
+    std::sort(sorted_this_match_container.begin(),
+              sorted_this_match_container.end());
+    std::string hash;
+    for (const auto& [src_handle, dst_handle] 
+                    : sorted_this_match_container) {
+      hash = std::move(hash) + "#" + ToString(src_handle->id())
+                             + "#" + ToString(dst_handle->id());
+    }
+    return hash;
   }
 
   inline MapIterator MapBegin(){

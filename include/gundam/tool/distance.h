@@ -1,11 +1,17 @@
-#ifndef _GUNDAM_TOOL_RADIUS_H
-#define _GUNDAM_TOOL_RADIUS_H
+#ifndef _GUNDAM_TOOL_DISTANCE_H
+#define _GUNDAM_TOOL_DISTANCE_H
 
 #include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/vertex_id.h"
+
 #include "gundam/type_getter/edge_handle.h"
+#include "gundam/type_getter/edge_id.h"
 
 namespace GUNDAM {
 
+// if connected, then return std::pair(distance, true)
+// if not connected, then return std::pair(0, false)
+//
 // #################
 // #  optimize me  #
 // #################
@@ -13,12 +19,15 @@ namespace GUNDAM {
 // using floyd algorithm, only works for small graph
 template <bool bidirectional = false,
           typename GraphType>
-inline size_t Radius(GraphType& graph,
-          typename VertexHandle<GraphType>::type pivot) {
+inline std::pair<size_t, bool> 
+                 Distance(const GraphType& graph,
+              typename VertexID<GraphType>::type src_vertex_id,
+              typename VertexID<GraphType>::type dst_vertex_id) {
   using VertexIDType = typename GraphType::VertexType::IDType;
   std::map<VertexIDType, size_t> vertex_id_dict;
 
-  assert(!pivot || pivot == graph.FindVertex(pivot->id()));
+  assert(graph.FindVertex(src_vertex_id)
+      && graph.FindVertex(dst_vertex_id));
 
   // construct the map from vertex id to continued index
   for (auto vertex_it = graph.VertexBegin();
@@ -43,10 +52,8 @@ inline size_t Radius(GraphType& graph,
   for (auto vertex_it = graph.VertexBegin();
            !vertex_it.IsDone();
             vertex_it++) {
-    auto src_vertex_id_it 
-           = vertex_id_dict.find(vertex_it->id());
-    assert(src_vertex_id_it 
-            != vertex_id_dict.end());
+     auto  src_vertex_id_it  = vertex_id_dict.find(vertex_it->id());
+    assert(src_vertex_id_it != vertex_id_dict.end());
     size_t src_vertex_idx 
          = src_vertex_id_it->second;
     distance[src_vertex_idx]
@@ -60,11 +67,9 @@ inline size_t Radius(GraphType& graph,
               != vertex_id_dict.end());
       size_t dst_vertex_idx 
            = dst_vertex_id_it->second;
-      distance[src_vertex_idx]
-              [dst_vertex_idx] = 1;
+      distance[src_vertex_idx][dst_vertex_idx] = 1;
       if constexpr (bidirectional) {
-        distance[dst_vertex_idx]
-                [src_vertex_idx] = 1;
+        distance[dst_vertex_idx][src_vertex_idx] = 1;
       }
     }
   }
@@ -84,28 +89,25 @@ inline size_t Radius(GraphType& graph,
     }
   }
 
-  size_t radius = 0;
+  assert(vertex_id_dict.find(src_vertex_id) != vertex_id_dict.end());
+  assert(vertex_id_dict.find(dst_vertex_id) != vertex_id_dict.end());
 
-  assert(vertex_id_dict.find(pivot->id())
-      != vertex_id_dict.end());
-  const auto kSrcIdx = vertex_id_dict.find(pivot->id())->second;
-  for (size_t i = 0; i < kVertexNum; i++) {
-    if (distance[kSrcIdx][i] == std::numeric_limits<DistanceType>::max()){
-      continue;
-    }
-    radius = radius > distance[kSrcIdx][i]?
-             radius : distance[kSrcIdx][i];
+  if constexpr (bidirectional) {
+    assert(distance[vertex_id_dict[src_vertex_id]][vertex_id_dict[dst_vertex_id]]
+        == distance[vertex_id_dict[dst_vertex_id]][vertex_id_dict[src_vertex_id]]);
   }
-  for (size_t i = 0; i < kVertexNum; i++) {
-    if (distance[i][kSrcIdx] == std::numeric_limits<DistanceType>::max()){
-      continue;
-    }
-    radius = radius > distance[i][kSrcIdx]?
-             radius : distance[i][kSrcIdx];
+
+  if (distance[vertex_id_dict[src_vertex_id]]
+              [vertex_id_dict[dst_vertex_id]] 
+      == std::numeric_limits<DistanceType>::max()) {
+    // not connected
+    return std::pair(0, false);
   }
-  return radius;
+  // connected
+  return std::pair(distance[vertex_id_dict[src_vertex_id]]
+                           [vertex_id_dict[dst_vertex_id]], true);
 }
 
 }; // GUNDAM
 
-#endif // _GUNDAM_TOOL_RADIUS_H
+#endif // _GUNDAM_TOOL_DISTANCE_H

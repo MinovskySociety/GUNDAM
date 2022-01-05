@@ -606,19 +606,45 @@ class Graph {
         assert(this->ptr_ != ptr.ptr_ || this->ptr_->id() == ptr.ptr_->id());
         return this->ptr_ == ptr.ptr_;
       }
+      inline bool operator==(const VertexPtr_<!is_const_>& ptr) const {
+        assert(this->ptr_ != ptr.ptr_ || this->ptr_->id() == ptr.ptr_->id());
+        return this->ptr_ == ptr.ptr_;
+      }
+
       inline bool operator!=(const VertexPtr_& ptr) const {
+        assert(this->ptr_ != ptr.ptr_ || this->ptr_->id() == ptr.ptr_->id());
         return this->ptr_ != ptr.ptr_;
       }
+      inline bool operator!=(const VertexPtr_<!is_const_>& ptr) const {
+        assert(this->ptr_ != ptr.ptr_ || this->ptr_->id() == ptr.ptr_->id());
+        return this->ptr_ != ptr.ptr_;
+      }
+
       inline bool operator<(const VertexPtr_& ptr) const {
         return this->ptr_ < ptr.ptr_;
       }
+      inline bool operator<(const VertexPtr_<!is_const_>& ptr) const {
+        return this->ptr_ < ptr.ptr_;
+      }
+
       inline bool operator>(const VertexPtr_& ptr) const {
         return this->ptr_ > ptr.ptr_;
       }
+      inline bool operator>(const VertexPtr_<!is_const_>& ptr) const {
+        return this->ptr_ > ptr.ptr_;
+      }
+
       inline bool operator<=(const VertexPtr_& ptr) const {
         return this->ptr_ <= ptr.ptr_;
       }
+      inline bool operator<=(const VertexPtr_<!is_const_>& ptr) const {
+        return this->ptr_ <= ptr.ptr_;
+      }
+
       inline bool operator>=(const VertexPtr_& ptr) const {
+        return this->ptr_ >= ptr.ptr_;
+      }
+      inline bool operator>=(const VertexPtr_<!is_const_>& ptr) const {
         return this->ptr_ >= ptr.ptr_;
       }
 
