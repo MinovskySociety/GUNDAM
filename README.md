@@ -2,7 +2,9 @@
 
 ## Introduction
 
-GUNDAM is a fundamental library for graph computing that provides a unified graph-level abstraction without bring overhead.
+GUNDAM is a fundamental library for graph computing that provides a *unified*, *graph-level*, *static* abstraction without bring overhead.
+
+#
 
 ## Getting start
 
@@ -14,10 +16,120 @@ All graph types currently supported are listed here:
 
 Interface of all graph types see [here](/doc/接口统计_分类.pdf). Detailed illustration of those graph types see [here](###GraphTypes)
 
-GUNDAM provides a graph-level abstraction that only allows programers to access *Vertex* & *Edge* through the *Handle* & *Iterator*. The following example shows how to access vertex in graph through id:
+#
+
+## Initialization
+
+### Load graph from CSV file
+
+### Modify graph
+
+##### Add Vertex
+
+##### Erase Vertex
+
+##### Add Edge
+
+##### Erase Edge
+
+#
+
+## Access vertex in graph
+
+GUNDAM provides a graph-level abstraction that only allows programers to access *Vertex* through the *Handle* and *Iterator*.
+
+### Access vertex through iterator
+
+Similar to the containers in STL, graph types in GUNDAM allow users to iterate over all vertexes in the graph:
 
 ```c++
 GraphType graph;
+/* ########################### *
+ *    initialize graph here    *
+ * ########################### */
+
+for (auto vertex_it = graph.VertexBegin();
+         !vertex_it.IsDone();
+          vertex_it++) {
+  std::cout << "accessing vertex: " << vertex_it->id() << std::endl;
+  /* ########################################### *
+   *     do something through vertex_it here     *
+   * ########################################### */
+}
+```
+
+For the graph types that support graph-level vertex-label-index, it is also allowed to iterate over all vertexes with the specified label:
+
+```c++
+GraphType graph;
+/* ########################### *
+ *    initialize graph here    *
+ * ########################### */
+
+typename GUNDAM::VertexLabel<GraphType>::type vertex_label = /* some vertex label */;
+for (auto vertex_it = graph.VertexBegin(vertex_label);
+         !vertex_it.IsDone();
+          vertex_it++) {
+  std::cout << "accessing vertex: " << vertex_it->id() 
+            <<      " with label: " << vertex_it->label() << std::endl;
+  /* ########################################### *
+   *     do something through vertex_it here     *
+   * ########################################### */
+}
+```
+
+The above example works the same but is more efficient compared to the naive implementation without using index:
+
+```c++
+GraphType graph;
+/* ########################### *
+ *    initialize graph here    *
+ * ########################### */
+
+typename GUNDAM::VertexLabel<GraphType>::type vertex_label = /* some vertex label */;
+for (auto vertex_it = graph.VertexBegin();
+         !vertex_it.IsDone();
+          vertex_it++) {
+  if (vertex_it->label() != vertex_label) {
+    continue;
+  }
+  std::cout << "accessing vertex: " << vertex_it->id() 
+            <<      " with label: " << vertex_it->label() << std::endl;
+  /* ########################################### *
+   *     do something through vertex_it here     *
+   * ########################################### */
+}
+```
+
+It should be noticed that, similiar to the containers in STL, modifying the graph may invalidate the iterator:
+
+```c++
+GraphType graph;
+/* ########################### *
+ *    initialize graph here    *
+ * ########################### */
+typename GUNDAM::VertexID<GraphType>::type vertex_id_allocator = /* maximum vertex id in graph */;
+for (auto vertex_it = graph.VertexBegin();
+         !vertex_it.IsDone();
+          vertex_it++) {
+  // add new vertex while iterating
+  graph.AddVertex(vertex_id_allocator++, vertex_it->label());
+  /* ################################## *
+   *    vertex_it is invalidate here    *
+   * ################################## */
+}
+```
+
+### Access vertex through handle
+
+Expect the iterator, Each vertex has an unique ID in the data graph  which allows the user to directly access the vertex through ID as shown in the following example:
+
+```c++
+GraphType graph;
+/* ########################### *
+ *    initialize graph here    *
+ * ########################### */
+
 typename GUNDAM::VertexHandle<GraphType>::type vertex_handle = graph.FindVertex(0);
 // to simplify the code, use:
 // auto vertex_handle = graph.FindVertex(0);
@@ -28,12 +140,17 @@ if (!vertex_handle) {
 assert(vertex_handle->id() == 0);
 ```
 
-To store the 
-
 ```c++
 // work but low efficiency 
 GraphType0 graph_0;
+/* ############################# *
+ *    initialize graph_0 here    *
+ * ############################# */
+
 GraphType0 graph_1;
+/* ############################# *
+ *    initialize graph_1 here    *
+ * ############################# */
 
 using VertexIDType0 = typename GUNDAM::VertexID<GraphType0>::type;
 using VertexIDType1 = typename GUNDAM::VertexID<GraphType1>::type;
@@ -70,6 +187,10 @@ The above example works but is not an efficient implementation since it requires
 
 ```c++
 GraphType graph;
+/* ########################### *
+ *    initialize graph here    *
+ * ########################### */
+
 using VertexIDType = typename GUNDAM::VertexID<GraphType>::type;
 std::vector<VertexIDType> vertex_id_set_to_collect = {0, 1, 2, 3};
 
@@ -86,11 +207,21 @@ for (const auto& vertex_id : vertex_id_set_to_collect) {
 
 ```
 
-### GraphTypes
+#
+
+## Access edge in graph
+
+### Access edge through iterator
+
+### Access edge through handle
 
 #
 
-#### SmallGraph
+## GraphTypes
+
+#
+
+### SmallGraph
 
 * Does not support index.
 * Does not support attribute on vertex.
@@ -113,7 +244,7 @@ Light-weight graph type for small graph to save memory, does not support index. 
 
 #
 
-#### LargeGraph
+### LargeGraph
 
 * Support index.
 * Support attribute on vertex.
@@ -139,7 +270,7 @@ Use map/set (red-black tree) as low level container, fast to load graph no matte
 
 #
 
-#### LargeGraph2
+### LargeGraph2
 
 * Support index.
 * Support attribute on vertex.
@@ -165,7 +296,7 @@ The only difference compare to LargeGraph is this data type use vector as low le
 
 #
 
-#### Graph
+### Graph
 
 * Support index.
 * Support attribute on vertex, separated or grouped.
@@ -183,46 +314,194 @@ class Graph;
 
 #
 
-### Vertex
-#### VertexHandle
+## Vertex
+### VertexHandle
 ```c++
 using VertexHandleType = typename GUNDAM::VertexHandle<GraphType>::type
 ```
-#### VertexID
+### VertexID
 ```c++
 using VertexIDType = typename GUNDAM::VertexID<GraphType>::type
 ```
-#### VertexLabel
+### VertexLabel
 ```c++
 using VertexLabelType = typename GUNDAM::VertexLabel<GraphType>::type
 ```
-#### VertexAttributeHandle
+### VertexAttributeHandle
 ```c++
 using VertexAttributeHandleType = typename GUNDAM::VertexAttributeHandle<GraphType>::type
 ```
 
 #
 
-### Edge
-#### EdgeHandle 
+## Edge
+### EdgeHandle 
 ```c++
 using EdgeHandleType = typename GUNDAM::EdgeHandle<GraphType>::type
 ```
-#### EdgeID
+### EdgeID
 ```c++
 using EdgeIDType = typename GUNDAM::EdgeID<GraphType>::type
 ```
-#### EdgeLabel
+### EdgeLabel
 ```c++
 using EdgeLabelType = typename GUNDAM::EdgeLabel<GraphType>::type
 ```
-#### EdgeAttributeHandle
+### EdgeAttributeHandle
 ```c++
 using EdgeAttributeHandleType = typename GUNDAM::EdgeAttributeHandle<GraphType>::type
 ```
 
 ## Interface
-Graph
+
+The interface of all graph types are illustrated in [here](/doc/接口统计_分类.pdf). The same method of different graph types have the same semantics and shares this document.
+
+#
+
+### Graph interface
+
+#### VertexBegin()
+
+#### VertexBegin(vertex_label)
+
+#### CountVertex()
+
+#### CountVertex(label)
+
+#### CountEdge()
+
+#### AddVertex(id, label)
+
+#### AddEdge(src_id, dst_id, edge_label, edge_id)
+
+#### Clear()
+
+#### EraseVertex(id) 
+
+#### EraseVertex(vertex_handle)
+
+#### EraseVertex(vertex_iterator)
+
+#### EraseEdge(id)
+
+#### EdgeBegin()
+
+#### FindVertex(id)
+
+#### FindVertex(id, vertex_label)
+
+#### FindEdge(id)
+
+#
+
+### Vertex interface
+
+#### id()
+
+#### label()
+
+#### OutEdgeBegin()
+
+#### InEdgeBegin()
+
+#### OutEdgeBegin(edge_label)
+
+#### InEdgeBegin(edge_label)
+
+#### OutEdgeBegin(edge_label, vertex_handle)
+
+#### InEdgeBegin(edge_label, vertex_handle)
+
+#### OutEdgeBegin(vertex_handle)
+
+#### InEdgeBegin(vertex_handle)
+
+#### CountOutEdgeLabel()
+
+#### CountInEdgeLabel()
+
+#### CountOutVertex()
+
+#### CountInVertex()
+
+#### CountOutVertex(edge_label)
+
+#### CountInVertex(edge_label)
+
+#### CountOutEdge()
+
+#### CountInEdge()
+
+#### CountOutEdge(edge_label)
+
+#### CountInEdge(edge_label)
+
+#### CountOutEdge(vertex_handle)
+
+#### CountInEdge(vertex_handle)
+
+#### CountOutEdge(edge_label, vertex_handle)
+
+#### CountInEdge(edge_label, vertex_handle)
+
+#### CountOutEdge(vertex_handle)
+
+#### CountInEdge(vertex_handle)
+
+
+#### OutVertexBegin()
+
+#### InVertexBegin()
+
+#### OutVertexBegin(edge_label)
+
+#### InVertexBegin(edge_label)
+
+#### AddAttribute(key, value)
+
+#### attribute(key)
+
+#### AttributeBegin()
+
+#### FindAttribute(key)
+
+#### SetAttribute(key)
+
+#### EraseAttribute(attribute_iterator)
+
+#### EraseAttribute(key)
+
+#
+
+### Edge interface
+
+#### id()
+
+#### label()
+
+#### src_id()
+
+#### dst_id()
+
+#### src_handle()
+
+#### dst_handle()
+
+#### AddAttribute(key, value)
+
+#### attribute(key)
+
+#### AttributeBegin()
+
+#### FindAttribute(key)
+
+#### SetAttribute(key)
+
+#### EraseAttribute(attribute_iterator)
+
+#### EraseAttribute(key)
+
+#
 
 ## Match
 
@@ -234,9 +513,9 @@ Graph
 
 ## Algorithem
 
-VF2
+## Algorithem
 
-Dpiso
+[MatchUsingMatch](/doc/prog_doc/match_using_match.md)
 
 Bfs
 
