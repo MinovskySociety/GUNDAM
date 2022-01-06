@@ -27,12 +27,55 @@ inline size_t MatchUsingMatch(
 
 Graph pattern matching, return the number of matches it has found for query_graph in target_graph. Can specify:
 
-* match semantics
-   * isomorphism or homorphism
-* which algorithm to use
-   * support [VF2](/doc/algo_doc/VF2.pdf) and [DagDp](/doc/algo_doc/daf.pdf) now
-* whether to merge neighborhood equivalence class (NEC) in query graph
-   * the definition of NEC see [TurboIso](/doc/algo_doc/turbo_iso.pdf)
+* match_semantics
+  > match semantics, can be configure as:
+  > ```c++
+  > GUNDAM::MatchSemantics::kIsomorphism
+  > ```
+  >  for isomorphism;
+  > ```c++
+  > GUNDAM::MatchSemantics::kHomorphism
+  > ```
+  > for homorphism;
+* match_algorithm
+  > specify which algorithm to use, can be configure as:
+  > ```c++
+  > GUNDAM::MatchSemantics::kVf2
+  > ```
+  >  for [VF2](/doc/algo_doc/VF2.pdf);
+  > ```c++
+  > GUNDAM::MatchSemantics::kDagDp
+  > ```
+  > for [DagDp](/doc/algo_doc/daf.pdf);
+* merge_query_nec_config
+  > whether to merge neighborhood equivalence class (NEC, see [TurboIso](/doc/algo_doc/turbo_iso.pdf)) in query graph, can be configured as:
+  > ```c++
+  > GUNDAM::MergeNecConfig::kMerge
+  > ```
+  > to merge the NEC in query graph;
+  > ```c++
+  > GUNDAM::MergeNecConfig::kNotMerge
+  > ```
+  > not to merge the NEC in query graph;
+  > ```c++
+  > GUNDAM::MergeNecConfig::kAdaptive
+  > ```
+  > merge the NEC in query graph when the target graph is larger than the threshold;
+
+* (some methods) merge_target_nec_config
+  > whether to merge the NEC in target graph (see [BoostIso](/doc/algo_doc/boost_iso.pdf)) in query graph, can be configured as:
+  > ```c++
+  > GUNDAM::MergeNecConfig::kMerge
+  > ```
+  > to merge the NEC in target graph;
+  > ```c++
+  > GUNDAM::MergeNecConfig::kNotMerge
+  > ```
+  > not to merge the NEC in target graph;
+  > ```c++
+  > GUNDAM::MergeNecConfig::kAdaptive
+  > ```
+  > merge the NEC in target graph when the target graph is larger than the threshold;
 
 Input parameters:
 
