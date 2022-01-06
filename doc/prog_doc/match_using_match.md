@@ -247,7 +247,7 @@ assert(ret == match_counter);
 ```
 
 This method also also the user to import constant graph query_graph/target_graph.
-Take a [helper method](#Helper%20method5) as a simple example here:
+Take a [helper method](#helper-method5) as a simple example here:
 
 ```c++
 QueryGraph  query;
@@ -288,7 +288,7 @@ assert(count0 == count7);
 assert(count0 == count8);
 ```
 
-With the same idea, it can be more complicated for the [method](#Helper%20method7) with more parameters:
+With the same idea, it can be more complicated for the [method](#helper-method7) with more parameters:
 
 ```c++
 QueryGraph  query;
