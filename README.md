@@ -505,7 +505,7 @@ The interface of all graph types are illustrated in [here](/doc/接口统计_分
 
 ## Match
 
-[Match](/doc/prog_doc/match.md)
+Pattern matching is one of the the most esensial functions that support most of the useful methods and tools in this library. The class *Match* is the most important interface for pattern matching and is detailed explained in [here](/doc/prog_doc/match.md).
 
 ## MatchUsingMatch
 

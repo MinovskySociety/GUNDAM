@@ -99,7 +99,7 @@ Input parameters:
    >
    > Data graph for graph pattern to match.
 
-* partial_match,
+* partial_match
    > Data type:
    > ```c++
    > GUNDAM::Match<QueryGraphType, 
@@ -110,6 +110,8 @@ Input parameters:
    > Allow the users to specify a parital match from a subset of vertexes in query graph to target graph, this method would complete the import partial match.
    > * The algorithm would first check whether the input partial match is legal, the matching process would be ended if not.
    > * Input an empty match if no partial match has been specified.
+   > 
+   > See also [Match](/doc/prog_doc/match.md).
  
 * candidate_set
    > Data type:
@@ -132,6 +134,8 @@ Input parameters:
    > Prune callback for each match & parital-match during the matching process to control whether continue matching based on the input parital match. If: 
    >  * return true, then mean that all match contains the current parital matches are not needed, would stop the following match
    >  * return false, then do nothing and continue matching
+   > 
+   > See also [Match](/doc/prog_doc/match.md).
 
 * match_callback,
    > Data type:
@@ -143,6 +147,8 @@ Input parameters:
    > Match callback for each match, to decide whether continue the matching process. If:
    >  * return false, then end the matching process
    >  * return true, then do nothing and continue matching
+   > 
+   > See also [Match](/doc/prog_doc/match.md).
 
 * time_limit
    > Data type:
