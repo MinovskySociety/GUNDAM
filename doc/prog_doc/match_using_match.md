@@ -113,13 +113,15 @@ Input parameters:
 
 ## Example
 
+The following example shows how to use this method:
+
 ```c++
 GraphPatternType graph_pattern;
    DataGraphType    data_graph;
 
-/* #############################################
- *    initialize graph_pattern and data_graph
- * #############################################*/
+/* ############################################# *
+ *    initialize graph_pattern and data_graph    *
+ * ############################################# */
 
 using MatchType = GUNDAM::Match<GraphPatternType, 
                                    DataGraphType>;
@@ -138,6 +140,10 @@ using CandidateSetType = std::map<QueryVertexHandle,
                      std::vector<TargetVertexHandle>>;
 
 CandidateSetType candidate_set;
+
+/* ############################## *
+ *    initialize candidate set    *
+ * ############################## */
 if (!_dp_iso_using_match::InitCandidateSet<MatchSemantics::kIsomorphism>(
               graph_pattern,
                  data_graph,
@@ -145,6 +151,10 @@ if (!_dp_iso_using_match::InitCandidateSet<MatchSemantics::kIsomorphism>(
   // initialize failed, there is no legal matching 
   return 0;
 }
+
+/* ########################################################## *
+ *    refine candidate set, equivalent to dual simulation     *
+ * ########################################################## */
 if (!_dp_iso_using_match::RefineCandidateSet(
               graph_pattern,
                  data_graph,
@@ -192,6 +202,107 @@ auto ret = GUNDAM::MatchUsingMatch<
 
 assert(ret == match_counter);
 ```
+
+This method also also the user to import constant graph query_graph/target_graph.
+Take a [helper method](#Helper%20method5) as a simple example here:
+
+```c++
+QueryGraph  query;
+/* ###################### *
+ *    initialize query    *
+ * ###################### */
+
+TargetGraph target;
+/* ####################### *
+ *    initialize target    *
+ * ####################### */
+
+auto&  query_ref =  query; // reference
+auto& target_ref = target; // reference
+
+const auto&  query_const_ref =  query; // constant reference
+const auto& target_const_ref = target; // constant reference
+
+// the following methods works the same:
+size_t count0 = GUNDAM::MatchUsingMatch(query, target);
+size_t count1 = GUNDAM::MatchUsingMatch(query, target_ref);
+size_t count2 = GUNDAM::MatchUsingMatch(query, target_const_ref);
+assert(count0 == count1);
+assert(count0 == count2);
+
+size_t count3 = GUNDAM::MatchUsingMatch(query_ref, target);
+size_t count4 = GUNDAM::MatchUsingMatch(query_ref, target_ref);
+size_t count5 = GUNDAM::MatchUsingMatch(query_ref, target_const_ref);
+assert(count0 == count3);
+assert(count0 == count4);
+assert(count0 == count5);
+
+size_t count6 = GUNDAM::MatchUsingMatch(query_const_ref, target);
+size_t count7 = GUNDAM::MatchUsingMatch(query_const_ref, target_ref);
+size_t count8 = GUNDAM::MatchUsingMatch(query_const_ref, target_const_ref);
+assert(count0 == count6);
+assert(count0 == count7);
+assert(count0 == count8);
+```
+
+With the same idea, it can be more complicated for the [method](#Helper%20method7) with more parameters:
+
+```c++
+QueryGraph  query;
+/* ###################### *
+ *    initialize query    *
+ * ###################### */
+
+TargetGraph target;
+/* ####################### *
+ *    initialize target    *
+ * ####################### */
+
+auto&  query_ref =  query; // reference
+auto& target_ref = target; // reference
+
+const auto&  query_const_ref =  query; // constant reference
+const auto& target_const_ref = target; // constant reference
+
+// the following methods works the same:
+GUNDAM::MatchSet<QueryGraph, TargetGraph> match_result0;
+size_t count0 = GUNDAM::MatchUsingMatch(query, target, match_result0);
+assert(count0 == match_result0.size());
+
+GUNDAM::MatchSet<QueryGraph, TargetGraph> match_result1;
+size_t count1 = GUNDAM::MatchUsingMatch(query, target_ref, match_result1);
+assert(count1 == match_result1.size());
+
+GUNDAM::MatchSet<QueryGraph, const TargetGraph> match_result2;
+size_t count2 = GUNDAM::MatchUsingMatch(query, target_const_ref, match_result2);
+assert(count2 == match_result2.size());
+
+GUNDAM::MatchSet<QueryGraph, TargetGraph> match_result3;
+size_t count3 = GUNDAM::MatchUsingMatch(query_ref, target, match_result3);
+assert(count3 == match_result3.size());
+
+GUNDAM::MatchSet<QueryGraph, TargetGraph> match_result4;
+size_t count4 = GUNDAM::MatchUsingMatch(query_ref, target_ref, match_result4);
+assert(count4 == match_result4.size());
+
+GUNDAM::MatchSet<QueryGraph, const TargetGraph> match_result5;
+size_t count5 = GUNDAM::MatchUsingMatch(query_ref, target_const_ref, match_result5);
+assert(count5 == match_result5.size());
+
+GUNDAM::MatchSet<const QueryGraph, TargetGraph> match_result6;
+size_t count6 = GUNDAM::MatchUsingMatch(query_const_ref, target, match_result6);
+assert(count6 == match_result6.size());
+
+GUNDAM::MatchSet<const QueryGraph, TargetGraph> match_result7;
+size_t count7 = GUNDAM::MatchUsingMatch(query_const_ref, target_ref, match_result7);
+assert(count7 == match_result7.size());
+
+GUNDAM::MatchSet<const QueryGraph, const TargetGraph> match_result8;
+size_t count8 = GUNDAM::MatchUsingMatch(query_const_ref, target_const_ref, match_result8);
+assert(count8 == match_result8.size());
+```
+
+More examples see [here](/test/test_match_using_match.cc).
 
 ## Helper methods
 
@@ -247,6 +358,10 @@ using CandidateSetType = std::map<QueryVertexHandle,
                      std::vector<TargetVertexHandle>>;
 
 CandidateSetType candidate_set;
+
+/* ############################## *
+ *    initialize candidate set    *
+ * ############################## */
 if (!_dp_iso_using_match::InitCandidateSet<MatchSemantics::kIsomorphism>(
               graph_pattern,
                  data_graph,
@@ -254,6 +369,10 @@ if (!_dp_iso_using_match::InitCandidateSet<MatchSemantics::kIsomorphism>(
   // initialize failed, there is no legal matching 
   return 0;
 }
+
+/* ########################################################## *
+ *    refine candidate set, equivalent to dual simulation     *
+ * ########################################################## */
 if (!_dp_iso_using_match::RefineCandidateSet(
               graph_pattern,
                  data_graph,
@@ -312,7 +431,6 @@ inline size_t MatchUsingMatch(
 
 Match begins in the imported candidate set, support prune callback and match callback.
 
-
 #### Example
 
 ```c++
@@ -330,6 +448,10 @@ using CandidateSetType = std::map<QueryVertexHandle,
                      std::vector<TargetVertexHandle>>;
 
 CandidateSetType candidate_set;
+
+/* ############################## *
+ *    initialize candidate set    *
+ * ############################## */
 if (!_dp_iso_using_match::InitCandidateSet<MatchSemantics::kIsomorphism>(
               graph_pattern,
                  data_graph,
@@ -337,6 +459,10 @@ if (!_dp_iso_using_match::InitCandidateSet<MatchSemantics::kIsomorphism>(
   // initialize failed, there is no legal matching 
   return 0;
 }
+
+/* ########################################################## *
+ *    refine candidate set, equivalent to dual simulation     *
+ * ########################################################## */
 if (!_dp_iso_using_match::RefineCandidateSet(
               graph_pattern,
                  data_graph,
@@ -399,8 +525,8 @@ template <enum MatchSemantics match_semantics
           typename  QueryGraph,
           typename TargetGraph>
 inline size_t MatchUsingMatch(
-        QueryGraph&  query_graph,
-       TargetGraph& target_graph,
+              QueryGraph&  query_graph,
+             TargetGraph& target_graph,
   const Match<QueryGraph, 
              TargetGraph>& partial_match,
   const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& prune_callback,
@@ -411,6 +537,17 @@ inline size_t MatchUsingMatch(
 #### Description
 
 Match begins at the input partial_match, would check whether the input partial is legal. Support prune callback and match callback.
+
+#### Example
+
+```c++
+GUNDAM::MatchUsingMatch(query_graph,
+                       target_graph,
+                      partial_match,
+                     prune_callback,
+                     match_callback,
+                         time_limit);
+```
 
 ### Helper method3
 

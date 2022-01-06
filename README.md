@@ -107,7 +107,7 @@ template <class VertexIDType, class VertexLabelType,
 class SmallGraph;
 ```
 #
-Explanation
+Description
 
 Light-weight graph type for small graph to save memory, does not support index. Neither support attribute on vertex nor edge.
 
@@ -131,7 +131,7 @@ class LargeGraph;
 ```
 
 #
-Explanation
+Description
 
 Heavy-weight graph type for large graph for efficiency. Support index and also support attribute on both vertex and edge.
 
@@ -157,7 +157,7 @@ class LargeGraph2;
 ```
 
 #
-Explanation
+Description
 
 Heavy-weight graph type for large graph for efficiency. Support index and also support attribute on both vertex and edge.
 
@@ -224,11 +224,15 @@ using EdgeAttributeHandleType = typename GUNDAM::EdgeAttributeHandle<GraphType>:
 ## Interface
 Graph
 
-## match
+## Match
 
 [Match](/doc/prog_doc/match.md)
 
-## algorithem
+## MatchUsingMatch
+
+[MatchUsingMatch](/doc/prog_doc/match_using_match.md)
+
+## Algorithem
 
 VF2
 
@@ -238,9 +242,9 @@ Bfs
 
 Dfs
 
-## tools
+## Tools
 
 [tools](/doc/prog_doc/tools.md)
 
-## works with publication
-![](doc/images/all_works.svg)
+## Works with publication
+![](/doc/images/all_works.svg)
