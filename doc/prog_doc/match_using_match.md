@@ -25,7 +25,9 @@ inline size_t MatchUsingMatch(
 
 ## Description
 
-Graph pattern matching, return the number of matches it has found for query_graph in target_graph. Can specify:
+Graph pattern matching, return the number of matches it has found for query_graph in target_graph.
+
+## Template parameters
 
 * match_semantics
   > match semantics, can be configure as:
@@ -77,7 +79,7 @@ Graph pattern matching, return the number of matches it has found for query_grap
   > ```
   > merge the NEC in target graph when the target graph is larger than the threshold;
 
-Input parameters:
+## Parameters
 
 * query_graph
    > Data type:
