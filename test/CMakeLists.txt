@@ -73,6 +73,10 @@ add_executable (test_link "test_link.cc")
 target_link_libraries(test_link GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_link)
 
+add_executable (test_star "test_star.cc")
+target_link_libraries(test_star GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_star)
+
 add_executable (test_diameter "test_diameter.cc")
 target_link_libraries(test_diameter GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_diameter)
