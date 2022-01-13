@@ -181,7 +181,7 @@ Output:
 ```
 label of vertex 1: 0
 label of vertex 2: 1
-label of vertex 3: 2
+label of vertex 3: 0
 ```
 
 Such a method correct but has limited efficiency and is recommand to be used as least as possible. For higher efficiency, the vertexes should be [accessed through handle](#access-vertex-through-handle) carefully.
