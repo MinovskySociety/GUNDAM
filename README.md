@@ -18,9 +18,9 @@ Interface of all graph types see [here](/doc/接口统计_分类.pdf). Detailed 
 
 #
 
-## Initialization
+## Graph construction
 
-### Graph construction
+### Manual construction
 
 The following examples show how to construct a graph with [SmallGraph](/include/gundam/graph_type/small_graph.h), [other graph types](/doc/prog_doc/graph_types.md) work the same:
 
