@@ -20,24 +20,171 @@ Interface of all graph types see [here](/doc/接口统计_分类.pdf). Detailed 
 
 ## Initialization
 
-### Load graph from CSV file
+### Graph construction
 
-### Modify graph
+The following examples show how to construct a graph with [SmallGraph](/include/graph_type/small_graph.h), [other graph types](/doc/prog_doc/graph_types.md) work the same:
 
-##### Add Vertex
+```c++
+/********************************
+ * demonstration of the graph   *
+ * to construct:                *
+ *    3 <- 1 <- 2               *
+ ********************************/
 
-##### Erase Vertex
+using GraphType = GUNDAM::SmallGraph<int, // VertexIDType
+                                     int, // VertexLabelType
+                                     int, //   EdgeIDType
+                                     int>;//   EdgeLabelType
 
-##### Add Edge
+GraphType g0;
+// add vertexes
+g0.AddVertex(1, 0);
+g0.AddVertex(2, 1);
+g0.AddVertex(3, 0);
 
-##### Erase Edge
+// add edges
+g0.AddEdge(1, 3, 42, 1);
+g0.AddEdge(2, 1, 42, 2);
+
+std::cout << "g0.CountVertex(): " << g0.CountVertex() << std::endl
+          << "g0.CountEdge():   " << g0.CountEdge()   << std::endl;
+```
+
+The output would be:
+```
+g0.CountVertex(): 3
+g0.CountEdge():   2
+```
+
+A more complicated example with bi-directional edges:
+
+```c++
+/******************************
+ * demonstration of the graph *
+ * to construct:              *
+ *    1 -> 2 -> 4             *
+ *    |  / |  / |             *
+ *    V /  V /  V             *
+ *    3 -> 5 -> 7             *
+ *    |  / |  / |             *
+ *    V /  V /  V             *
+ *    6 -> 8 -> 9             *
+ ******************************/
+
+using GraphType = GUNDAM::SmallGraph<int, // VertexIDType
+                                     int, // VertexLabelType
+                                     int, //   EdgeIDType
+                                     int>;//   EdgeLabelType
+
+GraphType g1;
+
+// add vertexes
+g1.AddVertex(1, 0);
+g1.AddVertex(2, 1);
+g1.AddVertex(3, 1);
+g1.AddVertex(4, 2);
+g1.AddVertex(5, 2);
+g1.AddVertex(6, 2);
+g1.AddVertex(7, 3);
+g1.AddVertex(8, 3);
+g1.AddVertex(9, 4);
+
+// add edges
+g1.AddEdge(1, 2, 42, 1);
+g1.AddEdge(1, 3, 42, 2);
+g1.AddEdge(2, 3, 42, 3);
+g1.AddEdge(3, 2, 42, 4);
+g1.AddEdge(2, 4, 42, 5);
+g1.AddEdge(2, 5, 42, 6);
+g1.AddEdge(3, 5, 42, 7);
+g1.AddEdge(3, 6, 42, 8);
+g1.AddEdge(4, 5, 42, 9);
+g1.AddEdge(5, 4, 42, 10);
+g1.AddEdge(5, 6, 42, 11);
+g1.AddEdge(6, 5, 42, 12);
+g1.AddEdge(4, 7, 42, 13);
+g1.AddEdge(5, 7, 42, 14);
+g1.AddEdge(5, 8, 42, 15);
+g1.AddEdge(6, 8, 42, 16);
+g1.AddEdge(7, 8, 42, 17);
+g1.AddEdge(8, 7, 42, 18);
+g1.AddEdge(7, 9, 42, 19);
+g1.AddEdge(8, 9, 42, 20);
+
+std::cout << "g1.CountVertex(): " << g1.CountVertex() << std::endl
+          << "g1.CountEdge():   " << g1.CountEdge()   << std::endl;
+```
+
+The output would be:
+```
+g1.CountVertex(): 9
+g1.CountEdge():   20
+```
+
+The detailed explanation of the relative methods, e.g. *AddVertex*, *AddEdge*, see [here](/doc/prog_doc/graph.md).
+
+### Load graph from CSV files
+
+Except the manual construction shown above, users are also allowed to directly load the data graph from the CSV files. The following example shows how a graph is stored in CSV files and how to load it.
+
+All vertexes in the graph is stored in example_v.csv as:
+
+```sh
+$ cat ./example_v.csv
+vertex_id:int64,label_id:int
+1,0
+2,1
+3,0
+```
+
+And all edges are stored in example_e.csv as shown below:
+
+```sh
+$ cat ./example_e.csv
+edge_id:int64,source_id:int64,target_id:int64,label_id:int
+1,1,3,42
+2,2,1,42
+```
+
+The following code show how to load the above two csv files to construct the data graph:
+
+```c++
+using GraphType = GUNDAM::SmallGraph<int, int, int, int>;
+
+GraphType g0;
+GUNDAM::ReadCSVGraph(g0, "./example_v.csv",
+                         "./example_e.csv");
+```
+
+The *g0* load from the csv files in this example is exactly the same as the *g0* constructed manually [above](#graph-construction).
+
+The detailed illustration of CSV format see [here](/doc/user_doc/csv_format.md), and the detailed explanation of IO methods see [here](/doc/prog_doc/io.md).
 
 #
 
 ## Access vertex in graph
 
-GUNDAM provides a graph-level abstraction that only allows programers to access *Vertex* through the *Handle* and *Iterator*. 
-Detailed vertex-level interface see [here](/doc/prog_doc/vertex.md).
+GUNDAM provides a graph-level abstraction that only allows users to access *Vertex* through *Handle* and *Iterator*. 
+The graph-level methods to get the *Handle* and *Iterator* see [here](/doc/prog_doc/graph.md), the detailed vertex-level interface see [here](/doc/prog_doc/vertex.md).
+
+### Access vertex through id
+
+Each vertex has an unique ID in the data graph which allows the user to directly access the vertex through. Take the [*g0*](#graph-construction) constructed above as an example:
+
+```c++
+std::cout << "label of vertex 1: " << g0.FindVertex(1)->label() << std::endl;
+std::cout << "label of vertex 2: " << g0.FindVertex(2)->label() << std::endl;
+std::cout << "label of vertex 3: " << g0.FindVertex(3)->label() << std::endl;
+```
+
+Output:
+```
+label of vertex 1: 0
+label of vertex 2: 1
+label of vertex 3: 2
+```
+
+Such a method correct but has limited efficiency and is recommand to be used as least as possible. For higher efficiency, the vertexes should be [accessed through handle](#access-vertex-through-handle) carefully.
 
 ### Access vertex through iterator
 
@@ -52,12 +199,33 @@ GraphType graph;
 for (auto vertex_it = graph.VertexBegin();
          !vertex_it.IsDone();
           vertex_it++) {
-  std::cout << "accessing vertex: " << vertex_it->id() << std::endl;
+  std::cout << "accessing vertex id: " << vertex_it->id()    << std::endl
+            << "              label: " << vertex_it->label() << std::endl;
   /* ########################################### *
    *     do something through vertex_it here     *
    * ########################################### */
 }
 ```
+
+Take the graph [*g0*](#graph-construction) constructed above as an example, we have:
+
+```c++
+for (auto vertex_it = g0.VertexBegin();
+         !vertex_it.IsDone();
+          vertex_it++) {
+  std::cout << "accessing vertex id: " << vertex_it->id()
+                         << " label: " << vertex_it->label() << std::endl;
+}
+```
+
+Output:
+```
+accessing vertex id: 1 label: 0
+accessing vertex id: 2 label: 1
+accessing vertex id: 3 label: 0
+```
+
+It should be notice that the above access order of vertexes might variety between different [graph types](/doc/prog_doc/graph_types.md), different graph objects with the same type and even the same graph object after modification.
 
 For the graph types that support graph-level vertex-label-index, it is also allowed to iterate over all vertexes with the specified label:
 
@@ -72,7 +240,7 @@ for (auto vertex_it = graph.VertexBegin(vertex_label);
          !vertex_it.IsDone();
           vertex_it++) {
   std::cout << "accessing vertex: " << vertex_it->id() 
-            <<      " with label: " << vertex_it->label() << std::endl;
+            <<           " label: " << vertex_it->label() << std::endl;
   /* ########################################### *
    *     do something through vertex_it here     *
    * ########################################### */
@@ -95,14 +263,38 @@ for (auto vertex_it = graph.VertexBegin();
     continue;
   }
   std::cout << "accessing vertex: " << vertex_it->id() 
-            <<      " with label: " << vertex_it->label() << std::endl;
+            <<           " label: " << vertex_it->label() << std::endl;
   /* ########################################### *
    *     do something through vertex_it here     *
    * ########################################### */
 }
 ```
 
-It should be noticed that, similiar to the containers in STL, modifying the graph may invalidate the iterator:
+Since *SmallGraph* does not have graph-level vertex-label-index (see [here](/doc/prog_doc/graph_types.md)), the *LargeGraph* is utilized for the example here:
+
+```c++
+using GraphType = GUNDAM::LargeGraph<int, int, int,
+                                     int, int, int>;
+GraphType g0;
+GUNDAM::ReadCSVGraph(g0, "./example_v.csv",
+                         "./example_e.csv");
+for (auto vertex_it = g0.VertexBegin(0);
+         !vertex_it.IsDone();
+          vertex_it++) {
+  std::cout << "accessing vertex id: " << vertex_it->id()
+                         << " label: " << vertex_it->label() << std::endl;
+}
+```
+
+Output:
+```
+accessing vertex id: 1 label: 0
+accessing vertex id: 3 label: 0
+```
+
+Similarly, the access order of the vertexes is also not stable.
+
+Also similiar to the containers in STL, modifying the graph may lead to the invalidation of the iterator:
 
 ```c++
 GraphType graph;
@@ -123,7 +315,7 @@ for (auto vertex_it = graph.VertexBegin();
 
 ### Access vertex through handle
 
-Expect the iterator, Each vertex has an unique ID in the data graph  which allows the user to directly access the vertex through ID as shown in the following example:
+Except through id and iterator, vertexes are also allowed to be access through *Handle*, which is a recommanded high-efficient manner although needs to be used carefully.
 
 ```c++
 GraphType graph;
