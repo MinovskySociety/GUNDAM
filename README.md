@@ -317,23 +317,118 @@ for (auto vertex_it = graph.VertexBegin();
 
 Except through id and iterator, vertexes are also allowed to be access through *Handle*, which is a recommanded high-efficient manner although needs to be used carefully.
 
-```c++
-GraphType graph;
-/* ########################### *
- *    initialize graph here    *
- * ########################### */
+Take the [*g0*](#graph-construction) constructed above as an example, there are:
 
-typename GUNDAM::VertexHandle<GraphType>::type vertex_handle = graph.FindVertex(0);
+```c++
+using VertexHandleType = typename GUNDAM::VertexHandle<GraphType>::type;
+VertexHandleType vertex_0_handle = g0.FindVertex(0);
 // to simplify the code, use:
 // auto vertex_handle = graph.FindVertex(0);
-if (!vertex_handle) {
-  std::cout << "graph does not have vertex with id 0" << std::endl;
-  return;
+if (!vertex_0_handle) {
+  std::cout << "g0 does not have vertex with id 0" << std::endl;
 }
-assert(vertex_handle->id() == 0);
+else {
+  std::cout << "vertex 0 has label: " << vertex_0_handle->label() << std::endl;
+}
+
+VertexHandleType vertex_1_handle = g0.FindVertex(1);
+// to simplify the code, use:
+// auto vertex_handle = graph.FindVertex(0);
+if (!vertex_1_handle) {
+  std::cout << "g0 does not have vertex with id 1" << std::endl;
+}
+else {
+  std::cout << "vertex 1 has label: " << vertex_1_handle->label() << std::endl;
+}
 ```
 
+Output:
+```
+g0 does not have vertex with id 0
+vertex 1 has label: 0
+```
+
+*Handle* can also convert from *Iterator* as:
+
 ```c++
+using VertexHandleType = typename GUNDAM::VertexHandle<GraphType>::type;
+
+for (auto vertex_it = g0.VertexBegin();
+         !vertex_it.IsDone();
+          vertex_it++) {
+  VertexHandleType vertex_handle = vertex_it;
+  std::cout << "accessing vertex id: " << vertex_handle->id()
+                         << " label: " << vertex_handle->label() << std::endl;
+}
+```
+
+Output:
+
+```
+accessing vertex id: 1 label: 0
+accessing vertex id: 2 label: 1
+accessing vertex id: 3 label: 0
+```
+
+The access order is not stable.
+
+The *Hanldes* for the same vertex in the same graph object are equal to each others no matter how they are obtained:
+
+```c++
+using VertexHandleType = typename GUNDAM::VertexHandle<GraphType>::type;
+
+VertexHandleType vertex_1_handle = g0.FindVertex(1);
+
+const auto& g0_const_ref = g0;
+
+VertexHandleType vertex_1_const_handle = g0_const_ref.FindVertex(1);
+
+std::cout << "vertex_1_handle == vertex_1_const_handle: "
+          <<  vertex_1_handle == vertex_1_const_handle << std::endl;
+
+for (auto vertex_it = g0.VertexBegin();
+         !vertex_it.IsDone();
+          vertex_it++) {
+  if (vertex_it->id() != 1) {
+    continue;
+  }
+  std::cout << "vertex_1_handle == vertex_it: "
+            <<  vertex_1_handle == vertex_it << std::endl;
+  break;
+}
+
+for (auto vertex_cit = g0_const_ref.VertexBegin();
+         !vertex_cit.IsDone();
+          vertex_cit++) {
+  if (vertex_cit->id() != 1) {
+    continue;
+  }
+  std::cout << "vertex_1_handle == vertex_cit: "
+            <<  vertex_1_handle == vertex_cit << std::endl;
+  break;
+}
+```
+
+Output:
+
+```
+vertex_1_handle == vertex_1_const_handle: 1
+vertex_1_handle == vertex_it: 1
+vertex_1_handle == vertex_cit: 1
+```
+
+It should be noticed that comparing two vertex handles from different graph object would bring undefined behaviour:
+
+```c++
+GUNDAM::SmallGraph<int, int, int, int> g0_copy(g0);
+
+std::cout << "g0_copy.FindVertex(1) == g0.FindVertex(1): "
+          <<  g0_copy.FindVertex(1) == g0.FindVertex(1) << std::endl;
+```
+
+The behaviour is undefined and the output is unpredictable.
+
+<!-- ```c++
 // work but low efficiency 
 GraphType0 graph_0;
 /* ############################# *
@@ -398,7 +493,7 @@ for (const auto& vertex_id : vertex_id_set_to_collect) {
   vertex_handle_set_collected.emplace_back(vertex_handle);
 }
 
-```
+``` -->
 
 #
 
