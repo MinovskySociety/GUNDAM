@@ -36,7 +36,8 @@ Interface of all graph types see [here](/doc/接口统计_分类.pdf). Detailed 
 
 ## Access vertex in graph
 
-GUNDAM provides a graph-level abstraction that only allows programers to access *Vertex* through the *Handle* and *Iterator*.
+GUNDAM provides a graph-level abstraction that only allows programers to access *Vertex* through the *Handle* and *Iterator*. 
+Detailed vertex-level interface see [here](/doc/prog_doc/vertex.md).
 
 ### Access vertex through iterator
 
@@ -211,9 +212,7 @@ for (const auto& vertex_id : vertex_id_set_to_collect) {
 
 ## Access edge in graph
 
-### Access edge through iterator
-
-### Access edge through handle
+Detailed edge-level interface see [here](/doc/prog_doc/edge.md).
 
 ## Match
 

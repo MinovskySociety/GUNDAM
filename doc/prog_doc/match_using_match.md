@@ -137,7 +137,7 @@ Graph pattern matching, return the number of matches it has found for query_grap
    >  * return true, then mean that all match contains the current parital matches are not needed, would stop the following match
    >  * return false, then do nothing and continue matching
    > 
-   > See also [Match](/doc/prog_doc/match.md).
+   > See also [Match](/doc/prog_doc/match.md) and [Callback](/doc/prog_doc/callback.md).
 
 * match_callback,
    > Data type:
@@ -150,7 +150,7 @@ Graph pattern matching, return the number of matches it has found for query_grap
    >  * return false, then end the matching process
    >  * return true, then do nothing and continue matching
    > 
-   > See also [Match](/doc/prog_doc/match.md).
+   > See also [Match](/doc/prog_doc/match.md) and [Callback](/doc/prog_doc/callback.md).
 
 * time_limit
    > Data type:

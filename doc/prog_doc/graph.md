@@ -4,7 +4,7 @@
 
 The interface of all graph types are illustrated in [here](/doc/接口统计_分类.pdf). The same method of different graph types have the same semantics and shares this document.
 
-The vertex level interface see [here](/doc/prog_doc/vertex.md) and the edge level interface see [here](/doc/prog_doc/edge.md).
+The vertex-level interface see [here](/doc/prog_doc/vertex.md) and the edge-level interface see [here](/doc/prog_doc/edge.md).
 
 
 # 
