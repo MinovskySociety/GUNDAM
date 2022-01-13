@@ -184,7 +184,7 @@ label of vertex 2: 1
 label of vertex 3: 0
 ```
 
-Such a method correct but has limited efficiency and is recommand to be used as least as possible. For higher efficiency, the vertexes should be [accessed through handle](#access-vertex-through-handle) carefully.
+Such a method is correct but has limited efficiency and is suggested to be used *as least as possible*. For higher efficiency, the vertexes should be [accessed through handle](#access-vertex-through-handle) carefully.
 
 ### Access vertex through iterator
 
@@ -199,8 +199,8 @@ GraphType graph;
 for (auto vertex_it = graph.VertexBegin();
          !vertex_it.IsDone();
           vertex_it++) {
-  std::cout << "accessing vertex id: " << vertex_it->id()    << std::endl
-            << "              label: " << vertex_it->label() << std::endl;
+  std::cout << "accessing vertex id: " << vertex_it->id()
+                         << " label: " << vertex_it->label() << std::endl;
   /* ########################################### *
    *     do something through vertex_it here     *
    * ########################################### */
@@ -239,8 +239,8 @@ typename GUNDAM::VertexLabel<GraphType>::type vertex_label = /* some vertex labe
 for (auto vertex_it = graph.VertexBegin(vertex_label);
          !vertex_it.IsDone();
           vertex_it++) {
-  std::cout << "accessing vertex: " << vertex_it->id() 
-            <<           " label: " << vertex_it->label() << std::endl;
+  std::cout << "accessing vertex id: " << vertex_it->id()
+                         << " label: " << vertex_it->label() << std::endl;
   /* ########################################### *
    *     do something through vertex_it here     *
    * ########################################### */
@@ -262,8 +262,8 @@ for (auto vertex_it = graph.VertexBegin();
   if (vertex_it->label() != vertex_label) {
     continue;
   }
-  std::cout << "accessing vertex: " << vertex_it->id() 
-            <<           " label: " << vertex_it->label() << std::endl;
+  std::cout << "accessing vertex id: " << vertex_it->id()
+                         << " label: " << vertex_it->label() << std::endl;
   /* ########################################### *
    *     do something through vertex_it here     *
    * ########################################### */
