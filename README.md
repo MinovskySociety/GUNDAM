@@ -131,7 +131,7 @@ All vertexes in the graph is stored in example_v.csv as:
 
 ```sh
 $ cat ./example_v.csv
-vertex_id:int64,label_id:int
+vertex_id:int,label_id:int
 1,0
 2,1
 3,0
@@ -141,7 +141,7 @@ And all edges are stored in example_e.csv as shown below:
 
 ```sh
 $ cat ./example_e.csv
-edge_id:int64,source_id:int64,target_id:int64,label_id:int
+edge_id:int,source_id:int,target_id:int,label_id:int
 1,1,3,42
 2,2,1,42
 ```
@@ -158,7 +158,7 @@ GUNDAM::ReadCSVGraph(g0, "./example_v.csv",
 
 The *g0* load from the csv files in this example is exactly the same as the *g0* constructed manually [above](#graph-construction).
 
-The detailed illustration of CSV format see [here](/doc/user_doc/csv_format.md), and the detailed explanation of IO methods see [here](/doc/prog_doc/io.md).
+The detailed illustration of CSV format see [here](/doc/user_doc/csv_format.md), and the detailed explanation of IO methods see [here](/doc/prog_doc/csv_graph.md).
 
 #
 
