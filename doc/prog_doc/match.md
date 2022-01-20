@@ -395,7 +395,6 @@ map0to2_it maps vertex: 2 to vertex 1
 
 # MatchSet
 
-
 ```c++
 template <typename SrcGraphType,
           typename DstGraphType>

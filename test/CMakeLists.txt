@@ -33,9 +33,9 @@ add_executable (test_match_using_match "test_match_using_match.cc")
 target_link_libraries(test_match_using_match GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_match_using_match)
 
-add_executable (test_multi_query_match_using_match "test_multi_query_match_using_match.cc")
-target_link_libraries(test_multi_query_match_using_match GTest::GTest GTest::Main)
-gtest_add_tests(TARGET test_multi_query_match_using_match)
+# add_executable (test_multi_query_match_using_match "test_multi_query_match_using_match.cc")
+# target_link_libraries(test_multi_query_match_using_match GTest::GTest GTest::Main)
+# gtest_add_tests(TARGET test_multi_query_match_using_match)
 
 add_executable (test_bfs "test_bfs.cc")
 target_link_libraries(test_bfs GTest::GTest GTest::Main)
