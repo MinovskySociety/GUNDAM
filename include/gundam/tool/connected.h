@@ -13,8 +13,10 @@ template <bool bidirectional = true,
 inline bool Connected(const GraphType& graph) {
   // just begin dfs at a random vertex and find whether
   // it can reach all vertexes
+  assert(graph.CountVertex() > 0);
   typename VertexHandle<const GraphType>::type
            vertex_handle = graph.VertexBegin();
+  assert(vertex_handle);
   return GUNDAM::Dfs<bidirectional>(graph,vertex_handle)
                                  == graph.CountVertex();
 }

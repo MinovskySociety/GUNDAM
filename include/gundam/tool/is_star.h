@@ -2,6 +2,8 @@
 #define _GUNDAM_IS_STAR_H
 
 #include "gundam/type_getter/vertex_handle.h"
+#include "gundam/tool/connected.h"
+#include "gundam/tool/is_link.h"
 
 namespace GUNDAM {
 
@@ -13,27 +15,153 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
               StarEndPoints(GraphType& graph) {
   using VertexHandleType = typename VertexHandle<GraphType>::type;
   std::vector<VertexHandleType> end_points;
-  /* ############################# *
-   * #                           # *
-   * #    complete logic here    # *
-   * #                           # *
-   * ############################# */
+  end_points.clear();
 
-  // fail to find the end point, is not a star
-  return std::pair(end_points, VertexHandleType());
+  static_assert(bidirectional, "have not implemented bidirectional=false yet!");
+
+  if (!Connected<true>(graph)) {
+    return std::pair(std::vector<VertexHandleType>(), 
+                                 VertexHandleType ());
+  }
+
+  // check whether the pattern is a path
+  auto [src_handle, dst_handle] = LinkEndPoints<true>(graph);
+  if (src_handle) {
+    return std::pair(std::vector<VertexHandleType>{src_handle, dst_handle}, 
+                                 VertexHandleType ());
+  }
+
+  // if (graph.CountVertex() == 1) {
+  //   // the pattern is an isolated vertex, which is considered as the centre of a star
+  //   return std::pair(end_points, graph.VertexBegin());
+  // }
+
+  // try to find centre of the star
+
+  std::vector<VertexHandleType> centre_candidates;
+  for (auto vertex_it = graph.VertexBegin();
+          !vertex_it.IsDone();
+          vertex_it++) {
+    size_t in_out_degree = vertex_it->CountInEdge() + vertex_it->CountOutEdge();
+    if (in_out_degree > 2) {
+      centre_candidates.emplace_back(vertex_it);
+    }
+  }
+
+
+  // if the pattern has more than 1 centre
+  // then it is not a star
+  if (centre_candidates.size() != 1) {
+    return std::pair(std::vector<VertexHandleType>(), 
+                                 VertexHandleType ());
+  }
+  assert(centre_candidates.size() == 1);
+
+  VertexHandleType centre = centre_candidates[0];
+
+  // check the incoming paths of the centre
+  for (auto in_edge_it = centre->InEdgeBegin();
+            !in_edge_it.IsDone();
+            in_edge_it++) {
+    VertexHandleType current_v = in_edge_it->src_handle();
+    VertexHandleType prev_v = centre;
+    while (true) {
+      // endpoint of a path
+      if (current_v->CountInEdge() + current_v->CountOutEdge() == 1){
+        end_points.emplace_back(current_v);
+        break;
+      }
+      for (auto c_in_edge_it = current_v->InEdgeBegin();
+                !c_in_edge_it.IsDone();
+                c_in_edge_it++) {
+        if (c_in_edge_it->src_handle() == centre && centre != prev_v) {
+          return std::pair(std::vector<VertexHandleType>(), 
+                                       VertexHandleType ());
+        }
+        if (c_in_edge_it->src_handle() == prev_v) continue;
+
+        prev_v = current_v;
+        current_v = c_in_edge_it->src_handle();
+        break;
+      }
+
+      for (auto c_out_edge_it = current_v->OutEdgeBegin();
+                !c_out_edge_it.IsDone();
+                c_out_edge_it++) {
+        if (c_out_edge_it->dst_handle() == centre && centre != prev_v) {
+          return std::pair(std::vector<VertexHandleType>(), 
+                                       VertexHandleType ());
+        }
+        if (c_out_edge_it->dst_handle() == prev_v) continue;
+
+        prev_v = current_v;
+        current_v = c_out_edge_it->dst_handle();
+        break;          
+      }
+    }
+  }
+
+  // check outgoing paths of the centre
+  for (auto out_edge_it = centre->OutEdgeBegin();
+            !out_edge_it.IsDone();
+            out_edge_it++) {
+    VertexHandleType current_v = out_edge_it->dst_handle();
+    VertexHandleType prev_v = centre;
+    while (true) {
+      // endpoint of a path
+      if (current_v->CountInEdge() + current_v->CountOutEdge() == 1) {
+        end_points.emplace_back(current_v);
+        break;
+      }
+      for (auto c_in_edge_it = current_v->InEdgeBegin();
+                !c_in_edge_it.IsDone();
+                c_in_edge_it++) {
+        if (c_in_edge_it->src_handle() == centre && centre != prev_v) {
+          return std::pair(std::vector<VertexHandleType>(), 
+                                       VertexHandleType ());
+        }
+        if (c_in_edge_it->src_handle() == prev_v) continue;
+
+        prev_v = current_v;
+        current_v = c_in_edge_it->src_handle();
+        break;
+      }
+
+      for (auto c_out_edge_it = current_v->OutEdgeBegin();
+                !c_out_edge_it.IsDone();
+                c_out_edge_it++) {
+        if (c_out_edge_it->dst_handle() == centre && centre != prev_v) {
+          return std::pair(std::vector<VertexHandleType>(), 
+                                       VertexHandleType ());
+        }
+        if (c_out_edge_it->dst_handle() == prev_v) continue;
+
+        prev_v = current_v;
+        current_v = c_out_edge_it->dst_handle();
+        break;          
+      }
+    }
+  }
+
+  return std::pair(end_points, centre);
 }
 
 template<bool bidirectional = false,
          typename GraphType> 
 inline bool IsStar(GraphType& graph) {
   const auto [end_points,
-              central_vertex] = StarEndPoints<bidirectional>(graph);
+              central_vertex_handle] = StarEndPoints<bidirectional>(graph);
+  // if (central_vertex) {
+  //   return true;
+  // } else {
+  //   return false;
+  // }
   if (!end_points.empty()) {
     assert(end_points.size() >= 2);
-    assert(end_points.size() == 2 || central_vertex);
+    assert(end_points.size() == 2 || central_vertex_handle);
     return true;
   }
-  assert(!central_vertex);
+  assert(!central_vertex_handle);
   return false;
 }
 
