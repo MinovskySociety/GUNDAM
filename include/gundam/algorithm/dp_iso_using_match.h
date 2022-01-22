@@ -353,6 +353,9 @@ inline void GetAdjNotMatchedVertexOneDirection(
           bool all_parent_matched = true;
           for (const auto& parent_vertex_handle 
                          : parent_it->second) {
+            if (parent_vertex_handle == query_opp_vertex_handle) {
+              continue;
+            }
             if (match_state.HasMap(parent_vertex_handle)) {
               // this parent has been matched
               continue;
@@ -1940,7 +1943,7 @@ inline int DPISOUsingMatch_Recursive(
   const Match<QueryGraph, TargetGraph>& partial_match,
   const std::function<bool(const Match<QueryGraph, TargetGraph>&)>&  user_callback,
   const std::function<bool(const Match<QueryGraph, TargetGraph>&)>& prune_callback,
-    double query_limit_time = 1200.0) {
+    double query_limit_time = -1.0) {
 
   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
@@ -2202,11 +2205,9 @@ inline int DPISOUsingMatch_Recursive(
     // all vertexes have been matched, cannot 
     // find the next vertex to match
     if (par_prune_callback(partial_match)) {
-      // std::cout << "##  match ended 0  ##" << std::endl;
       return 0;
     }
     par_user_callback(partial_match);
-    // std::cout << "##  match ended 1  ##" << std::endl;
     return static_cast<int>(result_count);
   }
   // partition next ptr's candiate
@@ -2215,7 +2216,6 @@ inline int DPISOUsingMatch_Recursive(
   const auto &match_handle_candidate 
             = candidate_set.find(next_query_handle)->second;
   auto begin_time = std::time(NULL);
-  // #pare
   for (int i = 0; i < match_handle_candidate.size(); i++) {
     // it might be unnecessary to set the lock here
     // user_callback_lock is read-only in this callback
@@ -2231,9 +2231,9 @@ inline int DPISOUsingMatch_Recursive(
                 target_matched)) {
       continue;
     }
-    auto temp_match_state = partial_match;
+    auto temp_match_state    = partial_match;
     auto temp_target_matched = target_matched;
-    auto temp_candidate_set = candidate_set;
+    auto temp_candidate_set  = candidate_set;
     _dp_iso_using_match::UpdateState(next_query_handle, 
                                     match_target_handle,
                                     temp_match_state, 
@@ -2250,33 +2250,6 @@ inline int DPISOUsingMatch_Recursive(
       if constexpr (use_dag_order) {
         temp_parent = parent;
       }
-      // std::cout << "## _DPISOUsingMatch 0 ##" << std::endl;
-
-      // std::string query_graph_str;
-      // query_graph_str << query_graph;
-      // std::cout << "##  query graph str" << std::endl
-      //           <<      query_graph_str  << std::endl;
-
-      // std::cout << "candidate_set size()" << std::endl;
-
-      // for (const auto& [query_handle, 
-      //                   query_candidate_set] : candidate_set) {
-      //   std::cout << "query_handle->id(): " 
-      //             <<  query_handle->id() << std::endl
-      //             << "query_candidate_set.size(): " 
-      //             <<  query_candidate_set.size() << std::endl;
-      // }
-
-      // std::cout << "## temp_parent ##" << std::endl;
-      // for (const auto& [query_vertex_handle,
-      //                   candidate_set] : temp_parent) {
-      //   std::cout << "query id: " << query_vertex_handle->id() 
-      //             << std::endl;
-      //   for (const auto& handle : candidate_set) {
-      //     std::cout << "\t" << handle->id();
-      //   }
-      //   std::cout << std::endl;
-      // }
 
       user_callback_has_return_false 
         = !_dp_iso_using_match::_DPISOUsingMatch<match_semantics, false, use_dag_order>(
@@ -2302,7 +2275,6 @@ inline int DPISOUsingMatch_Recursive(
       temp_parent.emplace(next_query_handle, 
                           std::vector<typename VertexHandle<QueryGraph>::type>{next_query_handle});
     }
-    // std::cout << "## _DPISOUsingMatch 1 ##" << std::endl;
     user_callback_has_return_false 
       = !_dp_iso_using_match::_DPISOUsingMatch<match_semantics, true, use_dag_order>(
           temp_candidate_set, 
@@ -2320,7 +2292,6 @@ inline int DPISOUsingMatch_Recursive(
     // there is also no need to unset it
     // omp_unset_lock(&user_callback_lock);
   }
-  // std::cout << "##  match ended 2  ##" << std::endl;
   return static_cast<int>(result_count);
 }
 
