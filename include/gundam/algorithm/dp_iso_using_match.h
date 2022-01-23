@@ -870,19 +870,36 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
 
   Bfs<true>(query_graph, src_vertex_set, build_dag_callback);
 
-  auto comp = [&candidate_set](const QueryVertexHandleType& a, 
-                               const QueryVertexHandleType& b) -> bool {
-      assert(candidate_set.find(a) != candidate_set.end());
-      assert(candidate_set.find(b) != candidate_set.end());
-      return candidate_set[a].size()
-           > candidate_set[b].size();
-  };
-
   // // by wenzhi
   // std::string query_graph_str;
   // query_graph_str << query_graph;
   // std::cout << "query graph str" << std::endl
   //           <<  query_graph_str  << std::endl;
+
+  // for (auto layer_it  = grouped_query_vertex_set.begin();
+  //           layer_it != grouped_query_vertex_set.end();
+  //           layer_it++){
+  //   const auto& distance = layer_it->first;
+  //   auto& vertex_set     = layer_it->second;
+  //   std::cout << "distance: " << distance << std::endl;
+  //   for (const auto& vertex : vertex_set) {
+  //     std::cout << "\t" << vertex->id();
+  //   }
+  //   std::cout << std::endl;
+  // }
+
+  auto comp = [&candidate_set](const QueryVertexHandleType& a, 
+                               const QueryVertexHandleType& b) -> bool {
+    assert(candidate_set.find(a) != candidate_set.end());
+    assert(candidate_set.find(b) != candidate_set.end());
+    if (candidate_set[a].size() < candidate_set[b].size()) {
+      return true;
+    }
+    if (candidate_set[a].size() > candidate_set[b].size()) {
+      return false;
+    }
+    return a < b;
+  };
 
   typename std::map<typename QueryGraph::VertexCounterType,
                  std::vector<QueryVertexHandleType>>::const_iterator
@@ -890,14 +907,16 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
 
   for (auto layer_it  = grouped_query_vertex_set.begin();
             layer_it != grouped_query_vertex_set.end();
-            layer_it++){
+            layer_it++) {
     const auto& distance = layer_it->first;
-    auto& vertex_set     = layer_it->second;
-    std::sort(vertex_set.begin(),
-              vertex_set.end(), comp);
+    std::sort(layer_it->second.begin(),
+              layer_it->second.end(), comp);
+    const auto& vertex_set = layer_it->second;
     for (const auto& vertex_handle : vertex_set) {
       // the set of parent for vertex_handle should not have
       // been added
+      // std::cout << "vertex_handle->id(): " << vertex_handle->id()
+      //           << " candidate size: " << candidate_set[vertex_handle].size() << std::endl;
       assert(parent.find(vertex_handle) == parent.end());
       auto [ parent_it, parent_ret ] 
            = parent.emplace(vertex_handle, std::vector<QueryVertexHandleType>{vertex_handle});
@@ -906,6 +925,7 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
       auto&  parent_vertex_set = parent_it->second;
       assert(parent_vertex_set.size() == 1
          && *parent_vertex_set.begin() == vertex_handle);
+      assert(parent.find(vertex_handle) != parent.end());
     }
     // add edges from previous layer to this layer
     if (distance > 0) {
@@ -915,6 +935,10 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
       const auto& previous_layer_vertex_set
                 = previous_layer_it->second;
       for (const auto& vertex_handle : vertex_set) {
+        // std::cout << "wenzhi: distance: " 
+        //           <<          distance << std::endl;
+        // std::cout << "wenzhi: vertex_handle->id(): " 
+        //           <<          vertex_handle->id() << std::endl;
         // iterate over the vertexes that are connected to
         // vertex_handle to find whether it is in the previous
         // layer
@@ -929,9 +953,11 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
                   out_edge_it++) {
           auto opp_vertex_handle = out_edge_it->dst_handle();
           // to find whether it is contained in the previous layer
+          assert(std::is_sorted(previous_layer_vertex_set.begin(),
+                                previous_layer_vertex_set.end(), comp));
           if (!std::binary_search(previous_layer_vertex_set.begin(),
                                   previous_layer_vertex_set.end(),
-                                  opp_vertex_handle)) {
+                                  opp_vertex_handle, comp)) {
             // the opp vertex is not contained in the previous layer 
             continue;
           }
@@ -966,6 +992,8 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
                   in_edge_it++) {
           auto opp_vertex_handle = in_edge_it->src_handle();
           // to find whether it is contained in the previous layer
+          assert(std::is_sorted(previous_layer_vertex_set.begin(),
+                                previous_layer_vertex_set.end(), comp));
           if (!std::binary_search(previous_layer_vertex_set.begin(),
                                   previous_layer_vertex_set.end(),
                                   opp_vertex_handle)) {
@@ -1000,16 +1028,21 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
       }
     }
     previous_layer_it = layer_it;
+    // #############################################
+    // ##  build the edge between the same laeyr  ##
+    // ##  from vertex with large candidate set   ## 
+    // ##  to vertex with samller candidate set   ##
+    // #############################################
+
     std::vector<QueryVertexHandleType> added_vertex_in_this_layer;
-    // build the edge between the same laeyr
     for (const auto& vertex_handle : vertex_set) {
       added_vertex_in_this_layer.emplace_back(vertex_handle);
       // iterate over the vertexes that are connected to
       // vertex_handle to find whether it is in the previous
       // layer
-      auto parent_it = parent.find(vertex_handle);
+       auto  parent_it  = parent.find(vertex_handle);
       assert(parent_it != parent.end()); // should found that vertex
-      auto& parent_vertex_set = parent_it->second;
+       auto&  parent_vertex_set = parent_it->second;
       assert(!parent_vertex_set.empty());
 
       for (auto out_edge_it = vertex_handle->OutEdgeBegin();
@@ -1017,15 +1050,19 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
                 out_edge_it++) {
         auto opp_vertex_handle = out_edge_it->dst_handle();
         // to find whether it is contained in the previous layer
+        assert(std::is_sorted(added_vertex_in_this_layer.begin(),
+                              added_vertex_in_this_layer.end(), comp));
         if (!std::binary_search(added_vertex_in_this_layer.begin(),
                                 added_vertex_in_this_layer.end(),
-                                opp_vertex_handle)){
+                                opp_vertex_handle, comp)){
           // the opp vertex is not contained in the previous layer 
           continue;
         }
         // the opp vertex is contained in the previous layer,
         // add an edge from opp vertex to vertex_handle in the DAG
         auto opp_vertex_handle_parent_it = parent.find(opp_vertex_handle);
+        // std::cout << "opp_vertex_handle->id(): "
+        //           <<  opp_vertex_handle->id() << std::endl;
         // should have parent for this vertex
         assert(opp_vertex_handle_parent_it != parent.end());
         auto& opp_vertex_handle_parent 
@@ -1054,15 +1091,19 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
                 in_edge_it++) {
         auto opp_vertex_handle = in_edge_it->src_handle();
         // to find whether it is contained in the previous layer
+        assert(std::is_sorted(added_vertex_in_this_layer.begin(),
+                              added_vertex_in_this_layer.end(), comp));
         if (!std::binary_search(added_vertex_in_this_layer.begin(),
                                 added_vertex_in_this_layer.end(),
-                                opp_vertex_handle)) {
+                                  opp_vertex_handle, comp)) {
           // the opp vertex is not contained in the previous layer 
           continue;
         }
         // the opp vertex is contained in the previous layer,
         // add an edge from opp vertex to vertex_handle in the DAG
-        auto opp_vertex_handle_parent_it = parent.find(opp_vertex_handle);
+         auto  opp_vertex_handle_parent_it  = parent.find(opp_vertex_handle);
+        // std::cout << "opp_vertex_handle->id(): "
+        //           <<  opp_vertex_handle->id() << std::endl;
         // should have parent for this vertex
         assert(opp_vertex_handle_parent_it != parent.end());
         auto& opp_vertex_handle_parent 
@@ -1077,8 +1118,8 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
 
         //Then perform the in place merge on the two sub-sorted ranges.
         std::inplace_merge(parent_vertex_set.begin(), 
-                            parent_vertex_set.begin() + mid, 
-                            parent_vertex_set.end());
+                           parent_vertex_set.begin() + mid, 
+                           parent_vertex_set.end());
 
         //Remove duplicate elements from the sorted vector
         parent_vertex_set.erase(std::unique(parent_vertex_set.begin(), 
@@ -1086,12 +1127,6 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
                                             parent_vertex_set.end());
       }
     }
-  }
-
-  // build the edges in the same layer
-  for (auto& [distance, vertex_set] : grouped_query_vertex_set){
-    std::sort(vertex_set.begin(),
-              vertex_set.end(),comp);
   }
 
   for (auto& [query_vertex_handle,
@@ -2117,6 +2152,8 @@ inline int DPISOUsingMatch_Recursive(
         // add vertexes into the new_src_vertex_handle_set until it does not cover 
         // all conneceted components
 
+        // std::cout << " wenzhi here0 " << std::endl;
+
         auto remove_vertexes_to_add_callback 
                 = [&vertexes_to_add,
                   #ifndef NDEBUG
@@ -2127,6 +2164,12 @@ inline int DPISOUsingMatch_Recursive(
           assert(query_graph.CountVertex() == vertexes_to_add.size()
                                           + vertex_considered.size());
 
+          // if (vertexes_to_add.find(query_vertex_handle)
+          //  == vertexes_to_add.end()) {
+          //   std::cout << "wenzhi! vertexes_to_add cannot find query_vertex_handle!!"
+          //             << std::endl;
+          // }
+          // std::cout << "vertexes_to_add.size(): " << vertexes_to_add.size() << std::endl;
           typename std::set<typename VertexHandle<QueryGraph>::type>::size_type 
             erase_size = vertexes_to_add.erase(query_vertex_handle);
           assert(erase_size > 0);
@@ -2141,7 +2184,12 @@ inline int DPISOUsingMatch_Recursive(
         assert(query_graph.CountVertex() == vertexes_to_add.size()
                                         + vertex_considered.size());
 
+        // std::cout << " wenzhi new_src_vertex_handle_set.size(): " 
+        //           <<          new_src_vertex_handle_set.size() << std::endl;
+
         Bfs<true>(query_graph, new_src_vertex_handle_set, remove_vertexes_to_add_callback);
+
+        // std::cout << " wenzhi here1 " << std::endl;
 
         assert(query_graph.CountVertex() == vertexes_to_add.size()
                                         + vertex_considered.size());
@@ -2177,6 +2225,12 @@ inline int DPISOUsingMatch_Recursive(
     assert(!partial_match.empty()
         || (src_vertex_handle_set.find(next_query_handle)
          != src_vertex_handle_set.end()));
+
+    // std::cout << "## src_vertex_handle_set ##" << std::endl;
+    // for (const auto& src_vertex_handle 
+    //                : src_vertex_handle_set) {
+    //   std::cout <<"\tsrc_vertex_handle->id(): " << src_vertex_handle->id() << std::endl;
+    // }
 
     BuildDag(query_graph, src_vertex_handle_set, candidate_set, parent);
 
