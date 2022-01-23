@@ -996,7 +996,7 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
                                 previous_layer_vertex_set.end(), comp));
           if (!std::binary_search(previous_layer_vertex_set.begin(),
                                   previous_layer_vertex_set.end(),
-                                  opp_vertex_handle)) {
+                                  opp_vertex_handle, comp)) {
             // the opp vertex is not contained in the previous layer 
             continue;
           }
