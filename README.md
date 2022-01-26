@@ -511,6 +511,8 @@ Pattern matching is one of the the most esensial functions that support most of 
 
 [MatchUsingMatch](/doc/prog_doc/match_using_match.md)
 
+[Simulation](/doc/prog_doc/simulation.md)
+
 ## Algorithem
 
 Library GUNDAM also contains.
