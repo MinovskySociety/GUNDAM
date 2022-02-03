@@ -157,6 +157,17 @@ size_t CountOutEdge(const typename VertexHandle<GraphType>::type &vertex_handle,
   return 0;
 }
 
+template <bool is_out_direction,
+          typename GraphType>
+inline auto EdgeBegin(const typename VertexHandle<GraphType>::type& vertex_handle) {
+  if constexpr (is_out_direction) {
+    return vertex_handle->OutEdgeBegin();
+  }
+  else {
+    return vertex_handle->InEdgeBegin();
+  }
+}
+
 template <typename  QueryVertexHandle, 
           typename TargetVertexHandle>
 inline bool DegreeFiltering(const  QueryVertexHandle  &query_vertex_handle,
@@ -182,10 +193,9 @@ template <enum EdgeState edge_state,
 inline bool NeighborLabelFrequencyFilteringSingleDirection(
     const typename VertexHandle< QueryGraph>::type  &query_vertex_handle,
     const typename VertexHandle<TargetGraph>::type &target_vertex_handle) {
-  std::set<typename QueryGraph::EdgeType::LabelType> used_edge_label;
-  for (auto edge_label_it = (edge_state == EdgeState::kIn ? 
-                   query_vertex_handle-> InEdgeBegin()
-                 : query_vertex_handle->OutEdgeBegin());
+  std::set<typename EdgeLabel<QueryGraph>::type> used_edge_label;
+  for (auto edge_label_it = EdgeBegin<edge_state == EdgeState::kOut, QueryGraph>(
+                                      query_vertex_handle);
            !edge_label_it.IsDone(); 
             edge_label_it++) {
     auto[used_edge_label_it,
@@ -612,7 +622,7 @@ inline void UpdateCandidateSetOneDirection(
   using CandidateContainerType =
       std::vector<typename VertexHandle<TargetGraph>::type>;
 
-  std::set<typename QueryGraph::EdgeType::LabelType> used_edge_label;
+  std::set<typename EdgeLabel<QueryGraph>::type> used_edge_label;
 
   for (auto edge_label_it = ((edge_state == EdgeState::kIn)
                             ? query_vertex_handle-> InEdgeBegin()
@@ -1564,7 +1574,7 @@ inline void BFS(QueryGraph &query_graph,
          InDegreeContainer &in_degree,
   const std::set<typename VertexHandle<QueryGraph>::type>& src_vertex_set) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
-  using QueryEdgeIDType = typename QueryGraph::EdgeType::IDType;
+  using QueryEdgeIDType = typename EdgeID<QueryGraph>::type;
   std::set<QueryVertexHandle> used_vertex,
                           temp_src_vertex_set
                              = src_vertex_set;
@@ -1637,7 +1647,7 @@ template <class QueryGraph, class InDegreeContainer, class TopoSeqContainer>
 inline void TopoSort(QueryGraph &query_graph, InDegreeContainer &in_degree,
                      TopoSeqContainer &topo_seq) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
-  using QueryEdgeIDType = typename QueryGraph::EdgeType::IDType;
+  using QueryEdgeIDType = typename EdgeID<QueryGraph>::type;
   std::queue<QueryVertexHandle> topo_sort_queue;
   std::set<QueryEdgeIDType> used_edge;
   // topo sort
@@ -1681,7 +1691,7 @@ inline void GetTopoSeq(QueryGraph &query_graph,
                  TopoSeqContainer &topo_seq,
   const std::set<typename VertexHandle<QueryGraph>::type>& src_vertex_set) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
-  using QueryEdgeIDType = typename QueryGraph::EdgeType::IDType;
+  using QueryEdgeIDType   = typename       EdgeID<QueryGraph>::type;
   std::map<QueryVertexHandle, int> in_degree;
   BFS(query_graph, in_degree, src_vertex_set);
   assert(in_degree.size() == query_graph.CountVertex());
@@ -1697,7 +1707,7 @@ inline void GetTopoSeq(QueryGraph& query_graph,
            const Match<QueryGraph,
                       TargetGraph>& partial_match) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
-  using QueryEdgeIDType = typename QueryGraph::EdgeType::IDType;
+  using QueryEdgeIDType = typename EdgeID<QueryGraph>::type;
   std::map<QueryVertexHandle, int> in_degree;
   std::set<QueryVertexHandle> src_vertex_set;
   for (auto map_it = partial_match.MapBegin();
@@ -1724,12 +1734,10 @@ inline bool EdgeCheck(
     typename VertexHandle<TargetGraph>::type &temp_target_vertex_handle,
     // statistic of query_vertex_handle
     const std::map<typename VertexHandle<QueryGraph>::type, 
-                    std::map<typename QueryGraph::EdgeType
-                                               ::LabelType, int>> &out_edge_count, 
+          std::map<typename    EdgeLabel<QueryGraph>::type, int>> &out_edge_count, 
     // statistic of query_vertex_handle
     const std::map<typename VertexHandle<QueryGraph>::type, 
-                    std::map<typename QueryGraph::EdgeType
-                                               ::LabelType, int>>  &in_edge_count) {
+          std::map<typename    EdgeLabel<QueryGraph>::type, int>>  &in_edge_count) {
   // adj_used_vertex_handle is adjacent to query_vertex_handle
   assert((out_edge_count.find(adj_used_vertex_handle) != out_edge_count.end())
       || ( in_edge_count.find(adj_used_vertex_handle) !=  in_edge_count.end()));
@@ -1776,17 +1784,15 @@ inline bool CheckIsLegal(
     std::set<typename VertexHandle<QueryGraph>::type> &used_vertex,
     // statistic of query_vertex_handle
     std::map<typename VertexHandle<QueryGraph>::type, 
-              std::map<typename QueryGraph::EdgeType
-                                         ::LabelType, int>> &out_edge_count,
+    std::map<typename    EdgeLabel<QueryGraph>::type, int>> &out_edge_count,
     // statistic of query_vertex_handle
     std::map<typename VertexHandle<QueryGraph>::type, 
-              std::map<typename QueryGraph::EdgeType
-                                         ::LabelType, int>>  &in_edge_count, 
+    std::map<typename    EdgeLabel<QueryGraph>::type, int>>  &in_edge_count, 
     const CandidateSetContainer &candidate_set) {
   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
-  for (auto edge_it = is_out_direction ? query_vertex_handle->OutEdgeBegin()
-                                       : query_vertex_handle-> InEdgeBegin();
+  for (auto edge_it = EdgeBegin<is_out_direction, QueryGraph>(
+                                query_vertex_handle);
            !edge_it.IsDone(); 
             edge_it++) {
     QueryVertexHandle adj_used_vertex_handle
@@ -1832,9 +1838,8 @@ inline bool CheckIsLegal(
     } else {
       // vertex does not have vertex_handle->In/Out VertexBegin(edge_label)
       // method
-      for (auto target_edge_it = is_out_direction
-                                     ? target_vertex_handle->OutEdgeBegin()
-                                     : target_vertex_handle-> InEdgeBegin();
+      for (auto target_edge_it = EdgeBegin<is_out_direction, TargetGraph>(
+                                           target_vertex_handle);
                !target_edge_it.IsDone(); target_edge_it++) {
         if (target_edge_it->label() != edge_it->label()) {
           continue;
@@ -1878,7 +1883,7 @@ inline bool DAGDP(
                    TargetVertexContainerType> &candidate_set) {
   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
-  using QueryEdgeLabelType = typename QueryGraph::EdgeType::LabelType;
+  using QueryEdgeLabelType = typename EdgeLabel<QueryGraph>::type;
   std::set<QueryVertexHandle> used_vertex;
   for (auto &vertex_handle : topo_seq) {
     used_vertex.emplace(vertex_handle);
