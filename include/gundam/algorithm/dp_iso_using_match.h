@@ -19,7 +19,10 @@
 #include "assert.h"
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/edge_label.h"
+#include "gundam/type_getter/edge_id.h"
 #include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/vertex_label.h"
+#include "gundam/type_getter/vertex_id.h"
 #include "match_helper.h"
 #include "match_semantics.h"
 
