@@ -16,6 +16,13 @@
 #include "gundam/match/match.h"
 #include "match_semantics.h"
 
+#include "gundam/type_getter/edge_handle.h"
+#include "gundam/type_getter/edge_label.h"
+#include "gundam/type_getter/edge_id.h"
+#include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/vertex_label.h"
+#include "gundam/type_getter/vertex_id.h"
+
 namespace GUNDAM {
 
 namespace _vf2 {
