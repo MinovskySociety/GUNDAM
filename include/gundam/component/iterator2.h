@@ -83,8 +83,6 @@ class GIterator {
   }
 
   bool operator==(const GIterator &b) const {
-    assert(graph_);
-    assert(b.graph_);
     assert(end_ == b.end_);
     return it_ == b.it_;
   }
