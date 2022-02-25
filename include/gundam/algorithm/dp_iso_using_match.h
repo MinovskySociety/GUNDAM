@@ -2308,6 +2308,16 @@ inline int DPISOUsingMatch_Recursive(
       }
     }
 
+    // std::cout << "partial_match.empty(): "
+    //           <<  partial_match.empty() << std::endl;
+    // std::cout << "next_query_handle->id(): "
+    //           <<  next_query_handle->id() << std::endl;
+    // for (const auto& src_vertex_handle : src_vertex_handle_set) {
+    //   std::cout << "\tsrc_vertex_handle->id(): "  
+    //             <<    src_vertex_handle->id() << std::endl;
+    // }
+    // std::cout << "src_vertex_handle_set.find(next_query_handle) != src_vertex_handle_set.end(): "
+    //           << (src_vertex_handle_set.find(next_query_handle) != src_vertex_handle_set.end()) << std::endl;
     // the first vertex to query should not be contained in the 
     // partial match
     assert(!partial_match.empty()
