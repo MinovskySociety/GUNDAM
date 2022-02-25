@@ -2,7 +2,9 @@
 
 ## Introduction
 
-GUNDAM is a fundamental library for graph computing that provides a *unified*, *graph-level*, *static* abstraction without bring overhead.
+GUNDAM is a fundamental library for graph computing that provides a *unified*, *graph-level*, *static* abstraction without bring overhead. 
+
+[Vision of project GUNDAM](/doc/user_doc/vision_of_project_gundam.pdf)
 
 #
 
@@ -499,7 +501,8 @@ for (const auto& vertex_id : vertex_id_set_to_collect) {
 
 ## Access edge in graph
 
-Detailed edge-level interface see [here](/doc/prog_doc/edge.md).
+Similar to the vertex, edges in graph are also only allowed to be access through Handle/Iterator. 
+The interface of edge is much more simpler than vertexes can is detailed illustrated [here](/doc/prog_doc/edge.md).
 
 ## Match
 
@@ -509,6 +512,8 @@ Pattern matching is one of the the most esensial functions that support most of 
 
 [MatchUsingMatch](/doc/prog_doc/match_using_match.md)
 
+[Simulation](/doc/prog_doc/simulation.md)
+
 ## Algorithem
 
 Library GUNDAM also contains.
@@ -516,6 +521,29 @@ Library GUNDAM also contains.
 Bfs
 
 Dfs
+
+## Serialize
+
+Graph types are allowed to be serialized as string as follow:
+
+```c++
+GraphType0 g0;
+/* ############################# *
+ *    initialize g0 here    *
+ * ############################# */
+
+std::string str;
+str << g0;
+
+std::cout << str << std::endl;
+
+GraphType1 g1;
+str >> g1;
+```
+
+The serialized graph can be easily transformed in distributed environment or stored in file. 
+
+Detailed explanation see [here](/doc/prog_doc/serialize.md).
 
 ## Tools
 

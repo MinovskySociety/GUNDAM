@@ -13,7 +13,7 @@
 template <class GraphType>
 void ConstructGraph0(GraphType& g){
   // 1 -> 2
-  // /\   |
+  // ^    |
   // |    |
   // 3 <---
 
@@ -47,7 +47,7 @@ void ConstructGraph0(GraphType& g){
 template <class GraphType>
 void ConstructGraph1(GraphType& g){
   // 1 <- 2
-  // |    /\
+  // |    ^ 
   // V    |
   // 3 ----
 
@@ -352,7 +352,7 @@ void ConstructGraph5(GraphType& g){
 template <class GraphType>
 void ConstructGraph6(GraphType& g){
   // 1 <- 2
-  // /\    
+  // ^     
   // |     
   // 3     
 
@@ -383,7 +383,7 @@ void ConstructGraph6(GraphType& g){
 template <class GraphType>
 void ConstructGraph7(GraphType& g){
   // 1 <- 2 <- 4
-  // /\    
+  // ^     
   // |     
   // 3     
 
@@ -421,9 +421,9 @@ void ConstructGraph7(GraphType& g){
 template <class GraphType>
 void ConstructGraph8(GraphType& g){
   // 5 -> 1 <- 2 <- 4
-  //      /\     
-  //       |     
-  //       3     
+  //      ^      
+  //      |     
+  //      3     
 
   // clear up
   g = GraphType();
@@ -466,9 +466,9 @@ void ConstructGraph8(GraphType& g){
 template <class GraphType>
 void ConstructGraph9(GraphType& g){
   // 5 -> 1 <- 2 -> 4
-  //      /\     
-  //       |     
-  //       3     
+  //      ^      
+  //      |     
+  //      3     
 
   // clear up
   g = GraphType();
@@ -511,9 +511,9 @@ void ConstructGraph9(GraphType& g){
 template <class GraphType>
 void ConstructGraph10(GraphType& g){
   // 5 -> 1 <- 2 <- 4
-  //      /\        /\
-  //       |        |
-  //       3-> 6 -> 7   
+  //      ^         ^ 
+  //      |         |
+  //      3 -> 6 -> 7   
 
   // clear up
   g = GraphType();

@@ -99,123 +99,127 @@ inline size_t MatchUsingMatch(
   //   }
   // }
 
-  if (merge_query_nec_config == MergeNecConfig::kMerge
-   ||(merge_query_nec_config == MergeNecConfig::kAdaptive
-   && target_graph.CountVertex() >= _match_using_match::kLargeGraphSize)) {
-    QueryGraph query_graph_removed = RemoveNecVertex(query_graph, partial_match);
-    if (query_graph_removed.CountVertex()
-              < query_graph.CountVertex()) {
-      // have vertex to merge
-      Match<QueryGraph,
-            QueryGraph> query_graph_removed_to_query_graph(
-                        query_graph_removed,   query_graph,
-                        "same_id_map");
+  if constexpr (merge_query_nec_config == MergeNecConfig::kMerge
+             || merge_query_nec_config == MergeNecConfig::kAdaptive) {
+   
+    if (merge_query_nec_config == MergeNecConfig::kMerge
+     || target_graph.CountVertex() >= _match_using_match::kLargeGraphSize) {
 
-      std::function<bool(const MatchType&)> 
-           prune_callback_from_removed 
-       = [&prune_callback,
-          &query_graph_removed_to_query_graph](
-            const MatchType& match_state_from_removed){
-        MatchType match_from_query_graph 
-                = match_state_from_removed(
-          query_graph_removed_to_query_graph.Reverse());
-             
-        return prune_callback(match_from_query_graph);
-      };
+      QueryGraph query_graph_removed = RemoveNecVertex(query_graph, partial_match);
+      if (query_graph_removed.CountVertex()
+                < query_graph.CountVertex()) {
+        // have vertex to merge
+        Match<QueryGraph,
+              QueryGraph> query_graph_removed_to_query_graph(
+                          query_graph_removed,   query_graph,
+                          "same_id_map");
 
-      bool match_callback_return = true;
-      std::function<bool(const MatchType&)> 
-           match_callback_save_return 
-       = [&match_callback,
-          &match_callback_return](const MatchType& match_state_from_query_graph){
-        match_callback_return = match_callback(match_state_from_query_graph);
-        return match_callback_return;
-      };
+        std::function<bool(const MatchType&)> 
+            prune_callback_from_removed 
+        = [&prune_callback,
+            &query_graph_removed_to_query_graph](
+              const MatchType& match_state_from_removed){
+          MatchType match_from_query_graph 
+                  = match_state_from_removed(
+            query_graph_removed_to_query_graph.Reverse());
+              
+          return prune_callback(match_from_query_graph);
+        };
 
-      size_t match_counter = 0;
+        bool match_callback_return = true;
+        std::function<bool(const MatchType&)> 
+            match_callback_save_return 
+        = [&match_callback,
+            &match_callback_return](const MatchType& match_state_from_query_graph){
+          match_callback_return = match_callback(match_state_from_query_graph);
+          return match_callback_return;
+        };
 
-      std::function<bool(const MatchType&)> 
-           match_callback_from_removed 
-       = [&prune_callback,
-          &match_callback_save_return,
-          &match_callback_return,
-          &match_counter,
-          &target_graph,
-           &query_graph,
-           &query_graph_removed_to_query_graph,
-          &candidate_set,
-          &time_limit](
-            const MatchType& partial_match_from_removed) {
+        size_t match_counter = 0;
 
-        MatchType partial_match_from_query_graph 
-                = partial_match_from_removed(
-          query_graph_removed_to_query_graph.Reverse());
+        std::function<bool(const MatchType&)> 
+            match_callback_from_removed 
+        = [&prune_callback,
+            &match_callback_save_return,
+            &match_callback_return,
+            &match_counter,
+            &target_graph,
+            &query_graph,
+            &query_graph_removed_to_query_graph,
+            &candidate_set,
+            &time_limit](
+              const MatchType& partial_match_from_removed) {
 
-        const CandidateSetType& candidate_set_from_query_graph = candidate_set;
+          MatchType partial_match_from_query_graph 
+                  = partial_match_from_removed(
+            query_graph_removed_to_query_graph.Reverse());
 
-        match_counter += MatchUsingMatch<match_semantics,
-                                         match_algorithm,
-                                         MergeNecConfig::kNotMerge>(
-                                           query_graph,
-                                          target_graph,
-                        partial_match_from_query_graph,
-                        candidate_set_from_query_graph,
-                                        prune_callback,
-                                        match_callback_save_return,
-                                         time_limit);
+          const CandidateSetType& candidate_set_from_query_graph = candidate_set;
 
-        return match_callback_return;
-      };
+          match_counter += MatchUsingMatch<match_semantics,
+                                          match_algorithm,
+                                          MergeNecConfig::kNotMerge>(
+                                            query_graph,
+                                            target_graph,
+                          partial_match_from_query_graph,
+                          candidate_set_from_query_graph,
+                                          prune_callback,
+                                          match_callback_save_return,
+                                          time_limit);
 
-      MatchMap match_state;
-      if (!partial_match.empty()){
-        for (auto vertex_it = query_graph.VertexBegin(); 
-                !vertex_it.IsDone();
-                  vertex_it++) {
-          const QueryVertexHandle src_handle = vertex_it;
-          if (!partial_match.HasMap(src_handle)) {
+          return match_callback_return;
+        };
+
+        MatchMap match_state;
+        if (!partial_match.empty()){
+          for (auto vertex_it = query_graph.VertexBegin(); 
+                  !vertex_it.IsDone();
+                    vertex_it++) {
+            const QueryVertexHandle src_handle = vertex_it;
+            if (!partial_match.HasMap(src_handle)) {
+              continue;
+            }
+            const auto dst_handle = partial_match.MapTo(src_handle);
+            assert(dst_handle);
+            match_state.emplace(src_handle, dst_handle);
+          }
+          assert(match_state.size() == partial_match.size());
+        }
+
+        MatchType partial_match_from_removed
+                = partial_match(
+                        query_graph_removed_to_query_graph);
+
+        CandidateSetType candidate_set_from_removed;
+
+        Match query_graph_to_query_graph_removed(
+              query_graph,   query_graph_removed,
+              "same_id_map");
+
+        for (const auto& candidate_it : candidate_set){
+          auto vertex_handle_in_removed 
+                  = query_graph_to_query_graph_removed.MapTo(candidate_it.first);
+          if (!vertex_handle_in_removed){
+            assert(!query_graph_removed.FindVertex(candidate_it.first->id()));
             continue;
           }
-          const auto dst_handle = partial_match.MapTo(src_handle);
-          assert(dst_handle);
-          match_state.emplace(src_handle, dst_handle);
+          candidate_set_from_removed.emplace(vertex_handle_in_removed,
+                                            candidate_it.second);
         }
-        assert(match_state.size() == partial_match.size());
+
+        MatchUsingMatch<match_semantics,
+                        match_algorithm,
+                        MergeNecConfig::kNotMerge>(
+                        query_graph_removed,
+                      target_graph, 
+                      partial_match_from_removed,
+                      candidate_set_from_removed,
+                      prune_callback_from_removed,
+                      match_callback_from_removed,
+                      time_limit);
+
+        return match_counter;
       }
-
-      MatchType partial_match_from_removed
-              = partial_match(
-                       query_graph_removed_to_query_graph);
-
-      CandidateSetType candidate_set_from_removed;
-
-      Match query_graph_to_query_graph_removed(
-            query_graph,   query_graph_removed,
-            "same_id_map");
-
-      for (const auto& candidate_it : candidate_set){
-        auto vertex_handle_in_removed 
-                = query_graph_to_query_graph_removed.MapTo(candidate_it.first);
-        if (!vertex_handle_in_removed){
-          assert(!query_graph_removed.FindVertex(candidate_it.first->id()));
-          continue;
-        }
-        candidate_set_from_removed.emplace(vertex_handle_in_removed,
-                                           candidate_it.second);
-      }
-
-      MatchUsingMatch<match_semantics,
-                      match_algorithm,
-                      MergeNecConfig::kNotMerge>(
-                      query_graph_removed,
-                     target_graph, 
-                     partial_match_from_removed,
-                     candidate_set_from_removed,
-                    prune_callback_from_removed,
-                    match_callback_from_removed,
-                     time_limit);
-
-      return match_counter;
     }
   }
 

@@ -16,6 +16,13 @@
 #include "gundam/match/match.h"
 #include "match_semantics.h"
 
+#include "gundam/type_getter/edge_handle.h"
+#include "gundam/type_getter/edge_label.h"
+#include "gundam/type_getter/edge_id.h"
+#include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/vertex_label.h"
+#include "gundam/type_getter/vertex_id.h"
+
 namespace GUNDAM {
 
 namespace _vf2 {
@@ -53,6 +60,17 @@ inline bool ForEachVertexIf(GraphType &graph, Fn f, VertexCompare vertex_comp,
     }
   }
   return true;
+}
+
+template <bool is_out_direction,
+          typename GraphType>
+inline auto EdgeBegin(const typename VertexHandle<GraphType>::type& vertex_handle) {
+  if constexpr (is_out_direction) {
+    return vertex_handle->OutEdgeBegin();
+  }
+  else {
+    return vertex_handle->InEdgeBegin();
+  }
 }
 
 // template <enum EdgeState edge_state, class GraphType, class VertexPtr, class
@@ -293,11 +311,10 @@ inline bool JoinableCheck(
   using QueryEdgeHandle = typename EdgeHandle<QueryGraph>::type;
   using TargetEdgeHandle = typename EdgeHandle<TargetGraph>::type;
 
-  std::set<typename TargetGraph::EdgeType::IDType> used_edge;
+  std::set<typename EdgeID<TargetGraph>::type> used_edge;
 
-  for (auto query_edge_iter = (edge_state == EdgeState::kIn)
-                                  ? query_vertex_handle->InEdgeBegin()
-                                  : query_vertex_handle->OutEdgeBegin();
+  for (auto query_edge_iter = EdgeBegin<edge_state == EdgeState::kOut, QueryGraph>(
+                                        query_vertex_handle);
            !query_edge_iter.IsDone(); ++query_edge_iter) {
     QueryVertexHandle query_opp_vertex_handle;
 
@@ -334,9 +351,8 @@ inline bool JoinableCheck(
         }
       }
     } else {
-      for (auto target_edge_iter = (edge_state == EdgeState::kIn)
-                                       ? target_vertex_handle->InEdgeBegin()
-                                       : target_vertex_handle->OutEdgeBegin();
+      for (auto target_edge_iter = EdgeBegin<edge_state == EdgeState::kOut, TargetGraph>(
+                                             target_vertex_handle);
            !target_edge_iter.IsDone(); ++target_edge_iter) {
         if (used_edge.count(target_edge_iter->id()) > 0) continue;
         TargetVertexHandle target_opp_vertex_handle =

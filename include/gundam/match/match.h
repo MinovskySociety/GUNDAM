@@ -13,6 +13,7 @@
 #include "gundam/component/iterator.h"
 
 #include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/vertex_id.h"
 #include "gundam/data_type/datatype.h"
 
 namespace GUNDAM {
@@ -46,10 +47,10 @@ class Match {
   static constexpr enum ContainerType map_container_type = ContainerType::Vector;
   static constexpr enum SortType map_container_sort_type = SortType::Default;
 
-  using SrcVertexIDType     = typename SrcGraphType ::VertexType ::IDType;
-  using SrcVertexHandleType = typename VertexHandle<SrcGraphType>::type;
+  using SrcVertexIDType = typename VertexID<SrcGraphType>::type;
+  using DstVertexIDType = typename VertexID<DstGraphType>::type;
 
-  using DstVertexIDType     = typename DstGraphType ::VertexType ::IDType;
+  using SrcVertexHandleType = typename VertexHandle<SrcGraphType>::type;
   using DstVertexHandleType = typename VertexHandle<DstGraphType>::type;
 
   // using SrcVertexConstHandle = typename SrcGraphType ::VertexConstPtr;
@@ -531,11 +532,11 @@ template <typename SrcGraphType,
           >
 class MatchSet {
  private:
+  using SrcVertexIDType = typename VertexID<SrcGraphType>::type;
+  using DstVertexIDType = typename VertexID<DstGraphType>::type;
+  
   using SrcVertexHandleType = typename VertexHandle<SrcGraphType>::type;
   using DstVertexHandleType = typename VertexHandle<DstGraphType>::type;
-
-  using SrcVertexIDType = typename SrcGraphType::VertexType::IDType;
-  using DstVertexIDType = typename DstGraphType::VertexType::IDType;
 
  public:
   using MatchType = Match<SrcGraphType, DstGraphType>;
