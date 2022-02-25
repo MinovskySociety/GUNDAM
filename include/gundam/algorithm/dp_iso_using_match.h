@@ -683,7 +683,7 @@ inline void UpdateCandidateSetOneDirection(
       continue;
     }
 
-    std::map<typename TargetGraph::VertexType::LabelType,
+    std::map<typename VertexLabel<TargetGraph>::type,
           std::vector<TargetVertexHandle>> temp_adj_vertex;
 
     if constexpr (GraphParameter<TargetGraph>::vertex_level_edge_label_index) {
