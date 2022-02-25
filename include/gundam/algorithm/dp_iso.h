@@ -7,6 +7,7 @@
 #include <ctime>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <list>
 #include <map>
 #include <queue>
@@ -149,7 +150,6 @@ size_t CountOutEdge(
   }
   return 0;
 }
-
 template <typename QueryVertexHandle, typename TargetVertexHandle>
 inline bool DegreeFiltering(QueryVertexHandle &query_vertex_handle,
                             TargetVertexHandle &target_vertex_handle) {
@@ -166,8 +166,8 @@ inline bool DegreeFiltering(QueryVertexHandle &query_vertex_handle,
     return false;
   return true;
 }
-
-template <enum EdgeState edge_state, typename QueryGraph, typename TargetGraph>
+template <enum MatchSemantics match_semantics, enum EdgeState edge_state,
+          typename QueryGraph, typename TargetGraph>
 inline bool NeighborLabelFrequencyFilteringSingleDirection(
     typename VertexHandle<QueryGraph>::type &query_vertex_handle,
     typename VertexHandle<TargetGraph>::type &target_vertex_handle) {
@@ -180,6 +180,9 @@ inline bool NeighborLabelFrequencyFilteringSingleDirection(
                                   query_vertex_handle, edge_label_it->label())
                             : _dp_iso::CountOutVertex<QueryGraph>(
                                   query_vertex_handle, edge_label_it->label()));
+    if (match_semantics == MatchSemantics::kHomomorphism) {
+      query_count = std::min(query_count, (size_t)1);
+    }
     //  ? query_vertex_handle-> CountInVertex(edge_label_it->label())
     //  : query_vertex_handle->CountOutVertex(edge_label_it->label()));
     auto target_count =
@@ -208,6 +211,12 @@ inline bool NeighborLabelFrequencyFilteringSingleDirection(
                               target_vertex_handle, edge_label_it->label()));
     //  ? target_vertex_handle-> CountInEdge(edge_label_it->label())
     //  : target_vertex_handle->CountOutEdge(edge_label_it->label()));
+    if (match_semantics == MatchSemantics::kHomomorphism) {
+      if (query_count > 0 && target_count == 0) {
+        return false;
+      }
+      continue;
+    }
     assert(query_count >= 0 && target_count >= 0);
     if (query_count > target_count) {
       return false;
@@ -216,17 +225,18 @@ inline bool NeighborLabelFrequencyFilteringSingleDirection(
   return true;
 }
 
-template <typename QueryGraph, typename TargetGraph>
+template <enum MatchSemantics match_semantics, typename QueryGraph,
+          typename TargetGraph>
 inline bool NeighborLabelFrequencyFiltering(
     typename VertexHandle<QueryGraph>::type &query_vertex_handle,
     typename VertexHandle<TargetGraph>::type &target_vertex_handle) {
-  if (!NeighborLabelFrequencyFilteringSingleDirection<EdgeState::kIn,
-                                                      QueryGraph, TargetGraph>(
+  if (!NeighborLabelFrequencyFilteringSingleDirection<
+          match_semantics, EdgeState::kIn, QueryGraph, TargetGraph>(
           query_vertex_handle, target_vertex_handle)) {
     return false;
   }
-  if (!NeighborLabelFrequencyFilteringSingleDirection<EdgeState::kOut,
-                                                      QueryGraph, TargetGraph>(
+  if (!NeighborLabelFrequencyFilteringSingleDirection<
+          match_semantics, EdgeState::kOut, QueryGraph, TargetGraph>(
           query_vertex_handle, target_vertex_handle)) {
     return false;
   }
@@ -234,12 +244,13 @@ inline bool NeighborLabelFrequencyFiltering(
 }
 
 template <enum MatchSemantics match_semantics, typename QueryGraph,
-          typename TargetGraph>
+          typename TargetGraph, class FilterCallback = nullptr_t>
 inline bool InitCandidateSet(
     QueryGraph &query_graph, TargetGraph &target_graph,
     std::map<typename VertexHandle<QueryGraph>::type,
              std::vector<typename VertexHandle<TargetGraph>::type>>
-        &candidate_set) {
+        &candidate_set,
+    FilterCallback filter_callback = nullptr) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
   using CandidateContainer =
@@ -255,10 +266,18 @@ inline bool InitCandidateSet(
                target_graph.VertexBegin(query_vertex_handle->label());
            !target_vertex_iter.IsDone(); target_vertex_iter++) {
         TargetVertexHandle target_vertex_handle = target_vertex_iter;
-        if (!DegreeFiltering(query_vertex_handle, target_vertex_handle)) {
+        if constexpr (!std::is_null_pointer_v<FilterCallback>) {
+          if (!filter_callback(query_vertex_handle, target_vertex_handle)) {
+            continue;
+          }
+        }
+
+        if (match_semantics == MatchSemantics::kIsomorphism &&
+            !DegreeFiltering(query_vertex_handle, target_vertex_handle)) {
           continue;
         }
-        if (!NeighborLabelFrequencyFiltering<QueryGraph, TargetGraph>(
+        if (!NeighborLabelFrequencyFiltering<match_semantics, QueryGraph,
+                                             TargetGraph>(
                 query_vertex_handle, target_vertex_handle)) {
           continue;
         }
@@ -272,16 +291,24 @@ inline bool InitCandidateSet(
           continue;
         }
         TargetVertexHandle target_vertex_handle = target_vertex_iter;
-        if (!DegreeFiltering(query_vertex_handle, target_vertex_handle)) {
+        if constexpr (!std::is_null_pointer_v<FilterCallback>) {
+          if (!filter_callback(query_vertex_handle, target_vertex_handle)) {
+            continue;
+          }
+        }
+        if (match_semantics == MatchSemantics::kIsomorphism &&
+            !DegreeFiltering(query_vertex_handle, target_vertex_handle)) {
           continue;
         }
-        if (!NeighborLabelFrequencyFiltering<QueryGraph, TargetGraph>(
+        if (!NeighborLabelFrequencyFiltering<match_semantics, QueryGraph,
+                                             TargetGraph>(
                 query_vertex_handle, target_vertex_handle)) {
           continue;
         }
         query_vertex_candidate.emplace_back(target_vertex_handle);
       }
     }
+    //std::cout<<query_vertex_handle->id()<<" "<<query_vertex_candidate.size()<<std::endl;
     if (query_vertex_candidate.empty()) return false;
     assert(candidate_set.find(query_vertex_handle) == candidate_set.end());
     candidate_set.emplace(query_vertex_handle,
@@ -293,7 +320,6 @@ inline bool InitCandidateSet(
   }
   return true;
 }
-
 template <enum EdgeState edge_state, typename QueryVertexHandle,
           typename TargetVertexHandle>
 inline void GetAdjNotMatchedVertexOneDirection(
