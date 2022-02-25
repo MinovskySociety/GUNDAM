@@ -7,6 +7,7 @@
 #include <ctime>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <list>
 #include <map>
 #include <queue>
@@ -149,7 +150,6 @@ size_t CountOutEdge(
   }
   return 0;
 }
-
 template <typename QueryVertexHandle, typename TargetVertexHandle>
 inline bool DegreeFiltering(QueryVertexHandle &query_vertex_handle,
                             TargetVertexHandle &target_vertex_handle) {
@@ -935,7 +935,7 @@ bool _DPISO(
     }
   }
   // need to restore parent
-  parent_ret = parent.erase(next_query_vertex_handle);
+  int parent_ret = parent.erase(next_query_vertex_handle);
   assert(parent_ret > 0);
   std::swap(fail_set, this_state_fail_set);
   return true;
