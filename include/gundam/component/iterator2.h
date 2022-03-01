@@ -165,6 +165,27 @@ class GIterator2 {
     return it_ == b.it_;
   }
 
+  bool operator==(const GIterator2<!is_const, GraphType, IteratorType, ValueType, PointerType> &b) const {
+    assert(graph_);
+    assert(b.graph_);
+    assert(end_ == b.end_);
+    return it_ == b.it_;
+  }
+
+  bool operator!=(const GIterator2 &b) const {
+    assert(graph_);
+    assert(b.graph_);
+    assert(end_ == b.end_);
+    return it_ != b.it_;
+  }
+
+  bool operator!=(const GIterator2<!is_const, GraphType, IteratorType, ValueType, PointerType> &b) const {
+    assert(graph_);
+    assert(b.graph_);
+    assert(end_ == b.end_);
+    return it_ != b.it_;
+  }
+
   bool IsDone() const {
     // graph_ would be false at beginning if it is initilized by
     // GIterator2()
