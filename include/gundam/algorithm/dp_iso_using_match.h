@@ -190,7 +190,8 @@ inline bool DegreeFiltering(const  QueryVertexHandle  &query_vertex_handle,
   return true;
 }
 
-template <enum EdgeState edge_state, 
+template <enum MatchSemantics match_semantics,
+          enum EdgeState edge_state, 
           typename  QueryGraph,
           typename TargetGraph>
 inline bool NeighborLabelFrequencyFilteringSingleDirection(
@@ -220,10 +221,13 @@ inline bool NeighborLabelFrequencyFilteringSingleDirection(
                             : _dp_iso_using_match::CountOutVertex<TargetGraph>(
                                  target_vertex_handle, edge_label_it->label()));
     assert(query_count >= 0 && target_count >= 0);
+    if (match_semantics == MatchSemantics::kHomomorphism) {
+      query_count = std::min(query_count, (size_t)1);
+    }
     if (query_count > target_count) {
       return false;
     }
-     query_count = (edge_state == EdgeState::kIn
+    query_count = (edge_state == EdgeState::kIn
                        ? _dp_iso_using_match:: CountInEdge< QueryGraph>(
                              query_vertex_handle, edge_label_it->label())
                        : _dp_iso_using_match::CountOutEdge< QueryGraph>(
@@ -233,6 +237,9 @@ inline bool NeighborLabelFrequencyFilteringSingleDirection(
                             target_vertex_handle, edge_label_it->label())
                        : _dp_iso_using_match::CountOutEdge<TargetGraph>(
                             target_vertex_handle, edge_label_it->label()));
+    if (match_semantics == MatchSemantics::kHomomorphism) {
+      query_count = std::min(query_count, (size_t)1);
+    }
     assert(query_count >= 0 && target_count >= 0);
     if (query_count > target_count) {
       // can be filted
@@ -242,18 +249,19 @@ inline bool NeighborLabelFrequencyFilteringSingleDirection(
   return true;
 }
 
-template <typename  QueryGraph, 
+template <enum MatchSemantics match_semantics,
+          typename  QueryGraph, 
           typename TargetGraph>
 inline bool NeighborLabelFrequencyFiltering(
     const typename VertexHandle< QueryGraph>::type  &query_vertex_handle,
     const typename VertexHandle<TargetGraph>::type &target_vertex_handle) {
-  if (!NeighborLabelFrequencyFilteringSingleDirection<EdgeState:: kIn,
+  if (!NeighborLabelFrequencyFilteringSingleDirection<match_semantics,EdgeState:: kIn,
                                                       QueryGraph, TargetGraph>(
            query_vertex_handle, 
           target_vertex_handle)) {
     return false;
   }
-  if (!NeighborLabelFrequencyFilteringSingleDirection<EdgeState::kOut,
+  if (!NeighborLabelFrequencyFilteringSingleDirection<match_semantics,EdgeState::kOut,
                                                       QueryGraph, TargetGraph>(
            query_vertex_handle, 
           target_vertex_handle)) {
@@ -287,10 +295,11 @@ inline bool InitCandidateSet(
                !target_vertex_iter.IsDone(); 
                 target_vertex_iter++) {
         TargetVertexHandle target_vertex_handle = target_vertex_iter;
-        if (!DegreeFiltering(query_vertex_handle, target_vertex_handle)) {
+        if (match_semantics == MatchSemantics::kIsomorphism &&
+            !DegreeFiltering(query_vertex_handle, target_vertex_handle)) {
           continue;
         }
-        if (!NeighborLabelFrequencyFiltering<QueryGraph, TargetGraph>(
+        if (!NeighborLabelFrequencyFiltering<match_semantics, QueryGraph, TargetGraph>(
                 query_vertex_handle, target_vertex_handle)) {
           continue;
         }
@@ -305,11 +314,11 @@ inline bool InitCandidateSet(
           continue;
         }
         TargetVertexHandle target_vertex_handle = target_vertex_iter;
-        if (!DegreeFiltering(query_vertex_handle, 
-                            target_vertex_handle)) {
+        if (match_semantics == MatchSemantics::kIsomorphism &&
+            !DegreeFiltering(query_vertex_handle, target_vertex_handle)) {
           continue;
         }
-        if (!NeighborLabelFrequencyFiltering<QueryGraph, TargetGraph>(
+        if (!NeighborLabelFrequencyFiltering<match_semantics, QueryGraph, TargetGraph>(
                 query_vertex_handle, 
                target_vertex_handle)) {
           continue;
@@ -674,7 +683,7 @@ inline void UpdateCandidateSetOneDirection(
       continue;
     }
 
-    std::map<typename TargetGraph::VertexType::LabelType,
+    std::map<typename VertexLabel<TargetGraph>::type,
           std::vector<TargetVertexHandle>> temp_adj_vertex;
 
     if constexpr (GraphParameter<TargetGraph>::vertex_level_edge_label_index) {
@@ -2308,6 +2317,16 @@ inline int DPISOUsingMatch_Recursive(
       }
     }
 
+    // std::cout << "partial_match.empty(): "
+    //           <<  partial_match.empty() << std::endl;
+    // std::cout << "next_query_handle->id(): "
+    //           <<  next_query_handle->id() << std::endl;
+    // for (const auto& src_vertex_handle : src_vertex_handle_set) {
+    //   std::cout << "\tsrc_vertex_handle->id(): "  
+    //             <<    src_vertex_handle->id() << std::endl;
+    // }
+    // std::cout << "src_vertex_handle_set.find(next_query_handle) != src_vertex_handle_set.end(): "
+    //           << (src_vertex_handle_set.find(next_query_handle) != src_vertex_handle_set.end()) << std::endl;
     // the first vertex to query should not be contained in the 
     // partial match
     assert(!partial_match.empty()

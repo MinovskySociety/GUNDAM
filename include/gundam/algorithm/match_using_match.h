@@ -56,6 +56,8 @@ inline size_t MatchUsingMatch(
 
   using namespace _match_using_match;
 
+  assert(query_graph.CountVertex() > 0);
+
   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
 

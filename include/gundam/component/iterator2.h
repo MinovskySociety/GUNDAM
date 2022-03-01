@@ -53,6 +53,10 @@ template <class IteratorType, class ValueType,
           template <class _IteratorType, class _ValueType> class Cast =
               DefaultCast>
 class GIterator {
+ private:
+  template <class, class, template <class, class> class>
+  friend class GIterator;
+
  public:
   GIterator() = default;
 
@@ -76,6 +80,21 @@ class GIterator {
 
   operator const ValueType *() const {
     return &Cast<IteratorType, ValueType>()(it_);
+  }
+
+  bool operator==(const GIterator &b) const {
+    assert(end_ == b.end_);
+    return it_ == b.it_;
+  }
+
+  template <class _IteratorType, 
+            class _ValueType, 
+            template <class, class> class _Cast>
+  bool operator==(const GIterator<_IteratorType,
+                                  _ValueType,
+                                  _Cast> &b) const {
+    assert(end_ == b.end_);
+    return it_ == b.it_;
   }
 
   GIterator &operator++() {
@@ -104,6 +123,10 @@ class GIterator {
 template <bool is_const, class GraphType, class IteratorType, class ValueType,
           class PointerType>
 class GIterator2 {
+ private:
+  template <bool, class, class, class, class>
+  friend class GIterator2;
+
  public:
   GIterator2() : graph_(nullptr),
                  it_(), end_(it_){
