@@ -8,6 +8,7 @@
 #include "include/gundam/type_getter/edge_id.h"
 #include "include/gundam/type_getter/edge_label.h"
 #include "include/gundam/type_getter/edge_handle.h"
+#include "gundam/type_getter/graph_parameter_getter.h"
 
 namespace GUNDAM {
 

@@ -15,15 +15,24 @@ GraphType ConnectedComponent(GraphType& graph,
   assert(graph.FindVertex(vertex_handle->id()));
   assert(graph.FindVertex(vertex_handle->id())
                        == vertex_handle);
+  /* ####################################### *
+   * ##  wenzhi:                          ## *
+   * ##    to simplify the implemention,  ## *
+   * ##    grab a vertex_handle-centered  ## *
+   * ##    with a large enough k          ## *
+   * ####################################### */
   return KHop<bidirectional>(graph, vertex_handle, 
                              graph.CountVertex());
 }
 
-// wenzhi: todo:
-// decompose the input graph into set of connected components
+/* ######################################## *
+ * ##  wenzhi: todo:                     ## *
+ * ##    decompose the input graph into  ## *
+ * ##    set of connected components     ## *
+ * ######################################## */
 template <bool bidirectional = true,
           typename GraphType>
-std::vector<GraphType>  // OK after C11
+std::vector<GraphType>  // OK to return vector after C11
      ConnectedComponent(GraphType& graph) {
   assert(false);
   std::vector<GraphType> connected_components;

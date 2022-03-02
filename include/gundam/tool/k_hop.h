@@ -3,6 +3,7 @@
 
 #include "gundam/algorithm/bfs.h"
 
+#include "gundam/type_getter/graph_parameter_getter.h"
 #include "gundam/type_getter/vertex_handle.h"
 
 namespace GUNDAM {

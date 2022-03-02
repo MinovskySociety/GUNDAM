@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/tool/connected_component.h"
+#include "gundam/tool/deduplicate_patterns/deduplicate_patterns.h"
 
 #include "gundam/graph_type/graph_base.h"
 #include "gundam/graph_type/small_graph.h"
@@ -12,12 +12,12 @@
 #include "gundam/graph_type/graph.h"
 
 template<class GraphType>
-void TestConnectedComponent(){
+void TestDeduplicatePatterns(){
   ASSERT_TRUE(false);
   return;
 }
 
-TEST(TestGUNDAM, TestConnectedComponent) {
+TEST(TestGUNDAM, TestDeduplicatePatterns) {
   using namespace GUNDAM;
 
   using G1 = LargeGraph<uint32_t, uint32_t, std::string, 
@@ -65,11 +65,11 @@ TEST(TestGUNDAM, TestConnectedComponent) {
                    SetVertexPtrContainerType<GUNDAM::ContainerType::Map>,
                    SetEdgeLabelContainerType<GUNDAM::ContainerType::Map>>;
 
-  TestConnectedComponent<G1>();
-  TestConnectedComponent<G2>();
-  TestConnectedComponent<G3>();
-  TestConnectedComponent<G4>();
-  TestConnectedComponent<G5>();
-  TestConnectedComponent<G6>();
-  TestConnectedComponent<G7>();
+  TestDeduplicatePatterns<G1>();
+  TestDeduplicatePatterns<G2>();
+  TestDeduplicatePatterns<G3>();
+  TestDeduplicatePatterns<G4>();
+  TestDeduplicatePatterns<G5>();
+  TestDeduplicatePatterns<G6>();
+  TestDeduplicatePatterns<G7>();
 }

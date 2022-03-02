@@ -1,7 +1,8 @@
 #ifndef _GUNDAM_TOOL_COPY_TO_H
 #define _GUNDAM_TOOL_COPY_TO_H
 
-#include "include/gundam/tool/same_pattern.h"
+#include "gundam/tool/same_pattern.h"
+#include "gundam/type_getter/graph_parameter_getter.h"
 
 namespace GUNDAM {
 

@@ -1,7 +1,7 @@
 #ifndef _GUNDAM_TOOL_MAXIMAL_COMMON_SUBGRAPH
 #define _GUNDAM_TOOL_MAXIMAL_COMMON_SUBGRAPH
 
-#include "gundam/tool/unique_patterns.h"
+#include "gundam/tool/unique_patterns/unique_patterns.h"
 #include "gundam/tool/sub_graph_of.h"
 
 namespace GUNDAM{
@@ -339,7 +339,7 @@ std::vector<GraphPatternType>
                                                 q0_intersect_q1_edge_label_set,
                                                 q0_intersect_q1_edge_type_set);
 
-    UniquePatterns(expanded_graph_patterns);
+    DeduplicatePatterns(expanded_graph_patterns);
 
     for (auto expanded_graph_pattern_it
             = expanded_graph_patterns.begin();
