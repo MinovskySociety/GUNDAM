@@ -140,3 +140,7 @@ gtest_add_tests(TARGET test_connected_component)
 add_executable (test_deduplicate_patterns "test_deduplicate_patterns.cc")
 target_link_libraries(test_deduplicate_patterns GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_deduplicate_patterns)
+
+add_executable (test_star_cover_by_path "test_star_cover_by_path.cc")
+target_link_libraries(test_star_cover_by_path GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_star_cover_by_path)

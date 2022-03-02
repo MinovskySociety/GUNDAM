@@ -1,9 +1,9 @@
-#ifndef _GUNDAM_IS_STAR_H
-#define _GUNDAM_IS_STAR_H
+#ifndef _GUNDAM_TOOL_TOPOLOGICAL_STAR_IS_STAR_H
+#define _GUNDAM_TOOL_TOPOLOGICAL_STAR_IS_STAR_H
 
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/tool/connected.h"
-#include "gundam/tool/is_link.h"
+#include "gundam/tool/topological/path/is_path.h"
 
 namespace GUNDAM {
 
@@ -25,7 +25,7 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
   }
 
   // check whether the pattern is a path
-  auto [src_handle, dst_handle] = LinkEndPoints<true>(graph);
+  auto [src_handle, dst_handle] = PathEndPoints<true>(graph);
   if (src_handle) {
     return std::pair(std::vector<VertexHandleType>{src_handle, dst_handle}, 
                                  VertexHandleType ());
@@ -40,14 +40,13 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
 
   std::vector<VertexHandleType> centre_candidates;
   for (auto vertex_it = graph.VertexBegin();
-          !vertex_it.IsDone();
-          vertex_it++) {
+           !vertex_it.IsDone();
+            vertex_it++) {
     size_t in_out_degree = vertex_it->CountInEdge() + vertex_it->CountOutEdge();
     if (in_out_degree > 2) {
       centre_candidates.emplace_back(vertex_it);
     }
   }
-
 
   // if the pattern has more than 1 centre
   // then it is not a star
@@ -61,7 +60,7 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
 
   // check the incoming paths of the centre
   for (auto in_edge_it = centre->InEdgeBegin();
-            !in_edge_it.IsDone();
+           !in_edge_it.IsDone();
             in_edge_it++) {
     VertexHandleType current_v = in_edge_it->src_handle();
     VertexHandleType prev_v = centre;
@@ -86,7 +85,7 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
       }
 
       for (auto c_out_edge_it = current_v->OutEdgeBegin();
-                !c_out_edge_it.IsDone();
+               !c_out_edge_it.IsDone();
                 c_out_edge_it++) {
         if (c_out_edge_it->dst_handle() == centre && centre != prev_v) {
           return std::pair(std::vector<VertexHandleType>(), 
@@ -103,7 +102,7 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
 
   // check outgoing paths of the centre
   for (auto out_edge_it = centre->OutEdgeBegin();
-            !out_edge_it.IsDone();
+           !out_edge_it.IsDone();
             out_edge_it++) {
     VertexHandleType current_v = out_edge_it->dst_handle();
     VertexHandleType prev_v = centre;
@@ -167,4 +166,4 @@ inline bool IsStar(GraphType& graph) {
 
 };
 
-#endif // _GUNDAM_IS_STAR_H
+#endif // _GUNDAM_TOOL_TOPOLOGICAL_STAR_IS_STAR_H

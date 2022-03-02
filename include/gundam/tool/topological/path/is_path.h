@@ -1,5 +1,5 @@
-#ifndef _GUNDAM_IS_LINK_H
-#define _GUNDAM_IS_LINK_H
+#ifndef _GUNDAM_IS_PATH_H
+#define _GUNDAM_IS_PATH_H
 
 #include "gundam/type_getter/vertex_handle.h"
 
@@ -9,27 +9,27 @@ namespace GUNDAM {
 //  ##  can be optmized  ##
 //  #######################
 // 
-// if the input graph is a link, return the 
+// if the input graph is a path, return the 
 // the two end vertexes ([src_handle, dst_handle] if bidirectional == false)
 // could be the same if the input graph is just an isolated
 //
-// if the input graph is not a link, then return two nullptr
+// if the input graph is not a path, then return two nullptr
 //
 template<bool bidirectional = false,
          typename GraphType>
 std::pair<typename VertexHandle<GraphType>::type,
-          typename VertexHandle<GraphType>::type> LinkEndPoints(GraphType& graph) {
+          typename VertexHandle<GraphType>::type> PathEndPoints(GraphType& graph) {
   using VertexHandleType = typename VertexHandle<GraphType>::type;
   if (graph.CountVertex() == 1
    && graph.CountEdge() == 0) {
     // only has one isolated vertex, can be viewed as 
-    // link
+    // path
     return std::pair(graph.VertexBegin(),
                      graph.VertexBegin());
   }
   if (graph.CountVertex()
    != graph.CountEdge() + 1) {
-    // is not a link, return two nullptr
+    // is not a path, return two nullptr
     return std::pair(VertexHandleType(),
                      VertexHandleType());
   }
@@ -43,7 +43,7 @@ std::pair<typename VertexHandle<GraphType>::type,
       // only consider one direction
       if (in_edge_num > 1) {
         // under this situation, no vertex could have more than
-        // one input edge, is not a link
+        // one input edge, is not a path
         return std::pair(VertexHandleType(),
                          VertexHandleType());
       }
@@ -56,7 +56,7 @@ std::pair<typename VertexHandle<GraphType>::type,
       VertexHandleType current_handle = vertex_it,
                            src_handle = vertex_it;
       // both current_handle and src_handle points
-      // to one end of the link
+      // to one end of the path
       assert(current_handle);
       assert(    src_handle);
       size_t visited_vertex_num = 1;
@@ -71,7 +71,7 @@ std::pair<typename VertexHandle<GraphType>::type,
               // has not visited all vertexes
               assert(visited_vertex_num < graph.CountVertex());
               // return two nullptr which represents the
-              // input grpah is not a link
+              // input grpah is not a path
               return std::pair(VertexHandleType(),
                                VertexHandleType());
             }
@@ -95,7 +95,7 @@ std::pair<typename VertexHandle<GraphType>::type,
         size_t in_edge_num = current_handle->CountInEdge();
         assert(in_edge_num > 0);
         if (in_edge_num > 1) {
-          // has more than one in edge, is not link
+          // has more than one in edge, is not path
           return std::pair(VertexHandleType(),
                            VertexHandleType());
         }
@@ -212,26 +212,26 @@ std::pair<typename VertexHandle<GraphType>::type,
       assert(current_vertex_handle 
               != src_vertex_handle);
       if (visited_vertex_num == graph.CountVertex()) {
-        // has visited all vertexes, is a link
+        // has visited all vertexes, is a path
         return std::pair(src_vertex_handle,
                      current_vertex_handle);
       }
       assert(visited_vertex_num < graph.CountVertex());
-      // does not visited all vertexes, is not a link
+      // does not visited all vertexes, is not a path
       return std::pair(VertexHandleType(),
                        VertexHandleType());
     }
   }
-  // fail to find the end point, is not a link
+  // fail to find the end point, is not a path
   return std::pair(VertexHandleType(),
                    VertexHandleType());
 }
 
 template<bool bidirectional = false,
          typename GraphType> 
-inline bool IsLink(GraphType& graph) {
+inline bool IsPath(GraphType& graph) {
   const auto [end_handle_0,
-              end_handle_1] = LinkEndPoints<bidirectional>(graph);
+              end_handle_1] = PathEndPoints<bidirectional>(graph);
   if (end_handle_0) {
     assert(end_handle_1);
     return true;
@@ -242,4 +242,4 @@ inline bool IsLink(GraphType& graph) {
 
 };
 
-#endif // _GUNDAM_IS_LINK_H
+#endif // _GUNDAM_IS_PATH_H

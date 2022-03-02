@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/tool/is_link.h"
+#include "gundam/tool/topological/path/is_path.h"
 
 #include "gundam/graph_type/small_graph.h"
 #include "gundam/graph_type/large_graph.h"
@@ -20,39 +20,39 @@ void TestLink() {
   std::cout << "GraphType: " << typeid(g).name() << std::endl;
 
   ConstructGraph0(g);
-  bool ret_non_bi_0 = GUNDAM::IsLink<false>(g);
+  bool ret_non_bi_0 = GUNDAM::IsPath<false>(g);
   auto [src_handle_non_bi_0,
-        dst_handle_non_bi_0] = GUNDAM::LinkEndPoints<false>(g);
+        dst_handle_non_bi_0] = GUNDAM::PathEndPoints<false>(g);
   ASSERT_FALSE(ret_non_bi_0);
   ASSERT_FALSE(src_handle_non_bi_0);
   ASSERT_FALSE(dst_handle_non_bi_0);
 
-  bool ret_bi_0 = GUNDAM::IsLink<true>(g);
+  bool ret_bi_0 = GUNDAM::IsPath<true>(g);
   auto [src_handle_bi_0,
-        dst_handle_bi_0] = GUNDAM::LinkEndPoints<true>(g);
+        dst_handle_bi_0] = GUNDAM::PathEndPoints<true>(g);
   ASSERT_FALSE(ret_bi_0);
   ASSERT_FALSE(src_handle_bi_0);
   ASSERT_FALSE(dst_handle_bi_0);
 
   ConstructGraph1(g);
-  bool ret_non_bi_1 = GUNDAM::IsLink<false>(g);
+  bool ret_non_bi_1 = GUNDAM::IsPath<false>(g);
   auto [src_handle_non_bi_1,
-        dst_handle_non_bi_1] = GUNDAM::LinkEndPoints<false>(g);
+        dst_handle_non_bi_1] = GUNDAM::PathEndPoints<false>(g);
   ASSERT_FALSE(ret_non_bi_1);
   ASSERT_FALSE(src_handle_non_bi_1);
   ASSERT_FALSE(dst_handle_non_bi_1);
 
-  bool ret_bi_1 = GUNDAM::IsLink<true>(g);
+  bool ret_bi_1 = GUNDAM::IsPath<true>(g);
   auto [src_handle_bi_1,
-        dst_handle_bi_1] = GUNDAM::LinkEndPoints<true>(g);
+        dst_handle_bi_1] = GUNDAM::PathEndPoints<true>(g);
   ASSERT_FALSE(ret_bi_1);
   ASSERT_FALSE(src_handle_bi_1);
   ASSERT_FALSE(dst_handle_bi_1);
 
   ConstructGraph2(g);
-  bool ret_non_bi_2 = GUNDAM::IsLink<false>(g);
+  bool ret_non_bi_2 = GUNDAM::IsPath<false>(g);
   auto [src_handle_non_bi_2,
-        dst_handle_non_bi_2] = GUNDAM::LinkEndPoints<false>(g);
+        dst_handle_non_bi_2] = GUNDAM::PathEndPoints<false>(g);
   ASSERT_TRUE(ret_non_bi_2);
   ASSERT_TRUE(src_handle_non_bi_2);
   ASSERT_TRUE(dst_handle_non_bi_2);
@@ -61,9 +61,9 @@ void TestLink() {
            || (src_handle_non_bi_2 == g.FindVertex(3)
             && dst_handle_non_bi_2 == g.FindVertex(2)));
 
-  bool ret_bi_2 = GUNDAM::IsLink<true>(g);
+  bool ret_bi_2 = GUNDAM::IsPath<true>(g);
   auto [src_handle_bi_2,
-        dst_handle_bi_2] = GUNDAM::LinkEndPoints<true>(g);
+        dst_handle_bi_2] = GUNDAM::PathEndPoints<true>(g);
   ASSERT_TRUE(ret_bi_2);
   ASSERT_TRUE(src_handle_bi_2);
   ASSERT_TRUE(dst_handle_bi_2);
@@ -73,46 +73,46 @@ void TestLink() {
             && dst_handle_bi_2 == g.FindVertex(2)));
 
   ConstructGraph3(g);
-  bool ret_non_bi_3 = GUNDAM::IsLink<false>(g);
+  bool ret_non_bi_3 = GUNDAM::IsPath<false>(g);
   auto [src_handle_non_bi_3,
-        dst_handle_non_bi_3] = GUNDAM::LinkEndPoints<false>(g);
+        dst_handle_non_bi_3] = GUNDAM::PathEndPoints<false>(g);
   ASSERT_FALSE(ret_non_bi_3);
   ASSERT_FALSE(src_handle_non_bi_3);
   ASSERT_FALSE(dst_handle_non_bi_3);
 
-  bool ret_bi_3 = GUNDAM::IsLink<true>(g);
+  bool ret_bi_3 = GUNDAM::IsPath<true>(g);
   auto [src_handle_bi_3,
-        dst_handle_bi_3] = GUNDAM::LinkEndPoints<true>(g);
+        dst_handle_bi_3] = GUNDAM::PathEndPoints<true>(g);
   ASSERT_FALSE(ret_bi_3);
   ASSERT_FALSE(src_handle_bi_3);
   ASSERT_FALSE(dst_handle_bi_3);
 
   ConstructGraph4(g);
-  bool ret_non_bi_4 = GUNDAM::IsLink<false>(g);
+  bool ret_non_bi_4 = GUNDAM::IsPath<false>(g);
   auto [src_handle_non_bi_4,
-        dst_handle_non_bi_4] = GUNDAM::LinkEndPoints<false>(g);
+        dst_handle_non_bi_4] = GUNDAM::PathEndPoints<false>(g);
   ASSERT_FALSE(ret_non_bi_4);
   ASSERT_FALSE(src_handle_non_bi_4);
   ASSERT_FALSE(dst_handle_non_bi_4);
 
-  bool ret_bi_4 = GUNDAM::IsLink<true>(g);
+  bool ret_bi_4 = GUNDAM::IsPath<true>(g);
   auto [src_handle_bi_4,
-        dst_handle_bi_4] = GUNDAM::LinkEndPoints<true>(g);
+        dst_handle_bi_4] = GUNDAM::PathEndPoints<true>(g);
   ASSERT_FALSE(ret_bi_4);
   ASSERT_FALSE(src_handle_bi_4);
   ASSERT_FALSE(dst_handle_bi_4);
 
   ConstructGraph5(g);
-  bool ret_non_bi_5 = GUNDAM::IsLink<false>(g);
+  bool ret_non_bi_5 = GUNDAM::IsPath<false>(g);
   auto [src_handle_non_bi_5,
-        dst_handle_non_bi_5] = GUNDAM::LinkEndPoints<false>(g);
+        dst_handle_non_bi_5] = GUNDAM::PathEndPoints<false>(g);
   ASSERT_FALSE(ret_non_bi_5);
   ASSERT_FALSE(src_handle_non_bi_5);
   ASSERT_FALSE(dst_handle_non_bi_5);
 
-  bool ret_bi_5 = GUNDAM::IsLink<true>(g);
+  bool ret_bi_5 = GUNDAM::IsPath<true>(g);
   auto [src_handle_bi_5,
-        dst_handle_bi_5] = GUNDAM::LinkEndPoints<true>(g);
+        dst_handle_bi_5] = GUNDAM::PathEndPoints<true>(g);
   ASSERT_TRUE(ret_bi_5);
   ASSERT_TRUE(src_handle_bi_5);
   ASSERT_TRUE(dst_handle_bi_5);
@@ -122,16 +122,16 @@ void TestLink() {
             && dst_handle_bi_5 == g.FindVertex(2)));
 
   ConstructGraph6(g);
-  bool ret_non_bi_6 = GUNDAM::IsLink<false>(g);
+  bool ret_non_bi_6 = GUNDAM::IsPath<false>(g);
   auto [src_handle_non_bi_6,
-        dst_handle_non_bi_6] = GUNDAM::LinkEndPoints<false>(g);
+        dst_handle_non_bi_6] = GUNDAM::PathEndPoints<false>(g);
   ASSERT_FALSE(ret_non_bi_6);
   ASSERT_FALSE(src_handle_non_bi_6);
   ASSERT_FALSE(dst_handle_non_bi_6);
 
-  bool ret_bi_6 = GUNDAM::IsLink<true>(g);
+  bool ret_bi_6 = GUNDAM::IsPath<true>(g);
   auto [src_handle_bi_6,
-        dst_handle_bi_6] = GUNDAM::LinkEndPoints<true>(g);
+        dst_handle_bi_6] = GUNDAM::PathEndPoints<true>(g);
   ASSERT_TRUE(ret_bi_6);
   ASSERT_TRUE(src_handle_bi_6);
   ASSERT_TRUE(dst_handle_bi_6);
@@ -141,16 +141,16 @@ void TestLink() {
             && dst_handle_bi_6 == g.FindVertex(2)));
 
   ConstructGraph7(g);
-  bool ret_non_bi_7 = GUNDAM::IsLink<false>(g);
+  bool ret_non_bi_7 = GUNDAM::IsPath<false>(g);
   auto [src_handle_non_bi_7,
-        dst_handle_non_bi_7] = GUNDAM::LinkEndPoints<false>(g);
+        dst_handle_non_bi_7] = GUNDAM::PathEndPoints<false>(g);
   ASSERT_FALSE(ret_non_bi_7);
   ASSERT_FALSE(src_handle_non_bi_7);
   ASSERT_FALSE(dst_handle_non_bi_7);
 
-  bool ret_bi_7 = GUNDAM::IsLink<true>(g);
+  bool ret_bi_7 = GUNDAM::IsPath<true>(g);
   auto [src_handle_bi_7,
-        dst_handle_bi_7] = GUNDAM::LinkEndPoints<true>(g);
+        dst_handle_bi_7] = GUNDAM::PathEndPoints<true>(g);
   ASSERT_TRUE(ret_bi_7);
   ASSERT_TRUE(src_handle_bi_7);
   ASSERT_TRUE(dst_handle_bi_7);

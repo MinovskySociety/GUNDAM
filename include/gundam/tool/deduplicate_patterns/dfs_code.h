@@ -1,8 +1,8 @@
 #ifndef _GUNDAM_TOOL_DEDUPLICATE_PATTERNS_DFS_CODE_H
 #define _GUNDAM_TOOL_DEDUPLICATE_PATTERNS_DFS_CODE_H
 
-#include "gundam/tool/is_star.h"
-#include "gundam/tool/is_link.h"
+#include "tool/topological/star/is_star.h"
+#include "gundam/tool/topological/path/is_path.h"
 #include "gundam/tool/connected_component.h"
 
 namespace GUNDAM {
@@ -39,7 +39,7 @@ inline void GetDFSCode(const GraphPatternType& graph_pattern,
   std::vector<GraphPatternType> decomposed_patterns 
                 = ConnectedComponent(graph_pattern);
   for (const auto& pattern : decomposed_patterns) {
-    if (IsLink<true>(pattern)) {
+    if (IsPath<true>(pattern)) {
       // do some thing for link
       continue;
     }
