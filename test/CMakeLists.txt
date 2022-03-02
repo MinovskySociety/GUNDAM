@@ -132,3 +132,7 @@ gtest_add_tests(TARGET test_container2)
 add_executable (test_pointer "test_pointer.cc")
 target_link_libraries(test_pointer GTest::GTest GTest::Main)
 #gtest_add_tests(TARGET test_pointer)
+
+add_executable (test_connected_component "test_connected_component.cc")
+target_link_libraries(test_connected_component GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_connected_component)

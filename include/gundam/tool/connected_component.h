@@ -19,6 +19,23 @@ GraphType ConnectedComponent(GraphType& graph,
                              graph.CountVertex());
 }
 
+// wenzhi: todo:
+// decompose the input graph into set of connected components
+template <bool bidirectional = true,
+          typename GraphType>
+std::vector<GraphType>  // OK after C11
+     ConnectedComponent(GraphType& graph) {
+  assert(false);
+  std::vector<GraphType> connected_components;
+  assert(!connected_components.empty());
+  /* ################################################################## *
+   * ##  wenzhi: hint                                                ## *
+   * ##    Call the method ConnectedComponent(graph, vertex_handle)  ## *
+   * ##    above here                                                ## *
+   * ################################################################## */
+  return  connected_components;
+}
+
 };
 
 #endif // _GUNDAM_TOOL_CONNECTED_COMPONENT_H
