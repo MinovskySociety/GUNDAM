@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/tool/topological/star/cover_by_path.h"
+#include "gundam/tool/topological/star/star_cover_by_path.h"
 
 #include "gundam/graph_type/graph_base.h"
 #include "gundam/graph_type/small_graph.h"

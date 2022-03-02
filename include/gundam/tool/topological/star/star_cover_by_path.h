@@ -1,5 +1,5 @@
-#ifndef _GUNDAM_TOOL_TOPOLOGICAL_STAR_COVER_BY_PATH_H
-#define _GUNDAM_TOOL_TOPOLOGICAL_STAR_COVER_BY_PATH_H
+#ifndef _GUNDAM_TOOL_TOPOLOGICAL_STAR_STAR_COVER_BY_PATH_H
+#define _GUNDAM_TOOL_TOPOLOGICAL_STAR_STAR_COVER_BY_PATH_H
 
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/tool/connected.h"
@@ -19,8 +19,8 @@ namespace GUNDAM {
  * ################################################# */
 template<typename StarGraphType,
          typename PathGraphType>
-bool StarCoverBy(const StarGraphType&  star,
-     const std::vector<PathGraphType>& path_set) {
+bool StarCoverByPath(const StarGraphType&  star,
+         const std::vector<PathGraphType>& path_set) {
   static constexpr bool bidirectional = true;
   const auto [end_vertex_set,
           central_vertex_handle] = StarEndPoints<bidirectional>(star);
@@ -42,4 +42,4 @@ bool StarCoverBy(const StarGraphType&  star,
 
 };
 
-#endif // _GUNDAM_TOOL_TOPOLOGICAL_STAR_COVER_BY_PATH_H
+#endif // _GUNDAM_TOOL_TOPOLOGICAL_STAR_STAR_COVER_BY_PATH_H
