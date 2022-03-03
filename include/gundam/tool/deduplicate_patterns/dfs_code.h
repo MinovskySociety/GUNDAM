@@ -272,6 +272,12 @@ inline void GetDFSCode(GraphPatternType& graph_pattern,
   return;
 }
 
+// // new interface
+// template <class GraphPatternType>
+// inline void GetDFSCode(const GraphPatternType& graph_pattern,
+//          std::vector<DfsCode<GraphPatternType>>& dfs_code_container) {
+// };
+
 // generate all possible DFS code here, call the above method
 template <class GraphPatternType, 
           class DFSCodeContainer>
