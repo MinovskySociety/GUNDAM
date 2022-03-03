@@ -1,11 +1,16 @@
 #ifndef _GUNDAM_TOOL_DEDUPLICATE_PATTERNS_DFS_CODE_H
 #define _GUNDAM_TOOL_DEDUPLICATE_PATTERNS_DFS_CODE_H
 
-#include "tool/topological/star/is_star.h"
+#include <vector>
+#include <map>
+
+#include "gundam/tool/topological/star/is_star.h"
 #include "gundam/tool/topological/path/is_path.h"
 #include "gundam/tool/connected_component.h"
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_handle.h"
+
+#define DFS_CODE_SEPERATOR -1
 
 namespace GUNDAM {
 /* ######################################################################## *
@@ -13,6 +18,8 @@ namespace GUNDAM {
  * ##    move dfs code from                                              ## *
  * ##    grape-gundam/src/apps/gar_discover/gar_discover/gar_dfs_code.h  ## *
  * ######################################################################## */
+template <class GraphPatternType>
+class DfsCode;
 
 // modify from 
 //    template <typename GraphPatternType>
@@ -23,6 +30,9 @@ class DfsCodeElement {
   using VertexLabelType = typename GraphPatternType::VertexType::LabelType;
   using    VertexIDType = typename GraphPatternType::VertexType::   IDType;
   using   EdgeLabelType = typename GraphPatternType::  EdgeType::LabelType;
+
+  template <class>
+  friend class DfsCode;
 
  public:
   DfsCodeElement(int src_vertex_script, 
@@ -77,6 +87,14 @@ class DfsCode {
       = DfsCodeElement<GraphPatternType>;
 
  public:
+  inline DfsCode<GraphPatternType> Cocatenate(const DfsCode<GraphPatternType> &b) {
+    DfsCodeElement dummy(DFS_CODE_SEPERATOR, DFS_CODE_SEPERATOR, DFS_CODE_SEPERATOR, DFS_CODE_SEPERATOR, DFS_CODE_SEPERATOR);
+    std::vector<DfsCodeElementType> ret_vec;
+    ret_vec.insert(ret_vec.end(), dfs_code_element_set_.begin(), dfs_code_element_set_.end());
+    ret_vec.emplace_back(dummy);
+    ret_vec.insert(ret_vec.end(), b.dfs_code_element_set_.begin(), b.dfs_code_element_set_.end());
+  }
+
   inline bool operator<(const DfsCode<GraphPatternType> &b) const {
     if (this->dfs_code_element_set_.size() != b.dfs_code_element_set_.size()) {
       return this->dfs_code_element_set_.size() < b.dfs_code_element_set_.size();
@@ -152,7 +170,7 @@ void DFS(VertexPtr now_vertex_handle,
                                    ::IDType> &used_edge, 
          int32_t &max_script,
          std::map<VertexPtr, int32_t> &vertex_to_script,
-         DfsCode &dfs_code_container) {
+         DfsCode<GraphPatternType> &dfs_code_container) {
   using   EdgeHandleType = typename GUNDAM::  EdgeHandle<GraphPatternType>::type;
   using VertexHandleType = typename GUNDAM::VertexHandle<GraphPatternType>::type;
   using ComPareEdgeData = std::pair<int, EdgeHandleType>;
@@ -264,7 +282,7 @@ template <class GraphPatternType>
 inline void GetDFSCode(GraphPatternType& graph_pattern,
  const std::vector<
  typename VertexHandle<GraphPatternType>::type>& src_vertex_handle_set,
-                               DfsCode& dfs_code_container) {
+                               DfsCode<GraphPatternType>& dfs_code_container) {
   using EdgeHandleType = typename EdgeHandle<GraphPatternType>::type;
   using VertexHandleType = typename VertexHandle<GraphPatternType>::type;
   using EdgeIDType     = typename GraphPatternType::EdgeType::IDType;
@@ -297,28 +315,123 @@ inline void GetDFSCode(GraphPatternType& graph_pattern,
 //     GetDFSCode(const GraphPatternType& graph_pattern) {
 // };
 
+//template <class GraphPatternType>
+//inline std::vector<DfsCode<GraphPatternType>>
+//      GetDFSCode(const GraphPatternType& graph_pattern) {
+//   std::vector<GraphPatternType> decomposed_patterns 
+//                = ConnectedComponent(graph_pattern);
+//
+//        
+//}
+
+
+template <class GraphPatternType>
+inline std::vector<DfsCode<GraphPatternType>> ConcatenateDFSCodeFromOneSide(
+             const std::vector<DfsCode<GraphPatternType>>& vec1,
+	     const std::vector<DfsCode<GraphPatternType>>& vec2) {
+	std::vector<DfsCode<GraphPatternType>> ret_vec;
+	
+	for (size_t i = 0; i < vec1.size(); i++) {
+	  for (size_t j = 0; j < vec2.size(); j++) {
+	    DfsCode<GraphPatternType> concatenate_code = vec1[i].cocatenate(vec2[j]);
+            ret_vec.push_back(concatenate_code);
+	  }
+	}
+  return ret_vec;
+}
+
+template <class GraphPatternType>
+inline std::vector<DfsCode<GraphPatternType>> ConcatenateDFSCodeFromBothSides(
+             const std::vector<DfsCode<GraphPatternType>>& vec1,
+	     const std::vector<DfsCode<GraphPatternType>>& vec2) {
+	std::vector<DfsCode<GraphPatternType>> ret_vec;
+	
+	for (size_t i = 0; i < vec1.size(); i++) {
+	  for (size_t j = 0; j < vec2.size(); j++) {
+	    DfsCode<GraphPatternType> concatenate_code = vec1[i].cocatenate(vec2[j]);
+            ret_vec.push_back(concatenate_code);
+	  }
+	}
+
+	for (size_t i = 0; i < vec2.size(); i++) {
+	  for (size_t j = 0; j < vec1.size(); j++) {
+	    DfsCode<GraphPatternType> concatenate_code = vec2[i].cocatenate(vec1[j]);
+            ret_vec.push_back(concatenate_code);
+	  }
+	}
+  return ret_vec;
+}
+
+
+
 // generate all possible DFS code here, call the above method
 template <class GraphPatternType>
-inline void GetDFSCode(const GraphPatternType& graph_pattern,
-                             DfsCode& dfs_code_container) {
+inline std::vector<DfsCode<GraphPatternType>> GetDFSCode(
+		const GraphPatternType& graph_pattern) {
+
+  using GraphPatternVertexHandle = typename VertexHandle<GraphPatternType>::type;
+
   std::vector<GraphPatternType> decomposed_patterns 
                 = ConnectedComponent(graph_pattern);
-  for (const auto& pattern : decomposed_patterns) {
+  std::sort(decomposed_patterns.begin(), decomposed_patterns.end(),
+            [](const GraphPatternType& g1, const GraphPatternType& g2)
+	    { return g1.CountVertex() < g2.CountVertex()
+	             || g1.CountEdge() < g2.CountEdge();});
+
+  // can be optimized: it just supports GCR and GAR only now
+  assert(decomposed_patterns.size() <= 2);
+  
+  std::vector<std::vector<DfsCode<GraphPatternType>>> dfs_code_vec(decomposed_patterns.size());
+
+  
+//  for (const auto& pattern : decomposed_patterns) {
+    for (size_t i = 0; i < decomposed_patterns.size(); i++) {
+    auto& pattern = decomposed_patterns[i];
+
     if (IsPath<true>(pattern)) {
-      // do some thing for link
+      auto [link_src_handle, link_dst_handle] = PathEndPoints<true>(pattern);
+      
+      DfsCode<GraphPatternType> src_dfs_code;
+      std::vector<GraphPatternVertexHandle> src_handle_set{link_src_handle};
+      GetDFSCode(pattern, src_handle_set, src_dfs_code);
+      dfs_code_vec[i].emplace_back(src_dfs_code);
+      
+      DfsCode<GraphPatternType> dst_dfs_code;
+      std::vector<GraphPatternVertexHandle> dst_handle_set{link_dst_handle};
+      GetDFSCode(pattern, dst_handle_set, dst_dfs_code);
+      dfs_code_vec[i].emplace_back(dst_dfs_code);
+
       continue;
     }
     if (IsStar<true>(pattern)) {
       // do some thing for star
-      continue;
     }
-    // do some thing for general pattern
+
+    for (auto vertex_cit = pattern.VertexBegin();
+	      !vertex_cit.IsDone();
+	      vertex_cit++) {
+      DfsCode<GraphPatternType> v_dfs_code;
+      std::vector<GraphPatternVertexHandle> v_handle_set{vertex_cit};
+      GetDFSCode(pattern, v_handle_set, v_dfs_code);
+      dfs_code_vec.emplace_back(v_dfs_code);
+    }
   }
+
+  assert (dfs_code_vec.size() <= 2);
   if (decomposed_patterns.size() == 1) {
-    return;
+    return dfs_code_vec[0];
+  }
+
+  std::vector<DfsCode<GraphPatternType>> ret_dfs_code_vec;
+
+  if (decomposed_patterns[0].CountVertex() == decomposed_patterns[1].CountVertex()
+      && decomposed_patterns[0].CountEdge() == decomposed_patterns[1].CountEdge()) {
+    ret_dfs_code_vec = ConcatenateDFSCodeFromBothSides(dfs_code_vec[0], dfs_code_vec[1]);
+  } else {
+    ret_dfs_code_vec = ConcatenateDFSCodeFromOneSide(dfs_code_vec[0], dfs_code_vec[1]);
   }
   // do something for dis-connected pattern
-  return;
+  return ret_dfs_code_vec;
 }
 
 };
