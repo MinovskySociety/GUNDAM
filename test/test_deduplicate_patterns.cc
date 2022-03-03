@@ -18,6 +18,15 @@ void TestDeduplicatePatterns(){
 
   GraphType g0;
 
+  // 1 -> 2 -> 3
+  // /\        |
+  // |         V
+  // 8         4
+  // /\        |
+  // |         V
+  // 7 <- 6 <- 5
+
+
   auto res1 = g0.AddVertex(1, 0);
   ASSERT_TRUE(res1.first);
   ASSERT_TRUE(res1.second);
@@ -72,6 +81,12 @@ void TestDeduplicatePatterns(){
 
   GraphType g2;
 
+
+  // 1 -> 2    5 -> 6
+  // /\   |    /\   |
+  // |    V    |    V
+  // 4 <- 3    8 <- 7
+
   // AddVertex
   res1 = g2.AddVertex(1, 0);
   ASSERT_TRUE(res1.first);
@@ -125,12 +140,81 @@ void TestDeduplicatePatterns(){
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
 
+  GraphType g3;
+
+
+  // 2 -> 4    7 -> 6
+  // /\   |    /\   |
+  // |    V    |    V
+  // 1 <- 3    8 <- 5
+
+  // AddVertex
+  res1 = g3.AddVertex(1, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g3.AddVertex(2, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g3.AddVertex(3, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g3.AddVertex(4, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g3.AddVertex(5, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g3.AddVertex(6, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g3.AddVertex(7, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g3.AddVertex(8, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  // AddEdge
+  res2 = g3.AddEdge(1, 2, 42, 1);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g3.AddEdge(4, 3, 42, 2);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g3.AddEdge(3, 1, 42, 3);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g3.AddEdge(2, 4, 42, 4);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+  res2 = g3.AddEdge(7, 6, 42, 5);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g3.AddEdge(8, 7, 42, 6);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g3.AddEdge(5, 8, 42, 7);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g3.AddEdge(6, 5, 42, 8);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+
+
 
   std::vector<GraphType> patterns;
   patterns.push_back(g0);
+  patterns.push_back(g0);
   patterns.push_back(g2);
+  patterns.push_back(g2);
+  patterns.push_back(g3);
+  patterns.push_back(g3);
 
   GUNDAM::DeduplicatePatternsWithDfsCode(patterns);
+
+  
 
   ASSERT_EQ(patterns.size(), 2);
 

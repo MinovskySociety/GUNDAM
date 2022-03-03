@@ -10,8 +10,6 @@
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/vertex_handle.h"
 
-#define DFS_CODE_SEPERATOR -1
-
 namespace GUNDAM {
 /* ######################################################################## *
  * ##  wenzhi:                                                           ## *
@@ -45,6 +43,16 @@ class DfsCodeElement {
         src_label_( src_label),
        edge_label_(edge_label),
         dst_label_( dst_label) {
+    assert(src_vertex_script != -1);
+    assert(dst_vertex_script != -1);
+    return;
+  }
+
+  DfsCodeElement() : src_vertex_script_(-1),
+	             dst_vertex_script_(-1),
+		              src_label_(),
+		             edge_label_(),
+		              dst_label_() {
     return;
   }
 
@@ -87,12 +95,14 @@ class DfsCode {
       = DfsCodeElement<GraphPatternType>;
 
  public:
-  inline DfsCode<GraphPatternType> Cocatenate(const DfsCode<GraphPatternType> &b) {
-    DfsCodeElement dummy(DFS_CODE_SEPERATOR, DFS_CODE_SEPERATOR, DFS_CODE_SEPERATOR, DFS_CODE_SEPERATOR, DFS_CODE_SEPERATOR);
-    std::vector<DfsCodeElementType> ret_vec;
-    ret_vec.insert(ret_vec.end(), dfs_code_element_set_.begin(), dfs_code_element_set_.end());
+  inline DfsCode<GraphPatternType> Concatenate(const DfsCode<GraphPatternType> &b)  const {
+    DfsCodeElementType dummy;
+    DfsCode<GraphPatternType> ret_vec;
+    ret_vec.dfs_code_element_set_.clear();
+    ret_vec.dfs_code_element_set_.insert(ret_vec.dfs_code_element_set_.end(), dfs_code_element_set_.begin(), dfs_code_element_set_.end());
     ret_vec.emplace_back(dummy);
-    ret_vec.insert(ret_vec.end(), b.dfs_code_element_set_.begin(), b.dfs_code_element_set_.end());
+    ret_vec.dfs_code_element_set_.insert(ret_vec.dfs_code_element_set_.end(), b.dfs_code_element_set_.begin(), b.dfs_code_element_set_.end());
+    return ret_vec;
   }
 
   inline bool operator<(const DfsCode<GraphPatternType> &b) const {
@@ -117,6 +127,11 @@ class DfsCode {
       }
     }
     return true;
+  }
+
+  template <typename... Args>
+  inline void emplace_back(Args&&... p1) {
+    dfs_code_element_set_.emplace_back(p1...);
   }
 
  private:
@@ -244,6 +259,10 @@ void DFS(VertexPtr now_vertex_handle,
        (find_it == vertex_to_script.end()) ? ++max_script : find_it->second;
     if (find_it == vertex_to_script.end())
       vertex_to_script.emplace(src_handle, script);
+//    DfsCodeElement tmp_element(script, now_script, src_handle->label(),
+//		               it.second->label(),
+//			       now_vertex_handle->label());
+//    dfs_code_container.push_back(tmp_element);
     dfs_code_container.emplace_back(script, 
                                 now_script, 
                                 src_handle->label(),
@@ -333,7 +352,7 @@ inline std::vector<DfsCode<GraphPatternType>> ConcatenateDFSCodeFromOneSide(
 	
 	for (size_t i = 0; i < vec1.size(); i++) {
 	  for (size_t j = 0; j < vec2.size(); j++) {
-	    DfsCode<GraphPatternType> concatenate_code = vec1[i].cocatenate(vec2[j]);
+	    DfsCode<GraphPatternType> concatenate_code = vec1[i].Concatenate(vec2[j]);
             ret_vec.push_back(concatenate_code);
 	  }
 	}
@@ -348,14 +367,14 @@ inline std::vector<DfsCode<GraphPatternType>> ConcatenateDFSCodeFromBothSides(
 	
 	for (size_t i = 0; i < vec1.size(); i++) {
 	  for (size_t j = 0; j < vec2.size(); j++) {
-	    DfsCode<GraphPatternType> concatenate_code = vec1[i].cocatenate(vec2[j]);
+	    DfsCode<GraphPatternType> concatenate_code = vec1[i].Concatenate(vec2[j]);
             ret_vec.push_back(concatenate_code);
 	  }
 	}
 
 	for (size_t i = 0; i < vec2.size(); i++) {
 	  for (size_t j = 0; j < vec1.size(); j++) {
-	    DfsCode<GraphPatternType> concatenate_code = vec2[i].cocatenate(vec1[j]);
+	    DfsCode<GraphPatternType> concatenate_code = vec2[i].Concatenate(vec1[j]);
             ret_vec.push_back(concatenate_code);
 	  }
 	}
@@ -413,7 +432,7 @@ inline std::vector<DfsCode<GraphPatternType>> GetDFSCode(
       DfsCode<GraphPatternType> v_dfs_code;
       std::vector<GraphPatternVertexHandle> v_handle_set{vertex_cit};
       GetDFSCode(pattern, v_handle_set, v_dfs_code);
-      dfs_code_vec.emplace_back(v_dfs_code);
+      dfs_code_vec[i].emplace_back(v_dfs_code);
     }
   }
 
