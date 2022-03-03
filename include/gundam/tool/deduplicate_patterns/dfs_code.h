@@ -77,8 +77,28 @@ class DfsCode {
       = DfsCodeElement<GraphPatternType>;
 
  public:
-  inline bool operator < () const {
-    
+  inline bool operator<(const DfsCode<GraphPatternType> &b) const {
+    if (this->dfs_code_element_set_.size() != b.dfs_code_element_set_.size()) {
+      return this->dfs_code_element_set_.size() < b.dfs_code_element_set_.size();
+    }
+    for (size_t i = 0; i < this->dfs_code_element_set_.size(); i++) {
+      if (!(this->dfs_code_element_set_[i] == b.dfs_code_element_set_[i])) {
+        return this->dfs_code_element_set_[i] < b.dfs_code_element_set_[i];
+      }
+    }
+    return false;
+  }
+
+  inline bool operator==(const DfsCode<GraphPatternType> &b) const {
+    if (this->dfs_code_element_set_.size() != b.dfs_code_element_set_.size()) {
+      return false;
+    }
+    for (size_t i = 0; i < this->dfs_code_element_set_.size(); i++) {
+      if (!(this->dfs_code_element_set_[i] == b.dfs_code_element_set_[i])) {
+        return false;
+      }
+    }
+    return true;
   }
 
  private:
@@ -124,8 +144,7 @@ class EdgeCMP {
 };
 
 template <typename GraphPatternType, 
-          class VertexPtr, 
-          class DFSCodeContainer>
+          class VertexPtr>
 void DFS(VertexPtr now_vertex_handle, 
          std::set<VertexPtr> &used_vertex,
          std::set<typename GraphPatternType
@@ -133,7 +152,7 @@ void DFS(VertexPtr now_vertex_handle,
                                    ::IDType> &used_edge, 
          int32_t &max_script,
          std::map<VertexPtr, int32_t> &vertex_to_script,
-         DFSCodeContainer &dfs_code_container) {
+         DfsCode &dfs_code_container) {
   using   EdgeHandleType = typename GUNDAM::  EdgeHandle<GraphPatternType>::type;
   using VertexHandleType = typename GUNDAM::VertexHandle<GraphPatternType>::type;
   using ComPareEdgeData = std::pair<int, EdgeHandleType>;
@@ -241,12 +260,11 @@ void DFS(VertexPtr now_vertex_handle,
 // }
 
 
-template <class GraphPatternType, 
-          class DFSCodeContainer>
+template <class GraphPatternType>
 inline void GetDFSCode(GraphPatternType& graph_pattern,
  const std::vector<
  typename VertexHandle<GraphPatternType>::type>& src_vertex_handle_set,
-                               DFSCodeContainer& dfs_code_container) {
+                               DfsCode& dfs_code_container) {
   using EdgeHandleType = typename EdgeHandle<GraphPatternType>::type;
   using VertexHandleType = typename VertexHandle<GraphPatternType>::type;
   using EdgeIDType     = typename GraphPatternType::EdgeType::IDType;
@@ -279,10 +297,9 @@ inline void GetDFSCode(GraphPatternType& graph_pattern,
 // };
 
 // generate all possible DFS code here, call the above method
-template <class GraphPatternType, 
-          class DFSCodeContainer>
+template <class GraphPatternType>
 inline void GetDFSCode(const GraphPatternType& graph_pattern,
-                             DFSCodeContainer& dfs_code_container) {
+                             DfsCode& dfs_code_container) {
   std::vector<GraphPatternType> decomposed_patterns 
                 = ConnectedComponent(graph_pattern);
   for (const auto& pattern : decomposed_patterns) {
