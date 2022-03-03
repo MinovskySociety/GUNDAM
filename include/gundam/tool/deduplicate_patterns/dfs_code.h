@@ -18,14 +18,14 @@ namespace GUNDAM {
 //    template <typename GraphPatternType>
 //    class GARDFSCode;
 template <class GraphPatternType>
-class DfsCode {
+class DfsCodeElement {
  public:
   using VertexLabelType = typename GraphPatternType::VertexType::LabelType;
   using    VertexIDType = typename GraphPatternType::VertexType::   IDType;
   using   EdgeLabelType = typename GraphPatternType::  EdgeType::LabelType;
 
  public:
-  DfsCode(int src_vertex_script, 
+  DfsCodeElement(int src_vertex_script, 
               int dst_vertex_script,
               VertexLabelType  src_label, 
                 EdgeLabelType edge_label,
@@ -39,7 +39,7 @@ class DfsCode {
   }
 
   
-  bool operator<(const DfsCode<GraphPatternType> &b) const {
+  bool operator<(const DfsCodeElement<GraphPatternType> &b) const {
     if (this->src_vertex_script_ != b.src_vertex_script_)
       return this->src_vertex_script_ < b.src_vertex_script_;
     if (this->dst_vertex_script_ != b.dst_vertex_script_)
@@ -51,7 +51,7 @@ class DfsCode {
     return this->dst_label_ < b.dst_label_;
   }
 
-  bool operator==(const DfsCode<GraphPatternType> &b) const {
+  bool operator==(const DfsCodeElement<GraphPatternType> &b) const {
     if ((this->src_vertex_script_ == b.src_vertex_script_) &&
         (this->dst_vertex_script_ == b.dst_vertex_script_) &&
         (this->src_label_ == b.src_label_) &&
@@ -67,6 +67,22 @@ class DfsCode {
   VertexLabelType  src_label_;
   VertexLabelType  dst_label_;
     EdgeLabelType edge_label_;
+};
+
+
+template <class GraphPatternType>
+class DfsCode {
+ private:
+  using DfsCodeElementType
+      = DfsCodeElement<GraphPatternType>;
+
+ public:
+  inline bool operator < () const {
+    
+  }
+
+ private:
+  std::vector<DfsCodeElementType> dfs_code_element_set_;
 };
 
 template <bool is_out, class EdgePtr>
@@ -215,6 +231,16 @@ void DFS(VertexPtr now_vertex_handle,
 //    inline void GetGARDFSCode(GraphPatternType& graph_pattern,
 //           std::vector<typename GUNDAM::VertexHandle<GraphPatternType>::type>& src_vertex_handle_set,
 //                               DFSCodeContainer& dfs_code_container);
+
+// new interface:
+// template <class GraphPatternType>
+// inline void GetDFSCode(GraphPatternType& graph_pattern,
+//   const 
+//   typename VertexHandle<GraphPatternType>::type>& src_vertex_handle,
+//                 DfsCode<GraphPatternType>& dfs_code_container) {
+// }
+
+
 template <class GraphPatternType, 
           class DFSCodeContainer>
 inline void GetDFSCode(GraphPatternType& graph_pattern,
