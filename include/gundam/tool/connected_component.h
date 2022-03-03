@@ -33,18 +33,24 @@ GraphType ConnectedComponent(GraphType& graph,
 template <bool bidirectional = true,
           typename GraphType>
 std::vector<GraphType>  // OK to return vector after C11
-     ConnectedComponent(GraphType& graph) {
+     ConnectedComponent(const GraphType& graph) {
 
   using VertexHandleType = typename VertexHandle<GraphType>::type;
   using VertexIDType = typename GraphType::VertexType::IDType;
   std::vector<GraphType> connected_components;
   connected_components.clear();
 
+  /* ################################################# *
+   * ##  wenzhi: optimize me                        ## *
+   * ##    to support const GraphType in            ## *
+   * ##    ConnectedComponent(graph, vertex_handle  ## *
+   * ################################################# */
+  GraphType temp_graph(graph);
   GraphType k_hop_subgraph;
 
   std::unordered_set<VertexIDType> processed_nodes;
 
-  for (auto vertex_it = graph.VertexBegin();
+  for (auto vertex_it = temp_graph.VertexBegin();
 		  !vertex_it.IsDone();
 		  vertex_it++) {
     if (processed_nodes.find(vertex_it->id())
@@ -52,7 +58,7 @@ std::vector<GraphType>  // OK to return vector after C11
       continue;
     }
 
-    k_hop_subgraph = GUNDAM::ConnectedComponent(graph, vertex_it);
+    k_hop_subgraph = GUNDAM::ConnectedComponent(temp_graph, vertex_it);
     connected_components.emplace_back(k_hop_subgraph);
 
     for (auto kh_vertex_it = k_hop_subgraph.VertexBegin();
