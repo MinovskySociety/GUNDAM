@@ -466,6 +466,11 @@ inline std::vector<DfsCode<GraphPatternType>> GetDFSCode(
   }
 
   std::vector<DfsCode<GraphPatternType>> ret_dfs_code_vec;
+  /* ################################################### *
+   * ## wenzhi: has bug here!                         ## *
+   * ##   can have more than two decomposed_patterns  ## *
+   * ################################################### */
+  assert(decomposed_patterns.size() <= 2);
 
   if (decomposed_patterns[0].CountVertex() == decomposed_patterns[1].CountVertex()
       && decomposed_patterns[0].CountEdge() == decomposed_patterns[1].CountEdge()) {
