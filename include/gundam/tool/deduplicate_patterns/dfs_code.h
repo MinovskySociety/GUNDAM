@@ -79,6 +79,15 @@ class DfsCodeElement {
     return false;
   }
 
+  inline std::string ToString() const {
+    return "<" + std::to_string(this->src_vertex_script_)
+         + "," + std::to_string(this->dst_vertex_script_)
+         + "," + std::to_string(this-> src_label_)
+         + "," + std::to_string(this-> dst_label_)
+         + "," + std::to_string(this->edge_label_)
+         + ">";
+  }
+
  private:
   int src_vertex_script_, 
       dst_vertex_script_;
@@ -129,9 +138,24 @@ class DfsCode {
     return true;
   }
 
+  DfsCode() = default;
+  DfsCode(const DfsCode&) = default;
+  DfsCode(DfsCode&&) = default;
+  DfsCode& operator=(const DfsCode &) = default;
+  DfsCode& operator=(DfsCode &&) = default;
+
   template <typename... Args>
-  inline void emplace_back(Args&&... p1) {
-    dfs_code_element_set_.emplace_back(p1...);
+  inline void emplace_back(Args&&... args) {
+    dfs_code_element_set_.emplace_back(std::forward<Args>(args)...);
+  }
+
+  inline std::string ToString() const {
+    std::string str;
+    for (const auto& dfs_code_element 
+             : this->dfs_code_element_set_) {
+      str += " " + dfs_code_element.ToString();
+    }
+    return str;
   }
 
  private:
@@ -447,6 +471,11 @@ inline std::vector<DfsCode<GraphPatternType>> GetDFSCode(
       && decomposed_patterns[0].CountEdge() == decomposed_patterns[1].CountEdge()) {
     ret_dfs_code_vec = ConcatenateDFSCodeFromBothSides(dfs_code_vec[0], dfs_code_vec[1]);
   } else {
+    /* ##################################################### *
+     * ## wenzhi: has bug here!                           ## *
+     * ##   the order of patterns in decomposed_patterns  ## *
+     * ##   is random                                     ## *
+     * ##################################################### */
     ret_dfs_code_vec = ConcatenateDFSCodeFromOneSide(dfs_code_vec[0], dfs_code_vec[1]);
   }
   // do something for dis-connected pattern
