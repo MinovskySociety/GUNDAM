@@ -56,15 +56,14 @@ class DfsCodeElement {
     return;
   }
 
-  DfsCodeElement(int src_vertex_script,
-		 int dst_vertex_script,
-		 VertexLabelType src_label,
+  DfsCodeElement(int dst_vertex_script,
 		 VertexLabelType dst_label)
-          : src_vertex_script_(src_vertex_script),
+          : src_vertex_script_(-1),
 	    dst_vertex_script_(dst_vertex_script),
-	    src_label_(src_label),
+	    src_label_(),
 	    edge_label_(),
 	    dst_label_(dst_label) {
+    assert(dst_vertex_script != -1);
     return;
   }
 
@@ -119,11 +118,9 @@ class DfsCode {
 
  public:
   inline DfsCode<GraphPatternType> Concatenate(const DfsCode<GraphPatternType> &b)  const {
-    DfsCodeElementType dummy;
     DfsCode<GraphPatternType> ret_vec;
     ret_vec.dfs_code_element_set_.clear();
     ret_vec.dfs_code_element_set_.insert(ret_vec.dfs_code_element_set_.end(), dfs_code_element_set_.begin(), dfs_code_element_set_.end());
-    ret_vec.emplace_back(dummy);
     ret_vec.dfs_code_element_set_.insert(ret_vec.dfs_code_element_set_.end(), b.dfs_code_element_set_.begin(), b.dfs_code_element_set_.end());
     return ret_vec;
   }
@@ -354,8 +351,11 @@ inline void GetDFSCode(GraphPatternType& graph_pattern,
     int32_t max_script = -1;
     vertex_to_script.insert(std::make_pair(src_vertex_handle,
                                         ++max_script));
-    dfs_code_container.emplace_back(-1, vertex_to_script[src_vertex_handle],
-		    src_vertex_handle->label(), src_vertex_handle->label());
+//    dfs_code_container.emplace_back(-1, vertex_to_script[src_vertex_handle],
+//		    src_vertex_handle->label(), src_vertex_handle->label());
+
+    dfs_code_container.emplace_back(vertex_to_script[src_vertex_handle],
+		    src_vertex_handle->label());
 
     DFS<GraphPatternType>(src_vertex_handle, 
                         used_vertex, 
