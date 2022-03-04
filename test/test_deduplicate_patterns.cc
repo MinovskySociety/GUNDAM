@@ -202,21 +202,44 @@ void TestDeduplicatePatterns(){
   ASSERT_TRUE(res2.second);
 
 
+  GraphType g5;
 
 
+  // 1(label 4)
+
+  // AddVertex
+  res1 = g5.AddVertex(1, 4);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+ 
+  GraphType g6;
+
+
+  // 1(label 6)
+
+  // AddVertex
+  res1 = g6.AddVertex(1, 6);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+ 
   std::vector<GraphType> patterns;
   patterns.push_back(g0);
   patterns.push_back(g0);
   patterns.push_back(g2);
   patterns.push_back(g2);
-  patterns.push_back(g3);
-  patterns.push_back(g3);
-
   GUNDAM::DeduplicatePatternsWithDfsCode(patterns);
-
-  
-
   ASSERT_EQ(patterns.size(), 2);
+  patterns.push_back(g3);
+  patterns.push_back(g3);
+  patterns.push_back(g5);
+  patterns.push_back(g5);
+  GUNDAM::DeduplicatePatternsWithDfsCode(patterns);
+  ASSERT_EQ(patterns.size(), 3);
+  patterns.push_back(g6);
+  patterns.push_back(g6);
+  GUNDAM::DeduplicatePatternsWithDfsCode(patterns);
+  ASSERT_EQ(patterns.size(), 4);
+
 
   return;
 }

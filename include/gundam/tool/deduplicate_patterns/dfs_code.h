@@ -56,6 +56,20 @@ class DfsCodeElement {
     return;
   }
 
+  DfsCodeElement(int src_vertex_script,
+		 int dst_vertex_script,
+		 VertexLabelType src_label,
+		 VertexLabelType dst_label)
+          : src_vertex_script_(src_vertex_script),
+	    dst_vertex_script_(dst_vertex_script),
+	    src_label_(src_label),
+	    edge_label_(),
+	    dst_label_(dst_label) {
+    return;
+  }
+
+
+
   
   bool operator<(const DfsCodeElement<GraphPatternType> &b) const {
     if (this->src_vertex_script_ != b.src_vertex_script_)
@@ -340,6 +354,8 @@ inline void GetDFSCode(GraphPatternType& graph_pattern,
     int32_t max_script = -1;
     vertex_to_script.insert(std::make_pair(src_vertex_handle,
                                         ++max_script));
+    dfs_code_container.emplace_back(-1, vertex_to_script[src_vertex_handle],
+		    src_vertex_handle->label(), src_vertex_handle->label());
 
     DFS<GraphPatternType>(src_vertex_handle, 
                         used_vertex, 
