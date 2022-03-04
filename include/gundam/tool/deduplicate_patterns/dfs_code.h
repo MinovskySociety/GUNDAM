@@ -435,7 +435,7 @@ inline std::vector<DfsCode<GraphPatternType>> GetDFSCode(
   std::sort(decomposed_patterns.begin(), decomposed_patterns.end(),
             [](const GraphPatternType& g1, const GraphPatternType& g2)
 	    { return g1.CountVertex() < g2.CountVertex()
-	             || g1.CountEdge() < g2.CountEdge();});
+	             || (g1.CountVertex() == g2.CountVertex() && g1.CountEdge() < g2.CountEdge());});
 
   // can be optimized: it just supports GCR and GAR only now
   assert(decomposed_patterns.size() <= 2);
