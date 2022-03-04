@@ -8,15 +8,15 @@
 
 namespace GUNDAM {
 
-/* ################################################# *
- * ## return false if:                            ## *
- * ##   1, input star is not a star               ## *
- * ##   2, any pattern in path_set is not a path  ## *
- * ##   3, path_set is empty                      ## *
- * ##   4, any of pathes in input star cannot     ## *
- * ##      be covered by the input path_set       ## *
- * ## else, return true                           ## *
- * ################################################# */
+/* ########################################################## *
+ * ## return false if:                                     ## *
+ * ##   1, input star is not a star                        ## *
+ * ##  (REMOVED) 2, any pattern in path_set is not a path  ## *
+ * ##   3, path_set is empty                               ## *
+ * ##   4, any of pathes in input star cannot              ## *
+ * ##      be covered by the input path_set                ## *
+ * ## else, return true                                    ## *
+ * ########################################################## */
 template<typename StarGraphType,
          typename PathGraphType>
 bool StarCoverByPath(const StarGraphType&  star,
