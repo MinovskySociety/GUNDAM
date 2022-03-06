@@ -169,12 +169,204 @@ void TestCoverByPath(){
   ASSERT_TRUE(res2.second);
 
 
+  GraphType g1;
+
+  // 1(label 9) -> 2(label 4) -> 3 (label 5)
+
+  res1 = g1.AddVertex(1, 9);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g1.AddVertex(2, 4);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g1.AddVertex(3, 5);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res2 = g1.AddEdge(1, 2, 4, 1);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g1.AddEdge(2, 3, 4, 2);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+
+  GraphType g2;
+  // 1(label 5)
+
+  res1 = g2.AddVertex(1, 5);
+
+  GraphType g3;
+
+  // 1(label 2) -> 2(label 4) <- 3 (label 5)
+
+  res1 = g3.AddVertex(1, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g3.AddVertex(2, 4);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g3.AddVertex(3, 5);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res2 = g3.AddEdge(1, 2, 4, 1);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g3.AddEdge(3, 2, 4, 2);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+// FixBug: dont take the label of edge into account!!
+/*  GraphType g4;
+
+  // 1(label 2) -> 2(label 4) -> 3 (label 5)
+
+  res1 = g4.AddVertex(1, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g4.AddVertex(2, 4);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g4.AddVertex(3, 5);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res2 = g4.AddEdge(1, 2, 9, 1);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g4.AddEdge(2, 3, 9, 2);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);*/
+
+  GraphType g5;
+
+  // 6(label 7) -> 7(label 8)
+  // /\
+  // |
+  // 1(label 2) -> 2(label 4) -> 3 (label 5)
+  // |
+  // \/
+  // 4(label 4)-> 5(label 5)
+
+  res1 = g5.AddVertex(1, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g5.AddVertex(2, 4);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g5.AddVertex(3, 5);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g5.AddVertex(4, 4);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g5.AddVertex(5, 5);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g5.AddVertex(6, 7);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g5.AddVertex(7, 8);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res2 = g5.AddEdge(1, 2, 4, 1);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g5.AddEdge(2, 3, 4, 2);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g5.AddEdge(1, 4, 4, 3);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g5.AddEdge(4, 5, 4, 4);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g5.AddEdge(1, 6, 4, 5);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g5.AddEdge(6, 7, 4, 6);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+  GraphType g6;
+
+  // 6(label 10) -> 7(label 8)
+  // /\
+  // |
+  // 1(label 2) -> 2(label 4) -> 3 (label 5)
+  // |
+  // \/
+  // 4(label 4)-> 5(label 5)
+
+  res1 = g6.AddVertex(1, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g6.AddVertex(2, 4);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g6.AddVertex(3, 5);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g6.AddVertex(4, 4);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g6.AddVertex(5, 5);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g6.AddVertex(6, 10);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g6.AddVertex(7, 8);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res2 = g6.AddEdge(1, 2, 4, 1);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g6.AddEdge(2, 3, 4, 2);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g6.AddEdge(1, 4, 4, 3);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g6.AddEdge(4, 5, 4, 4);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g6.AddEdge(1, 6, 4, 5);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g6.AddEdge(6, 7, 4, 6);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+
+
 
 
   bool cover = false;
+
   cover = GUNDAM::StarCoverByPath(g0, path_vec);
   ASSERT_TRUE(cover);
 
+  cover = GUNDAM::StarCoverByPath(g1, path_vec);
+  ASSERT_FALSE(cover);
+
+  cover = GUNDAM::StarCoverByPath(g2, path_vec);
+  ASSERT_TRUE(cover);
+
+  cover = GUNDAM::StarCoverByPath(g3, path_vec);
+  ASSERT_FALSE(cover);
+
+//  cover = GUNDAM::StarCoverByPath(g4, path_vec);
+//  ASSERT_TRUE(cover);
+
+  cover = GUNDAM::StarCoverByPath(g5, path_vec);
+  ASSERT_TRUE(cover);
+
+  cover = GUNDAM::StarCoverByPath(g6, path_vec);
+  ASSERT_FALSE(cover);
   return;
 }
 

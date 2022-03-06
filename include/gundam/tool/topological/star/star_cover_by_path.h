@@ -8,6 +8,7 @@
 #include "gundam/algorithm/match_using_match.h"
 #include "gundam/tool/topological/path/is_path.h"
 #include "gundam/tool/topological/star/is_star.h"
+#include <iostream>
 
 namespace GUNDAM {
 
@@ -25,6 +26,7 @@ template<typename StarGraphType,
 bool StarCoverByPath(StarGraphType&  star,
          std::vector<PathGraphType>& path_set) {
   static constexpr bool bidirectional = true;
+
 
   using StarVertexHandleType = typename VertexHandle<StarGraphType>::type;
   using PathVertexHandleType = typename VertexHandle<PathGraphType>::type;
@@ -58,12 +60,11 @@ bool StarCoverByPath(StarGraphType&  star,
     return false;
   }
 
-
   if (!central_vertex_handle) {
     // the star is a path (a star has onlt 1 or 2 branches)
     auto [pattern_src_handle, pattern_dst_handle] = PathEndPoints<bidirectional>(star);
     for (auto c_vertex_it = star.VertexBegin();
-	      c_vertex_it.IsDone(); c_vertex_it++) {
+	      !c_vertex_it.IsDone(); c_vertex_it++) {
       StarVertexHandleType c_vertex_handle = c_vertex_it;
       if (c_vertex_handle == pattern_dst_handle) continue;  // already been checked when v_vertex_it == pattern_src_handle
 
