@@ -454,7 +454,9 @@ inline std::vector<DfsCode<GraphPatternType>> GetDFSCode(
       std::vector<GraphPatternVertexHandle> src_handle_set{link_src_handle};
       GetDFSCode(pattern, src_handle_set, src_dfs_code);
       dfs_code_vec[i].emplace_back(src_dfs_code);
-      
+     
+      if (link_src_handle == link_dst_handle) continue;
+
       DfsCode<GraphPatternType> dst_dfs_code;
       std::vector<GraphPatternVertexHandle> dst_handle_set{link_dst_handle};
       GetDFSCode(pattern, dst_handle_set, dst_dfs_code);
@@ -462,10 +464,9 @@ inline std::vector<DfsCode<GraphPatternType>> GetDFSCode(
 
       continue;
     }
-    if (IsStar<true>(pattern)) {
+//    if (IsStar<true>(pattern)) {
       // do some thing for star
-    }
-
+//    }
     for (auto vertex_cit = pattern.VertexBegin();
 	      !vertex_cit.IsDone();
 	      vertex_cit++) {

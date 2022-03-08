@@ -221,8 +221,102 @@ void TestDeduplicatePatterns(){
   res1 = g6.AddVertex(1, 6);
   ASSERT_TRUE(res1.first);
   ASSERT_TRUE(res1.second);
- 
+
+  GraphType g7;
+
+  // 0(label 2) --1004--> 2(label 7)
+  // 
+  // 1(label 2)
+  //
+
+  res1 = g7.AddVertex(0, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g7.AddVertex(1, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g7.AddVertex(2, 7);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res2 = g7.AddEdge(0, 2, 1004, 1);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+  GraphType g8;
+
+  // 0(label 2)
+  // 
+  // 1(label 2) ---1004-->2(label 7)
+  //
+
+  res1 = g8.AddVertex(0, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g8.AddVertex(1, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g8.AddVertex(2, 7);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res2 = g8.AddEdge(1, 2, 1004, 1);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+  GraphType g9;
+
+  // 0(label 2)
+  // 
+  // 1(label 7) <---1004-- 2(label 2)
+  //
+
+  res1 = g9.AddVertex(0, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g9.AddVertex(1, 7);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g9.AddVertex(2, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res2 = g9.AddEdge(2, 1, 1004, 1);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+  GraphType g10;
+
+  // 0(label 7)<---1004--- 2(label 2)
+  // 
+  // 1(label 2)
+  //
+
+  res1 = g10.AddVertex(0, 7);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g10.AddVertex(1, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+  res1 = g10.AddVertex(2, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res2 = g10.AddEdge(2, 0, 1004, 1);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+
+
   std::vector<GraphType> patterns;
+  patterns.push_back(g7);
+  patterns.push_back(g8);
+  patterns.push_back(g9);
+  patterns.push_back(g10);
+
+  GUNDAM::DeduplicatePatternsWithDfsCode(patterns);
+  ASSERT_EQ(patterns.size(), 1);
+
+  patterns.clear();
   patterns.push_back(g0);
   patterns.push_back(g0);
   patterns.push_back(g2);

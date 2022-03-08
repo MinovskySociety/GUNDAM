@@ -8,6 +8,7 @@
 #include <gundam/component/disjoint_set.h>
 #include <set>
 
+
 namespace GUNDAM {
 
 template<typename GraphPatternType>
@@ -42,9 +43,14 @@ inline void DeduplicatePatternsWithDfsCode(std::vector<GraphPatternType>& graph_
   for (size_t i = 0; i < graph_patterns.size(); i++) {
     auto& pattern = graph_patterns[i];
     std::vector<DfsCode<GraphPatternType>> dfs_codes = GetDFSCode(pattern);
+//    std::cout << ".." << std::endl;
     for (size_t j = 0; j < dfs_codes.size(); j++) {
+      // std::cout << ".." << std::endl;
+//      std::cout << dfs_codes[j].ToString() << std::endl;
+      //  std::cout << ".." << std::endl;
       dfs_code_map[dfs_codes[j]].insert(i);
     }
+//    std::cout << ".." << std::endl;
   }
 
   DisjointSet<size_t> disjoint_set(graph_patterns.size()); 
