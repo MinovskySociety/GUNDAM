@@ -37,7 +37,7 @@ bool StarCoverByPath(StarGraphType&  star,
     // the star is an isolated vertex
     auto vertex_it = star.VertexBegin();
     for (auto path_it = path_set.begin(); path_it != path_set.end();
-	      path_it++) {
+              path_it++) {
       auto [path_src_handle, path_dst_handle] = PathEndPoints<true>(*path_it);
       if (path_src_handle->label() == vertex_it->label()
           || path_dst_handle->label() == vertex_it->label()) {
@@ -64,7 +64,7 @@ bool StarCoverByPath(StarGraphType&  star,
     // the star is a path (a star has onlt 1 or 2 branches)
     auto [pattern_src_handle, pattern_dst_handle] = PathEndPoints<bidirectional>(star);
     for (auto c_vertex_it = star.VertexBegin();
-	      !c_vertex_it.IsDone(); c_vertex_it++) {
+              !c_vertex_it.IsDone(); c_vertex_it++) {
       StarVertexHandleType c_vertex_handle = c_vertex_it;
       if (c_vertex_handle == pattern_dst_handle) continue;  // already been checked when v_vertex_it == pattern_src_handle
 
@@ -72,69 +72,69 @@ bool StarCoverByPath(StarGraphType&  star,
       unmatched_ends.insert(pattern_dst_handle->id());
 
       if (c_vertex_handle != pattern_src_handle) {
-	unmatched_ends.insert(pattern_src_handle->id());
+        unmatched_ends.insert(pattern_src_handle->id());
       }
 
       for (auto path_it = path_set.begin(); path_it != path_set.end();
-	        path_it++) {
+                path_it++) {
         auto [path_src_handle, path_dst_handle] = PathEndPoints<true>(*path_it);
 
         std::function<bool(const Match<PathGraphType, StarGraphType>&)> 
             prune_callback = [](const Match<PathGraphType, StarGraphType>& partial_match) -> bool {
-	    // prune nothing
-	  return false;
-	};
+            // prune nothing
+          return false;
+        };
 
-	auto path_target_handle = path_dst_handle;
+        auto path_target_handle = path_dst_handle;
         std::function<bool(const Match<PathGraphType, StarGraphType>&)> 
             match_callback = [&unmatched_ends, &path_target_handle]
-	            (const Match<PathGraphType, StarGraphType>& match_state) -> bool {
+                    (const Match<PathGraphType, StarGraphType>& match_state) -> bool {
 
             // matches all endpoints until no unmatched endpoints exist
-	  const StarVertexIDType id = match_state.MapTo(path_target_handle)->id();
-	  if (unmatched_ends.find(match_state.MapTo(path_target_handle)->id())
-	      != unmatched_ends.end()) {
-	    unmatched_ends.erase(match_state.MapTo(path_target_handle)->id());
+          const StarVertexIDType id = match_state.MapTo(path_target_handle)->id();
+          if (unmatched_ends.find(match_state.MapTo(path_target_handle)->id())
+              != unmatched_ends.end()) {
+            unmatched_ends.erase(match_state.MapTo(path_target_handle)->id());
             if (unmatched_ends.empty()) {
-	      return false;
+              return false;
             }
-	  }
-	  return true;
-	 };
-
-  	{
-	  path_target_handle = path_dst_handle;
-          Match<PathGraphType, StarGraphType> match;
-	  match.AddMap(path_src_handle, c_vertex_handle);
-
-	  MatchUsingMatch<MatchSemantics::kIsomorphism,
-	                  MatchAlgorithm::kVf2,
-		       	  MergeNecConfig::kNotMerge>(
-			      *path_it, star, match,
-			      prune_callback, match_callback
-			  );
-	}
-
-	if (unmatched_ends.empty()) {
-	  return true;
-	}
+          }
+          return true;
+         };
 
         {
-	  path_target_handle = path_src_handle;
+          path_target_handle = path_dst_handle;
           Match<PathGraphType, StarGraphType> match;
-	  match.AddMap(path_dst_handle, c_vertex_handle);
+          match.AddMap(path_src_handle, c_vertex_handle);
 
-	  MatchUsingMatch<MatchSemantics::kIsomorphism,
-	                  MatchAlgorithm::kVf2,
-		     	  MergeNecConfig::kNotMerge>(
-			      *path_it, star, match,
-			      prune_callback, match_callback
-			  );
-	}
+          MatchUsingMatch<MatchSemantics::kIsomorphism,
+                          MatchAlgorithm::kVf2,
+                          MergeNecConfig::kNotMerge>(
+                              *path_it, star, match,
+                              prune_callback, match_callback
+                          );
+        }
 
-	if (unmatched_ends.empty()) {
-	  return true;
-	}
+        if (unmatched_ends.empty()) {
+          return true;
+        }
+
+        {
+          path_target_handle = path_src_handle;
+          Match<PathGraphType, StarGraphType> match;
+          match.AddMap(path_dst_handle, c_vertex_handle);
+
+          MatchUsingMatch<MatchSemantics::kIsomorphism,
+                          MatchAlgorithm::kVf2,
+                          MergeNecConfig::kNotMerge>(
+                              *path_it, star, match,
+                              prune_callback, match_callback
+                          );
+        }
+
+        if (unmatched_ends.empty()) {
+          return true;
+        }
       }
     }
     return false;
@@ -147,14 +147,14 @@ bool StarCoverByPath(StarGraphType&  star,
     }
 
     for (auto path_it = path_set.begin();
-	 path_it != path_set.end();
-	 path_it++) {
+         path_it != path_set.end();
+         path_it++) {
       auto [path_src_handle, path_dst_handle] = PathEndPoints<true>(*path_it);
  
       std::function<bool(const Match<PathGraphType, StarGraphType>&)> 
           prune_callback = [](const Match<PathGraphType, StarGraphType>& partial_match) -> bool {
           // prune nothing
-	return false;
+        return false;
       };
 
       PathVertexHandleType path_target_handle;
@@ -163,27 +163,27 @@ bool StarCoverByPath(StarGraphType&  star,
                     (const Match<PathGraphType, StarGraphType>& match) -> bool {
 
             // matches all endpoints until no unmatched endpoints exist
-	if (unmatched_ends.find((match.MapTo(path_target_handle))->id())
-	    != unmatched_ends.end()) {
-	  unmatched_ends.erase((match.MapTo(path_target_handle))->id());
+        if (unmatched_ends.find((match.MapTo(path_target_handle))->id())
+            != unmatched_ends.end()) {
+          unmatched_ends.erase((match.MapTo(path_target_handle))->id());
           if (unmatched_ends.empty()) {
-	    return false;
+            return false;
           }
-	}
-	return true;
+        }
+        return true;
       };
 
       {
-	path_target_handle = path_dst_handle;
+        path_target_handle = path_dst_handle;
         Match<PathGraphType, StarGraphType> match;
         match.AddMap(path_src_handle, central_vertex_handle);
 
         MatchUsingMatch<MatchSemantics::kIsomorphism,
                         MatchAlgorithm::kVf2,
-              	       	MergeNecConfig::kNotMerge>(
-			    *path_it, star, match,
-			    prune_callback, match_callback
-			);
+                        MergeNecConfig::kNotMerge>(
+                            *path_it, star, match,
+                            prune_callback, match_callback
+                        );
       }
 
       if (unmatched_ends.empty()) {
@@ -191,16 +191,16 @@ bool StarCoverByPath(StarGraphType&  star,
       }
 
       {
-	path_target_handle = path_src_handle;
+        path_target_handle = path_src_handle;
         Match<PathGraphType, StarGraphType> match;
-	match.AddMap(path_dst_handle, central_vertex_handle);
+        match.AddMap(path_dst_handle, central_vertex_handle);
 
-	MatchUsingMatch<MatchSemantics::kIsomorphism,
-	                MatchAlgorithm::kVf2,
-		     	MergeNecConfig::kNotMerge>(
-			    *path_it, star, match,
-			    prune_callback, match_callback
-			);
+        MatchUsingMatch<MatchSemantics::kIsomorphism,
+                        MatchAlgorithm::kVf2,
+                        MergeNecConfig::kNotMerge>(
+                            *path_it, star, match,
+                            prune_callback, match_callback
+                        );
       }
 
       if (unmatched_ends.empty()) {
@@ -224,7 +224,7 @@ bool StarCoverByPath(StarGraphType&  star,
     decomposed_patterns.emplace_back(star);
     decomposed_patterns_vec.emplace_back(decomposed_patterns);
     for (auto centre_vertex_it = star.VertexBegin();
-	 !centre_vertex_it.IsDone(); centre_vertex_it++) {
+         !centre_vertex_it.IsDone(); centre_vertex_it++) {
       if (centre_vertex_it->CountInEdge() + centre_vertex_it->CountOutEdge() == 1) {
         continue;
       }
@@ -235,7 +235,7 @@ bool StarCoverByPath(StarGraphType&  star,
   }
 
   for (size_t centres_vec_idx = 0; centres_vec_idx < centres_vec.size();
-	      centres_vec_idx++) {
+              centres_vec_idx++) {
     VertexHandleType centre_it = centres_vec[centres_vec_idx];
 
     std::vector<StarTypeGraph> decomposed_patterns;
@@ -250,42 +250,42 @@ bool StarCoverByPath(StarGraphType&  star,
       decomposed_path.AddVertex(current_v->id(), current_v->label());
       decomposed_path.AddEdge(in_edge_it->src_handle()->id(),
                               in_edge_it->dst_handle()->id(),
-			      in_edge_it->label(),
-			      in_edge_it->id());
+                              in_edge_it->label(),
+                              in_edge_it->id());
       while (true) {
-	for (auto c_in_edge_it = current_v->InEdgeBegin();
-	     !c_in_edge_it.IsDone(); c_in_edge_it++) {
-	  if (c_in_edge_it->src_handle() == prev_v) continue;
+        for (auto c_in_edge_it = current_v->InEdgeBegin();
+             !c_in_edge_it.IsDone(); c_in_edge_it++) {
+          if (c_in_edge_it->src_handle() == prev_v) continue;
 
-	  prev_v = current_v;
-	  current_v = c_in_edge_it->src_handle();
+          prev_v = current_v;
+          current_v = c_in_edge_it->src_handle();
 
-	  decomposed_path.AddVertex(current_v->id(), current_v->label());
-	  decomposed_path.AddEdge(c_in_edge_it->src_handle()->id(),
-			          c_in_edge_it->dst_handle()->id(),
-				  c_in_edge_it->label(),
-				  c_in_edge_it->id());
-	  break;
-	}
+          decomposed_path.AddVertex(current_v->id(), current_v->label());
+          decomposed_path.AddEdge(c_in_edge_it->src_handle()->id(),
+                                  c_in_edge_it->dst_handle()->id(),
+                                  c_in_edge_it->label(),
+                                  c_in_edge_it->id());
+          break;
+        }
 
-	for (auto c_out_edge_it = current_v->OutEdgeBegin();
-	     !c_out_edge_it.IsDone(); c_out_edge_it++) {
-	  if (c_out_edge_it->dst_handle() == prev_v) continue;
+        for (auto c_out_edge_it = current_v->OutEdgeBegin();
+             !c_out_edge_it.IsDone(); c_out_edge_it++) {
+          if (c_out_edge_it->dst_handle() == prev_v) continue;
 
-	  prev_v = current_v;
+          prev_v = current_v;
           current_v = c_out_edge_it->dst_handle();
 
-	  decomposed_path.AddVertex(current_v->id(), current_v->label());
-	  decomposed_path.AddEdge(c_out_edge_it->src_handle()->id(),
-			          c_out_edge_it->dst_handle()->id(),
-				  c_out_edge_it->label(),
-				  c_out_edge_it->id());
-	  break;
-	}
+          decomposed_path.AddVertex(current_v->id(), current_v->label());
+          decomposed_path.AddEdge(c_out_edge_it->src_handle()->id(),
+                                  c_out_edge_it->dst_handle()->id(),
+                                  c_out_edge_it->label(),
+                                  c_out_edge_it->id());
+          break;
+        }
 
-	if (current_v->CountInEdge() + current_v->CountOutEdge() == 1) {
-	  break;
-	}
+        if (current_v->CountInEdge() + current_v->CountOutEdge() == 1) {
+          break;
+        }
       }
       decomposed_patterns.emplace_back(decomposed_path);
     }
@@ -301,42 +301,42 @@ bool StarCoverByPath(StarGraphType&  star,
       decomposed_path.AddVertex(current_v->id(), current_v->label());
       decomposed_path.AddEdge(out_edge_it->src_handle()->id(),
                               out_edge_it->dst_handle()->id(),
-			      out_edge_it->label(),
-			      out_edge_it->id());
+                              out_edge_it->label(),
+                              out_edge_it->id());
       while (true) {
-	for (auto c_in_edge_it = current_v->InEdgeBegin();
-	     !c_in_edge_it.IsDone(); c_in_edge_it++) {
-	  if (c_in_edge_it->src_handle() == prev_v) continue;
+        for (auto c_in_edge_it = current_v->InEdgeBegin();
+             !c_in_edge_it.IsDone(); c_in_edge_it++) {
+          if (c_in_edge_it->src_handle() == prev_v) continue;
 
-	  prev_v = current_v;
-	  current_v = c_in_edge_it->src_handle();
+          prev_v = current_v;
+          current_v = c_in_edge_it->src_handle();
 
-	  decomposed_path.AddVertex(current_v->id(), current_v->label());
-	  decomposed_path.AddEdge(c_in_edge_it->src_handle()->id(),
-			          c_in_edge_it->dst_handle()->id(),
-				  c_in_edge_it->label(),
-				  c_in_edge_it->id());
-	  break;
-	}
+          decomposed_path.AddVertex(current_v->id(), current_v->label());
+          decomposed_path.AddEdge(c_in_edge_it->src_handle()->id(),
+                                  c_in_edge_it->dst_handle()->id(),
+                                  c_in_edge_it->label(),
+                                  c_in_edge_it->id());
+          break;
+        }
 
-	for (auto c_out_edge_it = current_v->OutEdgeBegin();
-	     !c_out_edge_it.IsDone(); c_out_edge_it++) {
-	  if (c_out_edge_it->dst_handle() == prev_v) continue;
+        for (auto c_out_edge_it = current_v->OutEdgeBegin();
+             !c_out_edge_it.IsDone(); c_out_edge_it++) {
+          if (c_out_edge_it->dst_handle() == prev_v) continue;
 
-	  prev_v = current_v;
+          prev_v = current_v;
           current_v = c_out_edge_it->dst_handle();
 
-	  decomposed_path.AddVertex(current_v->id(), current_v->label());
-	  decomposed_path.AddEdge(c_out_edge_it->src_handle()->id(),
-			          c_out_edge_it->dst_handle()->id(),
-				  c_out_edge_it->label(),
-				  c_out_edge_it->id());
-	  break;
-	}
+          decomposed_path.AddVertex(current_v->id(), current_v->label());
+          decomposed_path.AddEdge(c_out_edge_it->src_handle()->id(),
+                                  c_out_edge_it->dst_handle()->id(),
+                                  c_out_edge_it->label(),
+                                  c_out_edge_it->id());
+          break;
+        }
 
-	if (current_v->CountInEdge() + current_v->CountOutEdge() == 1) {
-	  break;
-	}
+        if (current_v->CountInEdge() + current_v->CountOutEdge() == 1) {
+          break;
+        }
       }
       decomposed_patterns.emplace_back(decomposed_path);
     }
@@ -346,7 +346,7 @@ bool StarCoverByPath(StarGraphType&  star,
   std::set<IDType> unmatched_vertices;
 
   for (auto vertex_it = star.VertexBegin();
-	!vertex_it.IsDone(); vertex_it++) {
+        !vertex_it.IsDone(); vertex_it++) {
     unmatched_vertices.insert(vertex_it->id());
   }
 
@@ -355,21 +355,21 @@ bool StarCoverByPath(StarGraphType&  star,
     auto& patterns = decomposed_patterns_vec[centre_idx];
     std::set unmatched_v = unmatched_vertices;
     for (size_t pattern_idx = 0; pattern_idx < patterns.size();
-		pattern_idx++) {
+                pattern_idx++) {
       auto [pattern_link_src_handle, pattern_link_dst_handle] = PathEndPoints<true>(patterns[patterns_idx]);
       for (auto path_candidate_it = path_set.begin();
-		path_candidate_it != path_set.end();
-		path_candidate_it++) {
+                path_candidate_it != path_set.end();
+                path_candidate_it++) {
         auto [candidate_link_src_handle, candidate_link_dst_handle]
-		= PathEndPoints<true>(*path_candidate_it);
+                = PathEndPoints<true>(*path_candidate_it);
 
-	Match<StarGraphType, PathGraphType> match;
-	match.AddMap(pattern_link_src_handle, candidate_link_src_handle);
-	MatchUsingMatch<MatchSemantics::kIsomorphism,
-		        MatchAlgorithm::kVf2,
-			MatchNecConfid::kNotMerge>(
-			  patterns[patterns_idx], *path_candidate_it,
-			  match, 1)
+        Match<StarGraphType, PathGraphType> match;
+        match.AddMap(pattern_link_src_handle, candidate_link_src_handle);
+        MatchUsingMatch<MatchSemantics::kIsomorphism,
+                        MatchAlgorithm::kVf2,
+                        MatchNecConfid::kNotMerge>(
+                          patterns[patterns_idx], *path_candidate_it,
+                          match, 1)
       }
     }
 
@@ -380,7 +380,7 @@ bool StarCoverByPath(StarGraphType&  star,
     // The pattern is considered as a path
     decomposed_patterns.emplace_back(star);
     for (auto centre_vertex_it = star.VertexBegin();
-	 !centre_vertex_it.IsDone(); centre_vertex_it++) {
+         !centre_vertex_it.IsDone(); centre_vertex_it++) {
       if (centre_vertex_it->CountInEdge() + centre_vertex_it->CountOutEdge() == 1) {
         continue;
       }
@@ -388,34 +388,34 @@ bool StarCoverByPath(StarGraphType&  star,
 
       GraphType half_path;
       for (auto in_edge_it = centre_vertex_it->InEdgeBegin(); 
-	   !in_edge_it.IsDone(); in_edge_it++) {
+           !in_edge_it.IsDone(); in_edge_it++) {
         VertexHandleType current_v = in_edge_it->src_handle();
-	VertexHandleType prev_v = centre_vertex_it;
-	while (true) {
-	  if (current_v->CountInEdge() + current_v->CountOutEdge() == 1) {
-	    half_path.AddVertex(current_v);
-	    break;
-	  }
+        VertexHandleType prev_v = centre_vertex_it;
+        while (true) {
+          if (current_v->CountInEdge() + current_v->CountOutEdge() == 1) {
+            half_path.AddVertex(current_v);
+            break;
+          }
 
-	  for (auto c_in_edge_it = current_v->InEdgeBegin();
-	       !c_in_edge_it.IsDone(); c_in_edge_it++) {
-	    if (c_in_edge_it->src_handle() == prev_v) continue;
+          for (auto c_in_edge_it = current_v->InEdgeBegin();
+               !c_in_edge_it.IsDone(); c_in_edge_it++) {
+            if (c_in_edge_it->src_handle() == prev_v) continue;
 
-	    prev_v = current_v;
-	    current_v = c_in_edge_it->src_handle();
-	    break;
-	  }
+            prev_v = current_v;
+            current_v = c_in_edge_it->src_handle();
+            break;
+          }
 
-	  for (auto c_out_edge_it = current_v->OutEdgeBegin();
-	       !c_out_edge_it.IsDone(); c_out_edge_it++) {
-	    if (c_out_edge_it->dst_handle() == prev_v) continue;
+          for (auto c_out_edge_it = current_v->OutEdgeBegin();
+               !c_out_edge_it.IsDone(); c_out_edge_it++) {
+            if (c_out_edge_it->dst_handle() == prev_v) continue;
 
-	    prev_v = current_v;
+            prev_v = current_v;
             current_v = c_out_edge_it->dst_handle();
-	    break;
-	  }
+            break;
+          }
 
-	}
+        }
       }
     }
   } else {
