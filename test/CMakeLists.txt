@@ -57,6 +57,10 @@ add_executable (test_random_walk "test_random_walk.cc")
 target_link_libraries(test_random_walk GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_random_walk)
 
+add_executable (test_random_walk_path "test_random_walk_path.cc")
+target_link_libraries(test_random_walk_path GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_random_walk_path)
+
 add_executable (test_connected "test_connected.cc")
 target_link_libraries(test_connected GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_connected)
