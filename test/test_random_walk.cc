@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/tool/random_walk.h"
+#include "gundam/tool/random_walk/random_walk.h"
 
 #include "gundam/graph_type/small_graph.h"
 #include "gundam/graph_type/large_graph.h"

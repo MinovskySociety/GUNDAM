@@ -1,5 +1,5 @@
-#ifndef _GUNDAM_TOOL_RANDOM_WALK_H
-#define _GUNDAM_TOOL_RANDOM_WALK_H
+#ifndef _GUNDAM_TOOL_RANDOM_WALK_RANDOM_WALK_H
+#define _GUNDAM_TOOL_RANDOM_WALK_RANDOM_WALK_H
 
 #include <queue>
 #include <set>
@@ -313,4 +313,4 @@ inline size_t RandomWalk(GraphType&  graph,
 
 }; // namespace GUNDAM
 
-#endif // _GUNDAM_TOOL_RANDOM_WALK_H
+#endif // _GUNDAM_TOOL_RANDOM_WALK_RANDOM_WALK_H
