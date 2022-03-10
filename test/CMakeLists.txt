@@ -148,3 +148,7 @@ gtest_add_tests(TARGET test_deduplicate_patterns)
 add_executable (test_star_cover_by_path "test_star_cover_by_path.cc")
 target_link_libraries(test_star_cover_by_path GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_star_cover_by_path)
+
+add_executable (test_merge_graph "test_merge_graph.cc")
+target_link_libraries(test_merge_graph GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_merge_graph)
