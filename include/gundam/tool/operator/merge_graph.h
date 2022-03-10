@@ -63,13 +63,13 @@ inline std::remove_cv_t<
         vid2handle[vertex_it->id()] = merged_graph.FindVertex(vertex_it->id());
       }
     }
-    
+
     for (auto vertex_it = input_graph.VertexBegin();
               !vertex_it.IsDone();
               vertex_it++) {
       VertexIDType merged_src_id;
 
-      if (!(vid2handle[vertex_it->id()])) {
+      if ((vid2handle[vertex_it->id()])) {
         merged_src_id = (vid2handle[vertex_it->id()])->id();
       } else {
         if (join_vertex_id_set.find(vertex_it->id()) != join_vertex_id_set.end()) {
@@ -108,7 +108,7 @@ inline std::remove_cv_t<
 //        auto dst_handle = out_edge_it->dst_handle();
         VertexConstHandleType dst_handle = out_edge_it->dst_handle();
 
-        if (!(vid2handle[dst_handle->id()])) {
+        if ((vid2handle[dst_handle->id()])) {
           merged_dst_id = (vid2handle[dst_handle->id()])->id();
         } else {
           if (join_vertex_id_set.find(dst_handle->id()) != join_vertex_id_set.end()) {
