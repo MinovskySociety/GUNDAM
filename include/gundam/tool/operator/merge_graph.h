@@ -85,7 +85,7 @@ inline std::remove_cv_t<
         auto [merged_src_handle, merged_src_ret] = merged_graph.AddVertex(merged_src_id, vertex_it->label());
         vid2handle[vertex_it->id()] = merged_src_handle;
         if (!merged_src_ret) {
-          std::cout << "error inserting srv" << std::endl;
+          std::cout << "error inserting src" << std::endl;
         }
 
         if constexpr (GUNDAM::GraphParameter<GraphType>::vertex_has_attribute) {
@@ -112,7 +112,7 @@ inline std::remove_cv_t<
           merged_dst_id = (vid2handle[dst_handle->id()])->id();
         } else {
           if (join_vertex_id_set.find(dst_handle->id()) != join_vertex_id_set.end()) {
-            merged_dst_id = vertex_it->id();
+            merged_dst_id = dst_handle->id();
           } else {
             merged_dst_id = MaxVertexId<GraphType>(merged_graph) + 1;
 
