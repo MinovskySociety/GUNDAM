@@ -7,6 +7,7 @@
 
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
+#include "gundam/type_getter/graph_parameter_getter.h"
 
 #include "gundam/tool/random_walk/random_walk.h"
 
@@ -70,6 +71,21 @@ inline std::remove_cv_t<
     auto [add_verterx_it,
           add_verterx_ret] = return_path.AddVertex(vertex_handle->id(),
                                                    vertex_handle->label());
+    if constexpr (GraphParameter<GraphType>::vertex_has_attribute) {
+      // add attribute to new_vertex
+      for (auto attr_it = vertex_handle->AttributeBegin();
+               !attr_it.IsDone();
+                attr_it++){
+        auto [attr_handle, attr_ret] = vertex_handle->AddAttribute(
+                                        attr_it->key(),
+                                        attr_it->value_type(),
+                                        attr_it->value_str());
+        assert(attr_handle);
+        assert(attr_ret);
+      }
+    }
+
+
     assert(add_verterx_it->id()    == vertex_handle->id());
     assert(add_verterx_it->label() == vertex_handle->label());
     assert(add_verterx_ret);
@@ -93,6 +109,17 @@ inline std::remove_cv_t<
                                                   out_edge_it->dst_handle()->id(),
                                                   out_edge_it->label(),
                                                   out_edge_it->id());
+ 
+        if constexpr (GraphParameter<GraphType>::edge_has_attribute) {
+          for (auto attr_it = out_edge_it->AttributeBegin();
+                   !attr_it.IsDone();
+                    attr_it++) {
+           auto [attr_handle, attr_ret] = add_edge_it->AddAttribute(
+                                            attr_it->key(),
+                                            attr_it->value_type(),
+                                            attr_it->value_str());
+          }
+        }
         assert(add_edge_ret);
       }
       for (auto in_edge_it = vertex_handle->InEdgeBegin();
@@ -106,6 +133,16 @@ inline std::remove_cv_t<
                                                   in_edge_it->dst_handle()->id(),
                                                   in_edge_it->label(),
                                                   in_edge_it->id());
+        if constexpr (GraphParameter<GraphType>::edge_has_attribute) {
+          for (auto attr_it = in_edge_it->AttributeBegin();
+                   !attr_it.IsDone();
+                    attr_it++) {
+           auto [attr_handle, attr_ret] = add_edge_it->AddAttribute(
+                                            attr_it->key(),
+                                            attr_it->value_type(),
+                                            attr_it->value_str());
+          }
+        }
         assert(add_edge_ret);
       }
     }
