@@ -86,9 +86,21 @@ void TestMergeGraphs(){
   ASSERT_TRUE(res2.first);
   ASSERT_TRUE(res2.second);
 
+
+  GraphType g3;
+
+  // 1 
+
+
+  res1 = g3.AddVertex(1, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+
   std::vector<GraphType> path_vec;
   path_vec.push_back(g0);
   path_vec.push_back(g1);
+
 
   std::vector<VertexIDType> id_vec;
 
@@ -186,6 +198,24 @@ void TestMergeGraphs(){
   GraphType mg7 = GUNDAM::MergeGraphSet(path_vec, id_vec);
   ASSERT_EQ(mg7.CountVertex(), 6);
   ASSERT_EQ(mg7.CountEdge(), 10);
+
+  path_vec.clear();
+  id_vec.clear();
+
+  path_vec.push_back(g3);
+  path_vec.push_back(g3);
+  path_vec.push_back(g3);
+
+
+  GraphType mg8 = GUNDAM::MergeGraphSet(path_vec, id_vec);
+  ASSERT_EQ(mg8.CountVertex(), 3);
+  ASSERT_EQ(mg8.CountEdge(), 0);
+
+  id_vec.push_back(1);
+
+  GraphType mg9 = GUNDAM::MergeGraphSet(path_vec, id_vec);
+  ASSERT_EQ(mg9.CountVertex(), 1);
+  ASSERT_EQ(mg9.CountEdge(), 0);
 
   return;
 }

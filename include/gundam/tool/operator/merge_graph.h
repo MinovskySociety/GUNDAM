@@ -34,6 +34,8 @@ inline std::remove_cv_t<
   using VertexHandleType = typename GUNDAM::VertexHandle<GraphType>::type;
   using VertexConstHandleType = typename GUNDAM::VertexHandle<const GraphType>::type;
 
+  ReturnGraphType merged_graph;
+  if (input_graph_vec.empty()) return merged_graph;
 
   #ifndef NDEBUG
   for (const auto& join_vertex_id : join_vertex_id_vec) {
@@ -44,12 +46,14 @@ inline std::remove_cv_t<
   }
   #endif // NDEBUG
 
-  ReturnGraphType merged_graph;
 
   std::set<VertexIDType> join_vertex_id_set;
   for(const auto & join_vertex_id : join_vertex_id_vec) {
     join_vertex_id_set.insert(join_vertex_id);
   }
+
+  VertexIDType unassigned_vertex_id = 0;
+  EdgeIDType unassigned_edge_id = 0;
 
 
   for (const auto & input_graph : input_graph_vec) {
@@ -75,10 +79,13 @@ inline std::remove_cv_t<
         if (join_vertex_id_set.find(vertex_it->id()) != join_vertex_id_set.end()) {
           merged_src_id = vertex_it->id();
         } else {
-          merged_src_id = MaxVertexId<GraphType>(merged_graph) + 1;
+//          merged_src_id = MaxVertexId<GraphType>(merged_graph) + 1;
+          merged_src_id = unassigned_vertex_id;
+          unassigned_vertex_id++;
 
           while (join_vertex_id_set.find(merged_src_id) != join_vertex_id_set.end()) {
-            merged_src_id++;
+            merged_src_id = unassigned_vertex_id;;
+            unassigned_vertex_id++;
           }
         }
 
@@ -114,10 +121,14 @@ inline std::remove_cv_t<
           if (join_vertex_id_set.find(dst_handle->id()) != join_vertex_id_set.end()) {
             merged_dst_id = dst_handle->id();
           } else {
-            merged_dst_id = MaxVertexId<GraphType>(merged_graph) + 1;
+//            merged_dst_id = MaxVertexId<GraphType>(merged_graph) + 1;
+            merged_dst_id = unassigned_vertex_id;
+            unassigned_vertex_id++;
 
             while (join_vertex_id_set.find(merged_dst_id) != join_vertex_id_set.end()) {
-              merged_dst_id++;
+            merged_dst_id = unassigned_vertex_id;;
+            unassigned_vertex_id++;
+//              merged_dst_id++;
             }
           }
 
@@ -140,7 +151,9 @@ inline std::remove_cv_t<
           }
         }
 
-        EdgeIDType merged_edge_id = MaxEdgeId<GraphType>(merged_graph) + 1;
+        EdgeIDType merged_edge_id = unassigned_edge_id;
+        unassigned_edge_id++;
+//        EdgeIDType merged_edge_id = MaxEdgeId<GraphType>(merged_graph) + 1;
         auto [merged_edge_handle, merged_edge_ret] = merged_graph.AddEdge(merged_src_id,
                                                         merged_dst_id,
                                                         out_edge_it->label(),
