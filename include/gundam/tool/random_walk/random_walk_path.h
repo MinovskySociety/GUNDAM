@@ -81,7 +81,7 @@ inline std::remove_cv_t<
     assert(visited_vertex_set.size()
         == return_path.CountVertex());
 
-    if (last_vertex_handle) [[likely]] {
+    if (last_vertex_handle) /*[[likely]]*/ {
       for (auto out_edge_it = vertex_handle->OutEdgeBegin();
                !out_edge_it.IsDone();
                 out_edge_it++) {
