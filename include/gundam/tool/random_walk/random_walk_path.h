@@ -76,15 +76,14 @@ inline std::remove_cv_t<
       for (auto attr_it = vertex_handle->AttributeBegin();
                !attr_it.IsDone();
                 attr_it++){
-        auto [attr_handle, attr_ret] = vertex_handle->AddAttribute(
-                                        attr_it->key(),
-                                        attr_it->value_type(),
-                                        attr_it->value_str());
+        auto [attr_handle, attr_ret] = add_verterx_it->AddAttribute(
+                                       attr_it->key(),
+                                       attr_it->value_type(),
+                                       attr_it->value_str());
         assert(attr_handle);
         assert(attr_ret);
       }
     }
-
 
     assert(add_verterx_it->id()    == vertex_handle->id());
     assert(add_verterx_it->label() == vertex_handle->label());
