@@ -244,7 +244,7 @@ inline bool NeighborLabelFrequencyFiltering(
 }
 
 template <enum MatchSemantics match_semantics, typename QueryGraph,
-          typename TargetGraph, class FilterCallback = nullptr_t>
+          typename TargetGraph, class FilterCallback = std::nullptr_t>
 inline bool InitCandidateSet(
     QueryGraph &query_graph, TargetGraph &target_graph,
     std::map<typename VertexHandle<QueryGraph>::type,
