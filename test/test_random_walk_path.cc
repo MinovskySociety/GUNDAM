@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/tool/random_walk/random_walk.h"
+#include "gundam/tool/random_walk/random_walk_path.h"
 
 #include "gundam/graph_type/small_graph.h"
 #include "gundam/graph_type/large_graph.h"
@@ -132,57 +132,16 @@ void TestRandomWalk() {
 
   using VertexHandleType = typename GUNDAM::VertexHandle<GraphType>::type;
 
-  std::set<VertexHandleType> visited_vertex_set;
-  std::vector<VertexHandleType> visited_vertexes;
+  /* ################################ *
+   * ##  wenzhi: test to be added  ## *
+   * ################################ */
 
-  auto add_visited_callback 
-       = [&visited_vertex_set,
-          &visited_vertexes](VertexHandleType vertex_handle) -> bool{
-    // added into the visited_vertex_set
-    auto [visited_vertex_it,
-          visited_vertex_ret] 
-        = visited_vertex_set.emplace(vertex_handle);
-    if (visited_vertex_ret){
-      // this vertex has not been visited
-      visited_vertexes.emplace_back(vertex_handle);
-    }
-    return true;
-  };
-  
-  auto src_handle = g.FindVertex(1);
-
-  std::cout << "####  Random Walk 0  ####" << std::endl;
-  auto ret = GUNDAM::RandomWalk(g, src_handle, 1, 1, add_visited_callback);
-  ASSERT_EQ(1, ret);
-  ASSERT_EQ(1, visited_vertex_set.size());
-  ASSERT_TRUE(src_handle->id() == (*(visited_vertexes.begin()))->id());
-  ASSERT_TRUE(src_handle       ==  *(visited_vertexes.begin()));
-
-  visited_vertex_set.clear();
-  std::cout << "####  Random Walk 1  ####" << std::endl;
-  ret = GUNDAM::RandomWalk<false>(g, src_handle, 1, 10, add_visited_callback);
-  ASSERT_EQ(2, ret);
-  ASSERT_EQ(2, visited_vertex_set.size());
-  ASSERT_TRUE(src_handle->id() == (*(visited_vertexes.begin()))->id());
-  ASSERT_TRUE(src_handle       ==  *(visited_vertexes.begin()));
-
-  visited_vertex_set.clear();
-  std::cout << "####  Random Walk 2  ####" << std::endl;
-  ret = GUNDAM::RandomWalk<true>(g, src_handle, 1, 3, add_visited_callback);
-  ASSERT_LE(2, ret);
-  ASSERT_EQ(3, visited_vertex_set.size());
-  ASSERT_TRUE(src_handle->id() == (*(visited_vertexes.begin()))->id());
-  ASSERT_TRUE(src_handle       ==  *(visited_vertexes.begin()));
-
-  visited_vertex_set.clear();
-  std::cout << "####  Random Walk 3  ####" << std::endl;
-  ret = GUNDAM::RandomWalk<true>(g, src_handle, 1000, 9, add_visited_callback);
-  ASSERT_LE(9, ret);
-  ASSERT_EQ(9, visited_vertex_set.size());
+  auto path = GUNDAM::RandomWalkPath(g, g.FindVertex(1), 3);
+  ASSERT_EQ(path.CountVertex(), 3);
   return;
 }
 
-TEST(TestGUNDAM, TestRandomWalk) {
+TEST(TestGUNDAM, TestRandomWalkPath) {
   using namespace GUNDAM;
 
   using G1 = LargeGraph<uint32_t, uint32_t, std::string, 

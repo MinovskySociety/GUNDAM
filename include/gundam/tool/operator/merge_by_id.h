@@ -1,5 +1,5 @@
-#ifndef _GUNDAM_TOOL_MERGE_BY_ID_H
-#define _GUNDAM_TOOL_MERGE_BY_ID_H
+#ifndef _GUNDAM_TOOL_OPERATOR_MERGE_BY_ID_H
+#define _GUNDAM_TOOL_OPERATOR_MERGE_BY_ID_H
 
 #include "gundam/match/match.h"
 
@@ -116,4 +116,4 @@ inline GraphType0 MergeByIdAndGenerate(
 
 };
 
-#endif // _GUNDAM_TOOL_MERGE_BY_ID_H
+#endif // _GUNDAM_TOOL_OPERATOR_MERGE_BY_ID_H

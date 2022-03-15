@@ -8,7 +8,7 @@
 
 #include "gundam/tool/connected_component.h"
 #include "gundam/tool/diameter.h"
-#include "gundam/tool/preserve.h"
+#include "gundam/tool/operator/preserve.h"
 
 #include "gundam/match/match.h"
 

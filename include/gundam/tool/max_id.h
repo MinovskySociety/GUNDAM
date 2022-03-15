@@ -1,8 +1,8 @@
 #ifndef _GUNDAM_TOOL_MAX_ID_H
 #define _GUNDAM_TOOL_MAX_ID_H
 
-#include "include/gundam/type_getter/edge_id.h"
-#include "include/gundam/type_getter/vertex_id.h"
+#include "gundam/type_getter/edge_id.h"
+#include "gundam/type_getter/vertex_id.h"
 
 namespace GUNDAM {
 
