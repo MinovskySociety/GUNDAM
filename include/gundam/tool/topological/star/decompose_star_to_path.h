@@ -51,15 +51,53 @@ std::vector<GraphType> DecomposeStarToPath(GraphType& input_star) {
       VertexHandleType current_v_handle = in_edge_it->src_handle();
       VertexHandleType prev_v_handle = centre_vertex_handle;
 
-      auto vertex_res = decomposed_path.AddVertex(prev_v_handle->id(), prev_v_handle->label());
-      assert(vertex_res.first && vertex_res.second);
+      auto vertex_add_ret = decomposed_path.AddVertex(prev_v_handle->id(), prev_v_handle->label());
+      assert(vertex_add_ret.first);
+      assert(vertex_add_ret.second);
 
-      vertex_res = decomposed_path.AddVertex(current_v_handle->id(), current_v_handle->label());
-      assert(vertex_res.first && vertex_res.second);
+      if constexpr (GUNDAM::GraphParameter<GraphType>::vertex_has_attribute) {
+        // add attribute to new_vertex
+        for (auto attr_it = prev_v_handle->AttributeBegin();
+                  !attr_it.IsDone();
+                  attr_it++){
+          auto [attr_handle, ret] = vertex_add_ret.first->AddAttribute(
+                                          attr_it->key(),
+                                          attr_it->value_type(),
+                                          attr_it->value_str());
+        }
+      }
 
-      auto edge_res = decomposed_path.AddEdge(current_v_handle->id(), prev_v_handle->id(),
+      vertex_add_ret = decomposed_path.AddVertex(current_v_handle->id(), current_v_handle->label());
+      assert(vertex_add_ret.first);
+      assert(vertex_add_ret.second);
+
+      if constexpr (GUNDAM::GraphParameter<GraphType>::vertex_has_attribute) {
+        // add attribute to new_vertex
+        for (auto attr_it = current_v_handle->AttributeBegin();
+                  !attr_it.IsDone();
+                  attr_it++){
+          auto [attr_handle, ret] = vertex_add_ret.first->AddAttribute(
+                                          attr_it->key(),
+                                          attr_it->value_type(),
+                                          attr_it->value_str());
+        }
+      }
+
+      auto edge_add_ret = decomposed_path.AddEdge(current_v_handle->id(), prev_v_handle->id(),
                               in_edge_it->label(), in_edge_it->id());
-      assert(edge_res.first && edge_res.second);
+      assert(edge_add_ret.first);
+      assert(edge_add_ret.second);
+
+      if constexpr (GUNDAM::GraphParameter<GraphType>::edge_has_attribute) {
+        for (auto attr_it = in_edge_it->AttributeBegin();
+                 !attr_it.IsDone();
+                  attr_it++){
+          auto [attr_handle, ret] = edge_add_ret.first->AddAttribute(
+                                        attr_it->key(),
+                                        attr_it->value_type(),
+                                        attr_it->value_str());
+        }
+      }
 
       while (leaf_vertex_handle_set.find(current_v_handle)
                 == leaf_vertex_handle_set.end()) {
@@ -73,12 +111,36 @@ std::vector<GraphType> DecomposeStarToPath(GraphType& input_star) {
           prev_v_handle = current_v_handle;
           current_v_handle = c_in_edge_it->src_handle();
 
-          vertex_res = decomposed_path.AddVertex(current_v_handle->id(), current_v_handle->label());
-          assert(vertex_res.first && vertex_res.second);
+          vertex_add_ret= decomposed_path.AddVertex(current_v_handle->id(), current_v_handle->label());
+          assert(vertex_add_ret.first);
+          assert(vertex_add_ret.second);
 
-          edge_res = decomposed_path.AddEdge(current_v_handle->id(), prev_v_handle->id(),
+          if constexpr (GUNDAM::GraphParameter<GraphType>::vertex_has_attribute) {
+            for (auto attr_it = current_v_handle->AttributeBegin();
+                      !attr_it.IsDone();
+                      attr_it++){
+              auto [attr_handle, ret] = vertex_add_ret.first->AddAttribute(
+                                              attr_it->key(),
+                                              attr_it->value_type(),
+                                              attr_it->value_str());
+            }
+          }
+
+          edge_add_ret = decomposed_path.AddEdge(current_v_handle->id(), prev_v_handle->id(),
                                   c_in_edge_it->label(), c_in_edge_it->id());
-          assert(edge_res.first && edge_res.second);
+          assert(edge_add_ret.first);
+          assert(edge_add_ret.second);
+
+          if constexpr (GUNDAM::GraphParameter<GraphType>::edge_has_attribute) {
+            for (auto attr_it = c_in_edge_it->AttributeBegin();
+                     !attr_it.IsDone();
+                      attr_it++){
+              auto [attr_handle, ret] = edge_add_ret.first->AddAttribute(
+                                            attr_it->key(),
+                                            attr_it->value_type(),
+                                            attr_it->value_str());
+            }
+          }
 
           bool found = true;
           break;
@@ -94,12 +156,36 @@ std::vector<GraphType> DecomposeStarToPath(GraphType& input_star) {
           prev_v_handle = current_v_handle;
           current_v_handle = c_out_edge_it->dst_handle();
 
-          vertex_res = decomposed_path.AddVertex(current_v_handle->id(), current_v_handle->label());
-          assert(vertex_res.first && vertex_res.second);
+          vertex_add_ret = decomposed_path.AddVertex(current_v_handle->id(), current_v_handle->label());
+          assert(vertex_add_ret.first);
+          assert(vertex_add_ret.second);
 
-          edge_res = decomposed_path.AddEdge(prev_v_handle->id(), current_v_handle->id(),
+          if constexpr (GUNDAM::GraphParameter<GraphType>::vertex_has_attribute) {
+            for (auto attr_it = current_v_handle->AttributeBegin();
+                      !attr_it.IsDone();
+                      attr_it++){
+              auto [attr_handle, ret] = vertex_add_ret.first->AddAttribute(
+                                              attr_it->key(),
+                                              attr_it->value_type(),
+                                              attr_it->value_str());
+            }
+          }
+
+          edge_add_ret = decomposed_path.AddEdge(prev_v_handle->id(), current_v_handle->id(),
                                   c_out_edge_it->label(), c_out_edge_it->id());
-          assert(edge_res.first && edge_res.second);
+          assert(edge_add_ret.first);
+          assert(edge_add_ret.second);
+
+          if constexpr (GUNDAM::GraphParameter<GraphType>::edge_has_attribute) {
+            for (auto attr_it = c_out_edge_it->AttributeBegin();
+                     !attr_it.IsDone();
+                      attr_it++){
+              auto [attr_handle, ret] = edge_add_ret.first->AddAttribute(
+                                            attr_it->key(),
+                                            attr_it->value_type(),
+                                            attr_it->value_str());
+            }
+          }
 
           bool found = true;
           break;
@@ -118,15 +204,53 @@ std::vector<GraphType> DecomposeStarToPath(GraphType& input_star) {
     VertexHandleType current_v_handle = out_edge_it->dst_handle();
     VertexHandleType prev_v_handle = centre_vertex_handle;
 
-    auto vertex_res = decomposed_path.AddVertex(prev_v_handle->id(), prev_v_handle->label());
-    assert(vertex_res.first && vertex_res.second);
+    auto vertex_add_ret = decomposed_path.AddVertex(prev_v_handle->id(), prev_v_handle->label());
+    assert(vertex_add_ret.first);
+    assert(vertex_add_ret.second);
 
-    vertex_res = decomposed_path.AddVertex(current_v_handle->id(), current_v_handle->label());
-    assert(vertex_res.first && vertex_res.second);
+    if constexpr (GUNDAM::GraphParameter<GraphType>::vertex_has_attribute) {
+      // add attribute to new_vertex
+      for (auto attr_it = prev_v_handle->AttributeBegin();
+                !attr_it.IsDone();
+                attr_it++){
+        auto [attr_handle, ret] = vertex_add_ret.first->AddAttribute(
+                                        attr_it->key(),
+                                        attr_it->value_type(),
+                                        attr_it->value_str());
+      }
+    }
 
-    auto edge_res = decomposed_path.AddEdge(prev_v_handle->id(), current_v_handle->id(),
+    vertex_add_ret = decomposed_path.AddVertex(current_v_handle->id(), current_v_handle->label());
+    assert(vertex_add_ret.first);
+    assert(vertex_add_ret.second);
+
+    if constexpr (GUNDAM::GraphParameter<GraphType>::vertex_has_attribute) {
+      // add attribute to new_vertex
+      for (auto attr_it = current_v_handle->AttributeBegin();
+                !attr_it.IsDone();
+                attr_it++){
+        auto [attr_handle, ret] = vertex_add_ret.first->AddAttribute(
+                                        attr_it->key(),
+                                        attr_it->value_type(),
+                                        attr_it->value_str());
+      }
+    }
+
+    auto edge_add_ret = decomposed_path.AddEdge(prev_v_handle->id(), current_v_handle->id(),
                             out_edge_it->label(), out_edge_it->id());
-    assert(edge_res.first && edge_res.second);
+    assert(edge_add_ret.first);
+    assert(edge_add_ret.second);
+
+    if constexpr (GUNDAM::GraphParameter<GraphType>::edge_has_attribute) {
+      for (auto attr_it = out_edge_it->AttributeBegin();
+                !attr_it.IsDone();
+                attr_it++){
+        auto [attr_handle, ret] = edge_add_ret.first->AddAttribute(
+                                      attr_it->key(),
+                                      attr_it->value_type(),
+                                      attr_it->value_str());
+      }
+    }
 
     while (leaf_vertex_handle_set.find(current_v_handle)
             == leaf_vertex_handle_set.end()) {
@@ -141,12 +265,36 @@ std::vector<GraphType> DecomposeStarToPath(GraphType& input_star) {
           prev_v_handle = current_v_handle;
           current_v_handle = c_in_edge_it->src_handle();
 
-          vertex_res = decomposed_path.AddVertex(current_v_handle->id(), current_v_handle->label());
-          assert(vertex_res.first && vertex_res.second);
+          vertex_add_ret = decomposed_path.AddVertex(current_v_handle->id(), current_v_handle->label());
+          assert(vertex_add_ret.first);
+          assert(vertex_add_ret.second);
 
-          edge_res = decomposed_path.AddEdge(current_v_handle->id(), prev_v_handle->id(),
+          if constexpr (GUNDAM::GraphParameter<GraphType>::vertex_has_attribute) {
+            for (auto attr_it = current_v_handle->AttributeBegin();
+                      !attr_it.IsDone();
+                      attr_it++){
+              auto [attr_handle, ret] = vertex_add_ret.first->AddAttribute(
+                                              attr_it->key(),
+                                              attr_it->value_type(),
+                                              attr_it->value_str());
+            }
+          }
+
+          edge_add_ret = decomposed_path.AddEdge(current_v_handle->id(), prev_v_handle->id(),
                                 c_in_edge_it->label(), c_in_edge_it->id());
-          assert(edge_res.first && edge_res.second);
+          assert(edge_add_ret.first);
+          assert(edge_add_ret.second);
+
+          if constexpr (GUNDAM::GraphParameter<GraphType>::edge_has_attribute) {
+            for (auto attr_it = c_in_edge_it->AttributeBegin();
+                     !attr_it.IsDone();
+                      attr_it++){
+              auto [attr_handle, ret] = edge_add_ret.first->AddAttribute(
+                                            attr_it->key(),
+                                            attr_it->value_type(),
+                                            attr_it->value_str());
+            }
+          }
 
           bool found = true;
           break;
@@ -163,12 +311,38 @@ std::vector<GraphType> DecomposeStarToPath(GraphType& input_star) {
           prev_v_handle = current_v_handle;
           current_v_handle = c_out_edge_it->dst_handle();
 
-          vertex_res = decomposed_path.AddVertex(current_v_handle->id(), current_v_handle->label());
-          assert(vertex_res.first && vertex_res.second);
+          vertex_add_ret = decomposed_path.AddVertex(current_v_handle->id(), current_v_handle->label());
+          assert(vertex_add_ret.first);
+          assert(vertex_add_ret.second);
 
-          edge_res = decomposed_path.AddEdge(prev_v_handle->id(), current_v_handle->id(),
+          if constexpr (GUNDAM::GraphParameter<GraphType>::vertex_has_attribute) {
+            for (auto attr_it = current_v_handle->AttributeBegin();
+                      !attr_it.IsDone();
+                      attr_it++){
+              auto [attr_handle, ret] = vertex_add_ret.first->AddAttribute(
+                                              attr_it->key(),
+                                              attr_it->value_type(),
+                                              attr_it->value_str());
+            }
+          }
+
+          edge_add_ret = decomposed_path.AddEdge(prev_v_handle->id(), current_v_handle->id(),
                                 c_out_edge_it->label(), c_out_edge_it->id());
-          assert(edge_res.first && edge_res.second);
+          assert(edge_add_ret.first);
+          assert(edge_add_ret.second);
+
+          if constexpr (GUNDAM::GraphParameter<GraphType>::edge_has_attribute) {
+            for (auto attr_it = c_out_edge_it->AttributeBegin();
+                     !attr_it.IsDone();
+                      attr_it++){
+              auto [attr_handle, ret] = edge_add_ret.first->AddAttribute(
+                                            attr_it->key(),
+                                            attr_it->value_type(),
+                                            attr_it->value_str());
+            }
+          }
+
+
           
           bool found = true;
           break;
