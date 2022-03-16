@@ -42,7 +42,7 @@ std::vector<GraphType> DecomposeStarToPath(GraphType& input_star) {
              leaf_vertex_handle_vec.end());
 
 
-  if (bidirectional) {
+  if constexpr (bidirectional) {
     for (auto in_edge_it = centre_vertex_handle->InEdgeBegin();
               !in_edge_it.IsDone();
               in_edge_it++) {
@@ -132,7 +132,7 @@ std::vector<GraphType> DecomposeStarToPath(GraphType& input_star) {
             == leaf_vertex_handle_set.end()) {
       bool found = false;
 
-      if (bidirectional) {
+      if constexpr (bidirectional) {
         for (auto c_in_edge_it = current_v_handle->InEdgeBegin();
                   !c_in_edge_it.IsDone();
                   c_in_edge_it++) {

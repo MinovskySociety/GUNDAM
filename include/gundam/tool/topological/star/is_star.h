@@ -17,7 +17,7 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
   std::vector<VertexHandleType> end_points;
   end_points.clear();
 
-  static_assert(bidirectional, "have not implemented bidirectional=false yet!");
+  //static_assert(bidirectional, "have not implemented bidirectional=false yet!");
 
   if (!Connected<true>(graph)) {
     return std::pair(std::vector<VertexHandleType>(), 
@@ -25,7 +25,7 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
   }
 
   // check whether the pattern is a path
-  auto [src_handle, dst_handle] = PathEndPoints<true>(graph);
+  auto [src_handle, dst_handle] = PathEndPoints<bidirectional>(graph);
   if (src_handle) {
     return std::pair(std::vector<VertexHandleType>{src_handle, dst_handle}, 
                                  VertexHandleType ());
@@ -42,9 +42,27 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
   for (auto vertex_it = graph.VertexBegin();
            !vertex_it.IsDone();
             vertex_it++) {
+
     size_t in_out_degree = vertex_it->CountInEdge() + vertex_it->CountOutEdge();
-    if (in_out_degree > 2) {
-      centre_candidates.emplace_back(vertex_it);
+    size_t out_degree = vertex_it->CountOutEdge();
+    if constexpr (bidirectional) {
+      if (in_out_degree > 2) {
+        centre_candidates.emplace_back(vertex_it);
+      }
+    } else {
+      if (in_out_degree - out_degree > 1 ) {
+        //not a star, if any vertex with an in_degree > 1
+        return std::pair(std::vector<VertexHandleType>(), 
+                              VertexHandleType ());
+      }
+      if (out_degree > 1) {
+        if (in_out_degree != out_degree) {
+          // this is not a star, when a centre vertex has any input edge
+          return std::pair(std::vector<VertexHandleType>(), 
+                                VertexHandleType ());
+        }
+        centre_candidates.emplace_back(vertex_it);
+      }
     }
   }
 
@@ -58,44 +76,57 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
 
   VertexHandleType centre = centre_candidates[0];
 
-  // check the incoming paths of the centre
-  for (auto in_edge_it = centre->InEdgeBegin();
-           !in_edge_it.IsDone();
-            in_edge_it++) {
-    VertexHandleType current_v = in_edge_it->src_handle();
-    VertexHandleType prev_v = centre;
-    while (true) {
-      // endpoint of a path
-      if (current_v->CountInEdge() + current_v->CountOutEdge() == 1){
-        end_points.emplace_back(current_v);
-        break;
-      }
-      for (auto c_in_edge_it = current_v->InEdgeBegin();
-                !c_in_edge_it.IsDone();
-                c_in_edge_it++) {
-        if (c_in_edge_it->src_handle() == centre && centre != prev_v) {
-          return std::pair(std::vector<VertexHandleType>(), 
-                                       VertexHandleType ());
+  if (bidirectional) {
+    // check the incoming paths of the centre
+    // for undirected graph only
+    for (auto in_edge_it = centre->InEdgeBegin();
+             !in_edge_it.IsDone();
+              in_edge_it++) {
+      VertexHandleType current_v = in_edge_it->src_handle();
+      VertexHandleType prev_v = centre;
+
+      while (true) {
+        // endpoint of a path
+        if (current_v->CountInEdge() + current_v->CountOutEdge() == 1){
+          end_points.emplace_back(current_v);
+          break;
         }
-        if (c_in_edge_it->src_handle() == prev_v) continue;
 
-        prev_v = current_v;
-        current_v = c_in_edge_it->src_handle();
-        break;
-      }
+        bool found = false;
 
-      for (auto c_out_edge_it = current_v->OutEdgeBegin();
-               !c_out_edge_it.IsDone();
-                c_out_edge_it++) {
-        if (c_out_edge_it->dst_handle() == centre && centre != prev_v) {
-          return std::pair(std::vector<VertexHandleType>(), 
-                                       VertexHandleType ());
+        for (auto c_in_edge_it = current_v->InEdgeBegin();
+                  !c_in_edge_it.IsDone();
+                  c_in_edge_it++) {
+          if (c_in_edge_it->src_handle() == centre && centre != prev_v) {
+            return std::pair(std::vector<VertexHandleType>(), 
+                                         VertexHandleType ());
+          }
+          if (c_in_edge_it->src_handle() == prev_v) continue;
+
+          prev_v = current_v;
+          current_v = c_in_edge_it->src_handle();
+
+          found = true;
+          break;
         }
-        if (c_out_edge_it->dst_handle() == prev_v) continue;
 
-        prev_v = current_v;
-        current_v = c_out_edge_it->dst_handle();
-        break;          
+        if (found) continue;
+
+        for (auto c_out_edge_it = current_v->OutEdgeBegin();
+                 !c_out_edge_it.IsDone();
+                  c_out_edge_it++) {
+          if (c_out_edge_it->dst_handle() == centre && centre != prev_v) {
+            return std::pair(std::vector<VertexHandleType>(), 
+                                         VertexHandleType ());
+          }
+          if (c_out_edge_it->dst_handle() == prev_v) continue;
+
+          prev_v = current_v;
+          current_v = c_out_edge_it->dst_handle();
+
+          found = true;
+          break;          
+        }
       }
     }
   }
@@ -108,23 +139,31 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
     VertexHandleType prev_v = centre;
     while (true) {
       // endpoint of a path
+
       if (current_v->CountInEdge() + current_v->CountOutEdge() == 1) {
         end_points.emplace_back(current_v);
         break;
       }
+
+      bool found = false;
+
+      if (bidirectional) {
       for (auto c_in_edge_it = current_v->InEdgeBegin();
                 !c_in_edge_it.IsDone();
                 c_in_edge_it++) {
-        if (c_in_edge_it->src_handle() == centre && centre != prev_v) {
-          return std::pair(std::vector<VertexHandleType>(), 
-                                       VertexHandleType ());
-        }
-        if (c_in_edge_it->src_handle() == prev_v) continue;
+          if (c_in_edge_it->src_handle() == centre && centre != prev_v) {
+            return std::pair(std::vector<VertexHandleType>(), 
+                                         VertexHandleType ());
+          }
+          if (c_in_edge_it->src_handle() == prev_v) continue;
 
-        prev_v = current_v;
-        current_v = c_in_edge_it->src_handle();
-        break;
+          prev_v = current_v;
+          current_v = c_in_edge_it->src_handle();
+          found = true;
+          break;
+        }
       }
+      if (found) continue;
 
       for (auto c_out_edge_it = current_v->OutEdgeBegin();
                 !c_out_edge_it.IsDone();
@@ -137,6 +176,8 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
 
         prev_v = current_v;
         current_v = c_out_edge_it->dst_handle();
+
+        found = true;
         break;          
       }
     }
