@@ -50,7 +50,7 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
         centre_candidates.emplace_back(vertex_it);
       }
     } else {
-      if (in_out_degree - out_degree > 1 ) {
+      if (in_out_degree - out_degree > 1) {
         //not a star, if any vertex with an in_degree > 1
         return std::pair(std::vector<VertexHandleType>(), 
                               VertexHandleType ());
@@ -65,6 +65,7 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
       }
     }
   }
+
 
   // if the pattern has more than 1 centre
   // then it is not a star
@@ -84,6 +85,11 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
               in_edge_it++) {
       VertexHandleType current_v = in_edge_it->src_handle();
       VertexHandleType prev_v = centre;
+
+      if (current_v == prev_v) {
+        return std::pair(std::vector<VertexHandleType>(), 
+                                    VertexHandleType ());
+      }
 
       while (true) {
         // endpoint of a path
@@ -137,6 +143,12 @@ std::pair<std::vector<typename VertexHandle<GraphType>::type>, // set of end poi
             out_edge_it++) {
     VertexHandleType current_v = out_edge_it->dst_handle();
     VertexHandleType prev_v = centre;
+
+    if (current_v == prev_v) {
+      return std::pair(std::vector<VertexHandleType>(), 
+                                    VertexHandleType ());
+    }
+
     while (true) {
       // endpoint of a path
 
@@ -196,6 +208,7 @@ inline bool IsStar(GraphType& graph) {
   // } else {
   //   return false;
   // }
+
   if (!end_points.empty()) {
     assert(end_points.size() >= 2);
     assert(end_points.size() == 2 || central_vertex_handle);

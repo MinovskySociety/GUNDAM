@@ -562,4 +562,30 @@ void ConstructGraph10(GraphType& g){
   ASSERT_TRUE(res2.second);
 }
 
+template <class GraphType>
+void ConstructGraph11(GraphType& g){
+  // 1(label 2) <- 2(label 4) 
+  //                  /\  |
+  //                  |---|
+
+  // clear up
+  g = GraphType();
+  // AddVertex
+  auto res1 = g.AddVertex(1, 2);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g.AddVertex(2, 4);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  // AddEdge
+  auto res2 = g.AddEdge(2, 1, 42, 1);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g.AddEdge(2, 2, 42, 2);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+}
+
 #endif // _TEST_TEST_DATA_TEST_PATTERN_SET
