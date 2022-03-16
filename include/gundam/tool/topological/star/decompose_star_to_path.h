@@ -17,7 +17,7 @@ template <bool bidirectional = false,
           typename GraphType>
 std::vector<GraphType> DecomposeStarToPath(GraphType& input_star) {
   // static constexpr bool bidirectional = true;
-  static_assert(bidirectional, "have not implemented bidirectional=false yet!");  // currently supports undirected-graph only
+  //static_assert(bidirectional, "have not implemented bidirectional=false yet!");  // currently supports undirected-graph only
 
   using VertexHandleType = typename VertexHandle<GraphType>::type;
   using EdgeHandleType = typename EdgeHandle<GraphType>::type;
