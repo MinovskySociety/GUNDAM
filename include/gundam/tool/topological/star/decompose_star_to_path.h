@@ -13,6 +13,19 @@
 
 namespace GUNDAM {
 
+/* ############################################################### *
+ * ## if:                                                       ## *
+ * ## 1, input_star is not a star                               ## *
+ * ##     - return an empty vector                              ## *
+ * ##                                                           ## *
+ * ## 2, input_star is a path, considering the "bidirectional"  ## *
+ * ##     - return the vector contains only the path            ## *
+ * ##                                                           ## *
+ * ## 3, input_star is a star                                   ## *
+ * ##     - return a vector contains the set of all paths,      ## *
+ * ##       all paths share the same central vertex             ## *
+ * ##       the order of pathes in vector is random             ## *     
+ * ############################################################### */
 template <bool bidirectional = false,
           typename GraphType>
 std::vector<GraphType> DecomposeStarToPath(GraphType& input_star) {
