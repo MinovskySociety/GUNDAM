@@ -12,6 +12,8 @@
 
 #include "gundam/match/match.h"
 
+#include <unordered_map>
+
 namespace GUNDAM {
 
 template <enum MatchSemantics match_semantics 
@@ -23,6 +25,8 @@ inline size_t Simulation(
        TargetGraph& target_graph,
      std::map<typename VertexHandle< QueryGraph>::type,
   std::vector<typename VertexHandle<TargetGraph>::type>>& match_set) {
+
+  //std::cout << "join the simulation " << std::endl;
   assert(match_set.empty());
   match_set.clear();
 
@@ -44,12 +48,258 @@ inline size_t Simulation(
    * ##  for muyang to implement new Simulation algorithm  ##
    * ######################################################## */
 
+  using QueryVertexHandleType = typename VertexHandle<QueryGraph>::type;
+  using QueryVertexLabelType = typename QueryGraph::VertexType::LabelType;
+  using QueryEdgeLabelType = typename QueryGraph::EdgeType::LabelType;
+
+  using TargetVertexHandleType = typename VertexHandle<TargetGraph>::type;
+  using TargetVertexLabelType = typename TargetGraph::VertexType::LabelType;
+
+  //using MatchType = Match<QueryGraph,
+  //                       TargetGraph>;
+
+  //auto my_hash = [](const QueryVertexHandleType& handle) {
+  //    return std::hash<int>{}(handle->id());
+  //};
+
+
+  std::unordered_map<QueryVertexLabelType, std::vector<QueryVertexHandleType>> tag2handle;
+  std::map<QueryVertexHandleType, size_t> handle2vec_id;
+
+  std::set<TargetVertexHandleType> pre_g;
+  std::unordered_map<QueryVertexLabelType,
+                    std::map<QueryVertexHandleType, QueryEdgeLabelType>> pre_p;
+  std::map<QueryVertexHandleType, std::unordered_set<QueryEdgeLabelType>> in_e_label_set;
+  std::map<TargetVertexHandleType, std::map<QueryVertexHandleType, size_t>> cnt;
+  std::map<TargetVertexHandleType, std::set<QueryVertexHandleType>> remove_set;
+  std::map<TargetVertexHandleType, std::vector<bool>> active;
+
+  // for (auto& [qg_v_handle, tg_v_handle_vec] : match_set) {
+  //   std::cout << "input qurey graph vertex " << qg_v_handle->id() << std::endl;
+  //   for (auto tg_v_handle : tg_v_handle_vec) {
+  //     std::cout << "        input target graph vertex " << tg_v_handle->id() << std::endl;
+  //   }
+  // }
+
+
+  for (auto vertex_it = query_graph.VertexBegin();
+            !vertex_it.IsDone();
+            vertex_it++) {
+    QueryVertexHandleType vertex_handle(vertex_it);
+    tag2handle[vertex_it->label()].emplace_back(vertex_handle);
+    handle2vec_id[vertex_handle] = tag2handle[vertex_it->label()].size() - 1;
+    //std::cout << "idx " << tag2handle[vertex_it->label()].size() - 1 << std::endl;
+    pre_p[vertex_handle] = std::map<QueryVertexHandleType, QueryEdgeLabelType>();
+
+    for (auto in_edge_it = vertex_it->InEdgeBegin();
+              !in_edge_it.IsDone();
+              in_edge_it++) {
+      in_e_label_set[vertex_handle].insert(in_edge_it->label());
+      pre_p[vertex_handle][in_edge_it->src_handle()] = in_edge_it->label();
+    }
+
+    remove_set[vertex_handle] = std::set<TargetVertexHandleType>();
+  }
+
+  //std::cout << "tag2handle size"  << tag2handle.size() << std::endl;
+
+  for (auto& [qg_vertex_handle, tg_v_handle_vec] : match_set) {
+    for (auto &tg_vertex_handle : tg_v_handle_vec) {
+      size_t tag_count = tag2handle[qg_vertex_handle->label()].size();
+      if (active.find(tg_vertex_handle) == active.end()) {
+        active[tg_vertex_handle].resize(tag_count, false);
+      }
+      active[tg_vertex_handle][handle2vec_id[qg_vertex_handle]] = true;
+      if (tg_vertex_handle->CountOutEdge()) {
+        pre_g.insert(tg_vertex_handle);
+      }
+    }
+  }
+
+  // for (auto [tg_vertex_handle, bool_vec] : active) {
+  //   std::cout << tg_vertex_handle->id() << std::endl;
+  //   for (size_t i = 0; i < bool_vec.size(); i++) {
+  //     if (bool_vec[i]) {
+  //       std::cout << "a candidate match " << tag2handle[tg_vertex_handle->label()][i]->id() << std::endl;
+  //     }
+  //   }
+  // }
+
+  for (auto &v2vx : active) {
+    auto tg_v_handle = v2vx.first;
+    auto tag = tg_v_handle->label();
+    auto &qg_v_handle_vec = tag2handle[tag];
+
+    //std::cout << "tag " << tag << " size " << qg_v_handle_vec.size() << std::endl;
+
+    for (size_t qg_v_handle_idx = 0;
+         qg_v_handle_idx < qg_v_handle_vec.size();
+         qg_v_handle_idx++) {
+      auto qg_v_handle = qg_v_handle_vec[qg_v_handle_idx];
+
+      if (!active[tg_v_handle][qg_v_handle_idx]) continue;
+
+      //std::cout << "here xx " << qg_v_handle->id() << std::endl;
+      //std::cout << "qg out " << qg_v_handle->CountOutEdge() << "tg out " << tg_v_handle->CountOutEdge() << std::endl;
+      if ((!qg_v_handle->CountOutEdge()) || tg_v_handle->CountOutEdge()) {
+        for (auto tg_in_edge_it = tg_v_handle->InEdgeBegin();
+                  !tg_in_edge_it.IsDone();
+                  tg_in_edge_it++) {
+           //std::cout << "xx " << qg_v_handle->id() << std::endl;
+          TargetVertexHandleType tg_v_handle_2 = tg_in_edge_it->src_handle();
+          if (active.find(tg_v_handle_2) != active.end()
+              && (in_e_label_set[qg_v_handle].find(tg_in_edge_it->label())
+               != in_e_label_set[qg_v_handle].end())) {
+            ++cnt[tg_v_handle_2][qg_v_handle];
+            remove_set[qg_v_handle].insert(tg_v_handle_2);
+          }
+        }
+      } else {
+        //std::cout << "xxxxxxxxxx" << std::endl;
+        active[tg_v_handle][qg_v_handle_idx] = false;
+      }
+    }
+  }
+
+  // for (auto [tg_vertex_handle, bool_vec] : active) {
+  //   std::cout << tg_vertex_handle->id() << std::endl;
+  //   for (size_t i = 0; i < bool_vec.size(); i++) {
+  //     if (bool_vec[i]) {
+  //       std::cout << "a candidate match " << tag2handle[tg_vertex_handle->label()][i]->id() << std::endl;
+  //     }
+  //   }
+  // }
+
+  // for (auto handle : pre_g) {
+  //   std::cout << "pre g " << handle->id() << std::endl;
+  // }
+
+  //  for (auto& [tg_v_handle, qg_v_handle_vec] : remove_set) {
+  //   std::cout << "reserve target graph vertex " << tg_v_handle->id() << std::endl;
+  //   for (auto qg_v_handle : qg_v_handle_vec) {
+  //     std::cout << "        reserve query graph vertex " << qg_v_handle->id() << std::endl;
+  //   }
+  // }
+
+  for (auto vertex_it = query_graph.VertexBegin();
+            !vertex_it.IsDone();
+            vertex_it++) {
+    QueryVertexHandleType v_handle(vertex_it);
+    std::set<TargetVertexHandleType> res;
+    std::set_difference(pre_g.begin(), pre_g.end(), remove_set[v_handle].begin(),
+                        remove_set[v_handle].end(), std::inserter(res, res.end()));
+    remove_set[v_handle] = res;
+  }
+
+  //  for (auto& [tg_v_handle, qg_v_handle_vec] : remove_set) {
+  //   std::cout << "target graph vertex " << tg_v_handle->id() << std::endl;
+  //   for (auto qg_v_handle : qg_v_handle_vec) {
+  //     std::cout << "        query graph vertex " << qg_v_handle->id() << std::endl;
+  //   }
+  // }
+
+  std::queue<QueryVertexHandleType> que;
+  std::map<QueryVertexHandleType, bool> in_queue;
+
+  for (auto vertex_it = query_graph.VertexBegin();
+            !vertex_it.IsDone();
+            vertex_it++) {
+    QueryVertexHandleType v_handle(vertex_it);
+    in_queue[v_handle] = false;
+    if (!remove_set[v_handle].empty()) {
+     // std::cout << "in queue " << v_handle->id() << std::endl;
+      que.push(v_handle);
+      in_queue[v_handle] = true;
+    }
+  }
+  // for (auto &[tg_handle, qg_handle_map] : cnt) {
+  //   std::cout << "tg_handle " << tg_handle->id() << std::endl;
+  //   for (auto &p : qg_handle_map) {
+  //     std::cout << "qg_handle " << p.first->id() << " number " << p.second << std::endl;
+  //   }
+  // }
+
+  for (; !que.empty(); que.pop()) {
+    QueryVertexHandleType qg_v_handle = que.front();
+    in_queue[qg_v_handle] = false;
+
+    for (auto tg_v_handle : remove_set[qg_v_handle]) {
+      auto tag = tg_v_handle->label();
+
+      if (tag2handle.find(tag) != tag2handle.end()) {
+        auto &qg_v_handle_vec = tag2handle[tag];
+
+        for (size_t qg_v_handle_idx = 0;
+                    qg_v_handle_idx < qg_v_handle_vec.size();
+                    qg_v_handle_idx++) {
+          QueryVertexHandleType qg_v_handle_2 = qg_v_handle_vec[qg_v_handle_idx];
+
+          if (pre_p[qg_v_handle].find(qg_v_handle_2) != pre_p[qg_v_handle].end()
+              && active[tg_v_handle][qg_v_handle_idx]
+              && tg_v_handle->CountInEdge(pre_p[qg_v_handle][qg_v_handle_2])) {
+            active[tg_v_handle][qg_v_handle_idx] = false;
+
+            for (auto in_edge_it = tg_v_handle->InEdgeBegin(pre_p[qg_v_handle][qg_v_handle_2]);
+                      !in_edge_it.IsDone();
+                      in_edge_it++) {
+              TargetVertexHandleType tg_v_handle_2 = in_edge_it->src_handle();
+
+              if (active.find(tg_v_handle_2) != active.end()
+                  && std::find(active[tg_v_handle_2].begin(),
+                               active[tg_v_handle_2].end(), true)
+                               != active[tg_v_handle_2].end()){
+                --cnt[tg_v_handle_2][qg_v_handle_2];
+
+                if (cnt[tg_v_handle_2][qg_v_handle_2] == 0) {
+                  remove_set[qg_v_handle_2].insert(tg_v_handle_2);
+                  if (!in_queue[qg_v_handle_2]) {
+                    que.push(qg_v_handle_2);
+                    in_queue[qg_v_handle_2] = true;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    remove_set[qg_v_handle].clear();
+  }
+
+
+  // for (auto &[tg_handle, qg_handle_map] : cnt) {
+  //   std::cout << "tg_handle " << tg_handle->id() << std::endl;
+  //   for (auto &p : qg_handle_map) {
+  //     std::cout << "qg_handle " << p.first->id() << " number " << p.second << std::endl;
+  //   }
+  // }
+  match_set.clear();
+
+  for (auto &v2vx: active) {
+    auto tg_v_handle = v2vx.first;
+    auto tg_v_label = tg_v_handle->label();
+    for (size_t idx = 0; idx < v2vx.second.size(); idx++) {
+      if (!(v2vx.second)[idx]) continue;
+      //std::cout << "a candidate" << std::endl;
+      match_set[tag2handle[tg_v_label][idx]].emplace_back(tg_v_handle);
+    }
+  }
+  //std::cout << "match_set size " << match_set.size() << std::endl;
+  //std::cout << "active size " << active.size() << std::endl;
+
+  // for (auto& [qg_v_handle, tg_v_handle_vec] : match_set) {
+  //   std::cout << "qurey graph vertex " << qg_v_handle->id() << std::endl;
+  //   for (auto tg_v_handle : tg_v_handle_vec) {
+  //     std::cout << "        target graph vertex " << tg_v_handle->id() << std::endl;
+  //   }
+  // }
+
   size_t match_count = 1;
   for (const auto& [query_vertex_handle,
                     query_vertex_candidate_set] : match_set) {
     match_count *= query_vertex_candidate_set.size();
   }
-
+  //std::cout << "match count is " << match_count << std::endl;
   return match_count;
 };
 

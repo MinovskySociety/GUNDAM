@@ -50,6 +50,8 @@ void TestStrongSimulation_1() {
   target.AddEdge(3, 2, EdgeLabelType(1), 2);
   target.AddEdge(3, 1, EdgeLabelType(1), 3);
 
+
+
   auto result_pattern_set = GUNDAM::StrongSimulation<GUNDAM::MatchSemantics
                                   ::kStrongSimulation>(query, target);
   std::cout << "result_pattern_set.size(): "
