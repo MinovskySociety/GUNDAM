@@ -46,6 +46,7 @@ class GraphBasicStatistics {
   }
   
   inline void AddGraph(const GraphType& graph) {
+    // calculate edge type statistic
     for (auto vertex_it = graph.VertexBegin();
              !vertex_it.IsDone();
               vertex_it++) {
@@ -65,6 +66,51 @@ class GraphBasicStatistics {
                                   out_edge_it->dst_handle()->label())]++;
       }
     }
+    // connected_edge_type_
+    for (auto vertex_it = graph.VertexBegin();
+             !vertex_it.IsDone();
+              vertex_it++) {
+      this->max_vertex_id_ = this->max_vertex_id_ > vertex_it->id() ?
+                             this->max_vertex_id_ : vertex_it->id();
+      this->vertex_label_counter_[vertex_it->label()]++;
+      std::set<EdgeTypeType> out_edge_type_set;
+      for (auto out_edge_it = vertex_it->OutEdgeBegin();
+               !out_edge_it.IsDone();
+                out_edge_it++) {
+        out_edge_type_set.emplace(std::tuple(out_edge_it->src_handle()->label(),
+                                             out_edge_it->label(),
+                                             out_edge_it->dst_handle()->label()));
+      }
+      std::set<EdgeTypeType> in_edge_type_set;
+      for (auto in_edge_it = vertex_it->InEdgeBegin();
+               !in_edge_it.IsDone();
+                in_edge_it++) {
+        in_edge_type_set.emplace(std::tuple(in_edge_it->src_handle()->label(),
+                                            in_edge_it->label(),
+                                            in_edge_it->dst_handle()->label()));
+      }
+      for (const auto& out_edge_type : out_edge_type_set) {
+        for (const auto& in_edge_type : in_edge_type_set) {
+          this->connected_edge_type_[std::pair(out_edge_type, false)]
+                            .emplace(std::pair( in_edge_type,  true));
+        }
+        for (const auto& out_edge_type_2 : out_edge_type_set) {
+          this->connected_edge_type_[std::pair(out_edge_type  , false)]
+                            .emplace(std::pair(out_edge_type_2, false));
+        }
+      }
+      for (const auto& in_edge_type : in_edge_type_set) {
+        for (const auto& in_edge_type_2 : in_edge_type_set) {
+          this->connected_edge_type_[std::pair( in_edge_type,    true)]
+                            .emplace(std::pair( in_edge_type_2,  true));
+        }
+        for (const auto& out_edge_type : out_edge_type_set) {
+          this->connected_edge_type_[std::pair( in_edge_type, false)]
+                            .emplace(std::pair(out_edge_type, false));
+        }
+      }
+    }
+    // connected_edge_type_
     if constexpr (GraphParameter<GraphType>::vertex_has_attribute) {
       this->AddVertexAttr(graph);
     }
@@ -386,14 +432,78 @@ class GraphBasicStatistics {
     return;
   }
 
+  inline std::string ToString() const {
+    std::string output_info;
+
+    output_info += "####################################################################\n" ;
+    output_info += "# vertex label statistic collection, form: <vertex_label>, counter #\n" ;
+    output_info += "####################################################################\n" ;
+    for (const auto& [vertex_label, counter] : this->vertex_label_counter()) {
+      output_info += "<"  + std::to_string(vertex_label)
+                   + "> " + std::to_string(counter)
+                   + "\n";
+    }
+
+    output_info += "################################################################\n" ;
+    output_info += "# edge label statistic collection, form: <edge_label>, counter #\n" ;
+    output_info += "################################################################\n" ;
+    for (const auto& [edge_label, counter] : this->edge_label_counter()) {
+      output_info += "<"  + std::to_string(edge_label)
+                   + "> " + std::to_string(counter)
+                   + "\n";
+    }
+
+    output_info += "######################################################################################\n" ;
+    output_info += "# edge types statistic collection, form: <src_label, edge_label, dst_label>, counter #\n" ;
+    output_info += "######################################################################################\n" ;
+    for (auto edge_type_counter_it  = this->edge_type_counter_begin();
+              edge_type_counter_it != this->edge_type_counter_end();
+              edge_type_counter_it++) {
+      output_info += "<"  + std::to_string(std::get<0>(edge_type_counter_it->first))
+                   + ","  + std::to_string(std::get<1>(edge_type_counter_it->first))
+                   + ","  + std::to_string(std::get<2>(edge_type_counter_it->first)) 
+                   + "> " + std::to_string(edge_type_counter_it->second)
+                   + "\n";
+    }
+
+    return output_info;
+  }
+
+  inline bool EdgeTypeConnectedTo(
+        const EdgeTypeType& edge_type_0, bool edge_0_is_input, // for the central vertex
+        const EdgeTypeType& edge_type_1, bool edge_1_is_input  // for the central vertex
+      ) const {
+    assert( this->connected_edge_type_.find(std::pair(edge_type_0, edge_0_is_input))
+         != this->connected_edge_type_.end() );
+    #ifndef NDEBUG
+    if ( edge_0_is_input &&  edge_1_is_input) {
+      assert(std::get<2>(edge_type_0) == std::get<2>(edge_type_1));
+    }
+    if ( edge_0_is_input && !edge_1_is_input) {
+      assert(std::get<2>(edge_type_0) == std::get<0>(edge_type_1));
+    }
+    if (!edge_0_is_input &&  edge_1_is_input) {
+      assert(std::get<0>(edge_type_0) == std::get<2>(edge_type_1));
+    }
+    if (!edge_0_is_input && !edge_1_is_input) {
+      assert(std::get<0>(edge_type_0) == std::get<0>(edge_type_1));
+    }
+    #endif // NDEBUG
+    const auto&  connected_edge_type_set 
+         = this->connected_edge_type_.find(std::pair(edge_type_0, edge_0_is_input))->second;
+    return connected_edge_type_set.find(std::pair(edge_type_1, edge_1_is_input)) 
+        != connected_edge_type_set.end();
+  }
+
  private:
   // basic statistics
   std::map<VertexLabelType, size_t> vertex_label_counter_;
   std::map<  EdgeLabelType, size_t>   edge_label_counter_;
   
-  std::map<std::tuple<VertexLabelType,
-                        EdgeLabelType,
-                      VertexLabelType>, size_t> edge_type_counter_;
+  std::map<EdgeTypeType, size_t> edge_type_counter_;
+
+  std::map<std::pair<EdgeTypeType, bool /* is input */>, 
+  std::set<std::pair<EdgeTypeType, bool /* is input */>>> connected_edge_type_;
 
   VertexIdType max_vertex_id_;
     EdgeIdType   max_edge_id_;
