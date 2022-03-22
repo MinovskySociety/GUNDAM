@@ -34,11 +34,15 @@ inline size_t Simulation(
     return 0;
   }
 
-  if (!_dp_iso_using_match::RefineCandidateSet(query_graph, 
-                                              target_graph, 
-                                               match_set)) {
-    return 0;
-  }
+  // if (!_dp_iso_using_match::RefineCandidateSet(query_graph, 
+  //                                             target_graph, 
+  //                                              match_set)) {
+  //   return 0;
+  // }
+
+  /* ########################################################
+   * ##  for muyang to implement new Simulation algorithm  ##
+   * ######################################################## */
 
   size_t match_count = 1;
   for (const auto& [query_vertex_handle,
