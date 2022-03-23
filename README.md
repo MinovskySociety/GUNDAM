@@ -430,6 +430,10 @@ std::cout << "g0_copy.FindVertex(1) == g0.FindVertex(1): "
 
 The behaviour is undefined and the output is unpredictable.
 
+To access the attribute on vertex, see 
+[the document for attribute](/doc/prog_doc/attribute.md).
+
+
 <!-- ```c++
 // work but low efficiency 
 GraphType0 graph_0;
