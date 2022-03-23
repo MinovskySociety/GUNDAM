@@ -32,7 +32,8 @@ inline size_t Simulation(
 
   static_assert(match_semantics == MatchSemantics::kDualSimulation);
 
-  if (!_dp_iso_using_match::InitCandidateSet<match_semantics>(query_graph,
+  if (!_dp_iso_using_match::InitCandidateSet<MatchSemantics::kHomomorphism>(
+                                                              query_graph,
                                                              target_graph,
                                                               match_set)) {
     return 0;
@@ -67,11 +68,12 @@ inline size_t Simulation(
   std::map<QueryVertexHandleType, size_t> handle2vec_id;
 
   std::set<TargetVertexHandleType> pre_g;
-  std::unordered_map<QueryVertexLabelType,
-                    std::map<QueryVertexHandleType, QueryEdgeLabelType>> pre_p;
+  std::map<QueryVertexHandleType,
+  std::map<QueryVertexHandleType, 
+           QueryEdgeLabelType>> pre_p;
   std::map<QueryVertexHandleType, std::unordered_set<QueryEdgeLabelType>> in_e_label_set;
   std::map<TargetVertexHandleType, std::map<QueryVertexHandleType, size_t>> cnt;
-  std::map<TargetVertexHandleType, std::set<QueryVertexHandleType>> remove_set;
+  std::map<QueryVertexHandleType, std::set<TargetVertexHandleType>> remove_set;
   std::map<TargetVertexHandleType, std::vector<bool>> active;
 
   // for (auto& [qg_v_handle, tg_v_handle_vec] : match_set) {
@@ -240,7 +242,7 @@ inline size_t Simulation(
             active[tg_v_handle][qg_v_handle_idx] = false;
 
             for (auto in_edge_it = tg_v_handle->InEdgeBegin(pre_p[qg_v_handle][qg_v_handle_2]);
-                      !in_edge_it.IsDone();
+                     !in_edge_it.IsDone();
                       in_edge_it++) {
               TargetVertexHandleType tg_v_handle_2 = in_edge_it->src_handle();
 
