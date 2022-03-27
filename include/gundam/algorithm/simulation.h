@@ -32,7 +32,7 @@ inline size_t Simulation(
 
   static_assert(match_semantics == MatchSemantics::kDualSimulation);
 
-  if (!_dp_iso_using_match::InitCandidateSet<MatchSemantics::kHomomorphism>(
+  if (!_dp_iso_using_match::InitCandidateSet<match_semantics>(
                                                               query_graph,
                                                              target_graph,
                                                               match_set)) {
@@ -66,7 +66,7 @@ inline size_t Simulation(
 
   std::map<TargetVertexHandleType, std::vector<std::map<QueryVertexHandleType, size_t>>> pre_cnt;
   std::map<TargetVertexHandleType, std::vector<std::map<QueryVertexHandleType, size_t>>> post_cnt;
-  std::map<TargetVertexHandleType, std::set<QueryVertexHandleType>> remove_set;
+  std::map<QueryVertexHandleType, std::set<TargetVertexHandleType>> remove_set;
   //std::map<TargetVertexHandleType, std::set<QeeryVertexHandleType>> post_remove_set;
   std::map<TargetVertexHandleType, std::vector<bool>> active;
 //  std::map<QueryVertexHandleType, std::map<QUeryVertexHandleType, bool>> valid_neighbors;
