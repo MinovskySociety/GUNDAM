@@ -6,6 +6,8 @@ GUNDAM is a fundamental library for graph computing that provides a *unified*, *
 
 [Vision of project GUNDAM](/doc/user_doc/vision_of_project_gundam.pdf)
 
+[开发指导](/doc/user_doc/ProjectGUNDAM开发指导.pdf)
+
 #
 
 ## Getting start
@@ -429,6 +431,10 @@ std::cout << "g0_copy.FindVertex(1) == g0.FindVertex(1): "
 ```
 
 The behaviour is undefined and the output is unpredictable.
+
+To access the attribute on vertex, see 
+[the document for attribute](/doc/prog_doc/attribute.md).
+
 
 <!-- ```c++
 // work but low efficiency 
