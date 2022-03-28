@@ -13,8 +13,18 @@
 #include "gundam/match/match.h"
 
 #include <unordered_map>
+#include <unordered_set>
+#include <functional>
 
 namespace GUNDAM {
+
+  struct v_handle_hash {
+    template <typename Handle>
+      size_t operator() (const Handle& h) const {
+        return std::hash<unsigned>{}(h->id());
+      }
+  };
+
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kDualSimulation,
@@ -26,7 +36,7 @@ inline size_t Simulation(
      std::map<typename VertexHandle< QueryGraph>::type,
   std::vector<typename VertexHandle<TargetGraph>::type>>& match_set) {
 
-  //std::cout << "join the simulation " << std::endl;
+  std::cout << "join the simulation " << std::endl;
   assert(match_set.empty());
   match_set.clear();
 
@@ -55,20 +65,27 @@ inline size_t Simulation(
 
   using TargetVertexHandleType = typename VertexHandle<TargetGraph>::type;
   using TargetVertexLabelType = typename TargetGraph::VertexType::LabelType;
+  using TargetVertexIDType = typename TargetGraph::VertexType::IDType;
+
+
+/*  std::function<size_t(const TargetVertexHandleType&)> tg_v_handle_hash = [] (const TargetVertexHandleType &handle) {
+            return std::hash<TargetVertexIDType>{}(handle->id());
+          };*/
+//  std::unordered_set<TargetVertexHandleType, tg_v_handle_hash> tmp;
 
   std::unordered_map<QueryVertexLabelType, std::vector<QueryVertexHandleType>> tag2handle;
-  std::map<QueryVertexHandleType, size_t> handle2vec_id;
+  std::unordered_map<QueryVertexHandleType, size_t, v_handle_hash> handle2vec_id;
 //  std::set<TargetVertexHandleType> pre_g;
-  std::map<QueryVertexHandleType,
-                    std::map<QueryVertexHandleType, QueryEdgeLabelType>> pre_p;
-  std::map<QueryVertexHandleType,
-                    std::map<QueryVertexHandleType, QueryEdgeLabelType>> post_p;
+  std::unordered_map<QueryVertexHandleType,
+                    std::unordered_map<QueryVertexHandleType, QueryEdgeLabelType, v_handle_hash>, v_handle_hash> pre_p;
+  std::unordered_map<QueryVertexHandleType,
+                    std::unordered_map<QueryVertexHandleType, QueryEdgeLabelType, v_handle_hash>, v_handle_hash> post_p;
 
-  std::map<TargetVertexHandleType, std::vector<std::map<QueryVertexHandleType, size_t>>> pre_cnt;
-  std::map<TargetVertexHandleType, std::vector<std::map<QueryVertexHandleType, size_t>>> post_cnt;
-  std::map<QueryVertexHandleType, std::set<TargetVertexHandleType>> remove_set;
+  std::unordered_map<TargetVertexHandleType, std::vector<std::unordered_map<QueryVertexHandleType, size_t, v_handle_hash>>, v_handle_hash> pre_cnt;
+  std::unordered_map<TargetVertexHandleType, std::vector<std::unordered_map<QueryVertexHandleType, size_t, v_handle_hash>>, v_handle_hash> post_cnt;
+  std::unordered_map<QueryVertexHandleType, std::unordered_set<TargetVertexHandleType, v_handle_hash>, v_handle_hash> remove_set;
   //std::map<TargetVertexHandleType, std::set<QeeryVertexHandleType>> post_remove_set;
-  std::map<TargetVertexHandleType, std::vector<bool>> active;
+  std::unordered_map<TargetVertexHandleType, std::vector<bool>, v_handle_hash> active;
 //  std::map<QueryVertexHandleType, std::map<QUeryVertexHandleType, bool>> valid_neighbors;
 
   for (auto vertex_it = query_graph.VertexBegin();
@@ -78,8 +95,8 @@ inline size_t Simulation(
     tag2handle[vertex_it->label()].emplace_back(vertex_handle);
     handle2vec_id[vertex_handle] = tag2handle[vertex_it->label()].size() - 1;
 
-    pre_p[vertex_handle] = std::map<QueryVertexHandleType, QueryEdgeLabelType>();
-    post_p[vertex_handle] = std::map<QueryVertexHandleType, QueryEdgeLabelType>();
+    pre_p[vertex_handle] = std::unordered_map<QueryVertexHandleType, QueryEdgeLabelType, v_handle_hash>();
+    post_p[vertex_handle] = std::unordered_map<QueryVertexHandleType, QueryEdgeLabelType, v_handle_hash>();
 //    valid_neigbors[vertex_handle] = std::map<QUeryVertexHandleType, bool>();
 
     for (auto in_edge_it = vertex_it->InEdgeBegin();
@@ -98,11 +115,12 @@ inline size_t Simulation(
 //      valid_neighbors[vertex_handle][out_edge_it->dst_handle()] = false;
     }
 
-    remove_set[vertex_handle] = std::set<TargetVertexHandleType>();
+    remove_set[vertex_handle] = std::unordered_set<TargetVertexHandleType, v_handle_hash>();
     //post_remove_set[vertex_handle] = std::set<TargetVertexHandleType>();
   }
 
   for (auto& [qg_vertex_handle, tg_v_handle_vec] : match_set) {
+    std::cout << " qg id " << qg_vertex_handle->id() << " size " << tg_v_handle_vec.size() << std::endl;
     for (auto &tg_vertex_handle : tg_v_handle_vec) {
       size_t tag_count = tag2handle[qg_vertex_handle->label()].size();
 
@@ -113,10 +131,6 @@ inline size_t Simulation(
 
       pre_cnt[tg_vertex_handle].resize(tag_count);
       post_cnt[tg_vertex_handle].resize(tag_count);
-
-//      if (tg_vertex_handle->CountOutEdge()) {
-//        pre_g.insert(tg_vertex_handle);
-//      }
     }
   }
 
@@ -134,77 +148,72 @@ inline size_t Simulation(
 //      auto valid_check = valid_neighboes[qg_v_handle];
       if (!active[tg_v_handle][qg_v_handle_idx]) continue;
 
+      if (!pre_p[qg_v_handle].empty()) {
+        for (auto in_edge_it = tg_v_handle->InEdgeBegin();
+                  !in_edge_it.IsDone();
+                  in_edge_it++) {
+          TargetVertexHandleType tg_v_handle_2 = in_edge_it->src_handle();
+          if (active.find(tg_v_handle_2) == active.end()) continue;
 
-      for (auto in_edge_it = tg_v_handle->InEdgeBegin();
-                !in_edge_it.IsDone();
-                in_edge_it++) {
-        TargetVertexHandleType tg_v_handle_2 = in_edge_it->src_handle();
-        if (active.find(tg_v_handle_2) == active.end()) continue;
+          QueryVertexLabelType tag_2 = tg_v_handle_2->label();
+//          if (tag2handle.find(tag_2) == tag2handle.end()) {
+//            std::cout << "an active vertex should have an eligible vertex label" << std::endl;
+//            return 0;
+//          }
 
-        QueryVertexLabelType tag_2 = tg_v_handle_2->label();
-        if (tag2handle.find(tag_2) == tag2handle.end()) {
-          std::cout << "an active vertex should have an eligible vertex label" << std::endl;
-          return 0;
-        }
+          auto &qg_v_handle_vec_2 = tag2handle[tag_2];
+          for (size_t qg_v_handle_idx_2 = 0;
+              qg_v_handle_idx_2 < qg_v_handle_vec_2.size();
+              qg_v_handle_idx_2++) {
+            if (!active[tg_v_handle_2][qg_v_handle_idx_2]) continue;
 
-        auto &qg_v_handle_vec_2 = tag2handle[tag_2];
-        for (size_t qg_v_handle_idx_2 = 0;
-            qg_v_handle_idx_2 < qg_v_handle_vec_2.size();
-            qg_v_handle_idx_2++) {
-          if (!active[tg_v_handle_2][qg_v_handle_idx_2]) continue;
-
-          QueryVertexHandleType qg_v_handle_2 = qg_v_handle_vec_2[qg_v_handle_idx_2];
-          if (pre_p[qg_v_handle].find(qg_v_handle_2) != pre_p[qg_v_handle].end()
-                && pre_p[qg_v_handle][qg_v_handle_2] == in_edge_it->label()) {
-            post_cnt[tg_v_handle_2][qg_v_handle_idx_2][qg_v_handle]++;
-//            valid_check[qg_v_handle_2] = true;
+            QueryVertexHandleType qg_v_handle_2 = qg_v_handle_vec_2[qg_v_handle_idx_2];
+            if (pre_p[qg_v_handle].find(qg_v_handle_2) != pre_p[qg_v_handle].end()
+                  && pre_p[qg_v_handle][qg_v_handle_2] == in_edge_it->label()) {
+              post_cnt[tg_v_handle_2][qg_v_handle_idx_2][qg_v_handle]++;
+            }
           }
         }
       }
 
-      for (auto out_edge_it = tg_v_handle->OutEdgeBegin();
-                !out_edge_it.IsDone();
-                out_edge_it++) {
-        TargetVertexHandleType tg_v_handle_2 = out_edge_it->dst_handle();
-        if (active.find(tg_v_handle_2) == active.end()) continue;
+      if (!post_p[tg_v_handle].empty()) {
+        for (auto out_edge_it = tg_v_handle->OutEdgeBegin();
+                  !out_edge_it.IsDone();
+                  out_edge_it++) {
+          TargetVertexHandleType tg_v_handle_2 = out_edge_it->dst_handle();
+          if (active.find(tg_v_handle_2) == active.end()) continue;
 
-        QueryVertexLabelType tag_2 = tg_v_handle_2->label();
-        if (tag2handle.find(tag_2) == tag2handle.end()) {
-          std::cout << "an active vertex should have an eligible vertex label" << std::endl;
-          return 0;
-        }
+          QueryVertexLabelType tag_2 = tg_v_handle_2->label();
+//        if (tag2handle.find(tag_2) == tag2handle.end()) {
+//          std::cout << "an active vertex should have an eligible vertex label" << std::endl;
+//          return 0;
+//        }
 
-        auto &qg_v_handle_vec_2 = tag2handle[tag_2];
-        for (size_t qg_v_handle_idx_2 = 0;
-            qg_v_handle_idx_2 < qg_v_handle_vec_2.size();
-            qg_v_handle_idx_2++) {
-          if (!active[tg_v_handle_2][qg_v_handle_idx_2]) continue;
+          auto &qg_v_handle_vec_2 = tag2handle[tag_2];
+          for (size_t qg_v_handle_idx_2 = 0;
+              qg_v_handle_idx_2 < qg_v_handle_vec_2.size();
+              qg_v_handle_idx_2++) {
+            if (!active[tg_v_handle_2][qg_v_handle_idx_2]) continue;
 
-          QueryVertexHandleType qg_v_handle_2 = qg_v_handle_vec_2[qg_v_handle_idx_2];
-          if (post_p[qg_v_handle].find(qg_v_handle_2) !=post_p[qg_v_handle].end()
-                && post_p[qg_v_handle][qg_v_handle_2] == out_edge_it->label()) {
-            pre_cnt[tg_v_handle_2][qg_v_handle_idx_2][qg_v_handle]++;
-//            valid_check[qg_v_handle_2] = true;
+            QueryVertexHandleType qg_v_handle_2 = qg_v_handle_vec_2[qg_v_handle_idx_2];
+            if (post_p[qg_v_handle].find(qg_v_handle_2) != post_p[qg_v_handle].end()
+                  && post_p[qg_v_handle][qg_v_handle_2] == out_edge_it->label()) {
+              pre_cnt[tg_v_handle_2][qg_v_handle_idx_2][qg_v_handle]++;
+            }
           }
         }
       }
-
-/*      for (auto &p : valid_check) {
-        if (p.second) continue;
-
-        for (auto v_handle : qg_v_neighbors[qg_v_handle]) {
-          remove_set[v_handle].insert(tg_v_handle);
-        }
-        break;
-      }*/
     }
   }
 
   for (auto &[tg_v_handle, qg_vec] : pre_cnt) {
     auto tag = tg_v_handle->label();
     for (size_t idx = 0; idx < qg_vec.size(); idx++) {
+      if (!active[tg_v_handle][idx]) continue;
+
       auto qg_v_handle = tag2handle[tag][idx];
       auto size = pre_p[qg_v_handle].size() + post_p[qg_v_handle].size();
+
       if (pre_cnt[tg_v_handle][idx].size() + post_cnt[tg_v_handle][idx].size() < size) {
         remove_set[qg_v_handle].insert(tg_v_handle);
       }
@@ -221,7 +230,7 @@ inline size_t Simulation(
     in_queue[v_handle] = false;
 
     if (!remove_set[v_handle].empty()) {
-     // std::cout << "in queue " << v_handle->id() << std::endl;
+//      std::cout << "in queue " << v_handle->id() << " remove set size " << remove_set[v_handle].size() << std::endl;
       que.push(v_handle);
       in_queue[v_handle] = true;
     }
@@ -234,38 +243,41 @@ inline size_t Simulation(
 
     for (auto tg_v_handle : remove_set[qg_v_handle]) {
       auto idx = handle2vec_id[qg_v_handle];
-      if (!active[tg_v_handle][idx]) continue;
+//      if (!active[tg_v_handle][idx]) continue;
 
       active[tg_v_handle][idx] = false;
 
-      for (auto in_edge_it = tg_v_handle->InEdgeBegin();
-                !in_edge_it.IsDone();
-                in_edge_it++) {
 
-        TargetVertexHandleType tg_v_handle_2 = in_edge_it->src_handle();
-        if (active.find(tg_v_handle_2) == active.end()) {
-          continue;
-        }
+      if (!pre_p[qg_v_handle].empty()) {
+        for (auto in_edge_it = tg_v_handle->InEdgeBegin();
+                  !in_edge_it.IsDone();
+                  in_edge_it++) {
 
-        QueryVertexLabelType tag_2 = tg_v_handle_2->label();
+          TargetVertexHandleType tg_v_handle_2 = in_edge_it->src_handle();
+          if (active.find(tg_v_handle_2) == active.end()) {
+            continue;
+          }
 
-        auto &qg_v_handle_vec_2 = tag2handle[tag_2];
-        for (size_t qg_v_handle_idx_2 = 0;
-                    qg_v_handle_idx_2 < qg_v_handle_vec_2.size();
-                    qg_v_handle_idx_2++) {
-          if (!active[tg_v_handle][qg_v_handle_idx_2]) continue;
+          QueryVertexLabelType tag_2 = tg_v_handle_2->label();
 
-          QueryVertexHandleType qg_v_handle_2 = qg_v_handle_vec_2[qg_v_handle_idx_2];
-          if (pre_p[qg_v_handle].find(qg_v_handle_2) != pre_p[qg_v_handle].end()
-                && pre_p[qg_v_handle][qg_v_handle_2] == in_edge_it->label()) {
-            post_cnt[tg_v_handle_2][qg_v_handle_idx_2][qg_v_handle]--;
+          auto &qg_v_handle_vec_2 = tag2handle[tag_2];
+          for (size_t qg_v_handle_idx_2 = 0;
+                      qg_v_handle_idx_2 < qg_v_handle_vec_2.size();
+                      qg_v_handle_idx_2++) {
+            if (!active[tg_v_handle_2][qg_v_handle_idx_2]) continue;
 
-            if (post_cnt[tg_v_handle_2][qg_v_handle_idx_2][qg_v_handle] == 0) {
-              remove_set[qg_v_handle_2].insert(tg_v_handle_2);
+            QueryVertexHandleType qg_v_handle_2 = qg_v_handle_vec_2[qg_v_handle_idx_2];
+            if (pre_p[qg_v_handle].find(qg_v_handle_2) != pre_p[qg_v_handle].end()
+                  && pre_p[qg_v_handle][qg_v_handle_2] == in_edge_it->label()) {
+              post_cnt[tg_v_handle_2][qg_v_handle_idx_2][qg_v_handle]--;
 
-              if (!in_queue[qg_v_handle_2]) {
-                que.push(qg_v_handle_2);
-                in_queue[qg_v_handle_2] = true;
+              if (post_cnt[tg_v_handle_2][qg_v_handle_idx_2][qg_v_handle] == 0) {
+                remove_set[qg_v_handle_2].insert(tg_v_handle_2);
+
+                if (!in_queue[qg_v_handle_2]) {
+                  que.push(qg_v_handle_2);
+                  in_queue[qg_v_handle_2] = true;
+                }
               }
             }
           }
@@ -273,34 +285,36 @@ inline size_t Simulation(
       }
 
 
-      for (auto out_edge_it = tg_v_handle->OutEdgeBegin();
-                !out_edge_it.IsDone();
-                out_edge_it++) {
+      if (!post_p[qg_v_handle],empty())
+        for (auto out_edge_it = tg_v_handle->OutEdgeBegin();
+                  !out_edge_it.IsDone();
+                  out_edge_it++) {
 
-        TargetVertexHandleType tg_v_handle_2 = out_edge_it->dst_handle();
-        if (active.find(tg_v_handle_2) == active.end()) {
-          continue;
-        }
+          TargetVertexHandleType tg_v_handle_2 = out_edge_it->dst_handle();
+          if (active.find(tg_v_handle_2) == active.end()) {
+            continue;
+          }
 
-        QueryVertexLabelType tag_2 = tg_v_handle_2->label();
+          QueryVertexLabelType tag_2 = tg_v_handle_2->label();
 
-        auto &qg_v_handle_vec_2 = tag2handle[tag_2];
-        for (size_t qg_v_handle_idx_2 = 0;
-                    qg_v_handle_idx_2 < qg_v_handle_vec_2.size();
-                    qg_v_handle_idx_2++) {
-          if (!active[tg_v_handle][qg_v_handle_idx_2]) continue;
+          auto &qg_v_handle_vec_2 = tag2handle[tag_2];
+          for (size_t qg_v_handle_idx_2 = 0;
+                      qg_v_handle_idx_2 < qg_v_handle_vec_2.size();
+                      qg_v_handle_idx_2++) {
+            if (!active[tg_v_handle_2][qg_v_handle_idx_2]) continue;
 
-          QueryVertexHandleType qg_v_handle_2 = qg_v_handle_vec_2[qg_v_handle_idx_2];
-          if (post_p[qg_v_handle].find(qg_v_handle_2) != post_p[qg_v_handle].end()
-                && post_p[qg_v_handle][qg_v_handle_2] == out_edge_it->label()) {
-            pre_cnt[tg_v_handle_2][qg_v_handle_idx_2][qg_v_handle]--;
+            QueryVertexHandleType qg_v_handle_2 = qg_v_handle_vec_2[qg_v_handle_idx_2];
+            if (post_p[qg_v_handle].find(qg_v_handle_2) != post_p[qg_v_handle].end()
+                  && post_p[qg_v_handle][qg_v_handle_2] == out_edge_it->label()) {
+              pre_cnt[tg_v_handle_2][qg_v_handle_idx_2][qg_v_handle]--;
 
-            if (pre_cnt[tg_v_handle_2][qg_v_handle_idx_2][qg_v_handle] == 0) {
-              remove_set[qg_v_handle_2].insert(tg_v_handle_2);
+              if (pre_cnt[tg_v_handle_2][qg_v_handle_idx_2][qg_v_handle] == 0) {
+                remove_set[qg_v_handle_2].insert(tg_v_handle_2);
 
-              if (!in_queue[qg_v_handle_2]) {
-                que.push(qg_v_handle_2);
-                in_queue[qg_v_handle_2] = true;
+                if (!in_queue[qg_v_handle_2]) {
+                  que.push(qg_v_handle_2);
+                  in_queue[qg_v_handle_2] = true;
+                }
               }
             }
           }
