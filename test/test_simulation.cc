@@ -62,6 +62,12 @@ void TestStrongSimulation_1() {
     str << result_pattern;
     std::cout << "result_pattern: " << str << std::endl;
   }
+
+  std::map<typename VertexHandle<QueryGraph>::type,
+   std::vector<typename VertexHandle<TargetGraph>::type>> match_set;
+
+  auto test_compilation_dualsim = GUNDAM::DualSimulation<GUNDAM::MatchSemantics
+                                  ::kDualSimulation>(query, target, match_set);
   // ASSERT_EQ(count, 2);
   // ASSERT_EQ(count, match_result1.size());
   // std::cout << "count: " << match_result1.size() << std::endl;
