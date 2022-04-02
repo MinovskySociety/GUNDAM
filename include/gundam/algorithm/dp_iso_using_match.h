@@ -1204,9 +1204,20 @@ inline void RestoreState(
     Match<QueryGraph, TargetGraph> &match_state,
     std::set<typename VertexHandle<TargetGraph>::type> &target_matched) {
   assert(match_state.HasMap(query_vertex_handle));
+  match_state.EraseMap( query_vertex_handle);
   assert(target_matched.find(target_vertex_handle)
       != target_matched.end());
-  match_state.EraseMap( query_vertex_handle);
+  #ifndef NDEBUG
+  for (auto map_it = match_state.MapBegin();
+           !map_it.IsDone();
+            map_it++) {
+    if (map_it->dst_handle() != target_vertex_handle) {
+      continue;
+    }
+    // still has match to target_vertex_handle
+    return;
+  }
+  #endif // NDEBUG
   target_matched.erase(target_vertex_handle);
   return;
 }
