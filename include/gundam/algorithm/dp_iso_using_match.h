@@ -479,7 +479,8 @@ inline typename VertexHandle<QueryGraph>::type NextMatchVertex(
 // add a new query-target vertexes pair into the match_state
 // enumerate all its adjacent edges to check whether this
 // vertexes pair can be added legally
-template <enum EdgeState edge_state, 
+template <enum MatchSemantics match_semantics, 
+          enum EdgeState edge_state, 
           typename  QueryGraph, 
           typename TargetGraph>
 inline bool JoinableCheck(
@@ -525,15 +526,19 @@ inline bool JoinableCheck(
                !target_edge_iter.IsDone(); 
                 target_edge_iter++) {
         TargetEdgeHandle target_edge_handle = target_edge_iter;
-        if (used_edge.find(target_edge_handle)
-         != used_edge.end()) {
-          // this edge has been used
-          continue;
+        if constexpr (match_semantics == MatchSemantics::kIsomorphism) {
+          if (used_edge.find(target_edge_handle)
+           != used_edge.end()) {
+            // this edge has been used
+            continue;
+          }
         }
         found_edge_in_target_graph = true;
-        auto [ used_edge_it,
-               used_edge_ret ] = used_edge.emplace(target_edge_handle);
-        assert(used_edge_ret);
+        if constexpr (match_semantics == MatchSemantics::kIsomorphism) {
+          auto [ used_edge_it,
+                 used_edge_ret ] = used_edge.emplace(target_edge_handle);
+          assert(used_edge_ret);
+        }
         break;
       }
     } else {
@@ -557,14 +562,18 @@ inline bool JoinableCheck(
                      != opp_vertex_handle) {
           continue;
         }
-        if (used_edge.find(target_edge_iter)
-         != used_edge.end()) {
-          continue;
+        if constexpr (match_semantics == MatchSemantics::kIsomorphism) {
+          if (used_edge.find(target_edge_iter)
+          != used_edge.end()) {
+            continue;
+          }
         }
         found_edge_in_target_graph = true;
-        auto [ used_edge_it,
-               used_edge_ret ] = used_edge.emplace(target_edge_iter);
-        assert(used_edge_ret);
+        if constexpr (match_semantics == MatchSemantics::kIsomorphism) {
+          auto [ used_edge_it,
+                used_edge_ret ] = used_edge.emplace(target_edge_iter);
+          assert(used_edge_ret);
+        }
         break;
       }
     }
@@ -588,11 +597,13 @@ inline bool IsJoinable(
    != target_matched.end()) {
     return false;
   }
-  if (!JoinableCheck<EdgeState::kIn>(
+  if (!JoinableCheck<match_semantics,
+                     EdgeState::kIn>(
           query_vertex_handle, target_vertex_handle, match_state)) {
     return false;
   }
-  if (!JoinableCheck<EdgeState::kOut>(
+  if (!JoinableCheck<match_semantics,
+                     EdgeState::kOut>(
           query_vertex_handle, target_vertex_handle, match_state)) {
     return false;
   }
@@ -688,11 +699,14 @@ inline void UpdateCandidateSetOneDirection(
 
     if constexpr (GraphParameter<TargetGraph>::vertex_level_edge_label_index) {
       // vertex has vertex_handle->In/Out VertexBegin(edge_label) method
-      for (auto vertex_it = ((edge_state == EdgeState::kIn)
-                    ? target_vertex_handle-> InVertexBegin(edge_label_it->label())
-                    : target_vertex_handle->OutVertexBegin(edge_label_it->label()));
-               !vertex_it.IsDone(); vertex_it++) {
-        TargetVertexHandle temp_target_handle = vertex_it;
+      for (auto edge_it = ((edge_state == EdgeState::kIn)
+                    ? target_vertex_handle-> InEdgeBegin(edge_label_it->label())
+                    : target_vertex_handle->OutEdgeBegin(edge_label_it->label()));
+               !edge_it.IsDone(); 
+                edge_it++) {
+        TargetVertexHandle temp_target_handle 
+           = (edge_state == EdgeState::kIn)? edge_it->src_handle()
+                                           : edge_it->dst_handle();
         auto temp_target_handle_it 
            = temp_adj_vertex.find(temp_target_handle->label());
         if (temp_target_handle_it != temp_adj_vertex.end()) {
@@ -1834,12 +1848,14 @@ inline bool CheckIsLegal(
     if constexpr (GraphParameter<TargetGraph>::vertex_level_edge_label_index) {
       // vertex has vertex_handle->In/Out VertexBegin(edge_label)
       // method
-      for (auto target_vertex_it = is_out_direction
-              ? target_vertex_handle->OutVertexBegin(edge_it->label())
-              : target_vertex_handle-> InVertexBegin(edge_it->label());
-               !target_vertex_it.IsDone(); 
-                target_vertex_it++) {
-        TargetVertexHandle temp_target_vertex_handle = target_vertex_it;
+      for (auto target_edge_it = is_out_direction?
+                target_vertex_handle->OutEdgeBegin(edge_it->label())
+              : target_vertex_handle-> InEdgeBegin(edge_it->label());
+               !target_edge_it.IsDone(); 
+                target_edge_it++) {
+        TargetVertexHandle temp_target_vertex_handle = is_out_direction?
+                                target_edge_it->dst_handle()
+                              : target_edge_it->src_handle();
         if (!EdgeCheck<QueryGraph, TargetGraph>(
                 query_vertex_handle,    adj_used_vertex_handle,
                target_vertex_handle, temp_target_vertex_handle, 
@@ -2060,12 +2076,14 @@ bool CheckMatchIsLegal(
   for (auto map_it = match_state.MapBegin();
            !map_it.IsDone();
             map_it++) {
-    if (!_dp_iso_using_match::JoinableCheck<EdgeState::kIn>(
+    if (!_dp_iso_using_match::JoinableCheck<match_semantics,
+                                            EdgeState::kIn>(
             map_it->src_handle(), 
             map_it->dst_handle(), match_state)) {
       return false;
     }
-    if (!_dp_iso_using_match::JoinableCheck<EdgeState::kOut>(
+    if (!_dp_iso_using_match::JoinableCheck<match_semantics,
+                                            EdgeState::kOut>(
             map_it->src_handle(), 
             map_it->dst_handle(), match_state)) {
       return false;
@@ -2148,7 +2166,9 @@ inline int DPISOUsingMatch_Recursive(
             map_it++) {
     auto [ match_it,
            match_ret ] = target_matched.emplace(map_it->dst_handle());
-    assert(match_ret);
+    if constexpr (match_semantics == MatchSemantics::kIsomorphism) {
+      assert(match_ret);
+    }
   }
   size_t result_count = 0;
   // add lock to user_callback and prune_callback
