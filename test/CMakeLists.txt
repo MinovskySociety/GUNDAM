@@ -160,3 +160,7 @@ gtest_add_tests(TARGET test_decompose_star_to_path)
 add_executable (test_vertex_degree_filter "test_vertex_degree_filter.cc")
 target_link_libraries(test_vertex_degree_filter GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_vertex_degree_filter)
+
+add_executable (test_set_intersection "test_set_intersection.cc")
+target_link_libraries(test_set_intersection GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_set_intersection)
