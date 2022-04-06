@@ -493,6 +493,11 @@ inline bool JoinableCheck(
   using  QueryEdgeHandle = typename EdgeHandle< QueryGraph>::type;
   using TargetEdgeHandle = typename EdgeHandle<TargetGraph>::type;
 
+  if ( query_vertex_handle->label() 
+   != target_vertex_handle->label() ) [[unlikely]] {
+    return false;
+  }
+
   std::set<TargetEdgeHandle> used_edge;
   for (auto query_edge_iter = ((edge_state == EdgeState::kIn)
                                    ? query_vertex_handle-> InEdgeBegin()
@@ -2057,21 +2062,22 @@ bool CheckMatchIsLegal(
               TargetGraph> &match_state) {
   using TargetVertexHandle 
    = typename VertexHandle<TargetGraph>::type;
-  std::set<TargetVertexHandle> target_matched;
-  for (auto map_it = match_state.MapBegin();
-           !map_it.IsDone();
-            map_it++) {
-    auto [ target_matched_it,
-           target_matched_ret] 
-         = target_matched.emplace(map_it->dst_handle());
-    // assert(target_matched_ret);
-  }
-  if (match_semantics == MatchSemantics::kIsomorphism 
-   && target_matched.size() != match_state.size()) {
-    // (more than) two vertexes in query graph are mapped 
-    // into a same vertex in the target graph
-    assert(target_matched.size() < match_state.size());
-    return false;
+  if constexpr (match_semantics == MatchSemantics::kIsomorphism) {
+    std::set<TargetVertexHandle> target_matched;
+    for (auto map_it = match_state.MapBegin();
+             !map_it.IsDone();
+              map_it++) {
+      auto [ target_matched_it,
+             target_matched_ret] 
+           = target_matched.emplace(map_it->dst_handle());
+      // assert(target_matched_ret);
+    }
+    if (target_matched.size() != match_state.size()) {
+      // (more than) two vertexes in query graph are mapped 
+      // into a same vertex in the target graph
+      assert(target_matched.size() < match_state.size());
+      return false;
+    }
   }
   for (auto map_it = match_state.MapBegin();
            !map_it.IsDone();
