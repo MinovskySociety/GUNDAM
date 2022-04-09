@@ -494,7 +494,7 @@ inline bool JoinableCheck(
   using TargetEdgeHandle = typename EdgeHandle<TargetGraph>::type;
 
   if ( query_vertex_handle->label() 
-   != target_vertex_handle->label() ) [[unlikely]] {
+   != target_vertex_handle->label() ) /* [[unlikely]] */ {
     return false;
   }
 

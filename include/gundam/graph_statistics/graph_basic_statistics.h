@@ -31,6 +31,11 @@ class GraphBasicStatistics {
                                     EdgeLabelType,
                                   VertexLabelType>;
 
+  using LegalAttributeValueSetType
+      = std::map<std::pair<std::string,  // value_str
+                           enum GUNDAM::BasicDataType>, // value_type
+                 int>;
+
  public:
   GraphBasicStatistics() : max_vertex_id_(0),
                              max_edge_id_(0){
@@ -105,7 +110,7 @@ class GraphBasicStatistics {
                             .emplace(std::pair( in_edge_type_2,  true));
         }
         for (const auto& out_edge_type : out_edge_type_set) {
-          this->connected_edge_type_[std::pair( in_edge_type, false)]
+          this->connected_edge_type_[std::pair( in_edge_type,  true)]
                             .emplace(std::pair(out_edge_type, false));
         }
       }
@@ -252,6 +257,38 @@ class GraphBasicStatistics {
 
   inline const auto& legal_attr_set() const {
     return this->legal_attr_set_;
+  }
+
+  inline size_t legal_attr_value_counter(
+         const VertexLabelType& vertex_label,
+         const VertexAttributeKeyType& attr_key) const {
+    auto legal_attr_set_it  = this->legal_attr_set_.find(vertex_label);
+    if ( legal_attr_set_it == this->legal_attr_set_.end()) {
+      return 0;
+    }
+    auto value_set_it  = legal_attr_set_it->second.find(attr_key);
+    if ( value_set_it == legal_attr_set_it->second.end()) {
+      return 0;
+    }
+    return value_set_it->second;
+  }
+
+  inline bool has_legal_attr_value(
+         const VertexLabelType& vertex_label,
+         const VertexAttributeKeyType& attr_key) const {
+    return this->legal_attr_value_counter(vertex_label, attr_key) > 0;
+  }
+
+  inline const LegalAttributeValueSetType& legal_attr_value_set(
+         const VertexLabelType& vertex_label,
+         const VertexAttributeKeyType& attr_key) const {
+     auto  legal_attr_set_it  = this->legal_attr_set_.find(vertex_label);
+    assert(legal_attr_set_it != this->legal_attr_set_.end());
+
+     auto  value_set_it  = legal_attr_set_it->second.find(vertex_label);
+    assert(value_set_it != legal_attr_set_it->second.end());
+
+    return *value_set_it;
   }
 
   inline VertexIdType max_vertex_id() const {
@@ -510,9 +547,7 @@ class GraphBasicStatistics {
 
   std::map<VertexLabelType,
   std::map<VertexAttributeKeyType,
-  std::map<std::pair<std::string,  // value_str
-                     enum GUNDAM::BasicDataType>, // value_type
-           int>>> legal_attr_set_;
+            LegalAttributeValueSetType>> legal_attr_set_;
 };
 
 };
