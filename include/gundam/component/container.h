@@ -142,14 +142,6 @@ class Container<ContainerType::Vector,
       return temp;
     }
 
-    template<TupleIdxType tuple_idx,
-             bool _is_const_ = is_const_,
-             std::enable_if_t<!_is_const_, bool> = false>
-    inline auto& get() { 
-      static_assert(_is_const_ == is_const_, "illegal usage of this method");
-      return std::get<tuple_idx>(*(this->iterator_));
-    }
-
     template<TupleIdxType tuple_idx>
     inline auto& get() const{ 
       return std::get<tuple_idx>(*(this->iterator_));
@@ -403,17 +395,9 @@ class Container<ContainerType::Set,
       return temp;
     }
 
-    template<TupleIdxType tuple_idx,
-             bool _is_const_ = is_const_,
-             std::enable_if_t<!_is_const_, bool> = false>
-    inline auto& get() { 
-      static_assert(_is_const_ == is_const_, "illegal usage of this method");
-      return std::get<tuple_idx>(*(this->iterator_));
-    }
-
     template<TupleIdxType tuple_idx>
-    inline auto& get() const{
-      return this->template get_const<tuple_idx>();
+    inline auto& get() const{ 
+      return std::get<tuple_idx>(*(this->iterator_));
     }
 
     template<TupleIdxType tuple_idx>
@@ -610,22 +594,6 @@ class Container<ContainerType::Map,
       Iterator_ temp(*this);
       this->iterator_--;
       return temp;
-    }
-
-    template<TupleIdxType tuple_idx,
-             bool _is_const_ = is_const_,
-             std::enable_if_t<!_is_const_ && tuple_idx == 0, bool> = false>
-    inline auto& get() { 
-      static_assert(_is_const_ == is_const_, "illegal usage of this method");
-      return this->iterator_->first;
-    }
-
-    template<TupleIdxType tuple_idx,
-             bool _is_const_ = is_const_,
-             std::enable_if_t<!_is_const_ && tuple_idx != 0, bool> = false>
-    inline auto& get() { 
-      static_assert(_is_const_ == is_const_, "illegal usage of this method");
-      return std::get<tuple_idx - 1>(this->iterator_->second);
     }
 
     template<TupleIdxType tuple_idx,
