@@ -42,6 +42,8 @@ class  parallel_policy;
 #include "gundam/match/match.h"
 #include "gundam/algorithm/bfs.h"
 
+#include "gundam/tool/max_id.h"
+
 namespace GUNDAM {
 
 namespace _dp_iso_using_match {
@@ -1972,6 +1974,8 @@ inline void MultiWayTopoSort(QueryGraph &query_graph,
       if (in_degree[query_vertex_handle] != 0) {
         continue;
       }
+      std::cout << "new query_vertex_handle->id(): "
+                <<      query_vertex_handle->id() << std::endl;
       std::queue<QueryVertexHandle> topo_sort_queue;
       std:: set <QueryEdgeIDType> used_edge;
       topo_sort_queue.push(query_vertex_handle);
