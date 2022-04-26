@@ -2463,11 +2463,14 @@ inline bool DAGDP(
   using QueryEdgeLabelType = typename EdgeLabel<QueryGraph>::type;
   std::set<QueryVertexHandle> used_vertex;
   for (auto &vertex_handle : topo_seq) {
+    assert( candidate_set.find(vertex_handle)
+         != candidate_set.end() );
     if (!DAGDPForSingleVertex<policy>(query_graph, 
                                      target_graph, 
                                      vertex_handle,
                                        used_vertex,
-                                  candidate_set)) {
+                                  candidate_set,
+                                  candidate_set[vertex_handle])) {
       return false;
     }
   }
