@@ -1,5 +1,5 @@
-#ifndef _GUNDAM_TOOL_OPERATOR_MERGE_BY_ID_H
-#define _GUNDAM_TOOL_OPERATOR_MERGE_BY_ID_H
+#ifndef _GUNDAM_TOOL_DUPLICATE_VERTEX_H
+#define _GUNDAM_TOOL_DUPLICATE_VERTEX_H
 
 #include "gundam/type_getter/vertex_id.h"
 #include "gundam/type_getter/vertex_handle.h"
@@ -24,6 +24,19 @@ inline auto _DuplicateVertex(GraphType& graph,
     return new_vertex_handle;
   }
 
+  if constexpr (GraphParameter<GraphType>::vertex_has_attribute) {
+    for (auto attr_it = vertex_handle_to_duplicate->AttributeBegin();
+             !attr_it.IsDone(); 
+              attr_it++){
+      auto [attr_handle, attr_ret] 
+        = new_vertex_handle->AddAttribute(attr_it->key(), 
+                                          attr_it->value_type(), 
+                                          attr_it->value_str());
+      assert(!attr_handle.IsNull());
+      assert(attr_ret);
+    }
+  }
+
   for (auto edge_it = vertex_handle_to_duplicate->OutEdgeBegin();
            !edge_it.IsDone();
             edge_it++) {
@@ -34,6 +47,19 @@ inline auto _DuplicateVertex(GraphType& graph,
                                     new_edge_id++);
     assert(edge_handle);
     assert(edge_ret);
+
+    if constexpr (GraphParameter<GraphType>::edge_has_attribute) {
+      for (auto attr_it = edge_it->AttributeBegin();
+               !attr_it.IsDone(); 
+                attr_it++){
+        auto [attr_handle, attr_ret] 
+            = edge_handle->AddAttribute(attr_it->key(), 
+                                        attr_it->value_type(), 
+                                        attr_it->value_str());
+        assert(!attr_handle.IsNull());
+        assert(attr_ret);
+      }
+    }
   }
 
   for (auto edge_it = vertex_handle_to_duplicate->InEdgeBegin();
@@ -46,6 +72,19 @@ inline auto _DuplicateVertex(GraphType& graph,
                                     new_edge_id++);
     assert(edge_handle);
     assert(edge_ret);
+
+    if constexpr (GraphParameter<GraphType>::edge_has_attribute) {
+      for (auto attr_it = edge_it->AttributeBegin();
+               !attr_it.IsDone(); 
+                attr_it++){
+        auto [attr_handle, attr_ret] 
+            = edge_handle->AddAttribute(attr_it->key(), 
+                                        attr_it->value_type(), 
+                                        attr_it->value_str());
+        assert(!attr_handle.IsNull());
+        assert(attr_ret);
+      }
+    }
   }
 
   assert( vertex_handle_to_duplicate->CountOutEdge()
@@ -110,4 +149,4 @@ inline auto DuplicateVertex(GraphType& graph,
 
 };
 
-#endif // _GUNDAM_TOOL_OPERATOR_MERGE_BY_ID_H
+#endif // _GUNDAM_TOOL_DUPLICATE_VERTEX_H

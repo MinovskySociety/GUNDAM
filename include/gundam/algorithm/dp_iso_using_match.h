@@ -1964,59 +1964,56 @@ inline void MultiWayTopoSort(QueryGraph &query_graph,
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
   using QueryEdgeIDType   = typename       EdgeID<QueryGraph>::type;
   // topo sort
-  auto query_graph_it 
-     = query_graph.VertexBegin();
-  size_t processed_vertex_count = 0;
-  while (processed_vertex_count < query_graph.CountVertex()) {
-    for (; !query_graph_it.IsDone();
+  
+  std::vector<QueryVertexHandle> zero_in_degree_vertex_set;
+  for (auto query_graph_it = query_graph.VertexBegin();
+           !query_graph_it.IsDone();
             query_graph_it++) {
-      QueryVertexHandle query_vertex_handle = query_graph_it;
-      if (in_degree[query_vertex_handle] != 0) {
-        continue;
-      }
-      std::cout << "new query_vertex_handle->id(): "
-                <<      query_vertex_handle->id() << std::endl;
-      std::queue<QueryVertexHandle> topo_sort_queue;
-      std:: set <QueryEdgeIDType> used_edge;
-      topo_sort_queue.push(query_vertex_handle);
+    if (in_degree[query_graph_it] != 0) {
+      continue;
+    }
+    zero_in_degree_vertex_set.emplace_back(query_graph_it);
+  }
+  for (const auto& query_vertex_handle : zero_in_degree_vertex_set) {
+    std::queue<QueryVertexHandle> topo_sort_queue;
+    std:: set <QueryEdgeIDType>   used_edge;
+    topo_sort_queue.push(query_vertex_handle);
 
-      while (!topo_sort_queue.empty()) {
-        std::vector<QueryVertexHandle> currrent_batch;
-        currrent_batch.reserve(batch_size);
-        for (int i = 0; (i < batch_size) && !topo_sort_queue.empty(); i++) {
-          currrent_batch.emplace_back(topo_sort_queue.front());
-          topo_sort_queue.pop();
-        }
-        assert(!currrent_batch.empty());
-        processed_vertex_count += currrent_batch.size();
-        for (const auto& query_vertex_handle : currrent_batch) {
-          for (auto edge_it = query_vertex_handle->OutEdgeBegin(); 
-                  !edge_it.IsDone();
-                    edge_it++) {
-            if (used_edge.count(edge_it->id())) 
-              continue;
-            QueryVertexHandle next_vertex_handle = edge_it->dst_handle();
-            in_degree[next_vertex_handle]--;
-            used_edge.insert(edge_it->id());
-            if (in_degree[next_vertex_handle] == 0) {
-              topo_sort_queue.push(next_vertex_handle);
-            }
-          }
-          for (auto edge_it = query_vertex_handle->InEdgeBegin(); 
-                  !edge_it.IsDone();
-                    edge_it++) {
-            if (used_edge.count(edge_it->id())) 
-              continue;
-            QueryVertexHandle next_vertex_handle = edge_it->src_handle();
-            in_degree[next_vertex_handle]--;
-            used_edge.insert(edge_it->id());
-            if (in_degree[next_vertex_handle] == 0) {
-              topo_sort_queue.push(next_vertex_handle);
-            }
-          }
-        }
-        multi_way_topo_seq.emplace_back(std::move(currrent_batch));
+    while (!topo_sort_queue.empty()) {
+      std::vector<QueryVertexHandle> currrent_batch;
+      currrent_batch.reserve(batch_size);
+      for (int i = 0; (i < batch_size) && !topo_sort_queue.empty(); i++) {
+        currrent_batch.emplace_back(topo_sort_queue.front());
+        topo_sort_queue.pop();
       }
+      assert(!currrent_batch.empty());
+      for (const auto& query_vertex_handle : currrent_batch) {
+        for (auto edge_it = query_vertex_handle->OutEdgeBegin(); 
+                !edge_it.IsDone();
+                  edge_it++) {
+          if (used_edge.count(edge_it->id())) 
+            continue;
+          QueryVertexHandle next_vertex_handle = edge_it->dst_handle();
+          in_degree[next_vertex_handle]--;
+          used_edge.insert(edge_it->id());
+          if (in_degree[next_vertex_handle] == 0) {
+            topo_sort_queue.push(next_vertex_handle);
+          }
+        }
+        for (auto edge_it = query_vertex_handle->InEdgeBegin(); 
+                !edge_it.IsDone();
+                  edge_it++) {
+          if (used_edge.count(edge_it->id())) 
+            continue;
+          QueryVertexHandle next_vertex_handle = edge_it->src_handle();
+          in_degree[next_vertex_handle]--;
+          used_edge.insert(edge_it->id());
+          if (in_degree[next_vertex_handle] == 0) {
+            topo_sort_queue.push(next_vertex_handle);
+          }
+        }
+      }
+      multi_way_topo_seq.emplace_back(std::move(currrent_batch));
     }
   }
   return;
