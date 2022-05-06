@@ -141,6 +141,10 @@ add_executable (test_connected_component "test_connected_component.cc")
 target_link_libraries(test_connected_component GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_connected_component)
 
+add_executable (test_strong_connected_component "test_strong_connected_component.cc")
+target_link_libraries(test_strong_connected_component GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_strong_connected_component)
+
 add_executable (test_deduplicate_patterns "test_deduplicate_patterns.cc")
 target_link_libraries(test_deduplicate_patterns GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_deduplicate_patterns)
