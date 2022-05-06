@@ -28,6 +28,9 @@ inline size_t Bisimulation(
      std::map<typename VertexHandle< QueryGraph>::type,
   std::vector<typename VertexHandle<TargetGraph>::type>>& match_set) {
 
+  for () {
+    return ;
+  }
 
 }; // GUNDAM
 

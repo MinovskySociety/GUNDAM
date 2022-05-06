@@ -42,6 +42,10 @@ inline auto MergeVertex(GraphType& input_graph,
     for (;vertex_set_to_it != vertex_set_to_merge.end();
           vertex_set_to_it++) {
       auto  vertex_to_erase = *vertex_set_to_it;
+      // does not support merge vertex attribute now
+      if constexpr (GUNDAM::GraphParameter<GraphType>::vertex_has_attribute) {
+        assert(vertex_to_erase->AttributeBegin().IsDone());
+      }
       merged_graph.EraseVertex(vertex_to_erase->id());
       assert(merge_to_vertex->label() 
           == vertex_to_erase->label());
