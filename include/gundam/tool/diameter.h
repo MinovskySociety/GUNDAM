@@ -1,6 +1,8 @@
 #ifndef _GUNDAM_TOOL_DIAMETER_H
 #define _GUNDAM_TOOL_DIAMETER_H
 
+#include <limits>
+
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/edge_handle.h"
 

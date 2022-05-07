@@ -81,6 +81,10 @@ add_executable (test_star "test_star.cc")
 target_link_libraries(test_star GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_star)
 
+add_executable (test_is_acyclic "test_is_acyclic.cc")
+target_link_libraries(test_is_acyclic GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_is_acyclic)
+
 add_executable (test_diameter "test_diameter.cc")
 target_link_libraries(test_diameter GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_diameter)
