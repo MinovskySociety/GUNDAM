@@ -7,33 +7,30 @@
 
 #include "gundam/component/disjoint_set.h"
 
+#include "gundam/util/util.h"
+
 namespace GUNDAM {
 
 namespace _neighborhood_equivalence_class {
-
-enum EdgeState { 
-  kIn, 
-  kOut 
-};
 
 template<typename    EdgeLabelType,
          typename     VertexIDType,
          typename VertexHandleType>
 auto AdjacentVertex(const VertexHandleType& vertex) {
-  std::set<std::tuple<EdgeState,
-                      EdgeLabelType,
-                       VertexIDType>> adjacent_vertex_set;
+  std::set<std::tuple<enum EdgeDirection,
+                           EdgeLabelType,
+                           VertexIDType>> adjacent_vertex_set;
   for (auto in_edge_it = vertex->InEdgeBegin();
            !in_edge_it.IsDone();
             in_edge_it++) {
-    adjacent_vertex_set.emplace(EdgeState::kIn,
+    adjacent_vertex_set.emplace(EdgeDirection::kIn,
                              in_edge_it->label(),
                              in_edge_it->src_handle()->id());
   }
   for (auto out_edge_it = vertex->OutEdgeBegin();
            !out_edge_it.IsDone();
             out_edge_it++) {
-    adjacent_vertex_set.emplace(EdgeState::kOut,
+    adjacent_vertex_set.emplace(EdgeDirection::kOut,
                             out_edge_it->label(),
                             out_edge_it->dst_handle()->id());
   }
@@ -53,9 +50,9 @@ std::vector<std::vector<typename VertexHandle<QueryGraph>::type>>
   using   EdgeLabelType = typename QueryGraph::  EdgeType::LabelType;
   using    VertexIDType = typename QueryGraph::VertexType::   IDType;
   std::map<std::pair<VertexLabelType,
-           std::set<std::tuple<_neighborhood_equivalence_class::EdgeState,
-                               EdgeLabelType,
-                               VertexIDType>>>,
+           std::set<std::tuple<enum EdgeDirection,
+                                    EdgeLabelType,
+                                    VertexIDType>>>,
            std::vector<VertexHandleType>> adjacent_vertex_set;
 
   for (auto vertex_it = graph.VertexBegin();

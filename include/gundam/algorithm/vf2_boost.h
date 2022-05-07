@@ -7,7 +7,6 @@
 #include "vf2.h"
 namespace GUNDAM {
 namespace _vf2_boost {
-enum EdgeState { kIn, kOut };
 
 template <class GraphType, class Fn, class VertexPtr1>
 inline bool ForEachVertexIf(const GraphType &graph, Fn f,
@@ -19,10 +18,10 @@ inline bool ForEachVertexIf(const GraphType &graph, Fn f,
   }
   return true;
 }
-template <enum EdgeState edge_state, class VertexPtr, class Fn, class EdgePtr1>
+template <enum EdgeDirection edge_direction, class VertexPtr, class Fn, class EdgePtr1>
 inline bool ForEachEdgeIf(const VertexPtr &vertex_ptr, Fn f,
                           const EdgePtr1 &edge_a_ptr) {
-  for (auto edge_iter = (edge_state == EdgeState::kIn)
+  for (auto edge_iter = (edge_direction == EdgeDirection::kIn)
                             ? vertex_ptr->InEdgeCBegin(edge_a_ptr->label())
                             : vertex_ptr->OutEdgeCBegin(edge_a_ptr->label());
        !edge_iter.IsDone(); edge_iter++) {
@@ -148,7 +147,7 @@ inline QueryVertexPtr DetermineMatchOrder(
   return res;
 }
 
-template <enum EdgeState edge_state, class QueryGraph, class TargetGraph,
+template <enum EdgeDirection edge_direction, class QueryGraph, class TargetGraph,
           class QueryVertexPtr, class TargetVertexPtr, class MatchStateMap,
           class TargetVertexSet>
 inline void UpdateCandidateSetOneDirection(
@@ -158,23 +157,23 @@ inline void UpdateCandidateSetOneDirection(
   std::map<typename QueryGraph::VertexType::LabelType,
            std::set<TargetVertexPtr>>
       temp_adj_vertex;
-  for (auto label_it = ((edge_state == EdgeState::kIn)
+  for (auto label_it = ((edge_direction == EdgeDirection::kIn)
                             ? query_vertex_ptr->InEdgeLabelBegin()
                             : query_vertex_ptr->OutEdgeLabelBegin());
        !label_it.IsDone(); label_it++) {
-    for (auto it = ((edge_state == EdgeState::kIn)
+    for (auto it = ((edge_direction == EdgeDirection::kIn)
                         ? target_vertex_ptr->InEdgeCBegin(
                               *label_it /*label_it->label()*/)
                         : target_vertex_ptr->OutEdgeCBegin(
                               *label_it /*label_it->label()*/));
          !it.IsDone(); it++) {
-      TargetVertexPtr temp_target_ptr = (edge_state == EdgeState::kIn)
+      TargetVertexPtr temp_target_ptr = (edge_direction == EdgeDirection::kIn)
                                             ? it->const_src_handle()
                                             : it->const_dst_handle();
       // if (target_matched.count(temp_target_ptr)) continue;
       temp_adj_vertex[temp_target_ptr->label()].insert(temp_target_ptr);
     }
-    for (auto vertex_it = ((edge_state == EdgeState::kIn)
+    for (auto vertex_it = ((edge_direction == EdgeDirection::kIn)
                                ? query_vertex_ptr->InVertexCBegin(
                                      *label_it /*label_it->label()*/)
                                : query_vertex_ptr->OutVertexCBegin(
@@ -198,14 +197,14 @@ inline void UpdateCandidateSet(
     QueryVertexPtr query_vertex_ptr, TargetVertexPtr target_vertex_ptr,
     std::map<QueryVertexPtr, std::vector<TargetVertexPtr>> &candidate_set,
     const MatchStateMap &match_state, const TargetVertexSet &target_matched) {
-  UpdateCandidateSetOneDirection<EdgeState::kIn, QueryGraph, TargetGraph>(
+  UpdateCandidateSetOneDirection<EdgeDirection::kIn, QueryGraph, TargetGraph>(
       query_vertex_ptr, target_vertex_ptr, candidate_set, match_state,
       target_matched);
-  UpdateCandidateSetOneDirection<EdgeState::kOut, QueryGraph, TargetGraph>(
+  UpdateCandidateSetOneDirection<EdgeDirection::kOut, QueryGraph, TargetGraph>(
       query_vertex_ptr, target_vertex_ptr, candidate_set, match_state,
       target_matched);
 }
-template <enum EdgeState edge_state, class QueryGraph, class TargetGraph,
+template <enum EdgeDirection edge_direction, class QueryGraph, class TargetGraph,
           class QueryVertexPtr, class TargetVertexPtr, class MatchStateMap,
           class IsCliqueMap>
 inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
@@ -221,11 +220,11 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
   std::set<typename TargetGraph::EdgeType::IDType> used_edge;
   std::map<QueryEdgeMapPair, int> equal_vertex_map;
   for (auto query_edge_iter =
-           ((edge_state == EdgeState::kIn) ? query_vertex_ptr->InEdgeCBegin()
+           ((edge_direction == EdgeDirection::kIn) ? query_vertex_ptr->InEdgeCBegin()
                                            : query_vertex_ptr->OutEdgeCBegin());
        !query_edge_iter.IsDone(); query_edge_iter++) {
     QueryEdgePtr query_edge_ptr = query_edge_iter;
-    QueryVertexPtr query_opp_vertex_ptr = (edge_state == EdgeState::kIn)
+    QueryVertexPtr query_opp_vertex_ptr = (edge_direction == EdgeDirection::kIn)
                                               ? query_edge_ptr->const_src_handle()
                                               : query_edge_ptr->const_dst_handle();
     auto match_iter = match_state.find(query_opp_vertex_ptr);
@@ -239,14 +238,14 @@ inline bool JoinableCheck(const QueryVertexPtr &query_vertex_ptr,
     }
     bool find_target_flag = false;
     for (auto target_edge_iter =
-             ((edge_state == EdgeState::kIn)
+             ((edge_direction == EdgeDirection::kIn)
                   ? target_vertex_ptr->InEdgeCBegin(query_edge_ptr->label())
                   : target_vertex_ptr->OutEdgeCBegin(query_edge_ptr->label()));
          !target_edge_iter.IsDone(); target_edge_iter++) {
       if (used_edge.count(target_edge_iter->id())) continue;
       TargetEdgePtr target_edge_ptr = target_edge_iter;
       TargetVertexPtr target_opp_vertex_ptr =
-          (edge_state == EdgeState::kIn) ? target_edge_iter->const_src_handle()
+          (edge_direction == EdgeDirection::kIn) ? target_edge_iter->const_src_handle()
                                          : target_edge_iter->const_dst_handle();
       if (target_opp_vertex_ptr != query_opp_match_vertex_ptr) continue;
       find_target_flag = true;
@@ -281,11 +280,11 @@ inline bool IsJoinable(QueryVertexPtr query_vertex_ptr,
       return false;
     }
   }
-  if (!JoinableCheck<EdgeState::kIn, QueryGraph, TargetGraph>(
+  if (!JoinableCheck<EdgeDirection::kIn, QueryGraph, TargetGraph>(
           query_vertex_ptr, target_vertex_ptr, match_state, is_clique)) {
     return false;
   }
-  if (!JoinableCheck<EdgeState::kOut, QueryGraph, TargetGraph>(
+  if (!JoinableCheck<EdgeDirection::kOut, QueryGraph, TargetGraph>(
           query_vertex_ptr, target_vertex_ptr, match_state, is_clique)) {
     return false;
   }

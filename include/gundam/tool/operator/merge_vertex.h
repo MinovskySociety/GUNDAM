@@ -37,7 +37,9 @@ inline auto MergeVertex(GraphType& input_graph,
     assert(vertex_set_to_merge.size() > 1);
      auto  merge_to_vertex = merged_graph.FindVertex(vertex_set_to_merge[0]->id());
     assert(merge_to_vertex); // should have this vertex
-    auto vertex_set_to_it = vertex_set_to_merge.begin();
+     auto  vertex_set_to_it = vertex_set_to_merge.begin();
+    assert(vertex_set_to_it
+        != vertex_set_to_merge.end());
     vertex_set_to_it++;
     for (;vertex_set_to_it != vertex_set_to_merge.end();
           vertex_set_to_it++) {
@@ -103,8 +105,8 @@ inline auto MergeVertex(GraphType& input_graph,
   const 
   std::vector<
   std::vector<
-  typename VertexHandle<GraphType>::type>>& set_of_vertex_set_to_merge 
-                                                = {vertex_set_to_merge};
+  typename VertexHandle<GraphType>::type>> set_of_vertex_set_to_merge 
+                                               = {vertex_set_to_merge};
 
   return MergeVertex(input_graph, set_of_vertex_set_to_merge);
 }

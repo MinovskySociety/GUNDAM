@@ -22,11 +22,15 @@ void TestVertexDegreeFilter() {
   std::vector<VertexHandleType> qualified_vertex_set;
 
   ConstructGraph0(g);
-  qualified_vertex_set = GUNDAM::VertexDegreeFilter<false>(g, 2);
+  qualified_vertex_set = GUNDAM::VertexDegreeFilter<
+                         GUNDAM::FilterType::kHigherOrEqualTo,
+                         GUNDAM::EdgeDirection::kOut>(g, 2);
   ASSERT_EQ(qualified_vertex_set.size(), 0);
 
   qualified_vertex_set.clear();
-  qualified_vertex_set = GUNDAM::VertexDegreeFilter< true>(g, 2);
+  qualified_vertex_set = GUNDAM::VertexDegreeFilter<
+                         GUNDAM::FilterType::kHigherOrEqualTo,
+                         GUNDAM::EdgeDirection::kInOut>(g, 2);
   ASSERT_EQ(qualified_vertex_set.size(), 3);
 
   ConstructGraph1(g);

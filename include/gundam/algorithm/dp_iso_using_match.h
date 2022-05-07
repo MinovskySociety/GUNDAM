@@ -16,17 +16,6 @@
 #include <vector>
 #include <limits>
 
-namespace std {
-
-namespace execution {
-
-class sequenced_policy;
-class  parallel_policy;
-
-};
-
-};
-
 #include "assert.h"
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/edge_label.h"
@@ -44,10 +33,11 @@ class  parallel_policy;
 
 #include "gundam/tool/max_id.h"
 
+#include "gundam/util/util.h"
+
 namespace GUNDAM {
 
 namespace _dp_iso_using_match {
-enum EdgeState { kIn, kOut };
 // if query.CountEdge()>=large_query_edge, using fail set
 // small query not using fail set
 constexpr size_t large_query_edge = 4;
@@ -204,14 +194,14 @@ inline bool DegreeFiltering(const  QueryVertexHandle  &query_vertex_handle,
 }
 
 template <enum MatchSemantics match_semantics,
-          enum EdgeState edge_state, 
+          enum EdgeDirection edge_direction, 
           typename  QueryGraph,
           typename TargetGraph>
 inline bool NeighborLabelFrequencyFilteringSingleDirection(
     const typename VertexHandle< QueryGraph>::type  &query_vertex_handle,
     const typename VertexHandle<TargetGraph>::type &target_vertex_handle) {
   std::set<typename EdgeLabel<QueryGraph>::type> used_edge_label;
-  for (auto edge_label_it = EdgeBegin<edge_state == EdgeState::kOut, QueryGraph>(
+  for (auto edge_label_it = EdgeBegin<edge_direction == EdgeDirection::kOut, QueryGraph>(
                                       query_vertex_handle);
            !edge_label_it.IsDone(); 
             edge_label_it++) {
@@ -223,12 +213,12 @@ inline bool NeighborLabelFrequencyFilteringSingleDirection(
       // in used_edge_label
       continue;
     }
-    auto  query_count = (edge_state == EdgeState::kIn
+    auto  query_count = (edge_direction == EdgeDirection::kIn
                             ? _dp_iso_using_match:: CountInVertex<QueryGraph>(
                                   query_vertex_handle, edge_label_it->label())
                             : _dp_iso_using_match::CountOutVertex<QueryGraph>(
                                   query_vertex_handle, edge_label_it->label()));
-    auto target_count = (edge_state == EdgeState::kIn
+    auto target_count = (edge_direction == EdgeDirection::kIn
                             ? _dp_iso_using_match:: CountInVertex<TargetGraph>(
                                  target_vertex_handle, edge_label_it->label())
                             : _dp_iso_using_match::CountOutVertex<TargetGraph>(
@@ -240,12 +230,12 @@ inline bool NeighborLabelFrequencyFilteringSingleDirection(
     if (query_count > target_count) {
       return false;
     }
-    query_count = (edge_state == EdgeState::kIn
+    query_count = (edge_direction == EdgeDirection::kIn
                        ? _dp_iso_using_match:: CountInEdge< QueryGraph>(
                              query_vertex_handle, edge_label_it->label())
                        : _dp_iso_using_match::CountOutEdge< QueryGraph>(
                              query_vertex_handle, edge_label_it->label()));
-    target_count = (edge_state == EdgeState::kIn
+    target_count = (edge_direction == EdgeDirection::kIn
                        ? _dp_iso_using_match:: CountInEdge<TargetGraph>(
                             target_vertex_handle, edge_label_it->label())
                        : _dp_iso_using_match::CountOutEdge<TargetGraph>(
@@ -268,13 +258,13 @@ template <enum MatchSemantics match_semantics,
 inline bool NeighborLabelFrequencyFiltering(
     const typename VertexHandle< QueryGraph>::type  &query_vertex_handle,
     const typename VertexHandle<TargetGraph>::type &target_vertex_handle) {
-  if (!NeighborLabelFrequencyFilteringSingleDirection<match_semantics,EdgeState:: kIn,
+  if (!NeighborLabelFrequencyFilteringSingleDirection<match_semantics,EdgeDirection:: kIn,
                                                       QueryGraph, TargetGraph>(
            query_vertex_handle, 
           target_vertex_handle)) {
     return false;
   }
-  if (!NeighborLabelFrequencyFilteringSingleDirection<match_semantics,EdgeState::kOut,
+  if (!NeighborLabelFrequencyFilteringSingleDirection<match_semantics,EdgeDirection::kOut,
                                                       QueryGraph, TargetGraph>(
            query_vertex_handle, 
           target_vertex_handle)) {
@@ -338,7 +328,7 @@ inline bool InitCandidateSetForQueryVertex(TargetGraph &target_graph,
 }
 
 template <enum MatchSemantics match_semantics, 
-          class policy = std::execution::sequenced_policy,
+          class policy = execution::sequenced_policy,
           typename  QueryGraph,
           typename TargetGraph,
           typename IteratorType>
@@ -353,9 +343,9 @@ inline bool InitCandidateSet(
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
   using CandidateContainer 
                = std::vector<typename VertexHandle<TargetGraph>::type>;
-  static_assert(std::is_same_v<policy, std::execution::sequenced_policy>
-             || std::is_same_v<policy, std::execution:: parallel_policy>, "illegal policy");
-  if constexpr (std::is_same_v<policy, std::execution::sequenced_policy>) {
+  static_assert(std::is_same_v<policy, execution::sequenced_policy>
+             || std::is_same_v<policy, execution:: parallel_policy>, "illegal policy");
+  if constexpr (std::is_same_v<policy, execution::sequenced_policy>) {
     for (auto it = begin_it; it != end_it; it++) {
       QueryVertexHandle  query_vertex_handle = *it;
       CandidateContainer query_vertex_candidate;
@@ -382,7 +372,7 @@ inline bool InitCandidateSet(
     }
   }
   else {
-    static_assert(std::is_same_v<policy, std::execution::parallel_policy>, "illegal policy");
+    static_assert(std::is_same_v<policy, execution::parallel_policy>, "illegal policy");
 
     omp_lock_t init_candidate_lock;
     omp_init_lock(&init_candidate_lock);
@@ -436,7 +426,7 @@ inline bool InitCandidateSet(
 }
 
 template <enum MatchSemantics match_semantics, 
-          class policy = std::execution::sequenced_policy,
+          class policy = execution::sequenced_policy,
           typename  QueryGraph,
           typename TargetGraph>
 inline bool InitCandidateSet(
@@ -445,7 +435,7 @@ inline bool InitCandidateSet(
     std::map<typename VertexHandle<QueryGraph>::type,
              std::vector<typename VertexHandle<TargetGraph>::type>> &candidate_set) {
 
-  static_assert(std::is_same_v<policy, std::execution::sequenced_policy>, "support only sequenced_policy here");
+  static_assert(std::is_same_v<policy, execution::sequenced_policy>, "support only sequenced_policy here");
 
   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
@@ -481,7 +471,7 @@ inline bool InitCandidateSet(
 }
 
 template <bool use_dag_order,
-          enum EdgeState edge_state, 
+          enum EdgeDirection edge_direction, 
           typename  QueryGraph, 
           typename TargetGraph>
 inline void GetAdjNotMatchedVertexOneDirection(
@@ -493,12 +483,12 @@ inline void GetAdjNotMatchedVertexOneDirection(
     const std:: map  <typename VertexHandle<QueryGraph>::type,
           std::vector<typename VertexHandle<QueryGraph>::type>>& parent) {
   using QueryVertexHandle = typename VertexHandle<QueryGraph>::type;
-  for (auto edge_iter = (edge_state == EdgeState::kIn ? 
+  for (auto edge_iter = (edge_direction == EdgeDirection::kIn ? 
                           query_vertex_handle-> InEdgeBegin()
                         : query_vertex_handle->OutEdgeBegin());
            !edge_iter.IsDone(); 
             edge_iter++) {
-    QueryVertexHandle query_opp_vertex_handle = edge_state == EdgeState::kIn
+    QueryVertexHandle query_opp_vertex_handle = edge_direction == EdgeDirection::kIn
                                                     ? edge_iter->src_handle()
                                                     : edge_iter->dst_handle();
     if (!match_state.HasMap(query_opp_vertex_handle)
@@ -545,9 +535,9 @@ inline void GetAdjNotMatchedVertex(
           std:: set  <typename VertexHandle<QueryGraph>::type> &next_query_set,
     const std:: map  <typename VertexHandle<QueryGraph>::type,
           std::vector<typename VertexHandle<QueryGraph>::type>>& parent) {
-  GetAdjNotMatchedVertexOneDirection<use_dag_order, EdgeState::kOut>(
+  GetAdjNotMatchedVertexOneDirection<use_dag_order, EdgeDirection::kOut>(
       query_vertex_handle, candidate_set, match_state, next_query_set, parent);
-  GetAdjNotMatchedVertexOneDirection<use_dag_order, EdgeState::kIn>(
+  GetAdjNotMatchedVertexOneDirection<use_dag_order, EdgeDirection::kIn>(
       query_vertex_handle, candidate_set, match_state, next_query_set, parent);
 }
 
@@ -618,7 +608,7 @@ inline typename VertexHandle<QueryGraph>::type NextMatchVertex(
 // enumerate all its adjacent edges to check whether this
 // vertexes pair can be added legally
 template <enum MatchSemantics match_semantics, 
-          enum EdgeState edge_state, 
+          enum EdgeDirection edge_direction, 
           typename  QueryGraph, 
           typename TargetGraph>
 inline bool JoinableCheck(
@@ -637,14 +627,14 @@ inline bool JoinableCheck(
   }
 
   std::set<TargetEdgeHandle> used_edge;
-  for (auto query_edge_iter = ((edge_state == EdgeState::kIn)
+  for (auto query_edge_iter = ((edge_direction == EdgeDirection::kIn)
                                    ? query_vertex_handle-> InEdgeBegin()
                                    : query_vertex_handle->OutEdgeBegin());
            !query_edge_iter.IsDone(); 
             query_edge_iter++) {
     QueryEdgeHandle query_edge_handle(query_edge_iter);
     QueryVertexHandle query_opp_vertex_handle =
-        (edge_state == EdgeState::kIn) ? query_edge_handle->src_handle()
+        (edge_direction == EdgeDirection::kIn) ? query_edge_handle->src_handle()
                                        : query_edge_handle->dst_handle();
 
     TargetVertexHandle query_opp_match_vertex_handle 
@@ -659,7 +649,7 @@ inline bool JoinableCheck(
     if constexpr (GraphParameter<TargetGraph>::vertex_level_edge_label_index) {
       // vertex has vertex_handle->In/Out EdgeBegin(edge_label, vertex_handle)
       // method
-      for (auto target_edge_iter = ((edge_state == EdgeState::kIn)
+      for (auto target_edge_iter = ((edge_direction == EdgeDirection::kIn)
                                         ? target_vertex_handle->InEdgeBegin(
                                               query_edge_handle->label(),
                                               query_opp_match_vertex_handle)
@@ -687,7 +677,7 @@ inline bool JoinableCheck(
     } else {
       // vertex does not have vertex_handle->In/Out EdgeBegin(edge_label,
       // vertex_handle) method
-      for (auto target_edge_iter = (edge_state == EdgeState::kIn)
+      for (auto target_edge_iter = (edge_direction == EdgeDirection::kIn)
                                        ? target_vertex_handle-> InEdgeBegin()
                                        : target_vertex_handle->OutEdgeBegin();
                !target_edge_iter.IsDone(); 
@@ -697,7 +687,7 @@ inline bool JoinableCheck(
           continue;
         }
 
-        auto opp_vertex_handle = (edge_state == EdgeState::kIn)
+        auto opp_vertex_handle = (edge_direction == EdgeDirection::kIn)
                          ? target_edge_iter->src_handle()
                          : target_edge_iter->dst_handle();
 
@@ -741,12 +731,12 @@ inline bool IsJoinable(
     return false;
   }
   if (!JoinableCheck<match_semantics,
-                     EdgeState::kIn>(
+                     EdgeDirection::kIn>(
           query_vertex_handle, target_vertex_handle, match_state)) {
     return false;
   }
   if (!JoinableCheck<match_semantics,
-                     EdgeState::kOut>(
+                     EdgeDirection::kOut>(
           query_vertex_handle, target_vertex_handle, match_state)) {
     return false;
   }
@@ -772,7 +762,7 @@ inline void UpdateState(
 // the query-target vertex pair has been added into the match_state
 // use the just matched target_vertex_handle to prune the candidate_set 
 // of the un-matched vertexes adjacent to the query_vertex_handle
-template <enum EdgeState edge_state, 
+template <enum EdgeDirection edge_direction, 
           typename  QueryGraph,
           typename TargetGraph>
 inline void UpdateCandidateSetOneDirection(
@@ -790,12 +780,12 @@ inline void UpdateCandidateSetOneDirection(
 
   std::set<typename EdgeLabel<QueryGraph>::type> used_edge_label;
 
-  for (auto edge_label_it = ((edge_state == EdgeState::kIn)
+  for (auto edge_label_it = ((edge_direction == EdgeDirection::kIn)
                             ? query_vertex_handle-> InEdgeBegin()
                             : query_vertex_handle->OutEdgeBegin());
            !edge_label_it.IsDone(); 
             edge_label_it++) {
-    QueryVertexHandle temp_vertex_handle = (edge_state == EdgeState::kIn)
+    QueryVertexHandle temp_vertex_handle = (edge_direction == EdgeDirection::kIn)
                                           ? edge_label_it->src_handle()
                                           : edge_label_it->dst_handle();
     if (match_state.HasMap(temp_vertex_handle)) {
@@ -824,7 +814,7 @@ inline void UpdateCandidateSetOneDirection(
     // points from/to a vertex that have not been added in the match_state
     // use this edge label for filting
 
-    size_t adj_count = (edge_state == EdgeState::kIn)
+    size_t adj_count = (edge_direction == EdgeDirection::kIn)
                            ? _dp_iso_using_match:: CountInVertex<TargetGraph>(
                                  target_vertex_handle, edge_label_it->label())
                            : _dp_iso_using_match::CountOutVertex<TargetGraph>(
@@ -842,13 +832,13 @@ inline void UpdateCandidateSetOneDirection(
 
     if constexpr (GraphParameter<TargetGraph>::vertex_level_edge_label_index) {
       // vertex has vertex_handle->In/Out VertexBegin(edge_label) method
-      for (auto edge_it = ((edge_state == EdgeState::kIn)
+      for (auto edge_it = ((edge_direction == EdgeDirection::kIn)
                     ? target_vertex_handle-> InEdgeBegin(edge_label_it->label())
                     : target_vertex_handle->OutEdgeBegin(edge_label_it->label()));
                !edge_it.IsDone(); 
                 edge_it++) {
         TargetVertexHandle temp_target_handle 
-           = (edge_state == EdgeState::kIn)? edge_it->src_handle()
+           = (edge_direction == EdgeDirection::kIn)? edge_it->src_handle()
                                            : edge_it->dst_handle();
         auto temp_target_handle_it 
            = temp_adj_vertex.find(temp_target_handle->label());
@@ -863,7 +853,7 @@ inline void UpdateCandidateSetOneDirection(
       }
     } else {
       // vertex does not have vertex_handle->In/Out VertexBegin(edge_label) method
-      for (auto edge_it = ((edge_state == EdgeState::kIn)
+      for (auto edge_it = ((edge_direction == EdgeDirection::kIn)
                                ? target_vertex_handle-> InEdgeBegin()
                                : target_vertex_handle->OutEdgeBegin());
                !edge_it.IsDone(); edge_it++) {
@@ -871,7 +861,7 @@ inline void UpdateCandidateSetOneDirection(
           continue;
         }
         TargetVertexHandle temp_target_handle =
-            (edge_state == EdgeState::kIn) ? edge_it->src_handle()   //  in edge
+            (edge_direction == EdgeDirection::kIn) ? edge_it->src_handle()   //  in edge
                                            : edge_it->dst_handle();  // out edge
         // there might be two edges with same label point to the same vertex
         // but would be uniqued later
@@ -899,7 +889,7 @@ inline void UpdateCandidateSetOneDirection(
     std::set<QueryVertexHandle> used_vertex;
     // to find all unmacted vertexes adjacent to the query_vertex_handle
     // update their candidate set
-    for (auto edge_it = ((edge_state == EdgeState::kIn)
+    for (auto edge_it = ((edge_direction == EdgeDirection::kIn)
                         ? query_vertex_handle-> InEdgeBegin()
                         : query_vertex_handle->OutEdgeBegin());
              !edge_it.IsDone(); 
@@ -908,7 +898,7 @@ inline void UpdateCandidateSetOneDirection(
       if (edge_it->label() != edge_label_it->label()) {
         continue;
       }
-      QueryVertexHandle temp_vertex_handle = (edge_state == EdgeState::kIn)
+      QueryVertexHandle temp_vertex_handle = (edge_direction == EdgeDirection::kIn)
                                             ? edge_it->src_handle()
                                             : edge_it->dst_handle();
       if (match_state.HasMap(temp_vertex_handle)) {
@@ -961,10 +951,10 @@ inline void UpdateCandidateSet(
         &candidate_set,
     const Match<QueryGraph, TargetGraph> &match_state) {
 
-  UpdateCandidateSetOneDirection<EdgeState:: kIn>(
+  UpdateCandidateSetOneDirection<EdgeDirection:: kIn>(
        query_vertex_handle, 
       target_vertex_handle, candidate_set, match_state);
-  UpdateCandidateSetOneDirection<EdgeState::kOut>(
+  UpdateCandidateSetOneDirection<EdgeDirection::kOut>(
        query_vertex_handle, 
       target_vertex_handle, candidate_set, match_state);
   return;
@@ -1379,7 +1369,7 @@ inline void RestoreState(
   return;
 }
 
-template <enum EdgeState edge_state,
+template <enum EdgeDirection edge_direction,
           typename  QueryGraphType, 
           typename TargetGraphType>
 void UpdateParentOneDirection(
@@ -1389,11 +1379,11 @@ void UpdateParentOneDirection(
     std::map<typename VertexHandle<QueryGraphType>::type, 
  std::vector<typename VertexHandle<QueryGraphType>::type>> &parent) {
   using QueryVertexHandle = typename VertexHandle<QueryGraphType>::type;
-  for (auto edge_it = (edge_state == EdgeState::kIn
+  for (auto edge_it = (edge_direction == EdgeDirection::kIn
                       ? update_query_vertex_handle-> InEdgeBegin()
                       : update_query_vertex_handle->OutEdgeBegin());
            !edge_it.IsDone(); edge_it++) {
-    QueryVertexHandle update_query_adj_handle = edge_state == EdgeState::kIn
+    QueryVertexHandle update_query_adj_handle = edge_direction == EdgeDirection::kIn
                                                     ? edge_it->src_handle()
                                                     : edge_it->dst_handle();
     if (!match_state.HasMap(update_query_adj_handle)) {
@@ -1432,9 +1422,9 @@ void UpdateParent(
          parent_ret ] = parent.emplace(update_query_vertex_handle,
     std::vector<QueryVertexHandleType>{update_query_vertex_handle});
   assert(parent_ret);
-  UpdateParentOneDirection<EdgeState::kIn >(match_state,
+  UpdateParentOneDirection<EdgeDirection::kIn >(match_state,
                                             update_query_vertex_handle, parent);
-  UpdateParentOneDirection<EdgeState::kOut>(match_state,
+  UpdateParentOneDirection<EdgeDirection::kOut>(match_state,
                                             update_query_vertex_handle, parent);
   auto &l = parent.find(update_query_vertex_handle)->second;
   std::sort(l.begin(), l.end());
@@ -2230,7 +2220,7 @@ inline bool CheckIsLegal(
 }  // namespace _DAGDP
 
 
-template <class policy = std::execution::sequenced_policy,
+template <class policy = execution::sequenced_policy,
           typename  QueryGraph,
           typename TargetGraph,
           typename TargetVertexContainerType>
@@ -2243,8 +2233,8 @@ inline bool DAGDPForSingleVertex(
                     TargetVertexContainerType> &candidate_set,
                     TargetVertexContainerType  &candidate_set_of_vertex_handle) {
 
-  static_assert(std::is_same_v<policy, std::execution::sequenced_policy>
-             || std::is_same_v<policy, std::execution:: parallel_policy>, "illegal policy");
+  static_assert(std::is_same_v<policy, execution::sequenced_policy>
+             || std::is_same_v<policy, execution:: parallel_policy>, "illegal policy");
 
   using  QueryVertexHandle = typename VertexHandle< QueryGraph>::type;
   using TargetVertexHandle = typename VertexHandle<TargetGraph>::type;
@@ -2307,7 +2297,7 @@ inline bool DAGDPForSingleVertex(
   return true;
 }
 
-template <class policy = std::execution::sequenced_policy,
+template <class policy = execution::sequenced_policy,
           typename  QueryGraph,
           typename TargetGraph,
           typename IteratorType,
@@ -2336,7 +2326,7 @@ inline bool DAGDP(
   return true;
 }
 
-template <class policy = std::execution::sequenced_policy,
+template <class policy = execution::sequenced_policy,
           typename  QueryGraph,
           typename TargetGraph,
           typename IteratorType,
@@ -2392,7 +2382,7 @@ inline bool ParDAGDP(
       }
       const auto& handle                = set_to_process[set_to_process_idx].first;
       auto& candidate_for_vertex_handle = set_to_process[set_to_process_idx].second;
-      if (!DAGDPForSingleVertex<std::execution::sequenced_policy>(query_graph, 
+      if (!DAGDPForSingleVertex<execution::sequenced_policy>(query_graph, 
                                       target_graph, handle,
                                         used_vertex,
                                     candidate_set,
@@ -2431,7 +2421,7 @@ inline bool ParDAGDP(
                 used_vertex);
 }
 
-template <class policy = std::execution::sequenced_policy,
+template <class policy = execution::sequenced_policy,
           typename  QueryGraph,
           typename TargetGraph,
           typename TargetVertexContainerType>
@@ -2448,7 +2438,7 @@ inline bool ParDAGDP(
                               candidate_set);
 }
 
-template <class policy = std::execution::sequenced_policy,
+template <class policy = execution::sequenced_policy,
           typename  QueryGraph,
           typename TargetGraph,
           typename TargetVertexContainerType>
@@ -2565,13 +2555,13 @@ bool CheckMatchIsLegal(
            !map_it.IsDone();
             map_it++) {
     if (!_dp_iso_using_match::JoinableCheck<match_semantics,
-                                            EdgeState::kIn>(
+                                            EdgeDirection::kIn>(
             map_it->src_handle(), 
             map_it->dst_handle(), match_state)) {
       return false;
     }
     if (!_dp_iso_using_match::JoinableCheck<match_semantics,
-                                            EdgeState::kOut>(
+                                            EdgeDirection::kOut>(
             map_it->src_handle(), 
             map_it->dst_handle(), match_state)) {
       return false;

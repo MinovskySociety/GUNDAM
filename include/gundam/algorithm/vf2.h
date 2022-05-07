@@ -23,14 +23,13 @@
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/vertex_label.h"
 #include "gundam/type_getter/vertex_id.h"
-
 #include "gundam/type_getter/graph_parameter_getter.h"
+
+#include "gundam/util/util.h"
 
 namespace GUNDAM {
 
 namespace _vf2 {
-
-enum EdgeState { kIn, kOut };
 
 template <typename Ptr1, typename Ptr2>
 class LabelEqual {
@@ -76,14 +75,14 @@ inline auto EdgeBegin(const typename VertexHandle<GraphType>::type& vertex_handl
   }
 }
 
-// template <enum EdgeState edge_state, class GraphType, class VertexPtr, class
+// template <enum EdgeDirection edge_direction, class GraphType, class VertexPtr, class
 // Fn,
 //          class EdgeHandle1>
 // inline bool ForEachEdgeIf(
 //    const VertexPtr &vertex_handle, Fn f,
 //    LabelEqual<EdgeHandle1, typename GraphType::EdgeConstPtr> /* edge_comp */,
 //    const EdgeHandle1 &edge_a_handle) {
-//  for (auto edge_iter = (edge_state == EdgeState::kIn)
+//  for (auto edge_iter = (edge_direction == EdgeDirection::kIn)
 //                            ?
 //                            vertex_handle->InEdgeBegin(edge_a_handle->label())
 //                            :
@@ -95,13 +94,13 @@ inline auto EdgeBegin(const typename VertexHandle<GraphType>::type& vertex_handl
 //  return true;
 //}
 //
-// template <enum EdgeState edge_state, class GraphType, class VertexPtr, class
+// template <enum EdgeDirection edge_direction, class GraphType, class VertexPtr, class
 // Fn,
 //          class EdgeCompare, class EdgeHandle1>
 // inline bool ForEachEdgeIf(const VertexPtr &vertex_handle, Fn f,
 //                          EdgeCompare edge_comp, const EdgeHandle1
 //                          &edge_a_handle) {
-//  for (auto edge_iter = (edge_state == EdgeState::kIn)
+//  for (auto edge_iter = (edge_direction == EdgeDirection::kIn)
 //                            ? vertex_handle->InEdgeBegin()
 //                            : vertex_handle->OutEdgeBegin();
 //       !edge_iter.IsDone(); edge_iter++) {
@@ -232,7 +231,7 @@ inline typename VertexHandle<QueryGraph>::type DetermineMatchOrder(
   // return res;
 }
 
-// template <enum EdgeState edge_state, typename QueryVertexHandle,
+// template <enum EdgeDirection edge_direction, typename QueryVertexHandle,
 //          typename TargetVertexHandle>
 // inline bool JoinableCheck(
 //    QueryVertexHandle query_vertex_handle, TargetVertexHandle
@@ -245,13 +244,13 @@ inline typename VertexHandle<QueryGraph>::type DetermineMatchOrder(
 //  using TargetEdgeHandle = typename EdgeHandle<TargetGraph>::type;
 //
 //  for (auto query_edge_iter =
-//           ((edge_state == EdgeState::kIn) ?
+//           ((edge_direction == EdgeDirection::kIn) ?
 //           query_vertex_handle->InEdgeBegin()
 //                                           :
 //                                           query_vertex_handle->OutEdgeBegin());
 //       !query_edge_iter.IsDone(); query_edge_iter++) {
 //    QueryVertexHandle query_opp_vertex_handle =
-//        (edge_state == EdgeState::kIn) ? query_edge_iter->src_handle()
+//        (edge_direction == EdgeDirection::kIn) ? query_edge_iter->src_handle()
 //                                       : query_edge_iter->dst_handle();
 //
 //    // if (match_state.count(query_opp_vertex_handle) > 0) continue;
@@ -263,11 +262,11 @@ inline typename VertexHandle<QueryGraph>::type DetermineMatchOrder(
 //    TargetVertexHandle query_opp_match_vertex_handle = match_iter->second;
 //
 //    bool find_target_flag = false;
-//    ForEachEdgeIf<edge_state>(
+//    ForEachEdgeIf<edge_direction>(
 //        target_vertex_handle,
 //        [&query_opp_match_vertex_handle,
 //         &find_target_flag](const TargetEdgeHandle &edge_handle) -> bool {
-//          auto target_opp_vertex_handle = (edge_state == EdgeState::kIn)
+//          auto target_opp_vertex_handle = (edge_direction == EdgeDirection::kIn)
 //                                           ? edge_handle->src_handle()
 //                                           : edge_handle->dst_handle();
 //          if (target_opp_vertex_handle->id() ==
@@ -281,13 +280,13 @@ inline typename VertexHandle<QueryGraph>::type DetermineMatchOrder(
 //        LabelEqual<QueryEdgeHandle, TargetEdgeHandle>(), query_edge_iter);
 //
 //    //for (auto target_edge_iter =
-//    //         ((edge_state == EdgeState::kIn)
+//    //         ((edge_direction == EdgeDirection::kIn)
 //    //              ?
 //    target_vertex_handle->InEdgeBegin(query_edge_iter->label())
 //    //              :
 //    target_vertex_handle->OutEdgeBegin(query_edge_iter->label()));
 //    //     !target_edge_iter.IsDone(); target_edge_iter++) {
-//    //  auto target_opp_vertex_handle = (edge_state == EdgeState::kIn)
+//    //  auto target_opp_vertex_handle = (edge_direction == EdgeDirection::kIn)
 //    //                                   ? target_edge_iter->src_handle()
 //    //                                   : target_edge_iter->dst_handle();
 //
@@ -302,7 +301,7 @@ inline typename VertexHandle<QueryGraph>::type DetermineMatchOrder(
 //  return true;
 //}
 
-template <enum EdgeState edge_state, class QueryGraph, class TargetGraph,
+template <enum EdgeDirection edge_direction, class QueryGraph, class TargetGraph,
           class MatchStateMap, class EdgeCompare>
 inline bool JoinableCheck(
     typename VertexHandle<QueryGraph>::type &query_vertex_handle,
@@ -316,12 +315,12 @@ inline bool JoinableCheck(
 
   std::set<typename EdgeID<TargetGraph>::type> used_edge;
 
-  for (auto query_edge_iter = EdgeBegin<edge_state == EdgeState::kOut, QueryGraph>(
+  for (auto query_edge_iter = EdgeBegin<edge_direction == EdgeDirection::kOut, QueryGraph>(
                                         query_vertex_handle);
            !query_edge_iter.IsDone(); ++query_edge_iter) {
     QueryVertexHandle query_opp_vertex_handle;
 
-    if constexpr (edge_state == EdgeState::kIn) {
+    if constexpr (edge_direction == EdgeDirection::kIn) {
       query_opp_vertex_handle = query_edge_iter->src_handle();
     } else {
       query_opp_vertex_handle = query_edge_iter->dst_handle();
@@ -338,14 +337,14 @@ inline bool JoinableCheck(
                   std::is_same_v<EdgeCompare, LabelEqual<QueryEdgeHandle,
                                                          TargetEdgeHandle>>) {
       for (auto target_edge_iter =
-               (edge_state == EdgeState::kIn)
+               (edge_direction == EdgeDirection::kIn)
                    ? target_vertex_handle->InEdgeBegin(query_edge_iter->label())
                    : target_vertex_handle->OutEdgeBegin(
                          query_edge_iter->label());
            !target_edge_iter.IsDone(); ++target_edge_iter) {
         if (used_edge.count(target_edge_iter->id()) > 0) continue;
         TargetVertexHandle target_opp_vertex_handle =
-            (edge_state == EdgeState::kIn) ? target_edge_iter->src_handle()
+            (edge_direction == EdgeDirection::kIn) ? target_edge_iter->src_handle()
                                            : target_edge_iter->dst_handle();
         if (target_opp_vertex_handle == query_opp_match_vertex_handle) {
           find_target_flag = true;
@@ -354,12 +353,12 @@ inline bool JoinableCheck(
         }
       }
     } else {
-      for (auto target_edge_iter = EdgeBegin<edge_state == EdgeState::kOut, TargetGraph>(
+      for (auto target_edge_iter = EdgeBegin<edge_direction == EdgeDirection::kOut, TargetGraph>(
                                              target_vertex_handle);
            !target_edge_iter.IsDone(); ++target_edge_iter) {
         if (used_edge.count(target_edge_iter->id()) > 0) continue;
         TargetVertexHandle target_opp_vertex_handle =
-            (edge_state == EdgeState::kIn) ? target_edge_iter->src_handle()
+            (edge_direction == EdgeDirection::kIn) ? target_edge_iter->src_handle()
                                            : target_edge_iter->dst_handle();
         if (target_opp_vertex_handle != query_opp_match_vertex_handle) continue;
         if (edge_comp(query_edge_iter, target_edge_iter)) {
@@ -379,7 +378,7 @@ inline bool JoinableCheck(
 // template <class Key1, class Key2, class Value>
 // using Map2 = typename std::map<Key1, std::map<Key2, Value>>;
 //
-// template <enum EdgeState edge_state, class QueryVertexHandle,
+// template <enum EdgeDirection edge_direction, class QueryVertexHandle,
 //          class TargetVertexHandle, class MatchStateMap, class EdgeCompare>
 // inline bool JoinableCheck2(const QueryVertexHandle &query_vertex_handle,
 //                          const TargetVertexHandle &target_vertex_handle,
@@ -395,13 +394,13 @@ inline bool JoinableCheck(
 //  Map2<QueryEdgeLabelType, QueryVertexHandle, size_t> query_edge_count;
 //
 //  for (auto query_edge_iter =
-//           ((edge_state == EdgeState::kIn) ?
+//           ((edge_direction == EdgeDirection::kIn) ?
 //           query_vertex_handle->InEdgeBegin()
 //                                           :
 //                                           query_vertex_handle->OutEdgeBegin());
 //       !query_edge_iter.IsDone(); query_edge_iter++) {
 //    QueryEdgeHandle query_edge_handle = query_edge_iter;
-//    QueryVertexHandle query_opp_vertex_handle = (edge_state == EdgeState::kIn)
+//    QueryVertexHandle query_opp_vertex_handle = (edge_direction == EdgeDirection::kIn)
 //                                              ?
 //                                              query_edge_handle->src_handle()
 //                                              :
@@ -414,12 +413,12 @@ inline bool JoinableCheck(
 //    TargetVertexHandle query_opp_match_vertex_handle = match_iter->second;
 //
 //    bool find_target_flag = false;
-//    ForEachEdgeIf<edge_state>(
+//    ForEachEdgeIf<edge_direction>(
 //        target_vertex_handle,
 //        [&query_opp_match_vertex_handle,
 //         &find_target_flag](const TargetEdgeHandle &target_edge_handle) ->
 //         bool {
-//          auto target_opp_vertex_handle = (edge_state == EdgeState::kIn)
+//          auto target_opp_vertex_handle = (edge_direction == EdgeDirection::kIn)
 //                                           ? target_edge_handle->src_handle()
 //                                           : target_edge_handle->dst_handle();
 //          if (target_opp_vertex_handle->id() ==
@@ -432,25 +431,25 @@ inline bool JoinableCheck(
 //        },
 //        edge_comp, query_edge_handle);
 //
-//    // for (auto target_edge_iter = ((edge_state == EdgeState::kIn)
+//    // for (auto target_edge_iter = ((edge_direction == EdgeDirection::kIn)
 //    //                                  ? target_vertex_handle->InEdgeBegin()
 //    //                                  :
 //    target_vertex_handle->OutEdgeBegin());
 //    //     !target_edge_iter.IsDone(); target_edge_iter++) {
-//    //  auto target_opp_vertex_handle = (edge_state == EdgeState::kIn)
+//    //  auto target_opp_vertex_handle = (edge_direction == EdgeDirection::kIn)
 //    //                                   ? target_edge_iter->src_handle()
 //    //                                   : target_edge_iter->dst_handle();
 //    //  if (target_opp_vertex_handle->id() ==
 //    query_opp_match_vertex_handle->id()) {
 //    //    // auto query_edge_handle =
-//    //    //     (edge_state == EdgeState::kOut)
+//    //    //     (edge_direction == EdgeDirection::kOut)
 //    //    //         ?
 //    query_vertex_handle->FindOutEdge(query_edge_iter->id())
 //    //    //         :
 //    //    // query_opp_vertex_handle->FindOutEdge(query_edge_iter->id());
 //
 //    //    // auto target_edge_handle =
-//    //    //     (edge_state == EdgeState::kOut)
+//    //    //     (edge_direction == EdgeDirection::kOut)
 //    //    //         ?
 //    //    target_vertex_handle->FindOutEdge(target_edge_iter->id())
 //    //    //         : query_opp_match_vertex_handle->FindOutEdge(
@@ -478,12 +477,12 @@ inline bool JoinableCheck(
 //      target_matched.count(target_vertex_handle) > 0) {
 //    return false;
 //  }
-//  if (!JoinableCheck<EdgeState::kIn>(query_vertex_handle,
+//  if (!JoinableCheck<EdgeDirection::kIn>(query_vertex_handle,
 //  target_vertex_handle,
 //                                     match_state)) {
 //    return false;
 //  }
-//  if (!JoinableCheck<EdgeState::kOut>(query_vertex_handle,
+//  if (!JoinableCheck<EdgeDirection::kOut>(query_vertex_handle,
 //  target_vertex_handle,
 //                                      match_state)) {
 //    return false;
@@ -504,11 +503,11 @@ inline bool IsJoinable(QueryVertexHandle query_vertex_handle,
       return false;
     }
   }
-  if (!JoinableCheck<EdgeState::kIn, QueryGraph, TargetGraph>(
+  if (!JoinableCheck<EdgeDirection::kIn, QueryGraph, TargetGraph>(
           query_vertex_handle, target_vertex_handle, match_state, edge_comp)) {
     return false;
   }
-  if (!JoinableCheck<EdgeState::kOut, QueryGraph, TargetGraph>(
+  if (!JoinableCheck<EdgeDirection::kOut, QueryGraph, TargetGraph>(
           query_vertex_handle, target_vertex_handle, match_state, edge_comp)) {
     return false;
   }
