@@ -31,18 +31,30 @@ inline void BisimulationGeneralCase(GraphType& graph,
   assert(IsAcyclic(MergeVertex(graph, strong_connected_component_vertex_set)));
 
   /* ################################################ *
-   * ##  calc leaf_handle_set_in_g_scc             ## *
+   * ##  calc leaf_idx_set_in_g_scc             ## *
    * ##     for a vertex, if its out edge are all  ## *
    * ##     in the same SCC, then it is an leaf    ## *
    * ##     vertex in the g_scc                    ## *
    * ################################################ */
-  std::vector<VertexHandleType> leaf_handle_set_in_g_scc;
-  for (const auto& strong_connected_component_vertex
-                 : strong_connected_component_vertex_set) {
+  std::unordered_map<VertexHandleType,
+                     size_t> vertex_handle_scc_idx_map;
+  std::vector<size_t> leaf_idx_set_in_g_scc;
+  leaf_idx_set_in_g_scc.reserve(strong_connected_component_vertex_set.size());
+  for (size_t strong_connected_component_vertex_idx = 0;
+              strong_connected_component_vertex_idx
+            < strong_connected_component_vertex_set.size();
+              strong_connected_component_vertex_idx++) {
+    const auto& strong_connected_component_vertex 
+              = strong_connected_component_vertex_set[
+                strong_connected_component_vertex_idx];
     assert(std::is_sorted(strong_connected_component_vertex.begin(),
                           strong_connected_component_vertex.end()));
     bool is_leaf = true;
     for (const auto& vertex_handle : strong_connected_component_vertex) {
+      auto [ map_it,
+             map_ret ] = vertex_handle_scc_idx_map.emplace(vertex_handle,
+                                strong_connected_component_vertex_idx);
+      assert(map_ret);
       for (auto out_edge_it = vertex_handle->OutEdgeBegin();
                !out_edge_it.IsDone();
                 out_edge_it++) {
@@ -56,15 +68,53 @@ inline void BisimulationGeneralCase(GraphType& graph,
         is_leaf = false;
         break;
       }
-      if (!is_leaf) {
-        // is not leaf, does not add to leaf_handle_set_in_g_scc
-        continue;
+      if (is_leaf) {
+        // is a leaf
+        break;
       }
-      leaf_handle_set_in_g_scc.emplace_back(vertex_handle);
     }
+    if (!is_leaf) {
+      continue;
+    }
+    leaf_idx_set_in_g_scc.emplace_back(strong_connected_component_vertex_idx);
   }
-  std::sort(leaf_handle_set_in_g_scc.begin(),
-            leaf_handle_set_in_g_scc.end());
+  assert(vertex_handle_scc_idx_map.size() == graph.CountVertex());
+
+  /* ################################ *
+   * ##  calc out_degree_in_g_scc  ## *
+   * ################################ */
+  std::vector<size_t> out_degree_in_g_scc(strong_connected_component_vertex_set.size(), 0);
+  for (size_t strong_connected_component_vertex_idx = 0;
+              strong_connected_component_vertex_idx
+            < strong_connected_component_vertex_set.size();
+              strong_connected_component_vertex_idx++) {
+    const auto&  strong_connected_component_vertex 
+               = strong_connected_component_vertex_set[
+                 strong_connected_component_vertex_idx];
+    std::vector<size_t> connected_scc_idx;
+    for (const auto& vertex_handle : strong_connected_component_vertex) {
+      for (auto out_edge_it = vertex_handle->OutEdgeBegin();
+               !out_edge_it.IsDone();
+                out_edge_it++) {
+        assert(vertex_handle_scc_idx_map.find(out_edge_it->dst_handle())
+            != vertex_handle_scc_idx_map.end());
+        const auto kDstSccIdx = vertex_handle_scc_idx_map[out_edge_it->dst_handle()];
+        if (kDstSccIdx == strong_connected_component_vertex_idx) {
+          // to this scc
+          continue;
+        }
+        connected_scc_idx.emplace_back(kDstSccIdx);
+      }
+      std::sort(connected_scc_idx.begin(),
+                connected_scc_idx.end());
+      connected_scc_idx.erase(std::unique(connected_scc_idx.begin(), 
+                                          connected_scc_idx.end()), 
+                                          connected_scc_idx.end());
+    }
+    assert(out_degree_in_g_scc[strong_connected_component_vertex_idx] == 0);
+    out_degree_in_g_scc[strong_connected_component_vertex_idx] 
+                             = connected_scc_idx.size();
+  }
 
   /* ################################# *
    * ##  calc leaf_handle_set_in_g  ## *
@@ -81,6 +131,9 @@ inline void BisimulationGeneralCase(GraphType& graph,
                              RankType> rank;
 
   // for the vertex n is a leaf in G
+  /* ###################################### *
+   * ##  rank (n)=0 if n is a leaf in G  ## *
+   * ###################################### */
   for (const auto& leaf_handle_in_g
                  : leaf_handle_set_in_g) {
     // is a leaf in graph
@@ -89,26 +142,29 @@ inline void BisimulationGeneralCase(GraphType& graph,
     rank.emplace(leaf_handle_in_g, 0);
   }
 
-  std::vector<VertexHandleType> leaf_handle_set_in_g_scc_not_in_g;
-
-  std::set_difference(leaf_handle_set_in_g_scc.begin(),
-                      leaf_handle_set_in_g_scc.end(),
-                      leaf_handle_set_in_g.begin(),
-                      leaf_handle_set_in_g.end(),
-   std::back_inserter(leaf_handle_set_in_g_scc_not_in_g));
-
-  assert(std::is_sorted(leaf_handle_set_in_g_scc_not_in_g.begin(),
-                        leaf_handle_set_in_g_scc_not_in_g.end()));
-
-  // for the vertex n is a leaf in G_scc but not a leaf in G
-  for (const auto& leaf_handle_in_g_scc_not_in_g
-                 : leaf_handle_set_in_g_scc_not_in_g) {
-    //     is not a leaf in graph
-    // and is not a leaf in graph_scc
-    assert(rank.find(leaf_handle_in_g_scc_not_in_g) == rank.end());
-    rank.emplace(leaf_handle_in_g_scc_not_in_g, 
-                 std::numeric_limits<RankType>::min());
-    assert(std::numeric_limits<RankType>::min() < 0);
+  for (const auto& leaf_idx_in_g_scc
+                 : leaf_idx_set_in_g_scc) {
+    const auto& strong_connected_component_vertex 
+              = strong_connected_component_vertex_set[leaf_idx_in_g_scc];
+    for (const auto& vertex_handle : strong_connected_component_vertex) {
+      /* ########################################## *
+       * ##  rank (n) = −∞ if c(n) is a leaf in  ## *
+       * ##  Gscc and n is not a leaf in G       ## *
+       * ########################################## */
+      auto [ rank_it,
+             rank_ret ] = rank.emplace(vertex_handle,
+                                       std::numeric_limits<RankType>::min())
+      #ifndef NDEBUG 
+      if (!rank_ret) {
+        // added fail, should have already been considered
+        // in leaf_handle_set_in_g
+        assert(std::bineary_search(leaf_handle_set_in_g.begin(),
+                                   leaf_handle_set_in_g.end(),
+                                   vertex_handle));
+        continue;
+      }
+      #endif // NDEBUG 
+    }
   }
 
   /* ################################################ *
@@ -158,13 +214,75 @@ inline void BisimulationGeneralCase(GraphType& graph,
     }
   }
 
-  std::queue<VertexHandleType, 
-  std::deque<VertexHandleType>> queue_of_vertex(
-  std::deque<VertexHandleType>(leaf_handle_set_in_g.begin(),
-                               leaf_handle_set_in_g.end()));
+  std::queue<size_t, 
+  std::deque<size_t>> queue_of_scc_idx(
+  std::deque<size_t>(leaf_idx_set_in_g_scc.begin(),
+                     leaf_idx_set_in_g_scc.end()));
 
-  while (!queue_of_vertex.empty()) {
+  // {rank (m) : hc(n), c(m)i ∈ Escc, m 6∈ W F(G)}) otherwise
+  while (!queue_of_scc_idx.empty()) {
+    auto current_scc_idx = queue_of_scc_idx.front();
+    queue_of_scc_idx.pop();
+    const auto& strong_connected_component_vertex
+              = strong_connected_component_vertex_set[current_scc_idx];
+    for (const auto& vertex_handle : strong_connected_component_vertex) {
+      assert(     rank.find(vertex_handle) !=      rank.end());
+      assert(not_in_wf.find(vertex_handle) != not_in_wf.end());
+      const bool kNotInWf    = not_in_wf.find(vertex_handle->id());
+      const auto kRank       =      rank.find(vertex_handle->id())->second;
+      const bool kIsInfinite =    (kRank == std::numeric_limits<RankType>::min());
+      std::vector<size_t> connected_scc_idx;
+      for (auto in_edge_it = vertex_handle.InEdgeBegin();
+               !in_edge_it.IsDone();
+                in_edge_it++) {
+        auto src_handle = in_edge_it->src_handle();
+        assert(vertex_handle_scc_idx_map.find(src_handle)
+            == vertex_handle_scc_idx_map.end());
+        const auto kSrcSccIdx = vertex_handle_scc_idx_map[src_handle];
+        if (scc_idx == kSrcSccIdx) {
+          continue;
+        }
+        connected_scc_idx.emplace_back(kSrcSccIdx);
+        auto [ rank_it
+               rank_ret ] = rank.emplace(src_handle, 
+                            std::numeric_limits<RankType>::min());
+        // this vertex has not been considered
+        if (kIsInfinite) {
+          rank_it->second = std::max(rank_it->second,
+                            std::numeric_limits<RankType>::min());
+          continue;
+        }
+        if (kNotInWf) {
+          rank_it->second = std::max(rank_it->second, kRank);
+          continue;
+        }
+        // in WF
+        rank_it->second = std::max(rank_it->second, kRank + 1);
+      }
+      std::sort(connected_scc_idx.begin(),
+                connected_scc_idx.end());
+      connected_scc_idx.erase(std::unique(connected_scc_idx.begin(), 
+                                          connected_scc_idx.end()), 
+                                          connected_scc_idx.end());
+      for (const auto& scc_idx : connected_scc_idx) {
+        assert(scc_idx != current_scc_idx);
+        out_degree_in_g_scc[scc_idx]--;
+        assert(out_degree_in_g_scc[scc_idx] >= 0);
+        if (out_degree_in_g_scc[scc_idx] == 0) {
+          queue_of_scc_idx.emplace(scc_idx);
+        }
+      }
+    }
+  }
 
+  assert(rank.size() == graph.CountVertex());
+
+  // sort the rank
+  std::map<RankType, 
+  std::vector<VertexHandleType>> sorted_rank;
+  for (const auto& [vertex_handle, 
+                    vertex_rank] : rank) {
+    sorted_rank[vertex_rank].emplace_back(vertex_handle);
   }
   return;
 }
