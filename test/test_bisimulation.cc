@@ -20,10 +20,9 @@ void TestBisimulation(){
                               std::vector<typename GUNDAM::VertexHandle<GraphType>::type>>;
 
   EquivalentClassType equivalent_class_set;
-
   GraphType g;
-  ConstructGraph18(g);
 
+  ConstructGraph18(g);
   GUNDAM::BisimulationGeneralCase(g, equivalent_class_set);
 
   EquivalentClassType equivalent_class_set_18 
@@ -42,6 +41,41 @@ void TestBisimulation(){
 
   ASSERT_EQ(equivalent_class_set,
             equivalent_class_set_18);
+
+  ConstructGraph19(g);
+  GUNDAM::BisimulationGeneralCase(g, equivalent_class_set);
+
+  EquivalentClassType equivalent_class_set_19
+    = { {g.FindVertex(0)},
+        {g.FindVertex(1), g.FindVertex(2)},
+        {g.FindVertex(3), g.FindVertex(4),
+         g.FindVertex(5), g.FindVertex(6)} };
+
+  for (auto& equivalent_class : equivalent_class_set_19) {
+    std::sort(equivalent_class.begin(),
+              equivalent_class.end());
+  }
+  std::sort(equivalent_class_set_19.begin(),
+            equivalent_class_set_19.end());
+
+  ASSERT_EQ(equivalent_class_set,
+            equivalent_class_set_19);
+
+  ConstructGraph20(g);
+  GUNDAM::BisimulationGeneralCase(g, equivalent_class_set);
+
+  EquivalentClassType equivalent_class_set_20
+    = { {g.FindVertex(0), g.FindVertex(1), g.FindVertex(2)} };
+
+  for (auto& equivalent_class : equivalent_class_set_20) {
+    std::sort(equivalent_class.begin(),
+              equivalent_class.end());
+  }
+  std::sort(equivalent_class_set_20.begin(),
+            equivalent_class_set_20.end());
+
+  ASSERT_EQ(equivalent_class_set,
+            equivalent_class_set_20);
   return;
 }
 

@@ -34,8 +34,6 @@ inline void BisimulationGeneralCase(GraphType& graph,
   auto strong_connected_component_vertex_set
      = StrongConnectedComponent(graph);
 
-  assert(IsAcyclic(MergeVertex(graph, strong_connected_component_vertex_set)));
-
   /* ################################################ *
    * ##  calc leaf_idx_set_in_g_scc                ## *
    * ##     for a vertex, if its out edge are all  ## *
@@ -54,12 +52,23 @@ inline void BisimulationGeneralCase(GraphType& graph,
                 strong_connected_component_vertex_idx];
     assert(std::is_sorted(strong_connected_component_vertex.begin(),
                           strong_connected_component_vertex.end()));
-    bool is_leaf = true;
+    // set to false here in order not to get into (1)
+    // in the first loop
+    bool is_leaf = false;
     for (const auto& vertex_handle : strong_connected_component_vertex) {
       auto [ map_it,
              map_ret ] = vertex_handle_scc_idx_map.emplace(vertex_handle->id(),
                                 strong_connected_component_vertex_idx);
       assert(map_ret);
+      if (is_leaf) { 
+        /* ######### *
+         * ## (1) ## *
+         * ######### */
+        // has already determined this scc is a leaf
+        // no longer need to check the out edge
+        continue;
+      }
+      is_leaf = true;
       for (auto out_edge_it = vertex_handle->OutEdgeBegin();
                !out_edge_it.IsDone();
                 out_edge_it++) {
@@ -73,10 +82,14 @@ inline void BisimulationGeneralCase(GraphType& graph,
         is_leaf = false;
         break;
       }
-      if (is_leaf) {
-        // is a leaf
-        break;
-      }
+      /* ######################################### *
+       * ##  don't break here, needs to add to  ## *
+       * ##  strong_connected_component_vertex  ## *
+       * ######################################### */
+      // if (is_leaf) {
+      //   // is a leaf
+      //   break;
+      // }
     }
     if (!is_leaf) {
       continue;
@@ -84,6 +97,11 @@ inline void BisimulationGeneralCase(GraphType& graph,
     leaf_idx_set_in_g_scc.emplace_back(strong_connected_component_vertex_idx);
   }
   assert(vertex_handle_scc_idx_map.size() == graph.CountVertex());
+
+  // std::cout << "leaf_idx_set_in_g_scc: " << std::endl;
+  // for (const auto& leaf_idx : leaf_idx_set_in_g_scc) {
+  //   std::cout << leaf_idx << std::endl;
+  // }
 
   /* ################################ *
    * ##  calc out_degree_in_g_scc  ## *
@@ -171,6 +189,13 @@ inline void BisimulationGeneralCase(GraphType& graph,
       #endif // NDEBUG 
     }
   }
+
+  // std::cout << "## rank for all leaf in G ##" << std::endl;
+  // for (const auto& [vertex_handle, 
+  //                   vertex_rank] : rank) {
+  //   std::cout << "\tvertex_handle->id(): " << vertex_handle->id()
+  //             << "\tvertex_rank: "         << vertex_rank << std::endl;
+  // }
 
   /* ################################################ *
    * ##  calc the WF                               ## *
@@ -279,6 +304,13 @@ inline void BisimulationGeneralCase(GraphType& graph,
     }
   }
 
+  // std::cout << "## 2 ##" << std::endl;
+  // for (const auto& [vertex_handle, 
+  //                   vertex_rank] : rank) {
+  //   std::cout << "\tvertex_handle->id(): " << vertex_handle->id()
+  //             << "\tvertex_rank: "         << vertex_rank << std::endl;
+  // }
+
   assert(rank.size() == graph.CountVertex());
 
   // sort the rank
@@ -293,6 +325,17 @@ inline void BisimulationGeneralCase(GraphType& graph,
                                                                 std::vector<VertexHandleType>>(1));
     sorted_rank_it->second.begin()->emplace_back(vertex_handle);
   }
+
+  // for (const auto& [vertex_rank, 
+  //                   vertex_block_set] : sorted_rank) {
+  //   std::cout << "vertex_rank: " << vertex_rank << std::endl;
+  //   for (const auto& block : vertex_block_set) {
+  //     for (const auto& vertex_handle : block) {
+  //       std::cout << "\t" << vertex_handle->id();
+  //     }
+  //     std::cout << std::endl;
+  //   }
+  // }
 
   /* ############################################################################# *
    * ## for i = 0,...,ρ do                                                      ## *

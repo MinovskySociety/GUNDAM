@@ -1085,4 +1085,102 @@ void ConstructGraph18(GraphType& g){
   ASSERT_TRUE(res2.second);
 }
 
+template <class GraphType>
+void ConstructGraph19(GraphType& g){
+  // ---- 0 ----
+  // |         |
+  // v         v
+  // 1 ----    2 ----
+  // |    |    |    |
+  // v    v    v    v
+  // 3    4    5    6
+
+  // clear up
+  g = GraphType();
+  // AddVertex
+  auto res1 = g.AddVertex(0, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g.AddVertex(1, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g.AddVertex(2, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g.AddVertex(3, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g.AddVertex(4, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g.AddVertex(5, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g.AddVertex(6, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  // AddEdge
+  auto res2 = g.AddEdge(0, 1, 42, 1);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g.AddEdge(0, 2, 42, 2);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g.AddEdge(1, 3, 42, 3);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g.AddEdge(1, 4, 42, 4);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g.AddEdge(2, 5, 42, 5);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g.AddEdge(2, 6, 42, 6);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+}
+
+template <class GraphType>
+void ConstructGraph20(GraphType& g){
+  // 0 
+  // |      
+  // v      
+  // 1 --> 2
+  // ^     |
+  // |------
+
+  // clear up
+  g = GraphType();
+  // AddVertex
+  auto res1 = g.AddVertex(0, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g.AddVertex(1, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  res1 = g.AddVertex(2, 0);
+  ASSERT_TRUE(res1.first);
+  ASSERT_TRUE(res1.second);
+
+  // AddEdge
+  auto res2 = g.AddEdge(0, 1, 42, 1);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g.AddEdge(1, 2, 42, 2);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+  res2 = g.AddEdge(2, 1, 42, 3);
+  ASSERT_TRUE(res2.first);
+  ASSERT_TRUE(res2.second);
+}
+
 #endif // _TEST_TEST_DATA_TEST_PATTERN_SET
