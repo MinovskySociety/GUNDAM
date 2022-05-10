@@ -45,6 +45,10 @@ add_executable (test_simulation "test_simulation.cc")
 target_link_libraries(test_simulation GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_simulation)
 
+add_executable (test_bisimulation "test_bisimulation.cc")
+target_link_libraries(test_bisimulation GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_bisimulation)
+
 add_executable (test_bfs_limit_width "test_bfs_limit_width.cc")
 target_link_libraries(test_bfs_limit_width GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_bfs_limit_width)

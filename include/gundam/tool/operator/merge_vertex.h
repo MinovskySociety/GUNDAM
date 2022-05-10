@@ -34,7 +34,7 @@ inline auto MergeVertex(GraphType& input_graph,
 
   for (const auto& vertex_set_to_merge
           : set_of_vertex_set_to_merge) {
-    assert(vertex_set_to_merge.size() > 1);
+    assert(vertex_set_to_merge.size() >= 1);
      auto  merge_to_vertex = merged_graph.FindVertex(vertex_set_to_merge[0]->id());
     assert(merge_to_vertex); // should have this vertex
      auto  vertex_set_to_it = vertex_set_to_merge.begin();

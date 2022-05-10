@@ -5,7 +5,11 @@
 #include "gundam/tool/topological/dag/is_acyclic.h"
 #include "gundam/tool/operator/merge_vertex.h"
 
+#include "gundam/algorithm/connected_component.h"
+
 #include "gundam/match/match.h"
+
+#include "gundam/util/hash.h"
 
 #include <unordered_map>
 #include <unordered_set>
@@ -17,13 +21,15 @@ namespace GUNDAM {
 // for general case
 template <typename GraphType>
 inline void BisimulationGeneralCase(GraphType& graph,
-     std::map<typename VertexHandle<GraphType>::type,
-  std::vector<typename VertexHandle<GraphType>::type>>& match_set) {
+  std::vector<
+  std::vector<typename VertexHandle<GraphType>::type>>& equivalent_class_set) {
 
   using VertexHandleType = typename VertexHandle<GraphType>::type;
   using VertexIDType     = typename VertexID    <GraphType>::type;
 
   using RankType = int64_t;
+
+  equivalent_class_set.clear();
 
   auto strong_connected_component_vertex_set
      = StrongConnectedComponent(graph);
@@ -31,13 +37,12 @@ inline void BisimulationGeneralCase(GraphType& graph,
   assert(IsAcyclic(MergeVertex(graph, strong_connected_component_vertex_set)));
 
   /* ################################################ *
-   * ##  calc leaf_idx_set_in_g_scc             ## *
+   * ##  calc leaf_idx_set_in_g_scc                ## *
    * ##     for a vertex, if its out edge are all  ## *
    * ##     in the same SCC, then it is an leaf    ## *
    * ##     vertex in the g_scc                    ## *
    * ################################################ */
-  std::unordered_map<VertexHandleType,
-                     size_t> vertex_handle_scc_idx_map;
+  std::unordered_map<VertexIDType, size_t> vertex_handle_scc_idx_map;
   std::vector<size_t> leaf_idx_set_in_g_scc;
   leaf_idx_set_in_g_scc.reserve(strong_connected_component_vertex_set.size());
   for (size_t strong_connected_component_vertex_idx = 0;
@@ -52,7 +57,7 @@ inline void BisimulationGeneralCase(GraphType& graph,
     bool is_leaf = true;
     for (const auto& vertex_handle : strong_connected_component_vertex) {
       auto [ map_it,
-             map_ret ] = vertex_handle_scc_idx_map.emplace(vertex_handle,
+             map_ret ] = vertex_handle_scc_idx_map.emplace(vertex_handle->id(),
                                 strong_connected_component_vertex_idx);
       assert(map_ret);
       for (auto out_edge_it = vertex_handle->OutEdgeBegin();
@@ -96,9 +101,9 @@ inline void BisimulationGeneralCase(GraphType& graph,
       for (auto out_edge_it = vertex_handle->OutEdgeBegin();
                !out_edge_it.IsDone();
                 out_edge_it++) {
-        assert(vertex_handle_scc_idx_map.find(out_edge_it->dst_handle())
+        assert(vertex_handle_scc_idx_map.find(out_edge_it->dst_handle()->id())
             != vertex_handle_scc_idx_map.end());
-        const auto kDstSccIdx = vertex_handle_scc_idx_map[out_edge_it->dst_handle()];
+        const auto kDstSccIdx = vertex_handle_scc_idx_map[out_edge_it->dst_handle()->id()];
         if (kDstSccIdx == strong_connected_component_vertex_idx) {
           // to this scc
           continue;
@@ -128,7 +133,7 @@ inline void BisimulationGeneralCase(GraphType& graph,
    * ##  calc rank  ## *
    * ################# */
   std::unordered_map<VertexHandleType,
-                             RankType> rank;
+                             RankType, v_handle_hash> rank;
 
   // for the vertex n is a leaf in G
   /* ###################################### *
@@ -153,14 +158,14 @@ inline void BisimulationGeneralCase(GraphType& graph,
        * ########################################## */
       auto [ rank_it,
              rank_ret ] = rank.emplace(vertex_handle,
-                                       std::numeric_limits<RankType>::min())
+                                       std::numeric_limits<RankType>::min());
       #ifndef NDEBUG 
       if (!rank_ret) {
         // added fail, should have already been considered
         // in leaf_handle_set_in_g
-        assert(std::bineary_search(leaf_handle_set_in_g.begin(),
-                                   leaf_handle_set_in_g.end(),
-                                   vertex_handle));
+        assert(std::binary_search(leaf_handle_set_in_g.begin(),
+                                  leaf_handle_set_in_g.end(),
+                                  vertex_handle));
         continue;
       }
       #endif // NDEBUG 
@@ -195,13 +200,13 @@ inline void BisimulationGeneralCase(GraphType& graph,
   std::deque<VertexHandleType>(vertexes_in_scc_with_cycle.begin(),
                                vertexes_in_scc_with_cycle.end()));
 
-  assert(not_in_wf_it.size() == queue_of_vertex_in_scc_with_cycle.size());
+  assert(not_in_wf.size() == queue_of_vertex_in_scc_with_cycle.size());
   while (!queue_of_vertex_in_scc_with_cycle.empty()) {
     auto vertex_handle = queue_of_vertex_in_scc_with_cycle.front();
     assert(not_in_wf.find(vertex_handle->id())
         != not_in_wf.end ());
     queue_of_vertex_in_scc_with_cycle.pop();
-    for (auto in_edge_it = vertex_handle.InEdgeBegin();
+    for (auto in_edge_it = vertex_handle->InEdgeBegin();
              !in_edge_it.IsDone();
               in_edge_it++) {
       auto not_in_wf_it  = not_in_wf.find(in_edge_it->src_handle()->id());
@@ -210,7 +215,7 @@ inline void BisimulationGeneralCase(GraphType& graph,
         continue;
       }
       not_in_wf.emplace_hint(not_in_wf_it, in_edge_it->src_handle()->id());
-      queue_of_vertex_in_scc_with_cycle.emplace_back(in_edge_it->src_handle());
+      queue_of_vertex_in_scc_with_cycle.emplace(in_edge_it->src_handle());
     }
   }
 
@@ -226,24 +231,23 @@ inline void BisimulationGeneralCase(GraphType& graph,
     const auto& strong_connected_component_vertex
               = strong_connected_component_vertex_set[current_scc_idx];
     for (const auto& vertex_handle : strong_connected_component_vertex) {
-      assert(     rank.find(vertex_handle) !=      rank.end());
-      assert(not_in_wf.find(vertex_handle) != not_in_wf.end());
-      const bool kNotInWf    = not_in_wf.find(vertex_handle->id());
-      const auto kRank       =      rank.find(vertex_handle->id())->second;
+      assert(rank.find(vertex_handle) != rank.end());
+      const bool kNotInWf    = not_in_wf.find(vertex_handle->id()) != not_in_wf.end();
+      const auto kRank       =      rank.find(vertex_handle)->second;
       const bool kIsInfinite =    (kRank == std::numeric_limits<RankType>::min());
       std::vector<size_t> connected_scc_idx;
-      for (auto in_edge_it = vertex_handle.InEdgeBegin();
+      for (auto in_edge_it = vertex_handle->InEdgeBegin();
                !in_edge_it.IsDone();
                 in_edge_it++) {
         auto src_handle = in_edge_it->src_handle();
-        assert(vertex_handle_scc_idx_map.find(src_handle)
-            == vertex_handle_scc_idx_map.end());
-        const auto kSrcSccIdx = vertex_handle_scc_idx_map[src_handle];
-        if (scc_idx == kSrcSccIdx) {
+        assert(vertex_handle_scc_idx_map.find(src_handle->id())
+            != vertex_handle_scc_idx_map. end());
+        const auto kSrcSccIdx = vertex_handle_scc_idx_map[src_handle->id()];
+        if (kSrcSccIdx == current_scc_idx) {
           continue;
         }
         connected_scc_idx.emplace_back(kSrcSccIdx);
-        auto [ rank_it
+        auto [ rank_it,
                rank_ret ] = rank.emplace(src_handle, 
                             std::numeric_limits<RankType>::min());
         // this vertex has not been considered
@@ -278,12 +282,130 @@ inline void BisimulationGeneralCase(GraphType& graph,
   assert(rank.size() == graph.CountVertex());
 
   // sort the rank
-  std::map<RankType, 
-  std::vector<VertexHandleType>> sorted_rank;
+  std::map<RankType,  /* rank */
+           std::vector<
+           std::vector<VertexHandleType>> /* set of blocks */
+          > sorted_rank;
   for (const auto& [vertex_handle, 
                     vertex_rank] : rank) {
-    sorted_rank[vertex_rank].emplace_back(vertex_handle);
+    auto [ sorted_rank_it,
+           sorted_rank_ret ] = sorted_rank.emplace(vertex_rank, std::vector<
+                                                                std::vector<VertexHandleType>>(1));
+    sorted_rank_it->second.begin()->emplace_back(vertex_handle);
   }
+
+  /* ############################################################################# *
+   * ## for i = 0,...,ρ do                                                      ## *
+   * ## (a) Di := {X ∈ P : X ⊆ Bi}; — determine the blocks currently at rank i  ## *
+   * ## (b) for X ∈ Di do                                                       ## *
+   * ##       G := collapse(G, X); — collapse nodes at rank i                   ## *
+   * ## (c) for n ∈ N ∩ Bi do — refine blocks at higher ranks                   ## *
+   * ##       for C ∈ P and C ⊆ Bi+1 ∪ ... ∪ Bρ do                              ## *
+   * ##         P := (P \ {C}) ∪ {{m ∈ C : hm, ni ∈ E}, {m ∈ C : hm, ni ∈/ E}}; ## *
+   * ##         // divide the C into two part:                                  ## *
+   * ##         //    has edge connected to Bi                                  ## *
+   * ##         //    has no edge connected to Bi                               ## *
+   * ############################################################################# */
+  for (auto sorted_rank_it  = sorted_rank.begin();
+            sorted_rank_it != sorted_rank.end();
+            sorted_rank_it++) {
+    const auto& [vertex_rank, block_set] = *sorted_rank_it;
+    
+    std::unordered_map<VertexIDType, // vertex id
+                       size_t        // the idx of block it belongs to
+                      > vertex_block_idx_map;
+    for (size_t block_idx = 0;
+                block_idx < block_set.size();
+                block_idx++) {
+      /* ######################################## *
+       * ##  wenzhi:                           ## *
+       * ##    not sure which one is more      ## *
+       * ##    efficient here:                 ## *
+       * ##       actually merge the graph     ## *
+       * ##       or mark the set of vertexes  ## *
+       * ##       that are merged              ## *
+       * ######################################## */
+      // here, we only mark the set of vertexes
+      // that to be merged
+      for (const auto& vertex_handle : block_set[block_idx]) {
+        vertex_block_idx_map.emplace(vertex_handle->id(), 
+                                     block_idx);
+      }
+    }
+
+    auto higher_sorted_rank_it = sorted_rank_it;
+    higher_sorted_rank_it++;
+
+    for (;higher_sorted_rank_it != sorted_rank.end();
+          higher_sorted_rank_it++) {
+      const auto& [higher_vertex_rank, 
+                   higher_block_set] = *higher_sorted_rank_it;
+      assert(higher_vertex_rank
+                  > vertex_rank);
+      std::vector<
+      std::vector<VertexHandleType>> temp_higher_block_set;
+      for (const auto& higher_block : higher_block_set) {
+        std::map<std::vector<size_t>,
+                 std::vector<VertexHandleType>> connected_to_bi;
+        for (const auto& higher_vertex_handle 
+                       : higher_block) {
+          std::vector<size_t> connected_block_idx_set;
+          for (auto out_edge_it = higher_vertex_handle->OutEdgeBegin();
+                   !out_edge_it.IsDone();
+                    out_edge_it++) {
+            auto vertex_block_idx_it 
+               = vertex_block_idx_map.find(out_edge_it->dst_handle()->id());
+            if ( vertex_block_idx_it
+              == vertex_block_idx_map.end()) {
+              // does not connected to Bi in this layer
+              continue;
+            }
+            connected_block_idx_set.emplace_back(vertex_block_idx_it->second);
+          }
+          std::sort(connected_block_idx_set.begin(),
+                    connected_block_idx_set.end());
+          connected_block_idx_set.erase(std::unique(connected_block_idx_set.begin(), 
+                                                    connected_block_idx_set.end()), 
+                                                    connected_block_idx_set.end());
+          connected_to_bi[connected_block_idx_set].emplace_back(higher_vertex_handle);
+        }
+        #ifndef NDEBUG
+        size_t _temp_higher_block_size = 0;
+        for (const auto& [connected_block_idx_set,
+                                vertex_handle_set] : connected_to_bi) {
+          _temp_higher_block_size += vertex_handle_set.size();
+        }
+        assert(higher_block.size() == _temp_higher_block_size);
+        #endif // NDEBUG
+
+        for (auto& [connected_block_idx_set,
+                          vertex_handle_set] : connected_to_bi) {
+          temp_higher_block_set.emplace_back(std::move(vertex_handle_set));
+        }
+      }
+      higher_sorted_rank_it->second.swap(temp_higher_block_set);
+    }
+  }
+  for (auto& [vertex_rank, block_set] : sorted_rank) {
+    std::move(block_set.begin(), 
+              block_set.end(), 
+              std::back_inserter(equivalent_class_set));
+  }
+
+  for (auto& equivalent_class : equivalent_class_set) {
+    std::sort(equivalent_class.begin(),
+              equivalent_class.end());
+  }
+  std::sort(equivalent_class_set.begin(),
+            equivalent_class_set.end());
+
+  #ifndef NDEBUG
+  size_t _vertex_counter = 0;
+  for (const auto& equivalent_class : equivalent_class_set) {
+    _vertex_counter += equivalent_class.size();
+  }
+  assert(_vertex_counter == graph.CountVertex());
+  #endif // NDEBUG
   return;
 }
 

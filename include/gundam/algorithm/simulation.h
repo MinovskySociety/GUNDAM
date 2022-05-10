@@ -10,6 +10,8 @@
 #include "gundam/tool/diameter.h"
 #include "gundam/tool/operator/preserve.h"
 
+#include "gundam/util/hash.h"
+
 #include "gundam/match/match.h"
 
 #include <unordered_map>
@@ -17,14 +19,6 @@
 #include <functional>
 
 namespace GUNDAM {
-
-  struct v_handle_hash {
-    template <typename Handle>
-      size_t operator() (const Handle& h) const {
-        return std::hash<unsigned>{}(h->id());
-      }
-  };
-
 
 template <enum MatchSemantics match_semantics 
              = MatchSemantics::kDualSimulation,
