@@ -8,6 +8,10 @@ GUNDAM is a fundamental library for graph computing that provides a *unified*, *
 
 [开发指导](/doc/user_doc/ProjectGUNDAM开发指导.pdf)
 
+This library constains various [algorithms](/include/gundam/algorithm/) and useful [tools](/include/gundam/tool/), which can fairly support the programmer to efficiently develop their own program. It is recommended to first consider using those functions provided by the library instead of implement a customized version.
+
+The document see [prog_doc](/doc/prog_doc/) and [user_doc](/doc/user_doc/). The examples can be found in their corresponding test file in [test](/test/).
+
 #
 
 ## Getting start
@@ -512,21 +516,30 @@ The interface of edge is much more simpler than vertexes can is detailed illustr
 
 ## Match
 
-Pattern matching is one of the the most esensial functions that support most of the useful methods and tools in this library. The class *Match* is the most important interface for pattern matching and is detailed explained in [here](/doc/prog_doc/match.md).
+The class *Match* is one of the most important interface for various function in this library and is detailed explained in [here](/doc/prog_doc/match.md).
 
-## MatchUsingMatch
+## Algorithms
 
-[MatchUsingMatch](/doc/prog_doc/match_using_match.md)
+Library GUNDAM contains various algorithm.
 
+### Pattern matching
+Pattern matching is one of the the most esensial functions that support most of the useful methods and tools in this library.
+
+Detailed document see [MatchUsingMatch](/doc/prog_doc/match_using_match.md)
+
+### Simulation
 [Simulation](/doc/prog_doc/simulation.md)
-
-## Algorithem
-
-Library GUNDAM also contains.
 
 Bfs
 
 Dfs
+
+## Tools
+
+Except those nameable algorithms, various tools are also contained in this library which can effiently support the development.
+
+Tools supported in this library see
+[tools](/doc/prog_doc/tools.md).
 
 ## Serialize
 
@@ -550,10 +563,6 @@ str >> g1;
 The serialized graph can be easily transformed in distributed environment or stored in file. 
 
 Detailed explanation see [here](/doc/prog_doc/serialize.md).
-
-## Tools
-
-[tools](/doc/prog_doc/tools.md)
 
 ## Works with publication
 ![](/doc/images/all_works.svg)
