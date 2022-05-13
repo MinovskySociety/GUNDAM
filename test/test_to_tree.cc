@@ -23,7 +23,7 @@ void TestToTree() {
   g_tree = GUNDAM::ToTree(g, g.FindVertex(1));
 
   ConstructGraph21(g_tree_0);
-  ConstructGraph22(g_tree_0);
+  ConstructGraph22(g_tree_1);
 
   ASSERT_TRUE(GUNDAM::SamePattern(g_tree, g_tree_0)
            || GUNDAM::SamePattern(g_tree, g_tree_1));

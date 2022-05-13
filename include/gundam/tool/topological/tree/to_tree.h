@@ -3,6 +3,7 @@
 
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/vertex_id.h"
+#include "gundam/type_getter/graph_parameter_getter.h"
 
 #include "gundam/tool/max_id.h"
 
@@ -27,6 +28,9 @@ auto ToTree(GraphType& graph,
          vertex_ret ] = trans_graph.AddVertex(root->id(),
                                               root->label());
   assert(vertex_ret);
+  if constexpr (GUNDAM::GraphParameter<GraphType>::vertex_has_attribute) {
+    CopyAllAttributes(root, vertex_it);
+  }
 
   VertexIdType max_vertex_id = MaxVertexId(graph);
   EdgeIdType   max_edge_id   = MaxEdgeId  (graph);
@@ -71,6 +75,9 @@ auto ToTree(GraphType& graph,
       auto [ vertex_it,
              vertex_ret ] = trans_graph.AddVertex(new_vertex_id, 
                                                   dst_handle->label());
+      if constexpr (GUNDAM::GraphParameter<GraphType>::vertex_has_attribute) {
+        CopyAllAttributes(dst_handle, vertex_it);
+      }
       // should have been added successfully
       assert(vertex_ret);
       auto [ edge_handle,
@@ -78,6 +85,9 @@ auto ToTree(GraphType& graph,
                                               new_vertex_id,
                                               out_edge_it->label(),
                                               out_edge_it->id());
+      if constexpr (GUNDAM::GraphParameter<GraphType>::edge_has_attribute) {
+        CopyAllAttributes(out_edge_it, edge_handle);
+      }
       assert(edge_ret);
     }
     for (auto in_edge_it = current_handle->InEdgeBegin();
@@ -110,6 +120,9 @@ auto ToTree(GraphType& graph,
       auto [ vertex_it,
              vertex_ret ] = trans_graph.AddVertex(new_vertex_id, 
                                                   src_handle->label());
+      if constexpr (GUNDAM::GraphParameter<GraphType>::vertex_has_attribute) {
+        CopyAllAttributes(src_handle, vertex_it);
+      }
       // should have been added successfully
       assert(vertex_ret);
       auto [ edge_handle,
@@ -117,6 +130,9 @@ auto ToTree(GraphType& graph,
                                               current_handle->id(),
                                               in_edge_it->label(),
                                               in_edge_it->id());
+      if constexpr (GUNDAM::GraphParameter<GraphType>::edge_has_attribute) {
+        CopyAllAttributes(in_edge_it, edge_handle);
+      }
       assert(edge_ret);
     }
   }
