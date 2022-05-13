@@ -89,6 +89,10 @@ add_executable (test_is_acyclic "test_is_acyclic.cc")
 target_link_libraries(test_is_acyclic GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_is_acyclic)
 
+add_executable (test_to_tree "test_to_tree.cc")
+target_link_libraries(test_to_tree GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_to_tree)
+
 add_executable (test_diameter "test_diameter.cc")
 target_link_libraries(test_diameter GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_diameter)
