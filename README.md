@@ -8,10 +8,6 @@ GUNDAM is a fundamental library for graph computing that provides a *unified*, *
 
 [开发指导](/doc/user_doc/ProjectGUNDAM开发指导.pdf)
 
-This library constains various [algorithms](/include/gundam/algorithm/) and useful [tools](/include/gundam/tool/), which can fairly support the programmer to efficiently develop their own program. It is recommended to first consider using those functions provided by the library instead of implement a customized version.
-
-The document see [prog_doc](/doc/prog_doc/) and [user_doc](/doc/user_doc/). The examples can be found in their corresponding test file in [test](/test/).
-
 #
 
 ## Getting start
@@ -23,6 +19,10 @@ All graph types currently supported are listed here:
 * Graph
 
 Interface of all graph types see [here](/doc/接口统计_分类.pdf). Detailed illustration of those graph types see [here](/doc/prog_doc/graph_types.md)
+
+This library constains various [algorithms](/include/gundam/algorithm/) and useful [tools](/include/gundam/tool/), which can fairly support the programmer to efficiently develop their own program. It is recommended to first consider using those functions provided by the library instead of implement a customized version.
+
+The document see [prog_doc](/doc/prog_doc/) and [user_doc](/doc/user_doc/). The examples can be found in their corresponding test file in [test](/test/).
 
 #
 
