@@ -141,9 +141,9 @@ class GraphBasicStatistics {
   }
 
   inline auto EdgeTypeCounter(const typename EdgeHandle<GraphType>::type& edge_handle) const {
-    return this->EdgeTypeCounter(edge_handle->src_hanlde()->label(),
+    return this->EdgeTypeCounter(edge_handle->src_handle()->label(),
                                  edge_handle->label(),
-                                 edge_handle->dst_hanlde()->label());
+                                 edge_handle->dst_handle()->label());
   }
 
   inline auto EdgeTypeCounter(const VertexLabelType&  src_label,
@@ -190,9 +190,9 @@ class GraphBasicStatistics {
   }
 
   inline auto AvgOutDegree(const typename EdgeHandle<GraphType>::type& edge_handle) const {
-    return this->AvgOutDegree(edge_handle->src_hanlde()->label(),
+    return this->AvgOutDegree(edge_handle->src_handle()->label(),
                               edge_handle->label(),
-                              edge_handle->dst_hanlde()->label());
+                              edge_handle->dst_handle()->label());
   }
 
   inline auto AvgOutDegree(const VertexLabelType&  src_label,
@@ -217,9 +217,9 @@ class GraphBasicStatistics {
   }
 
   inline auto AvgInDegree(const typename EdgeHandle<GraphType>::type& edge_handle) const {
-    return this->AvgInDegree(edge_handle->src_hanlde()->label(),
+    return this->AvgInDegree(edge_handle->src_handle()->label(),
                              edge_handle->label(),
-                             edge_handle->dst_hanlde()->label());
+                             edge_handle->dst_handle()->label());
   }
 
   inline auto AvgInDegree(const VertexLabelType&  src_label,
