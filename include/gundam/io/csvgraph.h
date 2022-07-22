@@ -6,6 +6,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <exception>
 
 #include "gundam/component/generator.h"
 #include "gundam/data_type/datatype.h"
@@ -427,6 +428,22 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
     //  std::cout << "vertex id or label type is wrong!" << std::endl;
     //  return -1;
     //}
+    //
+    /*
+    const std::vector<std::string> vertex_id_str =
+        vertex_file.GetColumn<std::string>(0);
+    const std::vector<std::string> label_id_str =
+        vertex_file.GetColumn<std::string>(1);
+
+    for (int row_idx = 0; row_idx < vertex_id_str.size(); row_idx++) {
+      std::cout << "row_idx: " << row_idx << " id: " << GUNDAM::StringToDataType<VertexIDType>(vertex_id_str[row_idx]) << std::endl;
+    }
+
+    for (int row_idx = 0; row_idx < label_id_str.size(); row_idx++) {
+      std::cout << "row_idx: " << row_idx << " label: " << GUNDAM::StringToDataType<VertexLabelType>(label_id_str[row_idx]) << std::endl;
+    }
+    */
+
 
     const std::vector<VertexIDType> vertex_id =
         vertex_file.GetColumn<VertexIDType>(0);
@@ -437,6 +454,7 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
     int count_fail = 0;
     size_t sz = vertex_id.size();
     for (size_t row = 0; row < sz; row++) {
+      // std::cout << "row: " << row << std::endl;
       auto [vertex_handle, r] = graph.AddVertex(vertex_id[row], label_id[row]);
       if (r) {
         if constexpr (read_attr) {
@@ -458,7 +476,8 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
       std::cout << "load vertex file failed: " << count_fail << std::endl;
     }
     return count_success;
-  } catch (...) {
+  } catch (const std::exception& e ) {
+    std::cout << e.what() << std::endl;
     return -1;
   }
 }

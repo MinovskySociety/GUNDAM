@@ -475,6 +475,15 @@ class PointerVector {
   using value_type = typename InnerContainerType::value_type;
 
  public:
+  PointerVector() = default;
+
+  // wenzhi shallow copy
+  PointerVector &operator=(const PointerVector &b) = default;
+  PointerVector(const PointerVector &b) = default;
+
+  PointerVector(PointerVector &&) = default;
+  PointerVector &operator=(PointerVector &&) = default;
+
   ~PointerVector() { Clear(); }
 
   bool Empty() const { return container_.empty(); }

@@ -54,10 +54,12 @@ inline bool MergeById(GraphType0& graph0,
     }
   }
 
+  #ifndef NDEBUG
   GUNDAM::Match<GraphType1, 
                 GraphType0> complete_match(graph1, graph0, "same_id_map");
 
   assert(complete_match.size() == graph1.CountVertex());
+  #endif // NDEBUG
 
   // merge edges
   for (auto graph1_vertex_it = graph1.VertexBegin();
