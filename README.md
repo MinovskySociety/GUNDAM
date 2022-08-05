@@ -323,7 +323,7 @@ for (auto vertex_it = graph.VertexBegin();
 
 ### Access vertex through handle
 
-Except through id and iterator, vertexes are also allowed to be access through *Handle*, which is a recommanded high-efficient manner although needs to be used carefully.
+Except through id and iterator, vertexes are also allowed to be accessed through *Handle*, which is a recommanded high-efficient manner although needs to be used carefully.
 
 Take the [*g0*](#graph-construction) constructed above as an example, there are:
 
