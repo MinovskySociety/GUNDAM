@@ -2455,7 +2455,6 @@ inline bool DAGDP(
   for (auto &vertex_handle : topo_seq) {
     assert( candidate_set.find(vertex_handle)
          != candidate_set.end() );
-    used_vertex.emplace(vertex_handle);
     if (!DAGDPForSingleVertex<policy>(query_graph, 
                                      target_graph, 
                                      vertex_handle,

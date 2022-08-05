@@ -525,14 +525,6 @@ class PointerVector {
 
   const_iterator cend() const noexcept { return container_.cend(); }
 
-  inline decltype(auto) back() noexcept {
-    return this->container_.back();
-  }
-
-  inline decltype(auto) back() const noexcept {
-    return this->container_.back();
-  }
-
  private:
   InnerContainerType container_;
 };
