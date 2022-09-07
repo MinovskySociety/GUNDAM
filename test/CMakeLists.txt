@@ -45,6 +45,10 @@ add_executable (test_simulation "test_simulation.cc")
 target_link_libraries(test_simulation GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_simulation)
 
+add_executable (test_bisimulation "test_bisimulation.cc")
+target_link_libraries(test_bisimulation GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_bisimulation)
+
 add_executable (test_bfs_limit_width "test_bfs_limit_width.cc")
 target_link_libraries(test_bfs_limit_width GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_bfs_limit_width)
@@ -80,6 +84,14 @@ gtest_add_tests(TARGET test_link)
 add_executable (test_star "test_star.cc")
 target_link_libraries(test_star GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_star)
+
+add_executable (test_is_acyclic "test_is_acyclic.cc")
+target_link_libraries(test_is_acyclic GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_is_acyclic)
+
+add_executable (test_to_tree "test_to_tree.cc")
+target_link_libraries(test_to_tree GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_to_tree)
 
 add_executable (test_diameter "test_diameter.cc")
 target_link_libraries(test_diameter GTest::GTest GTest::Main)
@@ -141,6 +153,10 @@ add_executable (test_connected_component "test_connected_component.cc")
 target_link_libraries(test_connected_component GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_connected_component)
 
+add_executable (test_strong_connected_component "test_strong_connected_component.cc")
+target_link_libraries(test_strong_connected_component GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_strong_connected_component)
+
 add_executable (test_deduplicate_patterns "test_deduplicate_patterns.cc")
 target_link_libraries(test_deduplicate_patterns GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_deduplicate_patterns)
@@ -152,6 +168,10 @@ gtest_add_tests(TARGET test_star_cover_by_path)
 add_executable (test_merge_graph "test_merge_graph.cc")
 target_link_libraries(test_merge_graph GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_merge_graph)
+
+add_executable (test_merge_vertex "test_merge_vertex.cc")
+target_link_libraries(test_merge_vertex GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_merge_vertex)
 
 add_executable (test_decompose_star_to_path "test_decompose_star_to_path.cc")
 target_link_libraries(test_decompose_star_to_path GTest::GTest GTest::Main)

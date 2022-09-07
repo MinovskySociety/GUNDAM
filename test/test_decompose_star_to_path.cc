@@ -4,6 +4,8 @@
 
 #include "gtest/gtest.h"
 
+#include "test_data/test_pattern_set.h"
+
 #include "gundam/tool/topological/star/decompose_star_to_path.h"
 
 #include "gundam/graph_type/graph_base.h"
@@ -185,8 +187,30 @@ void TestDecomposeStarToPath(){
   path_vec = GUNDAM::DecomposeStarToPath<false>(g2);
   ASSERT_EQ(path_vec.size(), 0);
 
-  return;
 
+  GraphType g5;
+  ConstructGraph5(g5);
+
+  path_vec = GUNDAM::DecomposeStarToPath<true>(g5);
+  ASSERT_EQ(path_vec.size(), 1);
+  for (const auto& path : path_vec) {
+    std::string path_str;
+    path_str << path;
+    std::cout << "path_str: " << path_str << std::endl;
+  }
+  std::cout << std::endl;
+
+  path_vec.clear();
+
+  path_vec = GUNDAM::DecomposeStarToPath<false>(g5);
+  ASSERT_EQ(path_vec.size(), 2);
+  for (const auto& path : path_vec) {
+    std::string path_str;
+    path_str << path;
+    std::cout << "path_str: " << path_str << std::endl;
+  }
+  std::cout << std::endl;
+  return;
 }
 
 

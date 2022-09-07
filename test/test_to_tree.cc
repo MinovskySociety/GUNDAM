@@ -3,9 +3,9 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/tool/vertex_degree_filter.h"
+#include "gundam/tool/topological/tree/to_tree.h"
+#include "gundam/tool/same_pattern.h"
 
-#include "gundam/graph_type/graph_base.h"
 #include "gundam/graph_type/small_graph.h"
 #include "gundam/graph_type/large_graph.h"
 #include "gundam/graph_type/large_graph2.h"
@@ -13,37 +13,31 @@
 
 #include "test_data/test_pattern_set.h"
 
-template<class GraphType>
-void TestVertexDegreeFilter() {
-  GraphType g;
+template <typename GraphType>
+void TestToTree() {
+  GraphType g, g_tree, g_tree_0, g_tree_1;
 
-  using VertexHandleType = typename GUNDAM::VertexHandle<GraphType>::type;
-
-  std::vector<VertexHandleType> qualified_vertex_set;
+  std::cout << "GraphType: " << typeid(g).name() << std::endl;
 
   ConstructGraph0(g);
-  qualified_vertex_set = GUNDAM::VertexDegreeFilter<
-                         GUNDAM::FilterType::kHigherOrEqualTo,
-                         GUNDAM::EdgeDirection::kOut>(g, 2);
-  ASSERT_EQ(qualified_vertex_set.size(), 0);
+  g_tree = GUNDAM::ToTree(g, g.FindVertex(1));
 
-  qualified_vertex_set.clear();
-  qualified_vertex_set = GUNDAM::VertexDegreeFilter<
-                         GUNDAM::FilterType::kHigherOrEqualTo,
-                         GUNDAM::EdgeDirection::kInOut>(g, 2);
-  ASSERT_EQ(qualified_vertex_set.size(), 3);
+  ConstructGraph21(g_tree_0);
+  ConstructGraph22(g_tree_1);
 
-  ConstructGraph1(g);
-  ConstructGraph2(g);
-  ConstructGraph3(g);
-  ConstructGraph4(g);
-  ConstructGraph5(g);
-  ConstructGraph6(g);
+  ASSERT_TRUE(GUNDAM::SamePattern(g_tree, g_tree_0)
+           || GUNDAM::SamePattern(g_tree, g_tree_1));
 
+  ConstructGraph10(g);
+  g_tree = GUNDAM::ToTree(g, g.FindVertex(1));
+
+  ConstructGraph23(g_tree_0);
+  ASSERT_TRUE(GUNDAM::SamePattern(g_tree, g_tree_0));
   return;
 }
 
-TEST(TestGUNDAM, TestVertexDegreeFilter) {
+
+TEST(TestGUNDAM, TestToTree) {
   using namespace GUNDAM;
 
   using G1 = LargeGraph<uint32_t, uint32_t, std::string, 
@@ -91,11 +85,23 @@ TEST(TestGUNDAM, TestVertexDegreeFilter) {
                    SetVertexPtrContainerType<GUNDAM::ContainerType::Map>,
                    SetEdgeLabelContainerType<GUNDAM::ContainerType::Map>>;
 
-  TestVertexDegreeFilter<G1>();
-  TestVertexDegreeFilter<G2>();
-  TestVertexDegreeFilter<G3>();
-  TestVertexDegreeFilter<G4>();
-  TestVertexDegreeFilter<G5>();
-  TestVertexDegreeFilter<G6>();
-  TestVertexDegreeFilter<G7>();
+  using G8 = Graph<SetVertexIDType<uint32_t>, 
+                   SetVertexLabelType<uint32_t>,
+                   SetVertexAttributeKeyType<std::string>,
+                   SetEdgeIDType<uint64_t>,
+                   SetEdgeLabelType<uint32_t>, 
+                   SetEdgeAttributeKeyType<std::string>, 
+                   SetVertexLabelContainerType<GUNDAM::ContainerType::Map>,
+                   SetVertexIDContainerType<GUNDAM::ContainerType::Map>, 
+                   SetVertexPtrContainerType<GUNDAM::ContainerType::Map>,
+                   SetEdgeLabelContainerType<GUNDAM::ContainerType::Map>>;
+
+  TestToTree<G1>();
+  TestToTree<G2>();
+  TestToTree<G3>();
+  TestToTree<G4>();
+  TestToTree<G5>();
+  TestToTree<G6>();
+  TestToTree<G7>();
+  TestToTree<G8>();
 }

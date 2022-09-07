@@ -759,7 +759,7 @@ class _InnerIterator_<Container<container_type_,
 template <typename ContentIterator_>
 class Iterator_ : protected ContentIterator_ {
  private:
-  using ContentPtr = typename ContentIterator_ ::ContentPtr;
+  // using ContentPtr = typename ContentIterator_ ::ContentPtr;
 
  public:
   using ContentIterator_::ContentIterator_;
@@ -773,7 +773,7 @@ class Iterator_ : protected ContentIterator_ {
 
   // template <bool judge = ContentIterator_::kIsConst_,
   //           typename std::enable_if<judge, bool>::type = false>
-  inline ContentPtr operator->() const {
+  inline auto operator->() const {
     assert(!this->IsDone());
     return ContentIterator_::content_ptr();
   }

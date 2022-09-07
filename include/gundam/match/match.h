@@ -519,16 +519,16 @@ Match(SrcGraphType& src_graph,
                 >;
 
 template <typename SrcGraphType,
-          typename DstGraphType//,
-          // enum ContainerType match_container_type = ContainerType::Vector,
-          // enum SortType match_container_sort_type = SortType::Default
+          typename DstGraphType,
+          enum ContainerType match_container_type = ContainerType::Vector,
+          enum SortType match_container_sort_type = SortType::Default
           >
 class MatchSet;
 
 template <typename SrcGraphType, 
-          typename DstGraphType//,
-          // enum ContainerType match_container_type,
-          // enum SortType match_container_sort_type
+          typename DstGraphType,
+          enum ContainerType match_container_type,
+          enum SortType match_container_sort_type
           >
 class MatchSet {
  private:
@@ -542,8 +542,8 @@ class MatchSet {
   using MatchType = Match<SrcGraphType, DstGraphType>;
 
  private:
-  static constexpr enum ContainerType match_container_type = ContainerType::Vector;
-  static constexpr enum SortType match_container_sort_type = SortType::Default;
+  // static constexpr enum ContainerType match_container_type = ContainerType::Set;
+  // static constexpr enum SortType match_container_sort_type = SortType::Default;
 
   static constexpr TupleIdxType kMatchIdx = 0;
   using MatchContainerType = Container<match_container_type, 
@@ -560,9 +560,6 @@ class MatchSet {
     using InnerIteratorType = InnerIterator_<ContainerType_, is_const_, depth_>;
 
    protected:
-    using ContentPtr = typename std::conditional<is_const_,
-                                          const MatchType*,
-                                                MatchType*>::type;
     using ContentDataType = MatchType;
     using InnerIteratorType::IsDone;
     using InnerIteratorType::ToNext;
@@ -570,16 +567,19 @@ class MatchSet {
 
     template <bool judge = is_const_,
               typename std::enable_if<judge, bool>::type = false>
-    inline ContentPtr content_ptr() const {
+    inline auto content_ptr() const {
       static_assert(judge == is_const_, "illegal usage of this method");
       assert(!this->IsDone());
       return &(InnerIteratorType::template get_const<key_idx_,
                                                      depth_ - 1>());
     }
-
+// const GUNDAM::Match<GUNDAM::Graph<GUNDAM::SetVertexIDType<unsigned int>, GUNDAM::SetVertexLabelType<unsigned int>, GUNDAM::SetEdgeIDType<unsigned int>, GUNDAM::SetEdgeLabelType<unsigned int> >, 
+//                     GUNDAM::Graph<GUNDAM::SetVertexIDType<unsigned int>, GUNDAM::SetVertexLabelType<unsigned int>, GUNDAM::SetEdgeIDType<unsigned int>, GUNDAM::SetEdgeLabelType<unsigned int> > >*
+//       GUNDAM::Match<GUNDAM::Graph<GUNDAM::SetVertexIDType<unsigned int>, GUNDAM::SetVertexLabelType<unsigned int>, GUNDAM::SetEdgeIDType<unsigned int>, GUNDAM::SetEdgeLabelType<unsigned int> >, 
+//                     GUNDAM::Graph<GUNDAM::SetVertexIDType<unsigned int>, GUNDAM::SetVertexLabelType<unsigned int>, GUNDAM::SetEdgeIDType<unsigned int>, GUNDAM::SetEdgeLabelType<unsigned int> > >*
     template <bool judge = is_const_,
               typename std::enable_if<!judge, bool>::type = false>
-    inline ContentPtr content_ptr() const {
+    inline auto content_ptr() const {
       static_assert(judge == is_const_, "illegal usage of this method");
       assert(!this->IsDone());
       return &(InnerIteratorType::template get<key_idx_, depth_ - 1>());
@@ -729,6 +729,43 @@ class MatchSet {
     return;
   }
 
+
+  inline void Serialize(std::ostream& os) const {
+    if (this->Empty()) {
+      return;
+    }
+    std::vector<SrcVertexIDType> match_src_id_seq;
+    for (auto match_it = this->MatchBegin();
+             !match_it.IsDone();
+              match_it++) {
+      for (auto map_it = match_it->MapBegin();
+               !map_it.IsDone();
+                map_it++) {
+        match_src_id_seq.emplace_back(map_it->src_handle()->id());
+      }
+      break;
+    }
+    std::sort(match_src_id_seq.begin(),
+              match_src_id_seq.end());
+    os << "match_id";
+    for (const auto& src_id : match_src_id_seq) {
+      os << "," << src_id;
+    }
+    os << std::endl;
+    size_t match_counter = 0;
+    for (auto match_it = this->MatchBegin();
+             !match_it.IsDone();
+              match_it++) {
+      os << match_counter;
+      for (const auto& src_id : match_src_id_seq) {
+        os << "," << match_it->MapTo(src_id)->id();
+      }
+      os << std::endl;
+      match_counter++;
+    }
+    return;
+  }
+
   inline size_type size() const { 
     return this->match_set_.size(); 
   }
@@ -740,6 +777,10 @@ class MatchSet {
 
   inline MatchConstIterator MatchBegin() const {
     return this->MatchCBegin();
+  }
+
+  inline void Clear() {
+    return this->match_set_.clear(); 
   }
 
   inline bool Empty() const { 
@@ -765,9 +806,9 @@ template <typename SrcGraphType,
 MatchSet(SrcGraphType& src_graph,
          DstGraphType& dst_graph)
    -> MatchSet<SrcGraphType,
-               DstGraphType//,
-              // ContainerType::Vector,
-              //      SortType::Default
+               DstGraphType,
+              ContainerType::Vector,
+                   SortType::Default
                    >;
 
 template <typename SrcGraphType,
@@ -776,9 +817,9 @@ MatchSet(SrcGraphType& src_graph,
          DstGraphType& dst_graph,
         std::ifstream& supp_file)
    -> MatchSet<SrcGraphType,
-               DstGraphType//,
-              // ContainerType::Vector,
-              //      SortType::Default
+               DstGraphType,
+              ContainerType::Vector,
+                   SortType::Default
                    >;
                    
 }  // namespace GUNDAM

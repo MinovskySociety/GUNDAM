@@ -402,6 +402,63 @@ template <enum MatchSemantics match_semantics
              = MatchAlgorithm::kDagDp,
           enum MergeNecConfig merge_query_nec_config 
              = MergeNecConfig::kNotMerge,
+          typename  QueryGraph,
+          typename TargetGraph>
+inline size_t MatchUsingMatch(
+   QueryGraph&  query_graph, 
+  TargetGraph& target_graph,
+  const std::map<typename VertexHandle< QueryGraph>::type, 
+     std::vector<typename VertexHandle<TargetGraph>::type>>& candidate_set,
+   int64_t max_match = -1,
+   double time_limit = -1.0) {
+                           
+  using MatchType = Match<QueryGraph, TargetGraph>;
+
+  std::function<bool(const MatchType&)>
+    prune_callback = [](const MatchType& match) -> bool{
+    // prune nothing, continue matching
+    return false;
+  };
+
+  int64_t match_counter = 0;
+
+  std::function<bool(const MatchType&)>
+    match_callback = [&max_match,
+                      &match_counter](const MatchType& match) -> bool {
+    if (max_match == -1) {
+      // does not have support nothing
+      // do nothing continue matching
+      return true;
+    }
+    match_counter++;
+    if (match_counter >= max_match){
+      // reach max match, end matching
+      return false;
+    }
+    // does not reach max match, continue matching
+    return true;
+  };
+
+  MatchType match_state;
+
+  return MatchUsingMatch<match_semantics,
+                         match_algorithm,
+                         merge_query_nec_config>(
+                         query_graph,
+                        target_graph,
+                         match_state,
+                       candidate_set,
+                      prune_callback,
+                      match_callback,
+                          time_limit);
+}
+
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
+          enum MergeNecConfig merge_query_nec_config 
+             = MergeNecConfig::kNotMerge,
           enum MergeNecConfig merge_target_nec_config 
              = MergeNecConfig::kNotMerge,
           typename  QueryGraph,
@@ -724,6 +781,50 @@ inline int IncrementalMatchUsingMatch(
   static_assert(match_algorithm
              == MatchAlgorithm::kDagDp, "unsupported match algorithm for incremental match");
 
+
+  return IncreamentDPISOUsingMatch<match_semantics>(
+                         query_graph, 
+                        target_graph,
+                  delta_target_graph,
+                         match_callback,
+                         query_limit_time);
+}
+
+template <enum MatchSemantics match_semantics 
+             = MatchSemantics::kIsomorphism,
+          enum MatchAlgorithm match_algorithm
+             = MatchAlgorithm::kDagDp,
+          typename    QueryGraph, 
+          typename   TargetGraph>
+inline int IncrementalMatchUsingMatch(
+                      QueryGraph &query_graph, 
+                     TargetGraph &target_graph,
+     std::vector<typename VertexHandle<TargetGraph>::type> &delta_target_graph,
+                           size_t max_match = -1,
+                           double query_limit_time = -1){
+  static_assert(match_algorithm
+             == MatchAlgorithm::kDagDp, "unsupported match algorithm for incremental match");
+
+  using MatchType = Match<QueryGraph, TargetGraph>;
+
+  int64_t match_counter = 0;
+
+  std::function<bool(const MatchType&)>
+    match_callback = [&max_match,
+                      &match_counter](const MatchType& match) -> bool {
+    match_counter++;
+    if (max_match == -1) {
+      // does not have support nothing
+      // do nothing continue matching
+      return true;
+    }
+    if (match_counter >= max_match){
+      // reach max match, end matching
+      return false;
+    }
+    // does not reach max match, continue matching
+    return true;
+  };
 
   return IncreamentDPISOUsingMatch<match_semantics>(
                          query_graph, 

@@ -28,13 +28,13 @@
 
 #include "gundam/serialize/serialize.h"
 
+#include "gundam/util/util.h"
+
 #include <iostream>
 #include <set>
 #include <tuple>
 
 namespace GUNDAM {
-
-enum class EdgeDirection : bool { InputEdge, OutputEdge };
 
 template <typename... configures>
 class Graph {
@@ -896,48 +896,54 @@ class Graph {
       inline auto src_handle() const {
         assert(!this->IsDone());
         if constexpr (is_const_) {
-          if (this->direction_ == EdgeDirection::OutputEdge)
+          if (this->direction_ == EdgeDirection::kOut)
             return this->vertex_ptr_;
-          /// this->direction_ == EdgeDirection::InputEdge
+          /// this->direction_ == EdgeDirection::kIn
+          assert(this->direction_ == EdgeDirection::kIn);
           return this->VertexPtrContainerConstElement();
         }
         else {
-          if (this->direction_ == EdgeDirection::OutputEdge)
+          if (this->direction_ == EdgeDirection::kOut)
             return this->vertex_ptr_;
-          /// this->direction_ == EdgeDirection::InputEdge
+          /// this->direction_ == EdgeDirection::kIn
+          assert(this->direction_ == EdgeDirection::kIn);
           return this->VertexPtrContainerElement();
         }
       }
 
       inline VertexConstPtr const_src_handle() const {
         assert(!this->IsDone());
-        if (this->direction_ == EdgeDirection::OutputEdge)
+        if (this->direction_ == EdgeDirection::kOut)
           return this->vertex_ptr_;
-        /// this->direction_ == EdgeDirection::InputEdge
+        /// this->direction_ == EdgeDirection::kIn
+        assert(this->direction_ == EdgeDirection::kIn);
         return this->VertexPtrContainerConstElement();
       }
 
       inline auto dst_handle() const {
         assert(!this->IsDone());
         if constexpr (is_const_) {
-          if (this->direction_ == EdgeDirection::OutputEdge)
+          if (this->direction_ == EdgeDirection::kOut)
             return this->VertexPtrContainerConstElement();
-          /// this->direction_ == EdgeDirection::InputEdge
+          /// this->direction_ == EdgeDirection::kIn
+          assert(this->direction_ == EdgeDirection::kIn);
           return this->vertex_ptr_;
         }
         else {
-          if (this->direction_ == EdgeDirection::OutputEdge)
+          if (this->direction_ == EdgeDirection::kOut)
             return this->VertexPtrContainerElement();
-          /// this->direction_ == EdgeDirection::InputEdge
+          /// this->direction_ == EdgeDirection::kIn
+          assert(this->direction_ == EdgeDirection::kIn);
           return this->vertex_ptr_;
         }
       }
       
       inline VertexConstPtr const_dst_handle() const {
         assert(!this->IsDone());
-        if (this->direction_ == EdgeDirection::OutputEdge)
+        if (this->direction_ == EdgeDirection::kOut)
           return this->VertexPtrContainerConstElement();
-        /// this->direction_ == EdgeDirection::InputEdge
+        /// this->direction_ == EdgeDirection::kIn
+        assert(this->direction_ == EdgeDirection::kIn);
         return this->vertex_ptr_;
       }
 
@@ -1247,48 +1253,54 @@ class Graph {
       inline auto src_handle() const {
         assert(!this->IsDone());
         if constexpr (is_const_) {
-          if (this->direction_ == EdgeDirection::OutputEdge)
+          if (this->direction_ == EdgeDirection::kOut)
             return InnerIteratorType::const_vertex_ptr();
-          /// this->direction_ == EdgeDirection::InputEdge
+          /// this->direction_ == EdgeDirection::kIn
+          assert(this->direction_ == EdgeDirection::kIn);
           return this->VertexPtrContainerConstElement();
         }
         else {
-          if (this->direction_ == EdgeDirection::OutputEdge)
+          if (this->direction_ == EdgeDirection::kOut)
             return InnerIteratorType::vertex_ptr();
-          /// this->direction_ == EdgeDirection::InputEdge
+          /// this->direction_ == EdgeDirection::kIn
+          assert(this->direction_ == EdgeDirection::kIn);
           return this->VertexPtrContainerElement();
         }
       }
 
       inline VertexConstPtr const_src_handle() const {
         assert(!this->IsDone());
-        if (this->direction_ == EdgeDirection::OutputEdge)
+        if (this->direction_ == EdgeDirection::kOut)
           return InnerIteratorType::const_vertex_ptr();
-        /// this->direction_ == EdgeDirection::InputEdge
+        /// this->direction_ == EdgeDirection::kIn
+        assert(this->direction_ == EdgeDirection::kIn);
         return this->VertexPtrContainerConstElement();
       }
 
       inline auto dst_handle() const {
         assert(!this->IsDone());
         if constexpr (is_const_) {
-          if (this->direction_ == EdgeDirection::OutputEdge)
+          if (this->direction_ == EdgeDirection::kOut)
             return this->VertexPtrContainerConstElement();
-          /// this->direction_ == EdgeDirection::InputEdge
+          /// this->direction_ == EdgeDirection::kIn
+          assert(this->direction_ == EdgeDirection::kIn);
           return InnerIteratorType::const_vertex_ptr();
         }
         else {
-          if (this->direction_ == EdgeDirection::OutputEdge)
+          if (this->direction_ == EdgeDirection::kOut)
             return this->VertexPtrContainerElement();
-          /// this->direction_ == EdgeDirection::InputEdge
+          /// this->direction_ == EdgeDirection::kIn
+          assert(this->direction_ == EdgeDirection::kIn);
           return InnerIteratorType::vertex_ptr();
         }
       }
       
       inline VertexConstPtr const_dst_handle() const {
         assert(!this->IsDone());
-        if (this->direction_ == EdgeDirection::OutputEdge)
+        if (this->direction_ == EdgeDirection::kOut)
           return this->VertexPtrContainerConstElement();
-        /// this->direction_ == EdgeDirection::InputEdge
+        /// this->direction_ == EdgeDirection::kIn
+        assert(this->direction_ == EdgeDirection::kIn);
         return InnerIteratorType::const_vertex_ptr();
       }
 
@@ -1462,8 +1474,9 @@ class Graph {
 
       inline VertexConstPtr const_src_handle() const {
         assert(!this->IsNull());
-        if (this->direction_ == EdgeDirection::OutputEdge)
+        if (this->direction_ == EdgeDirection::kOut)
           return this->vertex_ptr_;
+        assert(this->direction_ == EdgeDirection::kIn);
         return this->VertexPtrContainerConstElement();
       }
 
@@ -1473,8 +1486,9 @@ class Graph {
 
       inline VertexConstPtr const_dst_handle() const {
         assert(!this->IsNull());
-        if (this->direction_ == EdgeDirection::OutputEdge)
+        if (this->direction_ == EdgeDirection::kOut)
           return this->VertexPtrContainerConstElement();
+        assert(this->direction_ == EdgeDirection::kIn);
         return this->vertex_ptr_;
       }
 
@@ -1548,15 +1562,17 @@ class Graph {
 
       inline VertexPtr src_handle() const {
         assert(!this->IsNull());
-        if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
+        if (EdgePtrContent::direction_ == EdgeDirection::kOut)
           return EdgePtrContent::vertex_ptr_;
+        assert(this->direction_ == EdgeDirection::kIn);
         return this->VertexPtrContainerElement();
       }
 
       inline VertexPtr dst_handle() const {
         assert(!this->IsNull());
-        if (EdgePtrContent::direction_ == EdgeDirection::OutputEdge)
+        if (EdgePtrContent::direction_ == EdgeDirection::kOut)
           return this->VertexPtrContainerElement();
+        assert(this->direction_ == EdgeDirection::kIn);
         return EdgePtrContent::vertex_ptr_;
       }
 
@@ -2220,7 +2236,7 @@ class Graph {
       /// otherwise, needs to decide the second element
       /// in the pair
       return std::pair<EdgePtr, bool>(
-          EdgePtr(EdgeDirection::OutputEdge,
+          EdgePtr(EdgeDirection::kOut,
                   temp_vertex_ptr,  /// src_ptr
                   edge_label_it, 
                   vertex_ptr_it, 
@@ -2306,12 +2322,13 @@ class Graph {
       // first level container, decide which container to remove
       EdgeLabelContainerType* edge_label_container_ptr = nullptr;
       bool has_vertex = false;
-      if (edge_direction == EdgeDirection::OutputEdge) {
+      if (edge_direction == EdgeDirection::kOut) {
         edge_label_container_ptr = &this->edges_.out_edges();
         /// maintain the edge counter for all output edges
         this->edges_.OutEdgeReduceOne();
       }
       else{
+        assert(edge_direction == EdgeDirection::kIn);
         edge_label_container_ptr = &this->edges_.in_edges();
         /// maintain the edge counter for all input edges
         this->edges_.InEdgeReduceOne();
@@ -2359,10 +2376,11 @@ class Graph {
                  edge_label)){
         /// does not have other edges connect to vertex_ptr
         /// maintain the vertex counter for in/out vertex
-        if (edge_direction == EdgeDirection::OutputEdge) {
+        if (edge_direction == EdgeDirection::kOut) {
           this->edges_.OutVertexReduceOne();
         }
         else{
+          assert(edge_direction == EdgeDirection::kIn);
           this->edges_.InVertexReduceOne();
         }
       }
@@ -2401,20 +2419,26 @@ class Graph {
                 .template get<kEdgeAttributePtrIdx>();
           decomposed_edge_container.Erase(edge_id_ret.first);
           /// maintain the edge counter of all in/out edges
-          if (edge_direction == EdgeDirection::OutputEdge)
+          if (edge_direction == EdgeDirection::kOut) {
             this->edges_.OutEdgeReduceOne();
-          else
+          }
+          else {
+            assert(edge_direction == EdgeDirection::kIn);
             this->edges_.InEdgeReduceOne();
+          }
           /// maintain the edge counter of edge_label
           edge_label_it.template get<kEdgeLabelEdgeCounterIdx>()
                        .ReduceOne();
           InnerVertex_* temp_this_ptr = this;
           VertexPtr temp_vertex_ptr(temp_this_ptr);
+
+          assert(edge_direction == EdgeDirection::kIn
+              || edge_direction == EdgeDirection::kOut);
           vertex_ptr_it.template get<kVertexPtrIdx>()
               ->EraseEdge(edge_direction
-                       == EdgeDirection:: InputEdge
-                        ? EdgeDirection::OutputEdge
-                        : EdgeDirection:: InputEdge,
+                       == EdgeDirection:: kIn
+                        ? EdgeDirection::kOut
+                        : EdgeDirection:: kIn,
                           edge_label_it.template get<kEdgeLabelIdx>(),
                           temp_vertex_ptr, edge_id);
           if (!decomposed_edge_container.empty()) {
@@ -2438,10 +2462,13 @@ class Graph {
                      edge_label_it.template get<kEdgeLabelIdx>())){
             /// does not have other edges connect to vertex_ptr
             /// maintain the vertex counter for in/out vertex
-            if (edge_direction == EdgeDirection::OutputEdge)
+            if (edge_direction == EdgeDirection::kOut) {
               this->edges_.OutVertexReduceOne();
-            else
+            }
+            else {
+              assert(edge_direction == EdgeDirection::kIn);
               this->edges_.InVertexReduceOne();
+            }
           }
           if (!vertex_ptr_container.empty()) {
             // no further modificaiton is required
@@ -2461,11 +2488,11 @@ class Graph {
    public:
     inline bool EraseEdge(const EdgeIDType& edge_id) {
       if (this->EraseEdge(this->edges_.out_edges(), 
-                          EdgeDirection::OutputEdge,
+                          EdgeDirection::kOut,
                           edge_id))
         return true;
       return this->EraseEdge(this->edges_.in_edges(), 
-                             EdgeDirection::InputEdge,
+                             EdgeDirection::kIn,
                              edge_id);
     }
     /*
@@ -2475,10 +2502,10 @@ class Graph {
         return edge_iterator;
       }
       std::pair<EdgeIterator, bool> erase_res = this->EraseEdge(
-          this->edges_.out_edges(), EdgeDirection::OutputEdge, edge_iterator);
+          this->edges_.out_edges(), EdgeDirection::kOut, edge_iterator);
       if (erase_res.second) return erase_res.first;
       erase_res = this->EraseEdge(this->edges_.in_edges(),
-                                  EdgeDirection::InputEdge, edge_iterator);
+                                  EdgeDirection::kIn, edge_iterator);
       return erase_res.first;
     }
     */
@@ -3157,14 +3184,14 @@ class Graph {
     inline EdgePtr FindOutEdge(const EdgeIDType& edge_id) {
       return this->FindEdge(this->edges_.out_edges(), 
                             this->this_vertex_ptr(),
-                            EdgeDirection::OutputEdge,
+                            EdgeDirection::kOut,
                             edge_id);
     }
     inline EdgePtr FindOutEdge(const EdgeLabelType& edge_label,
                                const EdgeIDType& edge_id) {
       return this->FindEdge(this->edges_.out_edges(), 
                             this->this_vertex_ptr(),
-                            EdgeDirection::OutputEdge,
+                            EdgeDirection::kOut,
                             edge_label, edge_id);
     }
     inline EdgePtr FindOutEdge(const EdgeLabelType& edge_label,
@@ -3172,7 +3199,7 @@ class Graph {
                                const EdgeIDType& edge_id) {
       return this->FindEdge(this->edges_.out_edges(), 
                             this->this_vertex_ptr(),
-                            EdgeDirection::OutputEdge,
+                            EdgeDirection::kOut,
                             edge_label, dst_ptr, edge_id);
     }
     
@@ -3180,14 +3207,14 @@ class Graph {
     inline EdgeConstPtr FindOutEdge(const EdgeIDType& edge_id) const {
       return this->FindEdge(this->edges_.const_out_edges(),
                             this->this_vertex_ptr(),
-                            EdgeDirection::OutputEdge, 
+                            EdgeDirection::kOut, 
                             edge_id);
     }
     inline EdgeConstPtr FindOutEdge(const EdgeLabelType& edge_label,
                                     const EdgeIDType& edge_id) const {
       return this->FindEdge(this->edges_.const_out_edges(), 
                             this->this_vertex_ptr(),
-                            EdgeDirection::OutputEdge,
+                            EdgeDirection::kOut,
                             edge_label, 
                             edge_id);
     }
@@ -3196,7 +3223,7 @@ class Graph {
                                     const EdgeIDType& edge_id) const {
       return this->FindEdge(this->edges_.const_out_edges(), 
                             this->this_vertex_ptr(),
-                            EdgeDirection::OutputEdge,
+                            EdgeDirection::kOut,
                             edge_label, 
                             dst_ptr, 
                             edge_id);
@@ -3222,14 +3249,14 @@ class Graph {
     inline EdgePtr FindInEdge(const EdgeIDType& edge_id) {
       return this->FindEdge(this->edges_.in_edges(), 
                             this->this_vertex_ptr(),
-                            EdgeDirection::InputEdge,
+                            EdgeDirection::kIn,
                             edge_id);
     }
     inline EdgePtr FindInEdge(const EdgeLabelType& edge_label,
                               const EdgeIDType& edge_id) {
       return this->FindEdge(this->edges_.in_edges(), 
                             this->this_vertex_ptr(),
-                            EdgeDirection::InputEdge,
+                            EdgeDirection::kIn,
                             edge_label, 
                             edge_id);
     }
@@ -3238,7 +3265,7 @@ class Graph {
                               const EdgeIDType& edge_id) {
       return this->FindEdge(this->edges_.in_edges(), 
                             this->this_vertex_ptr(),
-                            EdgeDirection::InputEdge,
+                            EdgeDirection::kIn,
                             edge_label, 
                             src_ptr, 
                             edge_id);
@@ -3248,14 +3275,14 @@ class Graph {
     inline EdgeConstPtr FindInEdge(const EdgeIDType& edge_id) const {
       return this->FindEdge(this->edges_.const_in_edges(), 
                             this->this_vertex_ptr(),
-                            EdgeDirection::InputEdge,
+                            EdgeDirection::kIn,
                             edge_id);
     }
     inline EdgeConstPtr FindInEdge(const EdgeLabelType& edge_label,
                                    const EdgeIDType& edge_id) const {
       return this->FindEdge(this->edges_.const_in_edges(), 
                             this->this_vertex_ptr(),
-                            EdgeDirection::InputEdge,
+                            EdgeDirection::kIn,
                             edge_label, 
                             edge_id);
     }
@@ -3264,7 +3291,7 @@ class Graph {
                                    const EdgeIDType& edge_id) const {
       return this->FindEdge(this->edges_.const_in_edges(), 
                             this->this_vertex_ptr(),
-                            EdgeDirection::InputEdge,
+                            EdgeDirection::kIn,
                             edge_label, 
                             src_ptr, 
                             edge_id);
@@ -3389,16 +3416,18 @@ class Graph {
       InnerVertex_* temp_this_ptr = this;
       VertexPtr temp_vertex_ptr = VertexPtr(temp_this_ptr);
       VertexPtr dst_ptr;
-      if (edge_direction == EdgeDirection::OutputEdge) {
+      if (edge_direction == EdgeDirection::kOut) {
         dst_ptr = edge_it_ptr->dst_handle();
       } else {
+        assert(edge_direction == EdgeDirection::kIn);
         dst_ptr = edge_it_ptr->src_handle();
       }
       enum EdgeDirection reverse_edge_direction;
-      if (edge_direction == EdgeDirection::OutputEdge) {
-        reverse_edge_direction = EdgeDirection::InputEdge;
+      if (edge_direction == EdgeDirection::kOut) {
+        reverse_edge_direction = EdgeDirection::kIn;
       } else {
-        reverse_edge_direction = EdgeDirection::OutputEdge;
+        assert(edge_direction == EdgeDirection::kIn);
+        reverse_edge_direction = EdgeDirection::kOut;
       }
       dst_ptr->EraseEdge(reverse_edge_direction, edge_label, temp_vertex_ptr,
                          edge_id);
@@ -3413,9 +3442,10 @@ class Graph {
       decomposed_edge_iterator =
           decomposed_edge_container.Erase(decomposed_edge_iterator);
       /// maintain the edge counter
-      if (edge_direction == EdgeDirection::OutputEdge) {
+      if (edge_direction == EdgeDirection::kOut) {
         this->edges_.OutEdgeReduceOne();
       } else {
+        assert(edge_direction == EdgeDirection::kIn);
         this->edges_.InEdgeReduceOne();
       }
       edge_label_iterator.template get<kEdgeLabelEdgeCounterIdx>()
@@ -3434,13 +3464,14 @@ class Graph {
         // erase vertex_ptr_iterator
         auto dst_handle = vertex_ptr_iterator.template get<kVertexPtrIdx>();
         vertex_ptr_iterator = vertex_ptr_container.Erase(vertex_ptr_iterator);
-        if (edge_direction == EdgeDirection::OutputEdge) {
+        if (edge_direction == EdgeDirection::kOut) {
           if (!this->FindOutVertex(dst_handle)) {
             // maintain out vertex counter
             // this vertex has no output edge point to dst_ptr
             this->edges_.OutVertexReduceOne();
           }
         } else {
+          assert(edge_direction == EdgeDirection::kIn);
           if (!this->FindInVertex(dst_handle)) {
             // maintain out vertex counter
             // this vertex has no input edge points from dst_ptr
@@ -3474,10 +3505,13 @@ class Graph {
                        = edge_content_iterator_ptr->const_direction();
       // get container and iterator
       EdgeLabelContainerType* edge_label_container_ptr = nullptr;
-      if (edge_direction == EdgeDirection::OutputEdge)
+      if (edge_direction == EdgeDirection::kOut) {
         edge_label_container_ptr = &this->edges_.out_edges();
-      else
+      }
+      else {
+        assert(edge_direction == EdgeDirection::kIn);
         edge_label_container_ptr = &this->edges_.in_edges();
+      }
       assert(edge_label_container_ptr != nullptr);
       VertexPtrContainerType& vertex_ptr_container
              = edge_content_iterator_ptr->template get<kVertexPtrContainerIdx, 0>();
@@ -3498,11 +3532,12 @@ class Graph {
       VertexPtr temp_vertex_ptr = VertexPtr(temp_this_ptr);
       VertexPtr dst_ptr;
       enum EdgeDirection reverse_edge_direction;
-      if (edge_direction == EdgeDirection::OutputEdge) {
-        reverse_edge_direction = EdgeDirection::InputEdge;
+      if (edge_direction == EdgeDirection::kOut) {
+        reverse_edge_direction = EdgeDirection::kIn;
         dst_ptr = edge_content_iterator_ptr->dst_handle();
       } else {
-        reverse_edge_direction = EdgeDirection::OutputEdge;
+        assert(edge_direction == EdgeDirection::kIn);
+        reverse_edge_direction = EdgeDirection::kOut;
         dst_ptr = edge_content_iterator_ptr->src_handle();
       }
       dst_ptr->EraseEdge(reverse_edge_direction, 
@@ -3524,9 +3559,10 @@ class Graph {
       decomposed_edge_iterator =
       decomposed_edge_container.Erase(decomposed_edge_iterator);
       /// maintain the edge counter
-      if (edge_direction == EdgeDirection::OutputEdge) {
+      if (edge_direction == EdgeDirection::kOut) {
         this->edges_.OutEdgeReduceOne();
       } else {
+        assert(edge_direction == EdgeDirection::kIn);
         this->edges_.InEdgeReduceOne();
       }
       edge_label_iterator.template get<kEdgeLabelEdgeCounterIdx>()
@@ -3546,13 +3582,14 @@ class Graph {
         // erase vertex_ptr_iterator
         auto dst_handle = vertex_ptr_iterator.template get<kVertexPtrIdx>();
         vertex_ptr_iterator = vertex_ptr_container.Erase(vertex_ptr_iterator);
-        if (edge_direction == EdgeDirection::OutputEdge) {
+        if (edge_direction == EdgeDirection::kOut) {
           if (!this->FindOutVertex(dst_handle)) {
             // maintain out vertex counter
             // this vertex has no output edge point to dst_ptr
             this->edges_.OutVertexReduceOne();
           }
         } else {
+          assert(edge_direction == EdgeDirection::kIn);
           if (!this->FindInVertex(dst_handle)) {
             // maintain out vertex counter
             // this vertex has no input edge points from dst_ptr
@@ -3806,28 +3843,28 @@ class Graph {
     /// output edge:
 
     inline EdgeIterator OutEdgeBegin() {
-      return this->EdgeBegin(EdgeDirection::OutputEdge,
+      return this->EdgeBegin(EdgeDirection::kOut,
                              this->edges_.out_edges());
     }
     inline EdgeConstIterator OutEdgeBegin() const {
-      return this->EdgeCBegin(EdgeDirection::OutputEdge,
+      return this->EdgeCBegin(EdgeDirection::kOut,
                               this->edges_.const_out_edges());
     }
     inline EdgeIteratorSpecifiedEdgeLabel OutEdgeBegin(
         const EdgeLabelType& edge_label) {
-      return this->EdgeBegin(EdgeDirection::OutputEdge,
+      return this->EdgeBegin(EdgeDirection::kOut,
                              this->edges_.out_edges(), edge_label);
     }
     inline EdgeConstIteratorSpecifiedEdgeLabel OutEdgeBegin(
         const EdgeLabelType& edge_label) const {
-      return this->EdgeCBegin(EdgeDirection::OutputEdge,
+      return this->EdgeCBegin(EdgeDirection::kOut,
                               this->edges_.const_out_edges(), edge_label);
     }
     template<bool ptr_is_const_>
     inline EdgeIteratorSpecifiedEdgeLabelVertexPtr
         OutEdgeBegin(const   EdgeLabelType&   edge_label,
                      const VertexPtr_<ptr_is_const_>& vertex_ptr){
-      return this->EdgeBegin(EdgeDirection::OutputEdge,
+      return this->EdgeBegin(EdgeDirection::kOut,
                              this->edges_.out_edges(), 
                              edge_label,
                              vertex_ptr);
@@ -3836,7 +3873,7 @@ class Graph {
     inline EdgeConstIteratorSpecifiedEdgeLabelVertexPtr
          OutEdgeBegin(const   EdgeLabelType&   edge_label,
                       const VertexPtr_<ptr_is_const_>& vertex_ptr) const{
-      return this->EdgeCBegin(EdgeDirection::OutputEdge,
+      return this->EdgeCBegin(EdgeDirection::kOut,
                               this->edges_.const_out_edges(),
                               edge_label,
                               vertex_ptr);
@@ -3846,27 +3883,27 @@ class Graph {
 
     /// input edge:
     inline EdgeIterator InEdgeBegin() {
-      return this->EdgeBegin(EdgeDirection::InputEdge, this->edges_.in_edges());
+      return this->EdgeBegin(EdgeDirection::kIn, this->edges_.in_edges());
     }
     inline EdgeConstIterator InEdgeBegin() const {
-      return this->EdgeCBegin(EdgeDirection::InputEdge,
+      return this->EdgeCBegin(EdgeDirection::kIn,
                               this->edges_.const_in_edges());
     }
     inline EdgeIteratorSpecifiedEdgeLabel InEdgeBegin(
         const EdgeLabelType& edge_label) {
-      return this->EdgeBegin(EdgeDirection::InputEdge, this->edges_.in_edges(),
+      return this->EdgeBegin(EdgeDirection::kIn, this->edges_.in_edges(),
                              edge_label);
     }
     inline EdgeConstIteratorSpecifiedEdgeLabel InEdgeBegin(
         const EdgeLabelType& edge_label) const {
-      return this->EdgeCBegin(EdgeDirection::InputEdge,
+      return this->EdgeCBegin(EdgeDirection::kIn,
                               this->edges_.const_in_edges(), edge_label);
     }
     template<bool ptr_is_const_>
     inline EdgeIteratorSpecifiedEdgeLabelVertexPtr
          InEdgeBegin(const   EdgeLabelType&   edge_label,
                      const VertexPtr_<ptr_is_const_>& vertex_ptr){
-      return this->EdgeBegin(EdgeDirection::InputEdge,
+      return this->EdgeBegin(EdgeDirection::kIn,
                              this->edges_.in_edges(), 
                              edge_label,
                              vertex_ptr);
@@ -3875,7 +3912,7 @@ class Graph {
     inline EdgeConstIteratorSpecifiedEdgeLabelVertexPtr
           InEdgeBegin(const   EdgeLabelType&   edge_label,
                       const VertexPtr_<ptr_is_const_>& vertex_ptr) const {
-      return this->EdgeCBegin(EdgeDirection::InputEdge,
+      return this->EdgeCBegin(EdgeDirection::kIn,
                               this->edges_.const_in_edges(), 
                               edge_label,
                               vertex_ptr);

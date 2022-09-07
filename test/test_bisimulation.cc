@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 
-#include "gundam/tool/vertex_degree_filter.h"
+#include "gundam/algorithm/simulation/bisimulation.h"
 
 #include "gundam/graph_type/graph_base.h"
 #include "gundam/graph_type/small_graph.h"
@@ -14,36 +14,72 @@
 #include "test_data/test_pattern_set.h"
 
 template<class GraphType>
-void TestVertexDegreeFilter() {
+void TestBisimulation(){
+
+  using EquivalentClassType = std::vector<
+                              std::vector<typename GUNDAM::VertexHandle<GraphType>::type>>;
+
+  EquivalentClassType equivalent_class_set;
   GraphType g;
 
-  using VertexHandleType = typename GUNDAM::VertexHandle<GraphType>::type;
+  ConstructGraph18(g);
+  GUNDAM::BisimulationGeneralCase(g, equivalent_class_set);
 
-  std::vector<VertexHandleType> qualified_vertex_set;
+  EquivalentClassType equivalent_class_set_18 
+    = { {g.FindVertex(0)},
+        {g.FindVertex(1), g.FindVertex(3)},
+        {g.FindVertex(2)},
+        {g.FindVertex(4), g.FindVertex(5)},
+        {g.FindVertex(6), g.FindVertex(7)} };
 
-  ConstructGraph0(g);
-  qualified_vertex_set = GUNDAM::VertexDegreeFilter<
-                         GUNDAM::FilterType::kHigherOrEqualTo,
-                         GUNDAM::EdgeDirection::kOut>(g, 2);
-  ASSERT_EQ(qualified_vertex_set.size(), 0);
+  for (auto& equivalent_class : equivalent_class_set_18) {
+    std::sort(equivalent_class.begin(),
+              equivalent_class.end());
+  }
+  std::sort(equivalent_class_set_18.begin(),
+            equivalent_class_set_18.end());
 
-  qualified_vertex_set.clear();
-  qualified_vertex_set = GUNDAM::VertexDegreeFilter<
-                         GUNDAM::FilterType::kHigherOrEqualTo,
-                         GUNDAM::EdgeDirection::kInOut>(g, 2);
-  ASSERT_EQ(qualified_vertex_set.size(), 3);
+  ASSERT_EQ(equivalent_class_set,
+            equivalent_class_set_18);
 
-  ConstructGraph1(g);
-  ConstructGraph2(g);
-  ConstructGraph3(g);
-  ConstructGraph4(g);
-  ConstructGraph5(g);
-  ConstructGraph6(g);
+  ConstructGraph19(g);
+  GUNDAM::BisimulationGeneralCase(g, equivalent_class_set);
 
+  EquivalentClassType equivalent_class_set_19
+    = { {g.FindVertex(0)},
+        {g.FindVertex(1), g.FindVertex(2)},
+        {g.FindVertex(3), g.FindVertex(4),
+         g.FindVertex(5), g.FindVertex(6)} };
+
+  for (auto& equivalent_class : equivalent_class_set_19) {
+    std::sort(equivalent_class.begin(),
+              equivalent_class.end());
+  }
+  std::sort(equivalent_class_set_19.begin(),
+            equivalent_class_set_19.end());
+
+  ASSERT_EQ(equivalent_class_set,
+            equivalent_class_set_19);
+
+  ConstructGraph20(g);
+  GUNDAM::BisimulationGeneralCase(g, equivalent_class_set);
+
+  EquivalentClassType equivalent_class_set_20
+    = { {g.FindVertex(0), g.FindVertex(1), g.FindVertex(2)} };
+
+  for (auto& equivalent_class : equivalent_class_set_20) {
+    std::sort(equivalent_class.begin(),
+              equivalent_class.end());
+  }
+  std::sort(equivalent_class_set_20.begin(),
+            equivalent_class_set_20.end());
+
+  ASSERT_EQ(equivalent_class_set,
+            equivalent_class_set_20);
   return;
 }
 
-TEST(TestGUNDAM, TestVertexDegreeFilter) {
+TEST(TestGUNDAM, TestBisimulation) {
   using namespace GUNDAM;
 
   using G1 = LargeGraph<uint32_t, uint32_t, std::string, 
@@ -91,11 +127,11 @@ TEST(TestGUNDAM, TestVertexDegreeFilter) {
                    SetVertexPtrContainerType<GUNDAM::ContainerType::Map>,
                    SetEdgeLabelContainerType<GUNDAM::ContainerType::Map>>;
 
-  TestVertexDegreeFilter<G1>();
-  TestVertexDegreeFilter<G2>();
-  TestVertexDegreeFilter<G3>();
-  TestVertexDegreeFilter<G4>();
-  TestVertexDegreeFilter<G5>();
-  TestVertexDegreeFilter<G6>();
-  TestVertexDegreeFilter<G7>();
+  TestBisimulation<G1>();
+  TestBisimulation<G2>();
+  TestBisimulation<G3>();
+  TestBisimulation<G4>();
+  TestBisimulation<G5>();
+  TestBisimulation<G6>();
+  TestBisimulation<G7>();
 }

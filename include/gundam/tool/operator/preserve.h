@@ -7,6 +7,8 @@
 #include "gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/edge_id.h"
 
+#include "gundam/component/attribute.h"
+
 #include "gundam/algorithm/dfs.h"
 
 namespace GUNDAM {

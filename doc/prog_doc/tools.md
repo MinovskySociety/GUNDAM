@@ -53,7 +53,7 @@ assert(SubGraphOf(connected_component,
 ```
 
 More examples:
-* [test_connected_component, does not existed now](/test/test_connected_component.cc)
+* [test_connected_component](/test/test_connected_component.cc)
 
 See also :
 * [SubGraphOf](#SubGraphOf)
