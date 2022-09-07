@@ -10,6 +10,8 @@
 #include "include/gundam/type_getter/edge_handle.h"
 #include "gundam/type_getter/graph_parameter_getter.h"
 
+#include "include/gundam/tool/connected_component.h"
+
 namespace GUNDAM {
 
 // the statics of graph
@@ -30,6 +32,11 @@ class GraphBasicStatistics {
   using EdgeTypeType = std::tuple<VertexLabelType,
                                     EdgeLabelType,
                                   VertexLabelType>;
+
+  using LegalAttributeValueSetType
+      = std::map<std::pair<std::string,  // value_str
+                           enum GUNDAM::BasicDataType>, // value_type
+                 int>;
 
  public:
   GraphBasicStatistics() : max_vertex_id_(0),
@@ -92,21 +99,21 @@ class GraphBasicStatistics {
       for (const auto& out_edge_type : out_edge_type_set) {
         for (const auto& in_edge_type : in_edge_type_set) {
           this->connected_edge_type_[std::pair(out_edge_type, false)]
-                            .emplace(std::pair( in_edge_type,  true));
+                                    [std::pair( in_edge_type,  true)]++;
         }
         for (const auto& out_edge_type_2 : out_edge_type_set) {
           this->connected_edge_type_[std::pair(out_edge_type  , false)]
-                            .emplace(std::pair(out_edge_type_2, false));
+                                    [std::pair(out_edge_type_2, false)]++;
         }
       }
       for (const auto& in_edge_type : in_edge_type_set) {
         for (const auto& in_edge_type_2 : in_edge_type_set) {
           this->connected_edge_type_[std::pair( in_edge_type,    true)]
-                            .emplace(std::pair( in_edge_type_2,  true));
+                                    [std::pair( in_edge_type_2,  true)]++;
         }
         for (const auto& out_edge_type : out_edge_type_set) {
-          this->connected_edge_type_[std::pair( in_edge_type, false)]
-                            .emplace(std::pair(out_edge_type, false));
+          this->connected_edge_type_[std::pair( in_edge_type,  true)]
+                                    [std::pair(out_edge_type, false)]++;
         }
       }
     }
@@ -115,6 +122,80 @@ class GraphBasicStatistics {
       this->AddVertexAttr(graph);
     }
     return;
+  }
+
+  template <typename GraphPatternType>
+  inline size_t SimplePatternHomoCounter(const GraphPatternType& simple_pattern) const {
+    using VertexHandleType      = typename VertexHandle<      GraphPatternType>::type;
+    using VertexConstHandleType = typename VertexHandle<const GraphPatternType>::type;
+    if (simple_pattern.CountEdge() > 2) {
+      return 0;
+    }
+    auto cc_set = ConnectedComponent(simple_pattern);
+    size_t homo_counter = 1;
+    for (const auto& cc : cc_set) {
+      size_t current_cc_counter = 0;
+      switch (cc.CountEdge()) {
+       case 0:
+        assert(cc.CountVertex() == 1);
+        current_cc_counter = this->VertexCounter(
+                                cc.VertexBegin()->label());
+        break;
+       case 1:
+        assert(cc.CountVertex() == 2);
+        for (auto vertex_it = cc.VertexBegin();
+                 !vertex_it.IsDone();
+                  vertex_it++) {
+          for (auto out_edge_it = vertex_it->OutEdgeBegin();
+                   !out_edge_it.IsDone();
+                    out_edge_it++) {
+            current_cc_counter = this->EdgeTypeCounter(out_edge_it->src_handle()->label(),
+                                                       out_edge_it->label(),
+                                                       out_edge_it->dst_handle()->label());
+          }
+        }
+        break;
+       case 2: {
+        assert(cc.CountVertex() == 3);
+        VertexConstHandleType centrel_vertex = VertexConstHandleType();
+        for (auto vertex_it = cc.VertexBegin();
+                 !vertex_it.IsDone();
+                  vertex_it++) {
+          assert((vertex_it->CountInEdge() + vertex_it->CountOutEdge() == 1)
+              || (vertex_it->CountInEdge() + vertex_it->CountOutEdge() == 2));
+          if (vertex_it->CountInEdge() + vertex_it->CountOutEdge() < 2) {
+            continue;
+          }
+          centrel_vertex = vertex_it;
+        }
+        assert(centrel_vertex);
+        std::vector<std::pair<EdgeTypeType, bool>> edges;
+        edges.reserve(2);
+        for (auto out_edge_it = centrel_vertex->OutEdgeBegin();
+                 !out_edge_it.IsDone();
+                  out_edge_it++) {
+          edges.emplace_back(EdgeTypeType(out_edge_it->src_handle()->label(),
+                                          out_edge_it->label(),
+                                          out_edge_it->dst_handle()->label()), false);
+        }
+        for (auto in_edge_it = centrel_vertex->InEdgeBegin();
+                 !in_edge_it.IsDone();
+                  in_edge_it++) {
+          edges.emplace_back(EdgeTypeType(in_edge_it->src_handle()->label(),
+                                          in_edge_it->label(),
+                                          in_edge_it->dst_handle()->label()), true);
+        }
+        current_cc_counter = this->EdgeTypeConnectedTo(edges[0].first, edges[0].second, 
+                                                       edges[1].first, edges[1].second);
+        break;
+       }
+       default:
+        assert(false);
+        return 0;
+      }
+      homo_counter *= current_cc_counter;
+    }
+    return homo_counter;
   }
 
   inline auto VertexCounter(const VertexLabelType& vertex_label) const {
@@ -136,9 +217,9 @@ class GraphBasicStatistics {
   }
 
   inline auto EdgeTypeCounter(const typename EdgeHandle<GraphType>::type& edge_handle) const {
-    return this->EdgeTypeCounter(edge_handle->src_hanlde()->label(),
+    return this->EdgeTypeCounter(edge_handle->src_handle()->label(),
                                  edge_handle->label(),
-                                 edge_handle->dst_hanlde()->label());
+                                 edge_handle->dst_handle()->label());
   }
 
   inline auto EdgeTypeCounter(const VertexLabelType&  src_label,
@@ -185,9 +266,9 @@ class GraphBasicStatistics {
   }
 
   inline auto AvgOutDegree(const typename EdgeHandle<GraphType>::type& edge_handle) const {
-    return this->AvgOutDegree(edge_handle->src_hanlde()->label(),
+    return this->AvgOutDegree(edge_handle->src_handle()->label(),
                               edge_handle->label(),
-                              edge_handle->dst_hanlde()->label());
+                              edge_handle->dst_handle()->label());
   }
 
   inline auto AvgOutDegree(const VertexLabelType&  src_label,
@@ -212,9 +293,9 @@ class GraphBasicStatistics {
   }
 
   inline auto AvgInDegree(const typename EdgeHandle<GraphType>::type& edge_handle) const {
-    return this->AvgInDegree(edge_handle->src_hanlde()->label(),
+    return this->AvgInDegree(edge_handle->src_handle()->label(),
                              edge_handle->label(),
-                             edge_handle->dst_hanlde()->label());
+                             edge_handle->dst_handle()->label());
   }
 
   inline auto AvgInDegree(const VertexLabelType&  src_label,
@@ -252,6 +333,38 @@ class GraphBasicStatistics {
 
   inline const auto& legal_attr_set() const {
     return this->legal_attr_set_;
+  }
+
+  inline size_t legal_attr_value_counter(
+         const VertexLabelType& vertex_label,
+         const VertexAttributeKeyType& attr_key) const {
+    auto legal_attr_set_it  = this->legal_attr_set_.find(vertex_label);
+    if ( legal_attr_set_it == this->legal_attr_set_.end()) {
+      return 0;
+    }
+    auto value_set_it  = legal_attr_set_it->second.find(attr_key);
+    if ( value_set_it == legal_attr_set_it->second.end()) {
+      return 0;
+    }
+    return value_set_it->second;
+  }
+
+  inline bool has_legal_attr_value(
+         const VertexLabelType& vertex_label,
+         const VertexAttributeKeyType& attr_key) const {
+    return this->legal_attr_value_counter(vertex_label, attr_key) > 0;
+  }
+
+  inline const LegalAttributeValueSetType& legal_attr_value_set(
+         const VertexLabelType& vertex_label,
+         const VertexAttributeKeyType& attr_key) const {
+     auto  legal_attr_set_it  = this->legal_attr_set_.find(vertex_label);
+    assert(legal_attr_set_it != this->legal_attr_set_.end());
+
+     auto  value_set_it  = legal_attr_set_it->second.find(vertex_label);
+    assert(value_set_it != legal_attr_set_it->second.end());
+
+    return *value_set_it;
   }
 
   inline VertexIdType max_vertex_id() const {
@@ -469,7 +582,7 @@ class GraphBasicStatistics {
     return output_info;
   }
 
-  inline bool EdgeTypeConnectedTo(
+  inline size_t EdgeTypeConnectedTo(
         const EdgeTypeType& edge_type_0, bool edge_0_is_input, // for the central vertex
         const EdgeTypeType& edge_type_1, bool edge_1_is_input  // for the central vertex
       ) const {
@@ -491,8 +604,13 @@ class GraphBasicStatistics {
     #endif // NDEBUG
     const auto&  connected_edge_type_set 
          = this->connected_edge_type_.find(std::pair(edge_type_0, edge_0_is_input))->second;
-    return connected_edge_type_set.find(std::pair(edge_type_1, edge_1_is_input)) 
-        != connected_edge_type_set.end();
+    auto connected_edge_type_set_it
+       = connected_edge_type_set.find(std::pair(edge_type_1, edge_1_is_input));
+    if ( connected_edge_type_set_it  
+      == connected_edge_type_set.end() ) {
+      return 0;
+    }
+    return connected_edge_type_set_it->second;
   }
 
  private:
@@ -503,16 +621,15 @@ class GraphBasicStatistics {
   std::map<EdgeTypeType, size_t> edge_type_counter_;
 
   std::map<std::pair<EdgeTypeType, bool /* is input */>, 
-  std::set<std::pair<EdgeTypeType, bool /* is input */>>> connected_edge_type_;
+  std::map<std::pair<EdgeTypeType, bool /* is input */>,
+           size_t>> connected_edge_type_;
 
   VertexIdType max_vertex_id_;
     EdgeIdType   max_edge_id_;
 
   std::map<VertexLabelType,
   std::map<VertexAttributeKeyType,
-  std::map<std::pair<std::string,  // value_str
-                     enum GUNDAM::BasicDataType>, // value_type
-           int>>> legal_attr_set_;
+            LegalAttributeValueSetType>> legal_attr_set_;
 };
 
 };

@@ -4486,6 +4486,19 @@ class Graph {
     return EdgePtr();
   }
 
+  inline EdgeConstPtr FindEdge(const typename EdgeType::IDType& edge_id) const {
+    for (auto vertex_ptr_it = this->VertexBegin(); 
+             !vertex_ptr_it.IsDone();
+              vertex_ptr_it++) {
+      EdgeConstPtr const edge_ptr = vertex_ptr_it->FindOutEdge(edge_id);
+      if (!edge_ptr.IsNull()) {
+        /// the edge with this edge_id has already existed
+        return edge_ptr;
+      }
+    }
+    return EdgeConstPtr();
+  }
+
   ///  unimplemented:
   ///  inline EdgeConstPtr FindConstEdge(
   ///           const typename EdgeType::IDType& edge_id) const;
