@@ -125,9 +125,9 @@ template <typename GraphType>
 size_t CountInEdge(const typename VertexHandle<GraphType>::type &vertex_handle,
                    const typename    EdgeLabel<GraphType>::type &edge_label,
                    const typename VertexHandle<GraphType>::type &src_vertex_handle) {
-  // if constexpr (GraphParameter<GraphType>::vertex_level_edge_label_index) {
-  //   return vertex_handle->CountInEdge(edge_label, src_vertex_handle);
-  // } else {
+  if constexpr (GraphParameter<GraphType>::vertex_level_edge_label_index) {
+    return vertex_handle->CountInEdge(edge_label, src_vertex_handle);
+  } else {
     size_t counter = 0;
     for (auto edge_it = vertex_handle->InEdgeBegin(); 
              !edge_it.IsDone();
@@ -138,17 +138,17 @@ size_t CountInEdge(const typename VertexHandle<GraphType>::type &vertex_handle,
       }
     }
     return counter;
-  // }
-  // return 0;
+  }
+  return 0;
 }
 
 template <typename GraphType>
 size_t CountOutEdge(const typename VertexHandle<GraphType>::type &vertex_handle,
                     const typename    EdgeLabel<GraphType>::type &edge_label,
                     const typename VertexHandle<GraphType>::type &dst_vertex_handle) {
-  // if constexpr (GraphParameter<GraphType>::vertex_level_edge_label_index) {
-  //   return vertex_handle->CountOutEdge(edge_label, dst_vertex_handle);
-  // } else {
+  if constexpr (GraphParameter<GraphType>::vertex_level_edge_label_index) {
+    return vertex_handle->CountOutEdge(edge_label, dst_vertex_handle);
+  } else {
     size_t counter = 0;
     for (auto edge_it = vertex_handle->OutEdgeBegin(); 
              !edge_it.IsDone();
@@ -159,8 +159,8 @@ size_t CountOutEdge(const typename VertexHandle<GraphType>::type &vertex_handle,
       }
     }
     return counter;
-  // }
-  // return 0;
+  }
+  return 0;
 }
 
 template <bool is_out_direction,
