@@ -458,7 +458,7 @@ int ReadCSVVertexFileWithCallback(const std::string& v_file, GraphType& graph,
       auto [vertex_handle, r] = graph.AddVertex(vertex_id[row], label_id[row]);
       if (r) {
         if constexpr (read_attr) {
-          std::cout << "ReadAttribues!!" << std::endl;
+          // std::cout << "ReadAttribues!!" << std::endl;
           r = ReadAttribues<GraphParameter<GraphType>::vertex_has_attribute>(
               graph, vertex_handle, vertex_file, attr_info, 2, row);
         }
