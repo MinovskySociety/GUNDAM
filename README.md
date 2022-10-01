@@ -436,6 +436,8 @@ std::cout << "g0_copy.FindVertex(1) == g0.FindVertex(1): "
 
 The behaviour is undefined and the output is unpredictable.
 
+Also similiar to the containers in STL, modifying the graph may lead to the invalidation of the handle.
+
 To access the attribute on vertex, see 
 [the document for attribute](/doc/prog_doc/attribute.md).
 
