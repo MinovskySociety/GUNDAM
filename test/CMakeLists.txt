@@ -169,6 +169,10 @@ add_executable (test_merge_graph "test_merge_graph.cc")
 target_link_libraries(test_merge_graph GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_merge_graph)
 
+add_executable (test_move "test_move.cc")
+target_link_libraries(test_move GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_move)
+
 add_executable (test_merge_vertex "test_merge_vertex.cc")
 target_link_libraries(test_merge_vertex GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_merge_vertex)
