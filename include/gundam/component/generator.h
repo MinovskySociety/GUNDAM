@@ -12,6 +12,8 @@ class VoidIDGenerator {
 
   IDType GetID() {}
 
+  IDType CurrentID() const {}
+
   void UseID(const IDType& id) {}
 };
 
@@ -22,6 +24,10 @@ class SimpleArithmeticIDGenerator {
   void Reset() { used_max_ = 0; }
 
   IDType GetID() { return ++used_max_; }
+
+  IDType CurrentID() const { 
+    return used_max_; 
+  }
 
   void UseID(const IDType& id) {
     if (id > used_max_) used_max_ = id;
