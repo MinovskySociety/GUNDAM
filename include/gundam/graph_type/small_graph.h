@@ -608,9 +608,10 @@ class SmallGraph {
   }
 
   SmallGraph &operator=(const SmallGraph &other) {
+    assert(other.inner_graph_ptr_);
     // safe to delete nullptr
     delete this->inner_graph_ptr_;
-    (*this->inner_graph_ptr_) = (*other.inner_graph_ptr_);
+    this->inner_graph_ptr_ = new InnerGraphContainer(*other.inner_graph_ptr_);
     return *this;
   }
 
