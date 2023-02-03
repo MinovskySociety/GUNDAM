@@ -15,6 +15,7 @@ class GraphParameterBase{
 
   // vertex level vertex iterator
   static constexpr bool vertex_level_vertex_iterator = false;
+  static constexpr bool vertex_level_erase_edge_iterator = false;
 
   // vertex level find methods
   static constexpr bool vertex_level_find_vertex = false;
@@ -31,7 +32,8 @@ class GraphParameterBase{
   static constexpr bool   edge_has_attribute = false;
 
   // graph level index
-  static constexpr bool graph_level_vertex_label_index = false;
+  static constexpr bool graph_level_vertex_label_index    = false;
+  static constexpr bool graph_level_erase_vertex_iterator = false;
 
   // graph level count methods
   static constexpr bool graph_level_count_vertex = false;

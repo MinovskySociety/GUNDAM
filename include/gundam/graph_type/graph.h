@@ -52,9 +52,13 @@ class Graph {
 
     static constexpr bool graph_level_vertex_label_index = true;
 
-    static constexpr bool vertex_level_edge_label_index = true;
+    static constexpr bool graph_level_erase_vertex_iterator = true;
 
     static constexpr bool graph_level_count_vertex = true;
+
+    static constexpr bool vertex_level_edge_label_index = true;
+    
+    static constexpr bool vertex_level_erase_edge_iterator = true;
   };
 
   // friend class GraphParameter<Graph>;

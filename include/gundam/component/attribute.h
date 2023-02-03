@@ -251,11 +251,8 @@ class Attribute_<AttributeType::kSeparated,
       return temp_this_ptr;
     }
 
-    template <const bool judge = _is_const_,
-              typename std::enable_if<judge, bool>::type = false>
-    AttributeContentPtr operator->() const {
-      static_assert(judge == _is_const_, "Illegal usage of this method");
-      const AttributeContentPtr temp_this_ptr = this;
+    const AttributeContentPtrType* operator->() const {
+      const AttributeContentPtrType* temp_this_ptr = this;
       return temp_this_ptr;
     }
 
