@@ -192,3 +192,7 @@ gtest_add_tests(TARGET test_set_intersection)
 add_executable (test_set_manager "test_set_manager.cc")
 target_link_libraries(test_set_manager GTest::GTest GTest::Main)
 gtest_add_tests(TARGET test_set_manager)
+
+add_executable (test_get_neighbors "test_get_neighbors.cc")
+target_link_libraries(test_get_neighbors GTest::GTest GTest::Main)
+gtest_add_tests(TARGET test_get_neighbors)

@@ -6,4 +6,8 @@ TEST(TestGUNDAM, TestSetManageer) {
   using namespace GUNDAM;
 
   SetManager<uint64_t> set_manger;
+
+  // wenzhi: to add test here
+
+  return;
 }
