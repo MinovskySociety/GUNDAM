@@ -8,11 +8,25 @@
 
 namespace GUNDAM {
 
+namespace _get_neighbors {
+
+template <typename ParameterType>
+class default_prune_callback {
+ public:
+  inline bool operator()(const ParameterType&) const {
+    return false;
+  }
+};
+
+};
+
 // ok to return vector after C11
 template <typename GraphType,
-          bool bidirectional = false>
+          bool bidirectional = false,
+          typename PruneCallbackType = _get_neighbors::default_prune_callback<typename VertexHandle<GraphType>::type>>
 std::vector<typename VertexHandle<GraphType>::type> 
-  GetNeighbors(const std::vector<typename VertexHandle<GraphType>::type>& source_vertex_set) {
+  GetNeighbors(const std::vector<typename VertexHandle<GraphType>::type>& source_vertex_set,
+               PruneCallbackType prune_callback = _get_neighbors::default_prune_callback<typename VertexHandle<GraphType>::type>()) {
   
   std::vector<typename VertexHandle<GraphType>::type> neighbors;
 
@@ -22,6 +36,9 @@ std::vector<typename VertexHandle<GraphType>::type>
     for (auto out_edge_it = source_vertex->OutEdgeBegin();
              !out_edge_it.IsDone();
               out_edge_it++) {
+      if (prune_callback(out_edge_it->dst_handle())) {
+        continue;
+      }
       neighbors.emplace_back(out_edge_it->dst_handle());
     }
 
@@ -30,6 +47,9 @@ std::vector<typename VertexHandle<GraphType>::type>
       for (auto in_edge_it = source_vertex->InEdgeBegin();
                !in_edge_it.IsDone();
                 in_edge_it++) {
+        if (prune_callback(in_edge_it->src_handle())) {
+          continue;
+        }
         neighbors.emplace_back(in_edge_it->src_handle());
       }
     }

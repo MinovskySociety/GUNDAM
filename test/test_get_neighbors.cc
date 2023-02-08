@@ -18,12 +18,20 @@ void TestGetNeighbors() {
 
   std::vector<typename GUNDAM::VertexHandle<GraphType>::type> source_set;
 
+  auto callback = [](const typename GUNDAM::VertexHandle<GraphType>::type&) -> bool {
+    return true;
+  };
+
   ConstructGraph0(g);
   source_set = {g.VertexBegin()};
-  auto neighbor_0 = GUNDAM::GetNeighbors<GraphType>(source_set);
+  auto neighbor_0 = GUNDAM::GetNeighbors<GraphType      >(source_set);
   auto neighbor_1 = GUNDAM::GetNeighbors<GraphType, true>(source_set);
+  auto neighbor_2 = GUNDAM::GetNeighbors<GraphType      >(source_set, callback);
+  auto neighbor_3 = GUNDAM::GetNeighbors<GraphType, true>(source_set, callback);
 
   ASSERT_LE(neighbor_0.size(), neighbor_1.size());
+  ASSERT_EQ(neighbor_2.size(), 0);
+  ASSERT_EQ(neighbor_3.size(), 0);
 
   // wenzhi: todo
   // complete the test here
