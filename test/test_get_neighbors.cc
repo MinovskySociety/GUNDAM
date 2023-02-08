@@ -18,20 +18,35 @@ void TestGetNeighbors() {
 
   std::vector<typename GUNDAM::VertexHandle<GraphType>::type> source_set;
 
-  auto callback = [](const typename GUNDAM::VertexHandle<GraphType>::type&) -> bool {
+  auto vertex_callback = [](const typename GUNDAM::VertexHandle<GraphType>::type&) -> bool {
     return true;
   };
 
   ConstructGraph0(g);
   source_set = {g.VertexBegin()};
-  auto neighbor_0 = GUNDAM::GetNeighbors<GraphType      >(source_set);
-  auto neighbor_1 = GUNDAM::GetNeighbors<GraphType, true>(source_set);
-  auto neighbor_2 = GUNDAM::GetNeighbors<GraphType      >(source_set, callback);
-  auto neighbor_3 = GUNDAM::GetNeighbors<GraphType, true>(source_set, callback);
+  auto neighbor_vertex_0 = GUNDAM::GetNeighborVertexSet<GraphType      >(source_set);
+  auto neighbor_vertex_1 = GUNDAM::GetNeighborVertexSet<GraphType, true>(source_set);
+  auto neighbor_vertex_2 = GUNDAM::GetNeighborVertexSet<GraphType      >(source_set, vertex_callback);
+  auto neighbor_vertex_3 = GUNDAM::GetNeighborVertexSet<GraphType, true>(source_set, vertex_callback);
 
-  ASSERT_LE(neighbor_0.size(), neighbor_1.size());
-  ASSERT_EQ(neighbor_2.size(), 0);
-  ASSERT_EQ(neighbor_3.size(), 0);
+  ASSERT_LE(neighbor_vertex_0.size(), neighbor_vertex_1.size());
+  ASSERT_EQ(neighbor_vertex_2.size(), 0);
+  ASSERT_EQ(neighbor_vertex_3.size(), 0);
+
+  auto edge_callback = [](const typename GUNDAM::EdgeHandle<GraphType>::type&) -> bool {
+    return true;
+  };
+
+  ConstructGraph0(g);
+  source_set = {g.VertexBegin()};
+  auto neighbor_edge_0 = GUNDAM::GetNeighborEdgeSet<GraphType      >(source_set);
+  auto neighbor_edge_1 = GUNDAM::GetNeighborEdgeSet<GraphType, true>(source_set);
+  auto neighbor_edge_2 = GUNDAM::GetNeighborEdgeSet<GraphType      >(source_set, edge_callback);
+  auto neighbor_edge_3 = GUNDAM::GetNeighborEdgeSet<GraphType, true>(source_set, edge_callback);
+
+  ASSERT_LE(neighbor_edge_0.size(), neighbor_edge_1.size());
+  ASSERT_EQ(neighbor_edge_2.size(), 0);
+  ASSERT_EQ(neighbor_edge_3.size(), 0);
 
   // wenzhi: todo
   // complete the test here
