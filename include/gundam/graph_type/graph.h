@@ -155,6 +155,7 @@ class Graph {
 
   friend class GraphBase<Graph>;
 
+ protected:
   /// non-constant pointer
   using VertexPtr = typename InnerVertex_::VertexPtr;
   using   EdgePtr = typename InnerVertex_::  EdgePtr;

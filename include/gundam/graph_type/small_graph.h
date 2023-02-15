@@ -145,6 +145,7 @@ class SmallGraph {
 
   friend class GraphBase<SmallGraph>;
 
+ protected:
   using VertexPtr      = GPointer<false, Vertex, ConstVertex>;
 
   using VertexConstPtr = GPointer< true, Vertex, ConstVertex>;

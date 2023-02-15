@@ -561,6 +561,7 @@ class LargeGraph2 {
 
   friend class GraphBase<LargeGraph2>;
 
+ protected:
   using VertexPtr = VertexData *;
 
   using VertexConstPtr = const VertexData *;
