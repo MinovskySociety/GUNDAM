@@ -7,10 +7,12 @@
 #include <type_traits>
 
 #include "gundam/data_type/datetime.h"
+#include "gundam/util/string.h"
 
 namespace GUNDAM {
 
 namespace _datatype {
+
 inline bool StringCompare(const char* a, const char* b) {
   while (*a != '\0' || *b != '\0') {
     if (*a != *b) return false;
@@ -19,6 +21,7 @@ inline bool StringCompare(const char* a, const char* b) {
   }
   return true;
 }
+
 }  // namespace _datatype
 
 enum class BasicDataType : int {
@@ -29,6 +32,7 @@ enum class BasicDataType : int {
   kTypeFloat = 4,
   kTypeDouble = 5,
   kTypeDateTime = 6,
+  kTypeBool = 7,
 };
 
 inline BasicDataType StringToEnum(const char* type_str) {
@@ -44,7 +48,8 @@ inline BasicDataType StringToEnum(const char* type_str) {
     return BasicDataType::kTypeDouble;
   else if (_datatype::StringCompare(type_str, "datetime"))
     return BasicDataType::kTypeDateTime;
-
+  else if (_datatype::StringCompare(type_str, "bool"))
+    return BasicDataType::kTypeBool;
   return BasicDataType::kTypeUnknown;
 }
 
@@ -79,6 +84,8 @@ inline const char* EnumToString(const BasicDataType& data_type) {
       return "double";
     case BasicDataType::kTypeDateTime:
       return "datetime";
+    case BasicDataType::kTypeBool:
+      return "bool";
     case BasicDataType::kTypeUnknown:
     default:
       return "unknown";
@@ -139,12 +146,20 @@ inline constexpr BasicDataType TypeToEnum() {
   return BasicDataType::kTypeDateTime;
 }
 
+template <typename DataType,
+          typename std::enable_if<std::is_same<DataType, bool>::value,
+                                  bool>::type = false>
+inline constexpr BasicDataType TypeToEnum() {
+  return BasicDataType::kTypeBool;
+}
+
 template <
     typename DataType,
     typename std::enable_if<!std::is_integral<DataType>::value &&
                                 !std::is_floating_point<DataType>::value &&
                                 !std::is_same<DataType, std::string>::value &&
-                                !std::is_same<DataType, DateTime>::value,
+                                !std::is_same<DataType, DateTime>::value &&
+                                !std::is_same<DataType, bool>::value,
                             bool>::type = false>
 inline constexpr BasicDataType TypeToEnum() {
   return BasicDataType::kTypeUnknown;
@@ -181,6 +196,11 @@ inline DataType StringToDataType(std::string str) {
   } else if constexpr (TypeToEnum<DataType>() ==
                        GUNDAM::BasicDataType::kTypeDouble) {
     return std::stod(str);
+  } else if constexpr (TypeToEnum<DataType>() ==
+                       GUNDAM::BasicDataType::kTypeBool) {
+    assert(util::is_number(str) || util::tolower(str) == "true"
+                                || util::tolower(str) == "false");
+    return str != "0" || (!util::is_number(str) && util::tolower(str) == "true") ;
   } else if constexpr (TypeToEnum<DataType>() ==
                        GUNDAM::BasicDataType::kTypeDateTime) {
     return DateTime(str);

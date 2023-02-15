@@ -47,6 +47,11 @@ inline std::string tolower(const std::string& str) {
                  my_str.begin(), [](unsigned char c){ return std::tolower(c);} );
   return my_str;
 }
+
+inline bool is_number(const std::string& s) {
+  return !s.empty() && std::find_if(s.begin(), 
+                                    s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
+}
       
 };
 
