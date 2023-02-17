@@ -118,7 +118,7 @@ inline std::vector<typename VertexHandle<GraphType>::type>
       const typename VertexHandle<GraphType>::type& vertex_handle) -> bool {
     return exclusion_vertex_set.find(vertex_handle)
         == exclusion_vertex_set.end();
-  }
+  };
                                 
   return GetNeighborVertexSet(source_vertex_set,  exclude_vertex_callback);
 }
