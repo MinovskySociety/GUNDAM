@@ -44,6 +44,10 @@ class SetManager {
       return this->element_set_.size();
     }
 
+    inline const ElementType& element_at(size_t element_idx) const {
+      return this->element_set_[element_idx];
+    }
+
    private:
     std::vector<ElementType> element_set_;
 
@@ -67,11 +71,15 @@ class SetManager {
     }
     return;
   }
+  
+  inline set_ptr_t GetJoinRelation(const ElementType& element) {
+    const std::vector<ElementType> set = {element};
+    return this->GetJoinRelation(set);
+  }
 
-  set_ptr_t GetJoinRelation(std::vector<ElementType>& set) {
+  set_ptr_t GetJoinRelation(const std::vector<ElementType>& set) {
 
-    assert(std::is_sorted(set.begin(), set.end(), 
-                          SetManager::comp));
+    assert(std::is_sorted(set.begin(), set.end(), SetManager::comp));
 
     set_ptr_t info = &this->root_;
 
@@ -89,7 +97,7 @@ class SetManager {
     // now check if the Set has already been created
     if (info->element_set_.empty()) {
       // if it hasn't we need to create it
-      info->element_set_.swap(set);
+      info->element_set_ = set;
     }
     return info;
   }
