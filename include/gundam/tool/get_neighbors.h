@@ -117,7 +117,7 @@ inline std::vector<typename VertexHandle<GraphType>::type>
   auto exclude_vertex_callback = [&exclusion_vertex_set](
       const typename VertexHandle<GraphType>::type& vertex_handle) -> bool {
     return exclusion_vertex_set.find(vertex_handle)
-        == exclusion_vertex_set.end();
+        != exclusion_vertex_set.end();
   };
                                 
   return GetNeighborVertexSet(source_vertex_set,  exclude_vertex_callback);
@@ -132,16 +132,38 @@ inline std::vector<typename VertexHandle<GraphType>::type>
   auto exclude_vertex_callback = [&exclusion_vertex_set](
       const typename VertexHandle<GraphType>::type& vertex_handle) -> bool {
     return exclusion_vertex_set.find(vertex_handle->id())
-        == exclusion_vertex_set.end();
+        != exclusion_vertex_set.end();
   };
                                 
-  return GetNeighborVertexSet(source_vertex_set,  exclude_vertex_callback);
+  return GetNeighborVertexSet<GraphType, bidirectional>(source_vertex_set,  exclude_vertex_callback);
 }
 
 template <bool bidirectional = false, typename GraphType>
 inline std::vector<typename VertexHandle<GraphType>::type> 
   GetNeighborVertexSetExclude(GraphType& graph,
                               const std::vector<typename VertexID<GraphType>::type>&    source_vertex_set,
+                       const std::unordered_set<typename VertexID<GraphType>::type>& exclusion_vertex_set) {
+
+  std::vector<typename VertexHandle<GraphType>::type> source_vertex_handle_set;
+  source_vertex_handle_set.reserve(source_vertex_set.size());
+
+  for (const auto& vertex_id : source_vertex_set) {
+    auto vertex_handle = graph.FindVertex(vertex_id);
+    if (!vertex_handle) {
+      assert(false);
+      return std::vector<typename VertexHandle<GraphType>::type>();
+    } 
+    source_vertex_handle_set.emplace_back(vertex_handle);
+  }
+                                
+  return GetNeighborVertexSetExclude<GraphType, bidirectional>(source_vertex_handle_set,  
+                                                            exclusion_vertex_set);
+}
+
+template <bool bidirectional = false, typename GraphType>
+inline std::vector<typename VertexHandle<GraphType>::type> 
+  GetNeighborVertexSetExclude(GraphType& graph,
+                       const std::unordered_set<typename VertexID<GraphType>::type>&    source_vertex_set,
                        const std::unordered_set<typename VertexID<GraphType>::type>& exclusion_vertex_set) {
 
   std::vector<typename VertexHandle<GraphType>::type> source_vertex_handle_set;

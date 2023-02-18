@@ -143,13 +143,14 @@ class SetManager {
                          set_const_ptr_t set_1_ptr) {
     // auto relations = unique_ptr<idx_t[]>(new idx_t[left->count + right->count]);
     std::vector<ElementType> union_set;
-    union_set.reserve(set_0_ptr->size() + set_1_ptr->size());
+    union_set.reserve(set_0_ptr->element_num() + set_1_ptr->element_num());
 
     std::merge(set_0_ptr->element_set_.begin(), set_0_ptr->element_set_.end(), 
                set_1_ptr->element_set_.begin(), set_1_ptr->element_set_.end(), 
                std::back_inserter(union_set), SetManager::comp);
 
-    assert(union_set.size() == set_0_ptr->size() + set_1_ptr->size());
+    assert(union_set.size() == set_0_ptr->element_num() 
+                             + set_1_ptr->element_num());
 
     assert(std::is_sorted(union_set.begin(),
                           union_set.end(), SetManager::comp));
