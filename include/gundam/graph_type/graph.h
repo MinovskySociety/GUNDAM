@@ -2522,9 +2522,9 @@ class Graph {
       return this->EraseEdge(this->edges_.in_edges(), edge_id);
     }*/
 
-    inline std::pair<EdgePtr, bool> AddEdge(VertexPtr& dst_ptr,
-                                  const EdgeLabelType& edge_label,
-                                  const EdgeIDType&    edge_id) {
+    inline std::pair<EdgePtr, bool> AddEdge(const VertexPtr&  dst_ptr,
+                                        const EdgeLabelType& edge_label,
+                                        const EdgeIDType&    edge_id) {
       auto ret = this->FindOutEdge(edge_id);
       if (!ret.IsNull()) {
         /// this Edge has already been existed
