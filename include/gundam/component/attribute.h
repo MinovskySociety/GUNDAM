@@ -116,6 +116,10 @@ class Attribute_<AttributeType::kSeparated,
       return this->value_; 
     }
 
+    const ConcreteDataType_& value() const { 
+      return this->value_; 
+    }
+
     ConcreteDataType_& value() { 
       return this->value_; 
     }
@@ -181,6 +185,12 @@ class Attribute_<AttributeType::kSeparated,
       return static_cast<const ConcreteValue<ConcreteDataType>*>(
                 this->iterator_.template get_const<kAttributeValuePtrIdx>())
           ->const_value();
+    }
+
+    template <typename ConcreteDataType>
+    inline const ConcreteDataType& value() const {
+      assert(!this->is_null_);
+      return this->template const_value<ConcreteDataType>();
     }
 
     template <typename ConcreteDataType>
@@ -349,6 +359,12 @@ class Attribute_<AttributeType::kSeparated,
                 InnerIteratorType::template get_const<value_ptr_idx_, 
                                                       begin_depth_>())
           ->const_value();
+    }
+
+    template <typename ConcreteDataType>
+    inline const ConcreteDataType& value() const {
+      assert(!this->IsDone());
+      return this->template const_value<ConcreteDataType>();
     }
 
     template <typename ConcreteDataType>
