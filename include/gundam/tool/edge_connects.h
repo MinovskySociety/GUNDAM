@@ -72,7 +72,7 @@ std::vector<typename EdgeHandle<GraphType>::type>
   }
 
   for (const auto& dst_id : dst_id_set) {
-    auto dst_handle = graph.FindVertex(src_id);
+    auto dst_handle = graph.FindVertex(dst_id);
     assert(dst_handle);
     auto [it, ret] = dst_handle_set.emplace(dst_handle);
     assert(ret);
