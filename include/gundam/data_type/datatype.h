@@ -2,6 +2,7 @@
 #define _GUNDAM_DATA_TYPE_DATATYPE_H
 
 #include <cstdint>
+#include <cassert>
 #include <sstream>
 #include <string>
 #include <type_traits>
