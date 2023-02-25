@@ -34,6 +34,22 @@ inline std::set<typename VertexHandle<GraphType>::type> IsolateVertexSet(GraphTy
 }
 
 template <typename GraphType>
+inline std::set<typename VertexID<GraphType>::type> IsolateVertexIDSet(const GraphType& graph) {
+  std::set<typename VertexID<GraphType>::type> isolate_vertex_id_set;
+  for (auto vertex_it = graph.VertexBegin();
+           !vertex_it.IsDone();
+            vertex_it++){
+    if (vertex_it->CountOutEdge() != 0
+     || vertex_it->CountInEdge()  != 0){
+      continue;
+    }
+    // this vertex is isolated
+    isolate_vertex_id_set.emplace(vertex_it->id());
+  }
+  return std::move(isolate_vertex_id_set);
+}
+
+template <typename GraphType>
 inline size_t CountIsolateVertex(const GraphType& graph) {
   size_t counter = 0;
   for (auto vertex_it = graph.VertexBegin();
