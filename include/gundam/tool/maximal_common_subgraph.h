@@ -188,7 +188,7 @@ std::vector<GraphPatternType> ExpandPattern(
                            edge_label_set,
                             edge_type_set);
   }
-  return std::move(expanded_graph_patterns);
+  return expanded_graph_patterns;
 }
 
 };
@@ -202,12 +202,12 @@ std::vector<GraphPatternType>
   if (SubGraphOf(q0, q1)){
     std::vector<GraphPatternType> ret;
     ret.emplace_back(q0);
-    return std::move(ret);
+    return ret;
   }
   if (SubGraphOf(q1, q0)){
     std::vector<GraphPatternType> ret;
     ret.emplace_back(q1);
-    return std::move(ret);
+    return ret;
   }
   using VertexIDType = typename GraphPatternType
                                     ::VertexType

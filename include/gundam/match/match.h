@@ -260,7 +260,7 @@ class Match {
       assert(ret);
     }
     assert(this->size() == reverse_match.size());
-    return std::move(reverse_match);
+    return reverse_match;
   }
 
   // /// constant dst

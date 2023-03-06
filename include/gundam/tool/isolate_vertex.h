@@ -30,7 +30,7 @@ inline std::set<typename VertexHandle<GraphType>::type> IsolateVertexSet(GraphTy
       isolate_vertex_set.emplace(vertex_it);
     }
   }
-  return std::move(isolate_vertex_set);
+  return isolate_vertex_set;
 }
 
 template <typename GraphType>
@@ -46,7 +46,7 @@ inline std::set<typename VertexID<GraphType>::type> IsolateVertexIDSet(const Gra
     // this vertex is isolated
     isolate_vertex_id_set.emplace(vertex_it->id());
   }
-  return std::move(isolate_vertex_id_set);
+  return isolate_vertex_id_set;
 }
 
 template <typename GraphType>

@@ -103,7 +103,7 @@ inline ExportGraphType MergeByIdAndGenerate(
              const GraphType1& graph1) {
   ExportGraphType ret_graph(graph0);
   MergeById(ret_graph, graph1);
-  return std::move(ret_graph);
+  return ret_graph;
 }
 
 template <typename GraphType0,

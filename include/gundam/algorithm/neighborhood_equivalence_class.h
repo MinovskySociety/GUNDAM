@@ -34,7 +34,7 @@ auto AdjacentVertex(const VertexHandleType& vertex) {
                             out_edge_it->label(),
                             out_edge_it->dst_handle()->id());
   }
-  return std::move(adjacent_vertex_set);
+  return adjacent_vertex_set;
 }
 
 };
@@ -79,7 +79,7 @@ std::vector<std::vector<typename VertexHandle<QueryGraph>::type>>
     }
     nec_set.emplace_back(adjacent_vertex.second);
   }
-  return std::move(nec_set);
+  return nec_set;
 }
 
 template <typename GraphType>
@@ -111,7 +111,7 @@ QueryGraph RemoveNecVertex(
       assert(erase_vertex_ret);
     }
   }
-  return std::move(query_graph_removed);
+  return query_graph_removed;
 }
 
 // remove duplicate target vertexes that in the same Nec from the

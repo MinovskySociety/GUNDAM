@@ -1,5 +1,5 @@
-#ifndef _GUNDAM_TOOL_CONNECTED_H
-#define _GUNDAM_TOOL_CONNECTED_H
+#ifndef _GUNDAM_TOOL_GET_NEIGHBORS_H
+#define _GUNDAM_TOOL_GET_NEIGHBORS_H
 
 #include "gundam/algorithm/dfs.h"
 
@@ -184,4 +184,4 @@ inline std::vector<typename VertexHandle<GraphType>::type>
 
 }  // namespace GUNDAM
 
-#endif // _GUNDAM_TOOL_CONNECTED_H
+#endif // _GUNDAM_TOOL_GET_NEIGHBORS_H
