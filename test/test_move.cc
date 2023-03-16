@@ -23,12 +23,22 @@ void TestMove() {
 
   std::vector<typename GUNDAM::VertexHandle<GraphType>::type> vertex_handle_set;
 
+  std::vector<typename GUNDAM::VertexHandle<const GraphType>::type> vertex_const_handle_set;
+
   ConstructGraph18(g0);
+
+  const GraphType& g0_cref = g0;
 
   for (auto vertex_it = g0.VertexBegin();
            !vertex_it.IsDone();
             vertex_it++) {
     vertex_handle_set.emplace_back(vertex_it);
+  }
+
+  for (auto vertex_it = g0_cref.VertexBegin();
+           !vertex_it.IsDone();
+            vertex_it++) {
+    vertex_const_handle_set.emplace_back(vertex_it);
   }
 
   g1 = std::move(g0);
@@ -38,6 +48,13 @@ void TestMove() {
     ASSERT_NE(&g1, &g0);
     ASSERT_TRUE(g1.FindVertex(vertex_handle->id())
                            == vertex_handle);
+  }
+
+  for (const auto& vertex_const_handle 
+                 : vertex_const_handle_set) {
+    ASSERT_NE(&g1, &g0);
+    ASSERT_TRUE(g1.FindVertex(vertex_const_handle->id())
+                           == vertex_const_handle);
   }
 
   ConstructGraph18(g0);
