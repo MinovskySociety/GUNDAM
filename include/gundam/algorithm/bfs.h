@@ -100,12 +100,12 @@ inline size_t Bfs(GraphType&  graph,
   VertexCounterType bfs_idx = 0;
   std::queue<std::pair<VertexHandleType, 
                        VertexCounterType>> vertex_handle_queue;
-  std:: set <VertexHandleType> visited;
   for (const auto& src_vertex_handle 
                  : src_vertex_handle_set){
     vertex_handle_queue.emplace(src_vertex_handle, 0);
-    visited.emplace(src_vertex_handle);
   }
+  std::set<VertexHandleType> visited = src_vertex_handle_set;
+
   while (!vertex_handle_queue.empty()){
     auto [current_vertex_handle, 
           current_distance] = vertex_handle_queue.front();
@@ -311,6 +311,32 @@ inline size_t Bfs(GraphType&  graph,
                 src_vertex_handle_set, 
                 user_callback, 
       prune_distance_callback); 
+}
+
+template <bool bidirectional = false,
+          typename        GraphType,
+          typename UserCallBackType>
+inline size_t Bfs(GraphType&  graph,
+  const std::vector<typename VertexID<GraphType>::type>& src_vertex_id_set,
+           UserCallBackType  user_callback,
+           int distance_limit = -1) {
+  using VertexCounterType = typename  GraphType::VertexCounterType;
+  using  VertexHandleType = typename VertexHandle<GraphType>::type;
+  using    EdgeHandleType = typename   EdgeHandle<GraphType>::type;
+
+  std::set<VertexHandleType> src_vertex_handle_set;
+
+  for (const auto& vertex_id : src_vertex_id_set) {
+    auto vertex_handle = graph.FindVertex(vertex_id);
+    assert(vertex_handle);
+    auto [it, ret] = src_vertex_handle_set.emplace(vertex_handle);
+    assert(ret);
+  }
+
+  return Bfs<bidirectional>(graph,
+                src_vertex_handle_set, 
+                user_callback, 
+            distance_limit); 
 }
 
 template<bool bidirectional = false,
