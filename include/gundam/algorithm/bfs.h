@@ -6,6 +6,7 @@
 #include <type_traits>
 
 #include "gundam/type_getter/vertex_handle.h"
+#include "gundam/type_getter/vertex_id.h"
 #include "gundam/type_getter/edge_handle.h"
 
 namespace GUNDAM {
