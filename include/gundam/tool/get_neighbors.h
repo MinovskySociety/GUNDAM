@@ -1,6 +1,9 @@
 #ifndef _GUNDAM_TOOL_GET_NEIGHBORS_H
 #define _GUNDAM_TOOL_GET_NEIGHBORS_H
 
+#include <unordered_map>
+#include <vector>
+
 #include "gundam/algorithm/dfs.h"
 
 #include "gundam/type_getter/vertex_handle.h"
