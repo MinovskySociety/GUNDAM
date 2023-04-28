@@ -1725,6 +1725,161 @@ inline bool SuppUpdateCallBack(CandidateSetContainer &candidate_set,
   return true;
 }
 
+template<enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
+                                  typename QueryGraph, typename TargetGraph>
+inline bool InitCandidateSetByMatchedEdges(QueryGraph &query_graph,
+                                           TargetGraph &target_graph,
+                            std::map<typename VertexHandle<QueryGraph>::type,
+                                std::vector<typename VertexHandle<TargetGraph>::type>>
+                                      &candidate_set) {
+  using QueryGraphVertexHandleType = typename VertexHandle<QueryGraph>::type;
+  using TargetGraphVertexHandleType = typename VertexHandle<TargetGraph>::type;
+  assert(candidate_set.size() == 2);
+
+  std::map<typename TargetGraph::VertexType::LabelType,
+      std::vector<QueryGraphVertexHandleType>> label_to_query_vertex_handle;
+  for (auto query_vertex_iter = query_graph.VertexBegin();
+           !query_vertex_iter.IsDone();
+            query_vertex_iter++) {
+    QueryGraphVertexHandleType query_vertex_handle = query_vertex_iter;
+    if (candidate_set.find(query_vertex_handle) != candidate_set.end()) {
+      continue;
+    }
+    label_to_query_vertex_handle[query_vertex_handle->label()]
+                                .emplace_back(query_vertex_handle);
+  }
+
+  std::map<QueryGraphVertexHandleType, unsigned> handle2radius;
+
+  for (auto& [query_vertex_handle, query_vertex_candidate] : candidate_set) {
+    std::set<QueryGraphVertexHandleType> visited_vertex_handle;
+    std::queue<std::pair<QueryGraphVertexHandleType, unsigned>> query_vertex_queue;
+    query_vertex_queue.emplace(std::pair(query_vertex_handle, 0));
+    visited_vertex_handle.insert(query_vertex_handle);
+    while (!query_vertex_queue.empty()) {
+      auto current_vertex_handle = query_vertex_queue.front().first;
+      unsigned current_distance = query_vertex_queue.front().second;
+      query_vertex_queue.pop();
+
+      handle2radius[query_vertex_handle] = current_distance;
+
+      for (auto out_edge_it = current_vertex_handle->OutEdgeBegin();
+               !out_edge_it.IsDone();
+                out_edge_it++) {
+        auto dst_vertex_handle = out_edge_it->dst_handle();
+        if (visited_vertex_handle.find(dst_vertex_handle) !=
+                visited_vertex_handle.end()) {
+          continue;
+        }
+        query_vertex_queue.emplace(std::pair(dst_vertex_handle, current_distance + 1));
+        visited_vertex_handle.insert(dst_vertex_handle);
+      }
+
+      for (auto in_edge_it = current_vertex_handle->InEdgeBegin();
+               !in_edge_it.IsDone();
+                in_edge_it++) {
+        auto src_vertex_handle = in_edge_it->src_handle();
+        if (visited_vertex_handle.find(src_vertex_handle) !=
+                visited_vertex_handle.end()) {
+          continue;
+        }
+        query_vertex_queue.emplace(std::pair(src_vertex_handle, current_distance + 1));
+        visited_vertex_handle.insert(src_vertex_handle);
+      }
+    }
+  }
+
+  std::map<TargetGraphVertexHandleType, bool> data_vertex_added;
+
+  for (auto &[query_vertex_handle, query_vertex_candidate] : candidate_set) {
+    unsigned radius = handle2radius[query_vertex_handle];
+    std::queue<std::pair<TargetGraphVertexHandleType, unsigned>> data_vertex_queue;
+    std::set<TargetGraphVertexHandleType> data_vertex_visited;
+
+    for (auto data_vertex_handle : query_vertex_candidate) {
+      data_vertex_queue.emplace(std::pair(data_vertex_handle, 0));
+      data_vertex_visited.insert(data_vertex_handle);
+    }
+
+    while (!data_vertex_queue.empty()) {
+      auto [current_vertex_handle, current_radius] = data_vertex_queue.front();
+      data_vertex_queue.pop();
+
+      auto current_vertex_label = current_vertex_handle->label();
+      bool exist_match_candidate = false;
+
+      assert(label_to_query_vertex_handle.find(current_vertex_label)
+                              != label_to_query_vertex_handle.end());
+
+      if (data_vertex_added.find(current_vertex_handle) == data_vertex_added.end()) {
+        for (auto query_vertex_handle_candidate
+                    : label_to_query_vertex_handle[current_vertex_label]) {
+          if (match_semantics == MatchSemantics::kIsomorphism &&
+              !DegreeFiltering(query_vertex_handle_candidate, current_vertex_handle)) {
+            data_vertex_added[current_vertex_handle] = false;
+            continue;
+          }
+          if (!NeighborLabelFrequencyFiltering<match_semantics, QueryGraph,
+                                              TargetGraph>(
+                  query_vertex_handle_candidate, current_vertex_handle)) {
+            data_vertex_added[current_vertex_handle] = false;
+            continue;
+          }
+          candidate_set[query_vertex_handle_candidate].emplace_back(current_vertex_handle);
+          data_vertex_added[current_vertex_handle] = true;
+          exist_match_candidate = true;
+        }
+      } else {
+        exist_match_candidate = data_vertex_added[current_vertex_handle];
+      }
+
+      if ((!exist_match_candidate) || current_radius == radius) {
+        continue;
+      }
+
+      for (auto out_edge_it = current_vertex_handle->OutEdgeBegin();
+                !out_edge_it.IsDone();
+                out_edge_it++) {
+        auto dst_handle = out_edge_it->dst_handle();
+        if (data_vertex_visited.find(dst_handle) != data_vertex_visited.end()) {
+          continue;
+        }
+        auto dst_label = dst_handle->label();
+        data_vertex_visited.insert(dst_handle);
+        if (label_to_query_vertex_handle.find(dst_label)
+                  == label_to_query_vertex_handle.end()) {
+          continue;
+        }
+        data_vertex_queue.emplace(std::pair(dst_handle, current_radius + 1));
+      }
+
+      for (auto in_edge_it = current_vertex_handle->InEdgeBegin();
+                !in_edge_it.IsDone();
+                in_edge_it++) {
+        auto src_handle = in_edge_it->src_handle();
+        if (data_vertex_visited.find(src_handle) != data_vertex_visited.end()) {
+          continue;
+        }
+        auto src_label = src_handle->label();
+        data_vertex_visited.insert(src_handle);
+        if (label_to_query_vertex_handle.find(src_label)
+                  == label_to_query_vertex_handle.end()) {
+          continue;
+        }
+        data_vertex_queue.emplace(std::pair(src_handle, current_radius + 1));
+      }
+    }
+  }
+
+  if (candidate_set.size() != query_graph.CountVertex()) {
+    return false;
+  }
+  for (auto &[query_vertex_handle, query_vertex_candidate] : candidate_set) {
+    std::stable_sort(query_vertex_candidate.begin(),
+                     query_vertex_candidate.end());
+  }
+  return true;
+}
 }  // namespace _dp_iso
 
 template <enum MatchSemantics match_semantics = MatchSemantics::kIsomorphism,
