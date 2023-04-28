@@ -2598,9 +2598,7 @@ int WriteCSVEdgeSetFileWithCallback(
   // get columns
   std::vector<std::string> key_str, type_str;
   std::map<EdgeAttributeKeyType, size_t> attr_pos;
-  // for (auto edge_it = graph.EdgeBegin(); !edge_it.IsDone(); ++edge_it) {
-  /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in
-  /// vertex){} }
+
   const size_t kNumberOfGraph = graph_set.size();
   for (int i = 0; i < kNumberOfGraph; i++) {
     auto& graph = graph_set[i];
@@ -2645,9 +2643,7 @@ int WriteCSVEdgeSetFileWithCallback(
 
   // write each edge
   int count = 0;
-  // for (auto edge_it = graph.EdgeBegin(); !edge_it.IsDone(); ++edge_it) {
-  /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in
-  /// vertex){} }
+
   for (int i = 0; i < kNumberOfGraph; i++) {
     auto& graph = graph_set[i];
     for (auto vertex_cit = graph.VertexBegin(); !vertex_cit.IsDone();
@@ -2691,9 +2687,7 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
   // get columns
   std::vector<std::string> key_str, type_str;
   std::map<EdgeAttributeKeyType, size_t> attr_pos;
-  // for (auto edge_it = graph.EdgeBegin(); !edge_it.IsDone(); ++edge_it) {
-  /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in
-  /// vertex){} }
+
   for (auto vertex_cit = graph.VertexBegin(); !vertex_cit.IsDone();
        ++vertex_cit) {
     for (auto edge_it = vertex_cit->OutEdgeBegin(); !edge_it.IsDone();
@@ -2730,9 +2724,7 @@ int WriteCSVEdgeFileWithCallback(const GraphType& graph,
 
   // write each edge
   int count = 0;
-  // for (auto edge_it = graph.EdgeBegin(); !edge_it.IsDone(); ++edge_it) {
-  /// modified by wenzhi, from for(edges){} to for (vertex){ for (edge in
-  /// vertex){} }
+
   for (auto vertex_cit = graph.VertexBegin(); !vertex_cit.IsDone();
        ++vertex_cit) {
     for (auto edge_it = vertex_cit->OutEdgeBegin(); !edge_it.IsDone();

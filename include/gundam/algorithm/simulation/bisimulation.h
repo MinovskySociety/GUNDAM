@@ -360,14 +360,7 @@ inline void BisimulationGeneralCase(GraphType& graph,
     for (size_t block_idx = 0;
                 block_idx < block_set.size();
                 block_idx++) {
-      /* ######################################## *
-       * ##  wenzhi:                           ## *
-       * ##    not sure which one is more      ## *
-       * ##    efficient here:                 ## *
-       * ##       actually merge the graph     ## *
-       * ##       or mark the set of vertexes  ## *
-       * ##       that are merged              ## *
-       * ######################################## */
+
       // here, we only mark the set of vertexes
       // that to be merged
       for (const auto& vertex_handle : block_set[block_idx]) {

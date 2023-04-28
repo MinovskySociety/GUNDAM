@@ -415,7 +415,7 @@ class Match {
     return true;
   }
 
-  // wenzhi: optimize me
+
   inline std::string hash() const {
     // sort this match container
     std::vector<std::pair<SrcVertexHandleType,

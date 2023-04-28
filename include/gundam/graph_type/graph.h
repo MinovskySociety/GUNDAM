@@ -1643,7 +1643,7 @@ class Graph {
 
       using EdgePtrContentType = EdgePtrContent_<is_const_, !is_const_>;
 
-      // add by wangyj
+
       template <typename              ContainerType_,
                 IteratorDepthType             depth_,
                 IteratorDepthType       begin_depth_, 
@@ -3980,11 +3980,7 @@ class Graph {
                       !ConvertToGraphType::allow_duplicate_edge,
                   "Cannot convert from a graph allows duplicate edge\
                  to a graph does not allow duplicate edge");
-    /// wenzhi ToDo:
-    ///     complete the checking process of the parameters,
-    ///     such as the above statement, if this graph type does
-    ///     not allow duplicate edges but the InputGraphType allows
-    ///     that, then this convert would be illegal
+
     return;
   }
 

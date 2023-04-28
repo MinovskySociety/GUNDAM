@@ -11,11 +11,7 @@
 #include "gundam/type_getter/vertex_handle.h"
 
 namespace GUNDAM {
-/* ######################################################################## *
- * ##  wenzhi:                                                           ## *
- * ##    move dfs code from                                              ## *
- * ##    grape-gundam/src/apps/gar_discover/gar_discover/gar_dfs_code.h  ## *
- * ######################################################################## */
+
 template <class GraphPatternType>
 class DfsCode;
 
@@ -483,21 +479,14 @@ inline std::vector<DfsCode<GraphPatternType>> GetDFSCode(
   }
 
   std::vector<DfsCode<GraphPatternType>> ret_dfs_code_vec;
-  /* ################################################### *
-   * ## wenzhi: has bug here!                         ## *
-   * ##   can have more than two decomposed_patterns  ## *
-   * ################################################### */
+
   assert(decomposed_patterns.size() <= 2);
 
   if (decomposed_patterns[0].CountVertex() == decomposed_patterns[1].CountVertex()
       && decomposed_patterns[0].CountEdge() == decomposed_patterns[1].CountEdge()) {
     ret_dfs_code_vec = ConcatenateDFSCodeFromBothSides(dfs_code_vec[0], dfs_code_vec[1]);
   } else {
-    /* ##################################################### *
-     * ## wenzhi: has bug here!                           ## *
-     * ##   the order of patterns in decomposed_patterns  ## *
-     * ##   is random                                     ## *
-     * ##################################################### */
+
     ret_dfs_code_vec = ConcatenateDFSCodeFromOneSide(dfs_code_vec[0], dfs_code_vec[1]);
   }
   // do something for dis-connected pattern

@@ -1039,23 +1039,6 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
 
   Bfs<true>(query_graph, src_vertex_set, build_dag_callback);
 
-  // // by wenzhi
-  // std::string query_graph_str;
-  // query_graph_str << query_graph;
-  // std::cout << "query graph str" << std::endl
-  //           <<  query_graph_str  << std::endl;
-
-  // for (auto layer_it  = grouped_query_vertex_set.begin();
-  //           layer_it != grouped_query_vertex_set.end();
-  //           layer_it++){
-  //   const auto& distance = layer_it->first;
-  //   auto& vertex_set     = layer_it->second;
-  //   std::cout << "distance: " << distance << std::endl;
-  //   for (const auto& vertex : vertex_set) {
-  //     std::cout << "\t" << vertex->id();
-  //   }
-  //   std::cout << std::endl;
-  // }
 
   auto comp = [&candidate_set](const QueryVertexHandleType& a, 
                                const QueryVertexHandleType& b) -> bool {
@@ -1104,13 +1087,6 @@ std::vector<typename VertexHandle<QueryGraph>::type>> &parent) {
       const auto& previous_layer_vertex_set
                 = previous_layer_it->second;
       for (const auto& vertex_handle : vertex_set) {
-        // std::cout << "wenzhi: distance: " 
-        //           <<          distance << std::endl;
-        // std::cout << "wenzhi: vertex_handle->id(): " 
-        //           <<          vertex_handle->id() << std::endl;
-        // iterate over the vertexes that are connected to
-        // vertex_handle to find whether it is in the previous
-        // layer
         auto parent_it = parent.find(vertex_handle);
         assert(parent_it != parent.end()); // should found that vertex
         auto& parent_vertex_set = parent_it->second;
@@ -1484,38 +1460,7 @@ bool _DPISOUsingMatch(
   QueryVertexHandle next_query_vertex_handle
    = NextMatchVertex<use_dag_order>(candidate_set, match_state, parent);
 
-  // bool wenzhi_debug_to_pause = false;
-  // if (match_state.HasMap(0)
-  //  && match_state.HasMap(3)
-  //  && match_state.HasMap(5)
-  //  && match_state.MapTo(0)->id() == 75502 
-  //  && match_state.MapTo(3)->id() == 55974 
-  //  && match_state.MapTo(5)->id() == 81527) {
-  //   std::cout << "next_query_vertex_handle->id(): "
-  //             <<  next_query_vertex_handle->id() << std::endl;
-  //   std::cout << "candidates: " << std::endl;
-  //   for (const auto& candidate : candidate_set.find(next_query_vertex_handle)->second) {
-  //     std::cout << "\t" << candidate->id() << std::endl;
-  //   }
-  //   wenzhi_debug_to_pause = true;
-  //   getchar();
-  // }
-	// 1186
-	// 7612
-	// 8826
-	// 9820
-	// 11554
-	// 13246
-	// 16533
-	// 32537
-	// 33391
-	// 38795
-	// 49735
-	// 53364
-	// 66531
-	// 74936
-	// 75502
-
+ 
   // should have found next query vertex since the matching 
   // is not ended
   assert(next_query_vertex_handle);
@@ -1554,17 +1499,6 @@ bool _DPISOUsingMatch(
 
   for (const auto &next_target_vertex_handle 
        : candidate_set_for_next_query_vertex) {
-    // if (wenzhi_debug_to_pause) {
-    //   std::cout << "next_query_vertex_handle->id(): "
-    //             <<  next_query_vertex_handle->id() << std::endl;
-    //   std::cout << "next_target_vertex_handle->id(): "
-    //             <<  next_target_vertex_handle->id() << std::endl;
-    //   std::cout << "current_state_fail_set: " << std::endl;
-    //   for (const auto& handle : current_state_fail_set) {
-    //     std::cout << "\t" << handle->id() << std::endl;
-    //   }
-    //   getchar();
-    // }
     if constexpr (use_fail_set) {
       if (!current_state_fail_set.empty()
        && !std::binary_search(current_state_fail_set.begin(),
@@ -1578,13 +1512,6 @@ bool _DPISOUsingMatch(
           auto ret = parent.erase(next_query_vertex_handle);
           assert(ret > 0);
         }
-        // if (wenzhi_debug_to_pause) {
-        //   std::cout << "next_target_vertex_handle contained in current_state_fail_set: " << std::endl;
-        //   for (const auto& handle : current_state_fail_set) {
-        //     std::cout << "\t" << handle->id() << std::endl;
-        //   }
-        //   getchar();
-        // }
         return true;
       }
       if (match_semantics == MatchSemantics::kIsomorphism 
@@ -1608,7 +1535,6 @@ bool _DPISOUsingMatch(
           }
           // is the vertex that match to the same vertex in
           // the target graph
-          // wenzhi: assert fail here!
           assert(parent.find(next_query_vertex_handle)
               != parent.end());
           assert(parent.find(map_it->src_handle())
@@ -1640,12 +1566,6 @@ bool _DPISOUsingMatch(
               next_query_vertex_handle, 
              next_target_vertex_handle, match_state,
                   target_matched)) {
-      // this query-target vertex pair cannot be added to 
-      // the current match state, enumerate the next target vertex
-      // if (wenzhi_debug_to_pause) {
-      //   std::cout << "is not IsJoinable!" << std::endl;
-      //   getchar();
-      // }
       continue;
     }
     // this query-target vertex pair can be added to the current
@@ -1685,20 +1605,7 @@ bool _DPISOUsingMatch(
       // does not use fail set
       continue;
     }
-    // if (wenzhi_debug_to_pause) {
-    //   std::cout << "next_query_vertex_handle->id(): "
-    //             <<  next_query_vertex_handle->id() << std::endl;
-    //   std::cout << "next_target_vertex_handle->id(): "
-    //             <<  next_target_vertex_handle->id() << std::endl;
-    //   std::cout << "next_state_fail_set: " << std::endl;
-    //   for (const auto& vertex_handle : next_state_fail_set) {
-    //     std::cout << "\t" << vertex_handle->id() << std::endl;
-    //   }
-    //   std::cout << "has_one_child_with_empty_fail_set: "
-    //             <<  has_one_child_with_empty_fail_set
-    //             << std::endl;
-    //   getchar();
-    // }
+
     if (has_one_child_with_empty_fail_set) {
       assert(current_state_fail_set.empty());
       continue;
@@ -2602,27 +2509,7 @@ inline int DPISOUsingMatch_Recursive(
   }
   #endif // NDEBUG
 
-  // std::cout << "##  query_graph.CountVertex(): "
-  //           <<      query_graph.CountVertex() << std::endl;
 
-  // std::cout << "##  target_graph.CountVertex(): "
-  //           <<      target_graph.CountVertex() << std::endl;
-
-  // // by wenzhi
-  // std::string query_graph_str;
-  // query_graph_str << query_graph;
-  // std::cout << "##  query graph str" << std::endl
-  //           <<      query_graph_str  << std::endl;
-
-  // std::cout << "candidate_set size()" << std::endl;
-
-  // for (auto& [query_handle, 
-  //             candidate_set] : candidate_set) {
-  //   std::cout << "query_handle->id(): " 
-  //             <<  query_handle->id() << std::endl
-  //             << "candidate_set.size(): " 
-  //             <<  candidate_set.size() << std::endl;
-  // }
             
   if (!CheckMatchIsLegal<match_semantics>(partial_match)) {
     // partial match is not legal.  
@@ -2756,10 +2643,7 @@ inline int DPISOUsingMatch_Recursive(
            TargetGraph> vertex_considered;
 
       while (true) {
-        // add vertexes into the new_src_vertex_handle_set until it does not cover 
-        // all conneceted components
 
-        // std::cout << " wenzhi here0 " << std::endl;
 
         auto remove_vertexes_to_add_callback 
                 = [&vertexes_to_add,
@@ -2771,12 +2655,6 @@ inline int DPISOUsingMatch_Recursive(
           assert(query_graph.CountVertex() == vertexes_to_add.size()
                                           + vertex_considered.size());
 
-          // if (vertexes_to_add.find(query_vertex_handle)
-          //  == vertexes_to_add.end()) {
-          //   std::cout << "wenzhi! vertexes_to_add cannot find query_vertex_handle!!"
-          //             << std::endl;
-          // }
-          // std::cout << "vertexes_to_add.size(): " << vertexes_to_add.size() << std::endl;
           typename std::set<typename VertexHandle<QueryGraph>::type>::size_type 
             erase_size = vertexes_to_add.erase(query_vertex_handle);
           assert(erase_size > 0);
@@ -2791,12 +2669,10 @@ inline int DPISOUsingMatch_Recursive(
         assert(query_graph.CountVertex() == vertexes_to_add.size()
                                         + vertex_considered.size());
 
-        // std::cout << " wenzhi new_src_vertex_handle_set.size(): " 
-        //           <<          new_src_vertex_handle_set.size() << std::endl;
 
         Bfs<true>(query_graph, new_src_vertex_handle_set, remove_vertexes_to_add_callback);
 
-        // std::cout << " wenzhi here1 " << std::endl;
+
 
         assert(query_graph.CountVertex() == vertexes_to_add.size()
                                         + vertex_considered.size());

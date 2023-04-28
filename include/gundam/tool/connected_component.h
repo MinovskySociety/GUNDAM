@@ -16,12 +16,7 @@ GraphType ConnectedComponent(GraphType& graph,
   assert(graph.FindVertex(vertex_handle->id()));
   assert(graph.FindVertex(vertex_handle->id())
                        == vertex_handle);
-  /* ####################################### *
-   * ##  wenzhi:                          ## *
-   * ##    to simplify the implemention,  ## *
-   * ##    grab a vertex_handle-centered  ## *
-   * ##    with a large enough k          ## *
-   * ####################################### */
+
   return KHop<bidirectional>(graph, vertex_handle, 
                              graph.CountVertex());
 }
@@ -40,11 +35,7 @@ std::vector<GraphType>  // OK to return vector after C11
   std::vector<GraphType> connected_components;
   connected_components.clear();
 
-  /* ################################################# *
-   * ##  wenzhi: optimize me                        ## *
-   * ##    to support const GraphType in            ## *
-   * ##    ConnectedComponent(graph, vertex_handle  ## *
-   * ################################################# */
+
   GraphType temp_graph(graph);
   GraphType k_hop_subgraph;
 

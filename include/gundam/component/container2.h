@@ -477,7 +477,7 @@ class PointerVector {
  public:
   PointerVector() = default;
 
-  // wenzhi shallow copy
+
   PointerVector &operator=(const PointerVector &b) = default;
   PointerVector(const PointerVector &b) = default;
 

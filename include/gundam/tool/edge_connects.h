@@ -9,7 +9,7 @@
 
 namespace GUNDAM {
 
-// wenzhi: to test & optimize me!
+
 // ok to return vector after C11
 template <typename GraphType, bool bidirectional = false>
 std::vector<typename EdgeHandle<GraphType>::type> 

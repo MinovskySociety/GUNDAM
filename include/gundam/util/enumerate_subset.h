@@ -58,7 +58,7 @@ bool Search(const std::vector<ElementType>& set,
 
 }; // namespace _enumerate_subset
 
-// wenzhi: optimize me!
+
 template <bool ordered_by_element_num = false,
           typename  ElementType,
           typename CallbackType>
@@ -72,7 +72,7 @@ size_t EnumerateSubset(const std::vector<ElementType>& set,
     assert(subset.empty());
   }
   else {
-    // wenzhi: optimize me!
+
     for (int element_num = 1; element_num <= set.size(); element_num++) {
       assert(subset.empty());
       _enumerate_subset::Search<true>(set, subset, subset_count, 0, element_num, callback);

@@ -16,21 +16,14 @@ inline typename EdgeHandle<GraphType>::type
                      typename    EdgeLabel<GraphType>::type edge_label,
                      typename VertexHandle<GraphType>::type dst_handle) {
 
-  // wenzhi:
-  // ## optimize me ##################################################
-  // #  compare the number of the input edges of dst_handle and the  #
-  // #  output edges of src_hanlde, iterate the smaller one          #
-  // #################################################################
+
 
   assert(src_handle);
   assert(dst_handle);
 
   using EdgeHandleType = typename EdgeHandle<GraphType>::type;
 
-  // wenzhi:
-  // ## optimize me #############################
-  // #  use vertex level EdgeLabelIdx if it has #
-  // ############################################
+
   for (auto out_edge_it = src_handle->OutEdgeBegin();
            !out_edge_it.IsDone();
             out_edge_it++) {
@@ -68,11 +61,7 @@ inline typename EdgeHandle<GraphType>::type
             FindEdge(typename VertexHandle<GraphType>::type src_handle,
                      typename VertexHandle<GraphType>::type dst_handle) {
 
-  // wenzhi:
-  // ## optimize me ##################################################
-  // #  compare the number of the input edges of dst_handle and the  #
-  // #  output edges of src_hanlde, iterate the smaller one          #
-  // #################################################################
+
 
   assert(src_handle);
   assert(dst_handle);

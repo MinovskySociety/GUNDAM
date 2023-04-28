@@ -425,15 +425,7 @@ bool StarCoverByPath(StarGraphType&  star,
 */
 
 
-  /* ########################## *
-   * ##  do some thing here  ## *
-   * ########################## */
 
-  // wenzhi:  hint:
-  //   use MatchUsingMatch with given partial_match, 
-  //   see "Helper method3", or other helper methods
-  //   in doc/prog_doc/match_using_match.md
-//  assert(false);
 }
 
 };
