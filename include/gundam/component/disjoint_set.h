@@ -1,18 +1,22 @@
 #ifndef _GUNDAM_COMPONENT_DISJOINT_SET_H
 #define _GUNDAM_COMPONENT_DISJOINT_SET_H
 
+#include <vector>
+#include <unordered_map>
+#include <cassert>
+
 namespace GUNDAM {
 
 template<typename ElementType,
-         bool kElementTypeConvertable = true>
+         bool kElementTypeConvertableToIdx = true>
 class DisjointSet {
  private:
-  // static constexpr bool kElementTypeConvertable
+  // static constexpr bool kElementTypeConvertableToIdx
   //  = std::is_convertible<ElementType, typename std::vector<ElementType>::size_type>::value;
 
   // return the father of x
   inline ElementType& GetFather(const ElementType& x) {
-    if constexpr (kElementTypeConvertable) {
+    if constexpr (kElementTypeConvertableToIdx) {
       // this->father_ is a vector
       assert(x >= 0);
       // added an element that have not been considered before
@@ -25,7 +29,7 @@ class DisjointSet {
       }
       return this->father_[x];
     }
-    if constexpr (!kElementTypeConvertable) {
+    if constexpr (!kElementTypeConvertableToIdx) {
       // this->father_ is a map
       auto father_it = this->father_.find(x);
       if (father_it != this->father_.end()) {
@@ -44,7 +48,7 @@ class DisjointSet {
   DisjointSet() = default;
 
   DisjointSet(size_t expand_node_size) {
-    if constexpr (kElementTypeConvertable) {
+    if constexpr (kElementTypeConvertableToIdx) {
       // this->father_ is a vector
       this->father_.resize(expand_node_size);
       for (ElementType i = 0; i < expand_node_size; i++) {
@@ -66,10 +70,10 @@ class DisjointSet {
   }
 
  private:
-  typename std::conditional<kElementTypeConvertable, 
-                            std::vector<ElementType>,
-                            std::  map <ElementType,
-                                        ElementType> >::type father_;
+  std::conditional_t<kElementTypeConvertableToIdx, 
+                     std::vector<ElementType>,
+              std::unordered_map<ElementType,
+                                 ElementType> > father_;
 };
 
 };

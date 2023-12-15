@@ -11,10 +11,10 @@ namespace GUNDAM {
 
 // wenzhi: to test & optimize me!
 // ok to return vector after C11
-template <typename GraphType, bool bidirectional = false>
+template <typename GraphType, bool bidirectional = false, typename ContainerType>
 std::vector<typename EdgeHandle<GraphType>::type> 
-  EdgesConnect(const std::vector<typename VertexHandle<GraphType>::type>& src_handle_set,
-        const std::unordered_set<typename VertexHandle<GraphType>::type>& dst_handle_set) {
+  EdgesConnect(const ContainerType& src_handle_set,
+               const std::unordered_set<typename VertexHandle<GraphType>::type>& dst_handle_set) {
   std::vector<typename EdgeHandle<GraphType>::type> connected_edge_set;
   for (const auto& src_handle : src_handle_set) {
     // first consider the edges from src_handle_set toward dst_handle_set

@@ -155,10 +155,10 @@ class GIterator2 {
     return PointerType(ValueType(graph_, *it_));
   }
 
-  operator PointerType() { 
-    assert(!this->IsDone());
-    return PointerType(ValueType(graph_, *it_)); 
-  }
+  // operator PointerType() { 
+  //   assert(!this->IsDone());
+  //   return PointerType(ValueType(graph_, *it_)); 
+  // }
 
   operator const PointerType() const {
     assert(!this->IsDone());

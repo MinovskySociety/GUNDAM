@@ -408,6 +408,12 @@ class SmallGraph {
       return this->id_ < b.id_;
     }
 
+    // from non-const to const
+    inline operator _Vertex<true>() const {
+      return _Vertex<true>(this->inner_graph_ptr_,
+                           this->id_);
+    }
+
     void Print() const {
       std::cout << "this->inner_graph_ptr_: " << this->inner_graph_ptr_ << std::endl;
       std::cout << "this->id_             : " << this->id_              << std::endl;

@@ -87,6 +87,40 @@ class GPointer {
     return v_ < b.v_; 
   }
 
+  template <bool input_is_const>
+  GPointer(const GPointer<input_is_const,
+                             ContentType,
+                        ConstContentType> &b) {
+    this->v_ = b.v_;
+    return;
+  }
+
+  template <bool input_is_const>
+  GPointer(GPointer<input_is_const,
+                       ContentType,
+                  ConstContentType> &&b) {
+    this->v_ = b.v_;
+    b.v_.Reset();
+    return;
+  }
+
+  template <bool input_is_const>
+  GPointer &operator=(const GPointer<input_is_const,
+                                        ContentType,
+                                   ConstContentType> &b) {
+    this->v_ = b.v_;
+    return *this;
+  }
+
+  template <bool input_is_const>
+  GPointer &operator=(GPointer<input_is_const,
+                                  ContentType,
+                             ConstContentType> &&b) {
+    this->v_ = b.v_;
+    b.v_.Reset();
+    return *this;
+  }
+
   template <bool input_is_const,
             typename InputConstContentType,
             typename      InputContentType>
