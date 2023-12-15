@@ -10,6 +10,72 @@ namespace GUNDAM {
 
 template <bool bidirectional = true,
           typename GraphType>
+std::vector<typename GUNDAM::VertexID<GraphType>::type> 
+  KHopVertexId(GraphType& graph,
+  const std::vector<typename GUNDAM::VertexID<GraphType>::type>& src_vertex_id_set,
+             size_t k){
+
+  using VertexHandleType = typename GUNDAM::VertexHandle<GraphType>::type;
+
+  using VertexIDType = typename GUNDAM::VertexID<GraphType>::type;
+
+  std::vector<VertexIDType> k_hop_vertex_id;
+
+  auto hop_callback = [&k_hop_vertex_id
+                      #ifndef NDEBUG
+                      ,&k
+                      #endif
+                      ](
+        VertexHandleType vertex_handle,
+        uint32_t bfs_idx,
+        uint32_t distance
+      ){
+    assert(distance <= k);
+
+    k_hop_vertex_id.emplace_back(vertex_handle->id());
+    
+    return true;
+  };
+
+  GUNDAM::Bfs<bidirectional>(graph, src_vertex_id_set, hop_callback, k);
+
+  return k_hop_vertex_id;
+}
+
+template <bool bidirectional = true,
+          typename GraphType>
+std::vector<typename GUNDAM::VertexHandle<GraphType>::type> 
+  KHopVertex(GraphType& graph,
+  const std::vector<typename GUNDAM::VertexID<GraphType>::type>& src_vertex_id_set,
+             size_t k){
+
+  using VertexHandleType = typename GUNDAM::VertexHandle<GraphType>::type;
+
+  std::vector<VertexHandleType> k_hop_vertex;
+
+  auto hop_callback = [&k_hop_vertex
+                      #ifndef NDEBUG
+                      ,&k
+                      #endif
+                      ](
+        VertexHandleType vertex_handle,
+        uint32_t bfs_idx,
+        uint32_t distance
+      ){
+    assert(distance <= k);
+
+    k_hop_vertex.emplace_back(vertex_handle);
+    
+    return true;
+  };
+
+  GUNDAM::Bfs<bidirectional>(graph, src_vertex_id_set, hop_callback, k);
+
+  return k_hop_vertex;
+}
+
+template <bool bidirectional = true,
+          typename GraphType>
 GraphType KHop(GraphType& graph,
          const std::set<typename GUNDAM::VertexHandle<GraphType>::type>& src_handle_set,
                size_t k){

@@ -173,7 +173,7 @@ inline std::vector<TargetGraph> StrongSimulation(
     // find connected component containing w
     maximum_perfect_subgraphs.emplace_back(ConnectedComponent<true>(Gm, Gm.FindVertex(w_vertex_handle->id())));
   }
-  return std::move(maximum_perfect_subgraphs);
+  return maximum_perfect_subgraphs;
 };
 
 

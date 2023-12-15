@@ -10,7 +10,8 @@ namespace GUNDAM {
 
 namespace _duplicate_vertex {
 
-template <typename GraphType>
+template <bool copy_edge = true,
+          typename GraphType>
 inline auto _DuplicateVertex(GraphType& graph,
  const typename VertexHandle<GraphType>::type&     vertex_handle_to_duplicate,
        typename VertexID    <GraphType>::type& new_vertex_id,
@@ -35,6 +36,10 @@ inline auto _DuplicateVertex(GraphType& graph,
       assert(!attr_handle.IsNull());
       assert(attr_ret);
     }
+  }
+
+  if constexpr (!copy_edge) {
+    return new_vertex_handle;
   }
 
   for (auto edge_it = vertex_handle_to_duplicate->OutEdgeBegin();
@@ -99,8 +104,9 @@ inline auto _DuplicateVertex(GraphType& graph,
 
 }; // _duplicate_vertex
 
-template <typename GraphType>
-inline bool DuplicateVertex(GraphType& graph,
+template <bool copy_edge = true,
+          typename GraphType>
+inline auto DuplicateVertex(GraphType& graph,
 const typename VertexHandle<GraphType>::type& vertex_handle_to_duplicate) {
   assert(graph.FindVertex( vertex_handle_to_duplicate->id() )
                         == vertex_handle_to_duplicate );
@@ -109,9 +115,9 @@ const typename VertexHandle<GraphType>::type& vertex_handle_to_duplicate) {
   auto new_edge_id   = MaxEdgeID(graph) + 1;
 
   return _duplicate_vertex
-       ::_DuplicateVertex(graph, vertex_handle_to_duplicate,
-                          new_vertex_id,
-                          new_edge_id);
+       ::_DuplicateVertex<copy_edge>(graph, vertex_handle_to_duplicate,
+                                     new_vertex_id,
+                                     new_edge_id);
 }
 
 template <typename GraphType>

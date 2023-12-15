@@ -1,10 +1,15 @@
-#ifndef _GUNDAM_TOOL_CONNECTED_H
-#define _GUNDAM_TOOL_CONNECTED_H
+#ifndef _GUNDAM_TOOL_GET_NEIGHBORS_H
+#define _GUNDAM_TOOL_GET_NEIGHBORS_H
+
+#include <unordered_map>
+#include <vector>
 
 #include "gundam/algorithm/dfs.h"
 
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/vertex_id.h"
+
+#include <unordered_set>
 
 namespace GUNDAM {
 
@@ -22,10 +27,12 @@ class default_prune_callback {
 
 // ok to return vector after C11
 template <typename GraphType, bool bidirectional = false,
-          typename PruneCallbackType = _get_neighbors::default_prune_callback<typename VertexHandle<GraphType>::type>>
+          typename PruneVertexCallbackType = _get_neighbors::default_prune_callback<typename VertexHandle<GraphType>::type>,
+          typename   PruneEdgeCallbackType = _get_neighbors::default_prune_callback<typename   EdgeHandle<GraphType>::type>>
 std::vector<typename VertexHandle<GraphType>::type> 
   GetNeighborVertexSet(const std::vector<typename VertexHandle<GraphType>::type>& source_vertex_set,
-                       PruneCallbackType prune_callback = _get_neighbors::default_prune_callback<typename VertexHandle<GraphType>::type>()) {
+                       const PruneVertexCallbackType& prune_vertex_callback = _get_neighbors::default_prune_callback<typename VertexHandle<GraphType>::type>(),
+                       const   PruneEdgeCallbackType&   prune_edge_callback = _get_neighbors::default_prune_callback<typename   EdgeHandle<GraphType>::type>()) {
   
   std::vector<typename VertexHandle<GraphType>::type> neighbors;
 
@@ -35,7 +42,10 @@ std::vector<typename VertexHandle<GraphType>::type>
     for (auto out_edge_it = source_vertex->OutEdgeBegin();
              !out_edge_it.IsDone();
               out_edge_it++) {
-      if (prune_callback(out_edge_it->dst_handle())) {
+      if (prune_edge_callback(out_edge_it)) {
+        continue;
+      }
+      if (prune_vertex_callback(out_edge_it->dst_handle())) {
         continue;
       }
       neighbors.emplace_back(out_edge_it->dst_handle());
@@ -46,7 +56,10 @@ std::vector<typename VertexHandle<GraphType>::type>
       for (auto in_edge_it = source_vertex->InEdgeBegin();
                !in_edge_it.IsDone();
                 in_edge_it++) {
-        if (prune_callback(in_edge_it->src_handle())) {
+        if (prune_edge_callback(in_edge_it)) {
+          continue;
+        }
+        if (prune_vertex_callback(in_edge_it->src_handle())) {
           continue;
         }
         neighbors.emplace_back(in_edge_it->src_handle());
@@ -109,10 +122,11 @@ std::vector<typename EdgeHandle<GraphType>::type>
 
 template <typename GraphType,
           bool bidirectional = false,
-          typename PruneCallbackType = _get_neighbors::default_prune_callback<typename VertexHandle<GraphType>::type>>
+          typename PruneEdgeCallbackType>
 inline std::vector<typename VertexHandle<GraphType>::type> 
   GetNeighborVertexSetExclude(const std::vector<typename VertexHandle<GraphType>::type>&    source_vertex_set,
-                       const std::unordered_set<typename VertexHandle<GraphType>::type>& exclusion_vertex_set) {
+                       const std::unordered_set<typename VertexHandle<GraphType>::type>& exclusion_vertex_set,
+                            const PruneEdgeCallbackType& prune_edge_callback) {
   
   auto exclude_vertex_callback = [&exclusion_vertex_set](
       const typename VertexHandle<GraphType>::type& vertex_handle) -> bool {
@@ -120,14 +134,16 @@ inline std::vector<typename VertexHandle<GraphType>::type>
         != exclusion_vertex_set.end();
   };
                                 
-  return GetNeighborVertexSet(source_vertex_set,  exclude_vertex_callback);
+  return GetNeighborVertexSet<GraphType, bidirectional>(source_vertex_set,  exclude_vertex_callback, prune_edge_callback);
 }
 
 template <typename GraphType,
-          bool bidirectional = false>
+          bool bidirectional = false,
+          typename PruneEdgeCallbackType>
 inline std::vector<typename VertexHandle<GraphType>::type> 
   GetNeighborVertexSetExclude(const std::vector<typename VertexHandle<GraphType>::type>&    source_vertex_set,
-                       const std::unordered_set<typename VertexID    <GraphType>::type>& exclusion_vertex_set) {
+                       const std::unordered_set<typename VertexID    <GraphType>::type>& exclusion_vertex_set,
+                            const PruneEdgeCallbackType& prune_edge_callback) {
   
   auto exclude_vertex_callback = [&exclusion_vertex_set](
       const typename VertexHandle<GraphType>::type& vertex_handle) -> bool {
@@ -135,14 +151,17 @@ inline std::vector<typename VertexHandle<GraphType>::type>
         != exclusion_vertex_set.end();
   };
                                 
-  return GetNeighborVertexSet<GraphType, bidirectional>(source_vertex_set,  exclude_vertex_callback);
+  return GetNeighborVertexSet<GraphType, bidirectional>(source_vertex_set,  exclude_vertex_callback, prune_edge_callback);
 }
 
-template <bool bidirectional = false, typename GraphType>
+template <bool bidirectional = false, 
+          typename GraphType,
+          typename PruneEdgeCallbackType>
 inline std::vector<typename VertexHandle<GraphType>::type> 
   GetNeighborVertexSetExclude(GraphType& graph,
                               const std::vector<typename VertexID<GraphType>::type>&    source_vertex_set,
-                       const std::unordered_set<typename VertexID<GraphType>::type>& exclusion_vertex_set) {
+                       const std::unordered_set<typename VertexID<GraphType>::type>& exclusion_vertex_set,
+                            const PruneEdgeCallbackType& prune_edge_callback) {
 
   std::vector<typename VertexHandle<GraphType>::type> source_vertex_handle_set;
   source_vertex_handle_set.reserve(source_vertex_set.size());
@@ -157,14 +176,17 @@ inline std::vector<typename VertexHandle<GraphType>::type>
   }
                                 
   return GetNeighborVertexSetExclude<GraphType, bidirectional>(source_vertex_handle_set,  
-                                                            exclusion_vertex_set);
+                                                            exclusion_vertex_set, prune_edge_callback);
 }
 
-template <bool bidirectional = false, typename GraphType>
+template <bool bidirectional = false, 
+          typename GraphType,
+          typename PruneEdgeCallbackType>
 inline std::vector<typename VertexHandle<GraphType>::type> 
   GetNeighborVertexSetExclude(GraphType& graph,
                        const std::unordered_set<typename VertexID<GraphType>::type>&    source_vertex_set,
-                       const std::unordered_set<typename VertexID<GraphType>::type>& exclusion_vertex_set) {
+                       const std::unordered_set<typename VertexID<GraphType>::type>& exclusion_vertex_set,
+                            const PruneEdgeCallbackType& prune_edge_callback) {
 
   std::vector<typename VertexHandle<GraphType>::type> source_vertex_handle_set;
   source_vertex_handle_set.reserve(source_vertex_set.size());
@@ -178,10 +200,70 @@ inline std::vector<typename VertexHandle<GraphType>::type>
     source_vertex_handle_set.emplace_back(vertex_handle);
   }
                                 
-  return GetNeighborVertexSet<GraphType>(source_vertex_handle_set,  
-                                      exclusion_vertex_set);
+  return GetNeighborVertexSet<GraphType, bidirectional>(source_vertex_handle_set,  
+                                                     exclusion_vertex_set, prune_edge_callback);
+}
+
+template <typename GraphType,
+          bool bidirectional = false>
+inline std::vector<typename VertexHandle<GraphType>::type> 
+  GetNeighborVertexSetExclude(const std::vector<typename VertexHandle<GraphType>::type>&    source_vertex_set,
+                       const std::unordered_set<typename VertexHandle<GraphType>::type>& exclusion_vertex_set) {
+  
+  auto prune_non_edge_callback = [](const typename EdgeHandle<GraphType>::type& edge_handle) -> bool {
+    return false;
+  };
+
+  return GetNeighborVertexSetExclude<bidirectional, GraphType>(source_vertex_set,  
+                                                            exclusion_vertex_set,
+                                                            prune_non_edge_callback);
+}
+
+template <typename GraphType,
+          bool bidirectional = false>
+inline std::vector<typename VertexHandle<GraphType>::type> 
+  GetNeighborVertexSetExclude(const std::vector<typename VertexHandle<GraphType>::type>&    source_vertex_set,
+                       const std::unordered_set<typename VertexID    <GraphType>::type>& exclusion_vertex_set) {
+  
+  auto prune_non_edge_callback = [](const typename EdgeHandle<GraphType>::type& edge_handle) -> bool {
+    return false;
+  };
+                                
+  return GetNeighborVertexSetExclude<bidirectional, GraphType>(source_vertex_set, 
+                                                            exclusion_vertex_set, 
+                                                            prune_non_edge_callback);
+}
+
+template <bool bidirectional = false, typename GraphType>
+inline std::vector<typename VertexHandle<GraphType>::type> 
+  GetNeighborVertexSetExclude(GraphType& graph,
+                              const std::vector<typename VertexID<GraphType>::type>&    source_vertex_set,
+                       const std::unordered_set<typename VertexID<GraphType>::type>& exclusion_vertex_set) {
+  
+  auto prune_non_edge_callback = [](const typename EdgeHandle<GraphType>::type& edge_handle) -> bool {
+    return false;
+  };
+                                
+  return GetNeighborVertexSetExclude<bidirectional, GraphType>(graph, source_vertex_set,  
+                                                                   exclusion_vertex_set,
+                                                                   prune_non_edge_callback);
+}
+
+template <bool bidirectional = false, typename GraphType>
+inline std::vector<typename VertexHandle<GraphType>::type> 
+  GetNeighborVertexSetExclude(GraphType& graph,
+                       const std::unordered_set<typename VertexID<GraphType>::type>&    source_vertex_set,
+                       const std::unordered_set<typename VertexID<GraphType>::type>& exclusion_vertex_set) {
+  
+  auto prune_non_edge_callback = [](const typename EdgeHandle<GraphType>::type& edge_handle) -> bool {
+    return false;
+  };
+                                
+  return GetNeighborVertexSetExclude<bidirectional, GraphType>(graph, source_vertex_set,  
+                                                                   exclusion_vertex_set,
+                                                                   prune_non_edge_callback);
 }
 
 }  // namespace GUNDAM
 
-#endif // _GUNDAM_TOOL_CONNECTED_H
+#endif // _GUNDAM_TOOL_GET_NEIGHBORS_H

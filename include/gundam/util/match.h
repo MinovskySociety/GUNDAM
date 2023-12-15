@@ -260,7 +260,7 @@ class Match {
       assert(ret);
     }
     assert(this->size() == reverse_match.size());
-    return reverse_match;
+    return std::move(reverse_match);
   }
 
   // /// constant dst
@@ -415,7 +415,7 @@ class Match {
     return true;
   }
 
-
+  // wenzhi: optimize me
   inline std::string hash() const {
     // sort this match container
     std::vector<std::pair<SrcVertexHandleType,

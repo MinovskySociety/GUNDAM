@@ -2763,6 +2763,7 @@ inline int DPISOUsingMatch_Recursive(
   const auto &match_handle_candidate 
             = candidate_set.find(next_query_handle)->second;
   auto begin_time = std::time(NULL);
+  // #pragma omp parallel for schedule(dynamic) 
   for (int i = 0; i < match_handle_candidate.size(); i++) {
     /* ######################################################## *
      * ##  it might be unnecessary to set the lock here      ## *
