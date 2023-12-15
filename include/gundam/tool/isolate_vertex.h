@@ -1,6 +1,7 @@
 #ifndef _GUNDAM_TOOL_HAS_ISOLATE_VERTEX_H
 #define _GUNDAM_TOOL_HAS_ISOLATE_VERTEX_H
 
+#include "gundam/type_getter/vertex_id.h"
 #include "gundam/type_getter/vertex_handle.h"
 namespace GUNDAM {
 
