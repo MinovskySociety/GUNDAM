@@ -19,7 +19,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   message("GNU")
-  #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g  -m64 -fexpensive-optimizations -O3" )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g  -m64 -fexpensive-optimizations -O3 -flto=auto") # -Wall" )
 
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   message("Clang")

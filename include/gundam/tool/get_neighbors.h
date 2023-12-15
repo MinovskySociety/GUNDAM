@@ -6,6 +6,8 @@
 #include "gundam/type_getter/vertex_handle.h"
 #include "gundam/type_getter/vertex_id.h"
 
+#include <unordered_set>
+
 namespace GUNDAM {
 
 namespace _get_neighbors {
@@ -107,21 +109,21 @@ std::vector<typename EdgeHandle<GraphType>::type>
   return neighbor_edges;
 }
 
-template <typename GraphType,
-          bool bidirectional = false,
-          typename PruneCallbackType = _get_neighbors::default_prune_callback<typename VertexHandle<GraphType>::type>>
-inline std::vector<typename VertexHandle<GraphType>::type> 
-  GetNeighborVertexSetExclude(const std::vector<typename VertexHandle<GraphType>::type>&    source_vertex_set,
-                       const std::unordered_set<typename VertexHandle<GraphType>::type>& exclusion_vertex_set) {
+// template <typename GraphType,
+//           bool bidirectional = false,
+//           typename PruneCallbackType = _get_neighbors::default_prune_callback<typename VertexHandle<GraphType>::type>>
+// inline std::vector<typename VertexHandle<GraphType>::type> 
+//   GetNeighborVertexSetExclude(const std::vector<typename VertexHandle<GraphType>::type>&    source_vertex_set,
+//                        const std::unordered_set<typename VertexHandle<GraphType>::type>& exclusion_vertex_set) {
   
-  auto exclude_vertex_callback = [&exclusion_vertex_set](
-      const typename VertexHandle<GraphType>::type& vertex_handle) -> bool {
-    return exclusion_vertex_set.find(vertex_handle)
-        != exclusion_vertex_set.end();
-  };
+//   auto exclude_vertex_callback = [&exclusion_vertex_set](
+//       const typename VertexHandle<GraphType>::type& vertex_handle) -> bool {
+//     return exclusion_vertex_set.find(vertex_handle)
+//         != exclusion_vertex_set.end();
+//   };
                                 
-  return GetNeighborVertexSet(source_vertex_set,  exclude_vertex_callback);
-}
+//   return GetNeighborVertexSet(source_vertex_set,  exclude_vertex_callback);
+// }
 
 template <typename GraphType,
           bool bidirectional = false>
