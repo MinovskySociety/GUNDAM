@@ -1,4 +1,4 @@
-# **G**raph **U**nified **N**on-overhead **D**evisable **A**daptive **M**odel
+# **G**raph **U**nified **N**on-overhead **D**evisable **A**dvanced **M**odule
 
 ## Introduction
 
