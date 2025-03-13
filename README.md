@@ -568,3 +568,12 @@ Detailed explanation see [here](/doc/prog_doc/serialize.md).
 
 ## Works with publication
 ![](/doc/images/all_works.svg)
+
+
+```
+@software{GUNDAM,
+    author = {Fu, Wenzhi},
+    title = {{GUNDAM}},
+    url = {https://github.com/MinovskySociety/GUNDAM}
+}
+```
