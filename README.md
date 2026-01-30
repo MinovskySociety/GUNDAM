@@ -3,6 +3,7 @@
 ## Introduction
 
 GUNDAM is a fundamental library for graph computing that provides a *unified*, *graph-level*, *static* abstraction without bring overhead. 
+This separates graph algorithms from graph data structures, enabling the same algorithm to compile over different representations without modification or runtime overhead.
 
 [Vision of project GUNDAM](/doc/user_doc/vision_of_project_gundam.pdf)
 
